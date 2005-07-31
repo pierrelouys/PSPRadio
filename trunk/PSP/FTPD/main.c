@@ -4,8 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pspthreadman.h>
-#include "rafTools.h"
+#include "Tools.h"
 #include "pspnet.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "pg.h"
 #include "ftp.h"
 #include "_itoa.h"

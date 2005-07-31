@@ -38,6 +38,10 @@
 	int sceNetApctlGetInfo(u32 r4, void* r5);
 	int sceNetApctlDisconnect();
 	
+	
+
+	#define SOCKET int
+
 	//defined in sdk (psputility.h/psputility_netconf.h)//int sceUtilityCheckNetParam(int iConfig);
 	//same as above//int sceUtilityGetNetParam(int iConfig, u32 r5_gettype, void* r6return);
 	
@@ -69,13 +73,14 @@
 		};
 	#endif
 
+	#if 0
 	struct sockaddr {
 		unsigned char sa_len;
 		unsigned char sa_family;              /* address family */
 		// REVIEW: is this correct?
 		char    sa_data[14];            /* up to 14 bytes of direct address */
 	};
-	
+	#endif
 	
 	#if 0 //RC: Moved most of these to sys/socket.h
 	SOCKET sceNetInetSocket(int af, int type, int protocol);
@@ -114,9 +119,10 @@
 	int sceNetInetInetPton(
 	#endif
 	
+	#if 0 // defined in netinet/in.h
 	// Other utilities
 	unsigned short htons(unsigned short wIn);
 	unsigned long htonl(unsigned long dwIn);
-	
+	#endif
 	///////////////////////////////////////////////
 #endif
