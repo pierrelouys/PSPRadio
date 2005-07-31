@@ -1,5 +1,9 @@
 #ifndef __PSPNET_H
 #define __PSPNET_H
+	
+	#ifndef __PSP__
+	#define __PSP__
+	#endif
 
 	#include <sys/types.h>
 	#include <psputility.h>
@@ -37,24 +41,34 @@
 	//defined in sdk (psputility.h/psputility_netconf.h)//int sceUtilityCheckNetParam(int iConfig);
 	//same as above//int sceUtilityGetNetParam(int iConfig, u32 r5_gettype, void* r6return);
 	
-	
-	// socket layer - patterned after Berkeley/WinSock sockets 
-	// functions in this header can be used directly after init
-	// if you prefer, you can #define them to the regular "socket()", "send()", "recv()" names
-	//typedef int size_t;
-	typedef size_t socklen_t;
-	#define SOCKET int						/* for 'socket()' */
-	#define AF_INET         2               /* internetwork: UDP, TCP, etc. */
-	#define SOCK_STREAM     1               /* stream socket */
-	#define SOCK_DGRAM      2               /* datagram socket */
-	#define TCP_NODELAY     0x0001
-	#define IPPROTO_TCP     6
-	#define IPPROTO_UDP     17
-	#define IPPROTO_IP      0
-	
-	#define SOL_SOCKET	0xffff
-	#define SO_NOBLOCK	0x1009
-	
+	#if 0 //RC: Defined in netinet/in.h
+		// socket layer - patterned after Berkeley/WinSock sockets 
+		// functions in this header can be used directly after init
+		// if you prefer, you can #define them to the regular "socket()", "send()", "recv()" names
+		//typedef int size_t;
+		typedef size_t socklen_t;
+		#define SOCKET int						/* for 'socket()' */
+		#define AF_INET         2               /* internetwork: UDP, TCP, etc. */
+		#define SOCK_STREAM     1               /* stream socket */
+		#define SOCK_DGRAM      2               /* datagram socket */
+		#define TCP_NODELAY     0x0001
+		#define IPPROTO_TCP     6
+		#define IPPROTO_UDP     17
+		#define IPPROTO_IP      0
+		
+		#define SOL_SOCKET	0xffff
+		#define SO_NOBLOCK	0x1009
+		
+		// Socket address, internet style.
+		struct sockaddr_in {
+			unsigned char sin_len;
+			unsigned char sin_family; // REVIEW: is this correct ?
+			unsigned short sin_port; // use htons()
+			unsigned char sin_addr[4];
+			char    sin_zero[8];
+		};
+	#endif
+
 	struct sockaddr {
 		unsigned char sa_len;
 		unsigned char sa_family;              /* address family */
@@ -62,31 +76,8 @@
 		char    sa_data[14];            /* up to 14 bytes of direct address */
 	};
 	
-	// Socket address, internet style.
-	struct sockaddr_in {
-		unsigned char sin_len;
-		unsigned char sin_family; // REVIEW: is this correct ?
-		unsigned short sin_port; // use htons()
-		unsigned char sin_addr[4];
-		char    sin_zero[8];
-	};
 	
-	/* From glibc's bits/socket.h: Structure describing messages sent by
-	`sendmsg' and received by `recvmsg'.  */
-	struct msghdr
-	{
-		void *msg_name;		/* Address to send to/receive from.  */
-		socklen_t msg_namelen;	/* Length of address data.  */
-	
-		struct iovec *msg_iov;	/* Vector of data to send/receive into.  */
-		size_t msg_iovlen;		/* Number of elements in the vector.  */
-		
-		void *msg_control;		/* Ancillary data (eg BSD filedesc passing). */
-		size_t msg_controllen;	/* Ancillary data buffer length.  */
-		
-		int msg_flags;		/* Flags on received message.  */
-	};
-	
+	#if 0 //RC: Moved most of these to sys/socket.h
 	SOCKET sceNetInetSocket(int af, int type, int protocol);
 	int sceNetInetSend(SOCKET s, const void* buf, int len, int flags);
 	int sceNetInetSendto(SOCKET s, const void* buf, int len, int flags,
@@ -96,6 +87,7 @@
 	int sceNetInetClose(SOCKET s);
 	int sceNetInetGetErrno();
 	int sceNetInetRecv(SOCKET s, void* buf, int len, int flags);
+	/** select - synchronous I/O multiplexing */
 	int sceNetInetSelect(SOCKET s, fd_set *r, fd_set *w, fd_set *o, struct timeval *timeout);
 	int sceNetInetSetsockopt (SOCKET s, int level, int optname, const void *val, int len);
 	int sceNetInetListen(SOCKET s, int backlog);
@@ -105,11 +97,7 @@
 	int sceNetInetGetpeername(SOCKET s, struct sockaddr *address, socklen_t *address_len);
 	/** recvmsg - receive a message from a socket */
 	int sceNetInetRecvmsg(SOCKET s, struct msghdr *message, int flags);
-	/** select - synchronous I/O multiplexing */
-	int sceNetInetSelect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *errorfds, struct timeval *timeout);
 	
-	
-	#if 0
 	//REVIEW: flesh these in
 	int sceNetInetCloseWithRST(SOCKET s);
 	int sceNetInetGetsockname(
