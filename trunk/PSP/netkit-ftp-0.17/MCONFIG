@@ -12,7 +12,7 @@ EXECPREFIX=/usr
 INSTALLROOT=
 CC=psp-gcc
 #CFLAGS=-O2 -Wall -W -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Winline 
-CFLAGS=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I/usr/local/pspdev/psp/sdk/include -I../../SharedLib/libnet
+CFLAGS=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I/usr/local/pspdev/psp/sdk/include -I../../SharedLib/libnet -I../../SharedLib/Tools
 LDFLAGS=
 LIBS=
 LIBTERMCAP=

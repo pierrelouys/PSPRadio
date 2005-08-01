@@ -68,6 +68,8 @@ char cmds_rcsid[] =
 #include "cmds.h"
 #include "glob.h"
 
+#include "Tools.h"
+
 void intr(int);
 
 extern FILE *cout;
@@ -525,7 +527,7 @@ mput(int argc, char *argv[])
 	mname = argv[0];
 	mflag = 1;
 	oldintr = signal(SIGINT, mabort);
-	(void) sigsetjmp(jabort, 1);
+	sigsetjmp(jabort, 1);
 	if (proxy) {
 		char *cp, *tp2, tmpbuf[PATH_MAX];
 

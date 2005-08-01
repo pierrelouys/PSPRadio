@@ -40,6 +40,7 @@
 
 #include <setjmp.h>
 #include <sys/param.h>
+#include <unistd.h>
 
 /*
  * Tick counter step size.
