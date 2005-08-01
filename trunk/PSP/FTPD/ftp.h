@@ -25,7 +25,11 @@ typedef struct MftpConnection {
 	int userLoggedIn;
 
 	int port_port;
-	char port_addr[4];
+	union
+	{
+		char port_addr_c[4];
+		struct in_addr port_addr;
+	};
 } MftpConnection;
 
 int mftpClientHandler(SceSize args, void *argp);

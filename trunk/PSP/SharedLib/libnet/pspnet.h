@@ -82,6 +82,8 @@
 	};
 	#endif
 	
+	int sceNetInetClose(SOCKET s);
+	
 	#if 0 //RC: Moved most of these to sys/socket.h
 	SOCKET sceNetInetSocket(int af, int type, int protocol);
 	int sceNetInetSend(SOCKET s, const void* buf, int len, int flags);

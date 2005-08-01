@@ -7,6 +7,11 @@
 #include <pspiofilemgr_dirent.h>
 #include "sutils.h"
 #include "pspnet.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "ftp.h"
 #include "_itoa.h"
 #include "log.h"
@@ -53,18 +58,18 @@ int openDataConnectionPASV(MftpConnection* con) {
 	struct sockaddr_in addrPort;
 	memset(&addrPort, 0, sizeof(struct sockaddr_in));
 
-	addrPort.sin_len = sizeof(struct sockaddr_in);
+//	addrPort.sin_len = sizeof(struct sockaddr_in);
 	addrPort.sin_family = AF_INET;
 	addrPort.sin_port = htons(pasvPort);
-	addrPort.sin_addr[0] = 0;
-	addrPort.sin_addr[1] = 0;
-	addrPort.sin_addr[2] = 0;
-	addrPort.sin_addr[3] = 0;
+//	addrPort.sin_addr[0] = 0;
+//	addrPort.sin_addr[1] = 0;
+//	addrPort.sin_addr[2] = 0;
+//	addrPort.sin_addr[3] = 0;
 
 	con->pasvSocket = sceNetInetSocket(AF_INET, SOCK_STREAM, 0);
 	if (con->pasvSocket & 0x80000000) return 0;
 
-	err = sceNetInetBind(con->pasvSocket, &addrPort, sizeof(addrPort));
+	err = sceNetInetBind(con->pasvSocket, (struct sockaddr *)&addrPort, sizeof(addrPort));
 	if (err) return 0;
 
 	err = sceNetInetListen(con->pasvSocket, 1);
@@ -83,24 +88,25 @@ int openDataConnection(MftpConnection* con) {
 		u32 cbAddrAccept;
 
 		cbAddrAccept = sizeof(addrAccept);
-		con->dataSocket = sceNetInetAccept(con->pasvSocket, &addrAccept, &cbAddrAccept);
+		con->dataSocket = sceNetInetAccept(con->pasvSocket, (struct sockaddr *)&addrAccept, &cbAddrAccept);
 		if (con->dataSocket & 0x80000000) return 0;
 	} else {
 		struct sockaddr_in addrPort;
 		memset(&addrPort, 0, sizeof(struct sockaddr_in));
 
-		addrPort.sin_len = sizeof(struct sockaddr_in);
+		//addrPort.sin_len = sizeof(struct sockaddr_in);
 		addrPort.sin_family = AF_INET;
 		addrPort.sin_port = htons(con->port_port);
-		addrPort.sin_addr[0] = con->port_addr[0];
-		addrPort.sin_addr[1] = con->port_addr[1];
-		addrPort.sin_addr[2] = con->port_addr[2];
-		addrPort.sin_addr[3] = con->port_addr[3];
+		addrPort.sin_addr = con->port_addr;
+//		addrPort.sin_addr[0] = con->port_addr[0];
+//		addrPort.sin_addr[1] = con->port_addr[1];
+//		addrPort.sin_addr[2] = con->port_addr[2];
+//		addrPort.sin_addr[3] = con->port_addr[3];
 
 		con->dataSocket = sceNetInetSocket(AF_INET, SOCK_STREAM, 0);
 		if (con->dataSocket & 0x80000000) return 0;
 
-		err = sceNetInetConnect(con->dataSocket, &addrPort, sizeof(struct sockaddr_in));
+		err = sceNetInetConnect(con->dataSocket, (struct sockaddr *)&addrPort, sizeof(struct sockaddr_in));
 
 		if (err) return 0;
 	}
@@ -596,17 +602,17 @@ int mftpCommandPORT(MftpConnection* con, char* command) {
 	if (err==0 && state==1 && nbParams==6) {
 		con->usePASV=0;
 
-		con->port_addr[0]=(unsigned char) params[0];
-		con->port_addr[1]=(unsigned char) params[1];
-		con->port_addr[2]=(unsigned char) params[2];
-		con->port_addr[3]=(unsigned char) params[3];
+		con->port_addr_c[0]=(unsigned char) params[0];
+		con->port_addr_c[1]=(unsigned char) params[1];
+		con->port_addr_c[2]=(unsigned char) params[2];
+		con->port_addr_c[3]=(unsigned char) params[3];
 		con->port_port=((unsigned char) params[4]<<8) | ((unsigned char) params[5]);
 		sendResponseLn(con, "200 PORT command successful.");
 	} else {
-		con->port_addr[0]=0;
-		con->port_addr[1]=0;
-		con->port_addr[2]=0;
-		con->port_addr[3]=0;
+		con->port_addr.s_addr=0;
+		//con->port_addr[1]=0;
+		//con->port_addr[2]=0;
+		//con->port_addr[3]=0;
 		con->port_port=0;
 		sendResponseLn(con, "500 illegal PORT command.");
 	}
@@ -816,7 +822,7 @@ int mftpClientHandler(SceSize args, void *argp) {
 	con->usePASV=0;
 	con->userLoggedIn=0;
 	con->port_port=0;
-	memset(con->port_addr, 0, 4);
+	con->port_addr.s_addr = 0;
 
 	int err;
 

@@ -147,6 +147,9 @@ int ftpdLoop(SceSize args, void *argp) {
     u32 err, cbAddrAccept;
 	struct sockaddr_in addrListen, addrAccept;
 	
+	memset(&addrListen, 0, sizeof(struct sockaddr_in));
+	memset(&addrAccept, 0, sizeof(struct sockaddr_in));
+	
 	LogPrintf("INFO  - main.ftpdLoop : Server loop init...\n");
 
 	SOCKET sockListen = sceNetInetSocket(AF_INET, SOCK_STREAM, 0);
@@ -157,12 +160,12 @@ int ftpdLoop(SceSize args, void *argp) {
 
 	addrListen.sin_family = AF_INET;
 	addrListen.sin_port = htons(21);
-	addrListen.sin_addr[0] = 0;
-	addrListen.sin_addr[1] = 0;
-	addrListen.sin_addr[2] = 0;
-	addrListen.sin_addr[3] = 0;
+//	addrListen.sin_addr[0] = 0;
+//	addrListen.sin_addr[1] = 0;
+//	addrListen.sin_addr[2] = 0;
+//	addrListen.sin_addr[3] = 0;
 
-	err = sceNetInetBind(sockListen, &addrListen, sizeof(addrListen));
+	err = sceNetInetBind(sockListen, (struct sockaddr *)&addrListen, sizeof(addrListen));
 	if (err != 0) {
 		LogPrintf("ERROR - main.ftpdLoop : sceNetInetBind returned '%d'.\n", err);
         goto done;
@@ -179,7 +182,7 @@ int ftpdLoop(SceSize args, void *argp) {
 	while (1) {
 		// blocking accept (wait for one connection)
 		cbAddrAccept = sizeof(addrAccept);
-		SOCKET sockClient = sceNetInetAccept(sockListen, &addrAccept, &cbAddrAccept);
+		SOCKET sockClient = sceNetInetAccept(sockListen, (struct sockaddr *)&addrAccept, &cbAddrAccept);
 		if (sockClient & 0x80000000) goto done;
 
 
