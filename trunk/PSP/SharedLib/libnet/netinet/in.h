@@ -218,10 +218,19 @@ extern const struct in6_addr in6addr_loopback;   /* ::1 */
 /* Structure describing an Internet socket address.  */
 struct sockaddr_in
   {
+#ifdef __PSP__
+	unsigned char sin_len;
+	unsigned char sin_family; // REVIEW: is this correct ?
+#else
     __SOCKADDR_COMMON (sin_);
+#endif
+	
     in_port_t sin_port;			/* Port number.  */
+union 
+{
     struct in_addr sin_addr;		/* Internet address.  */
-
+	unsigned char sin_addr_c[4];
+};
     /* Pad to size of `struct sockaddr'.  */
     unsigned char sin_zero[sizeof (struct sockaddr) -
 			   __SOCKADDR_COMMON_SIZE -
@@ -351,6 +360,7 @@ struct group_filter
    this was a short-sighted decision since on different systems the types
    may have different representations but the values are always the same.  */
 
+#ifndef __PSP__
 extern uint32_t ntohl (uint32_t __netlong) __THROW __attribute__ ((__const__));
 extern uint16_t ntohs (uint16_t __netshort)
      __THROW __attribute__ ((__const__));
@@ -359,6 +369,7 @@ extern uint32_t htonl (uint32_t __hostlong)
 extern uint16_t htons (uint16_t __hostshort)
      __THROW __attribute__ ((__const__));
 
+	 
 #include <endian.h>
 
 /* Get machine dependent optimized versions of byte swapping functions.  */
@@ -383,6 +394,8 @@ extern uint16_t htons (uint16_t __hostshort)
 #   define htons(x)	__bswap_16 (x)
 #  endif
 # endif
+#endif
+
 #endif
 
 #define IN6_IS_ADDR_UNSPECIFIED(a) \

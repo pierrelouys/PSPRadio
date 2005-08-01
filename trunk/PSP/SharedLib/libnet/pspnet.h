@@ -121,10 +121,10 @@
 	int sceNetInetInetPton(
 	#endif
 	
-	#if 0 // defined in netinet/in.h
+	//#if 0 // defined in netinet/in.h
 	// Other utilities
 	unsigned short htons(unsigned short wIn);
 	unsigned long htonl(unsigned long dwIn);
-	#endif
+	//#endif
 	///////////////////////////////////////////////
 #endif

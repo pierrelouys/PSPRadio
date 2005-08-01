@@ -147,7 +147,13 @@ enum __socket_type
 /* Structure describing a generic socket address.  */
 struct sockaddr
   {
-    __SOCKADDR_COMMON (sa_);	/* Common data: address family and length.  */
+#ifdef __PSP__  
+	unsigned char sa_len;
+	unsigned char sa_family;              /* address family */
+#else    
+	__SOCKADDR_COMMON (sa_);	/* Common data: address family and length.  */
+#endif
+
     char sa_data[14];		/* Address data.  */
   };
 
