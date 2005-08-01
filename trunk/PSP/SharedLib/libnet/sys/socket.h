@@ -29,7 +29,7 @@
 #ifndef __PSP__
 	#define __PSP__
 #endif
-//#include "../pspnet.h"
+#include "../pspnet.h"
 #include <features.h>
 
 __BEGIN_DECLS
