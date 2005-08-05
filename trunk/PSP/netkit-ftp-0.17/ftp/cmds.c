@@ -37,6 +37,22 @@
 char cmds_rcsid[] = 
    "$Id: cmds.c,v 1.33 2000/07/23 01:36:59 dholland Exp $";
 
+//PSP
+#include <stdio.h>
+#include <pspkernel.h>
+#include <pspdebug.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pspthreadman.h>
+#include "Tools.h"
+#include "pspnet.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+//PSP
 /*
  * FTP User Program -- Command Routines.
  */
@@ -79,8 +95,8 @@ extern off_t restart_point;
 extern char reply_string[];
 
 static char *mname;
-//static sigjmp_buf jabort; PSP
-//static sigjmp_buf abortprox;
+static sigjmp_buf jabort;
+static sigjmp_buf abortprox;
 
 static char *remglob(char *argv[], int doswitch);
 static int checkglob(int fd, const char *pattern);
@@ -220,7 +236,7 @@ setpeer(int argc, char *argv[])
 	}
 	host = hookup(argv[1], port);
 	if (host) {
-		int overbose;
+//		int overbose;
 
 		connected = 1;
 		/*
@@ -905,9 +921,9 @@ remglob(char *argv[], int doswitch)
 		(void) strcpy(temp, _PATH_TMP);
 
 		/* libc 5.2.18 creates with mode 0666, which is dumb */
-		oldumask = umask(077);
+		//PSP oldumask = umask(077);
 		fd = mkstemp(temp);
-		umask(oldumask);
+		//PSP umask(oldumask);
 
 		if (fd<0) {
 			printf("Error creating temporary file, oops\n");
@@ -920,7 +936,8 @@ remglob(char *argv[], int doswitch)
 			pswitch(!proxy);
 		}
 		while (*++argv != NULL) {
-			int	dupfd = dup(fd);
+			//int	dupfd = dup(fd); PSP
+			int dupfd = fd;
 
 			recvrequest ("NLST", temp, *argv, "a", 0);
 			if (!checkglob(dupfd, *argv)) {
@@ -1467,6 +1484,7 @@ usage:
 void
 shell(const char *arg)
 {
+#ifndef __PSP__
 	int pid;
 	void (*old1)(int);
 	void (*old2)(int);
@@ -1517,6 +1535,9 @@ shell(const char *arg)
 	else {
 		code = 0;
 	}
+	#else
+		printf("PSP-not doing shell\n");
+	#endif
 }
 
 /*

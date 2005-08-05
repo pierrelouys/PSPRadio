@@ -37,12 +37,29 @@
 char ftp_rcsid[] = 
   "$Id: ftp.c,v 1.25 1999/12/13 20:33:20 dholland Exp $";
 
+//PSP
+#include <stdio.h>
+#include <pspkernel.h>
+#include <pspdebug.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pspthreadman.h>
+#include "Tools.h"
+#include "pspnet.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+//PSP
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/file.h>
+
 
 #include <netinet/in.h>
 #include <netinet/ip.h>

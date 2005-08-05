@@ -43,7 +43,8 @@ char glob_rcsid[] =
 
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <dirent.h>
+//#include <dirent.h> //NO PSP Dirent.h
+#include <Tools.h>
 
 #include <pwd.h>
 #include <errno.h>
@@ -104,7 +105,9 @@ static void sort(void);
 static void efree(entry *);
 static int amatch(const char *, const char *);
 static int execbrc(const char *, const char *);
+#ifndef __PSP__
 static int match(const char *, const char *);
+#endif
 
 static int gethdir(char *homedir);
 static int letter(char c);
@@ -266,16 +269,11 @@ static
 void
 matchdir(const char *pattern)
 {
+#ifndef __PSP__
 	struct stat stb;
 	register struct dirent *dp;
 	DIR *dirp;
-
-#if 0
-#ifdef	__linux__
-	if (gpath == NULL || *gpath == '\0')
-		gpath = "./";
-#endif
-#endif
+	
 	dirp = opendir((!gpath || !*gpath) ? "./" : gpath);
 	if (dirp == NULL) {
 		if (globbed)
@@ -303,6 +301,11 @@ patherr1:
 	closedir(dirp);
 patherr2:
 	globerr = "Bad directory components";
+#else
+	globerr = "matchdir not supported (PSP)";
+
+#endif
+
 }
 
 static 
@@ -392,6 +395,7 @@ doit:
 	return (0);
 }
 
+#ifndef __PSP__
 static 
 int
 match(const char *s, const char *p)
@@ -409,6 +413,7 @@ match(const char *s, const char *p)
 	globbed = sglobbed;
 	return (c);
 }
+#endif
 
 static 
 int

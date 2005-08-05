@@ -39,6 +39,7 @@
  */
 
 #include <setjmp.h>
+#include <Tools.h>
 #include <sys/param.h>
 #include <unistd.h>
 
@@ -103,8 +104,8 @@ Extern int	unix_proxy;	/* proxy is unix, can use binary for ascii */
 /*Extern struct	servent *sp;*/	/* service spec for tcp/ftp */
 Extern int	ftp_port;	/* htons'd port number for ftp service */
 
-//Extern sigjmp_buf toplevel;	/* non-local goto stuff for cmd scanner */
-//PSP
+Extern sigjmp_buf toplevel;	/* non-local goto stuff for cmd scanner */
+
 
 Extern char	line[200];	/* input line buffer */
 Extern char	*stringbase;	/* current scan point in line buffer */

@@ -31,6 +31,22 @@
  * SUCH DAMAGE.
  */
 
+//PSP
+#include <stdio.h>
+#include <pspkernel.h>
+#include <pspdebug.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pspthreadman.h>
+#include "Tools.h"
+#include "pspnet.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+//PSP
 /*
  * from: @(#)ruserpass.c	5.3 (Berkeley) 3/1/91
  */
@@ -39,7 +55,7 @@ char ruserpass_rcsid[] =
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <utmp.h>
+//#include <utmp.h> //PSP
 #include <ctype.h>
 #include <sys/stat.h>
 #include <errno.h>

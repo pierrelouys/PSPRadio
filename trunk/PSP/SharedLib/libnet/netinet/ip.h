@@ -110,9 +110,9 @@ struct ip
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     unsigned int ip_hl:4;		/* header length */
     unsigned int ip_v:4;		/* version */
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
-    unsigned int ip_v:4;		/* version */
+#else
+//#if __BYTE_ORDER == __BIG_ENDIAN
+	unsigned int ip_v:4;		/* version */
     unsigned int ip_hl:4;		/* header length */
 #endif
     u_int8_t ip_tos;			/* type of service */
@@ -140,8 +140,8 @@ struct ip_timestamp
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     unsigned int ipt_flg:4;		/* flags, see below */
     unsigned int ipt_oflw:4;		/* overflow counter */
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
+#else
+//#if __BYTE_ORDER == __BIG_ENDIAN
     unsigned int ipt_oflw:4;		/* overflow counter */
     unsigned int ipt_flg:4;		/* flags, see below */
 #endif

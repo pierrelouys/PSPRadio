@@ -8,6 +8,8 @@
 	#include <sys/types.h>
 	#include <psputility.h>
 	#include <reent.h>
+	#include <w3c-libwww/wwwsys.h> //RC
+	
 	// Net Lib Helper - work in progress
 	
 	// major functions - Access Point / NetInet

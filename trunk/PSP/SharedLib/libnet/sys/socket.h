@@ -116,6 +116,8 @@ int sceNetInetInetAton(
 int sceNetInetInetNtop(
 int sceNetInetInetPton(
 #endif
+int sceNetInetSelect(SOCKET s, fd_set *r, fd_set *w, fd_set *o, struct timeval *timeout);
+#define select(a,b,c,d,e)  sceNetInetSelect(a,b,c,d,e)
 
 /* Create a new socket of type TYPE in domain DOMAIN, using
    protocol PROTOCOL.  If PROTOCOL is zero, one is chosen automatically.

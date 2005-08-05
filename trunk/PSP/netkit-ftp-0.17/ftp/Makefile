@@ -1,27 +1,22 @@
-all: ftp
+##
+## FTPD Makefile
+##
 
-include ../MCONFIG
-include ../MRULES
+EXTRA_TARGETS = EBOOT.PBP
+PSP_EBOOT_TITLE = netkitFTPraf1
+#PSP_EBOOT_ICON = resources/logo.png
 
-ifeq ($(USE_READLINE),1)
-CFLAGS += -D__USE_READLINE__
-LIBS += -lreadline $(LIBTERMCAP)
-endif
+GCC = psp-gcc
+PSP_LD = psp-ld
 
-ftp: cmds.o cmdtab.o domacro.o ftp.o glob.o main.o ruserpass.o
-	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
+CFLAGS = $(INCLUDES) -O1 -G0 -Wall -g -mgp32 -mlong32 -DVERSIONSTRING="\"netkitFTPraf1\""
+#CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -Werror
+#ASFLAGS = $(CFLAGS)
+LIBS = -L../../SharedLib/lib ../../SharedLib/lib/libnet.a ../../SharedLib/lib/Tools.a
+INCLUDES = -I../../SharedLib/libnet -I../../SharedLib/Tools
 
-domacro.o ftp.o glob.o main.o ruserpass.o: ftp_var.h pathnames.h
-cmds.o cmdtab.o: ftp_var.h pathnames.h cmds.h
-cmds.o glob.o: glob.h
+TARGET = ftp
+OBJS = main-psp.o cmds.o cmdtab.o domacro.o ftp.o glob.o main.o ruserpass.o
 
-install: ftp
-	install -s -m$(BINMODE) ftp $(INSTALLROOT)$(BINDIR)
-	ln -sf ftp $(INSTALLROOT)$(BINDIR)/pftp
-	install -m$(MANMODE) ftp.1 $(INSTALLROOT)$(MANDIR)/man1
-	ln -sf ftp.1 $(INSTALLROOT)$(MANDIR)/man1/pftp.1
-	install -m$(MANMODE) netrc.5 $(INSTALLROOT)$(MANDIR)/man5
-
-clean:
-	rm -f *.o ftp
-
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak

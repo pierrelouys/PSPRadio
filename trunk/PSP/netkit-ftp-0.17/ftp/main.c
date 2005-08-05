@@ -42,6 +42,23 @@ char main_rcsid[] =
   "$Id: main.c,v 1.15 1999/10/02 13:25:23 netbug Exp $";
 
 
+//PSP
+#include <stdio.h>
+#include <pspkernel.h>
+#include <pspdebug.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pspthreadman.h>
+#include "Tools.h"
+#include "pspnet.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+//PSP
+  
 /*
  * FTP User Program -- Command Interface.
  */
@@ -99,7 +116,7 @@ usage(void)
 }
 
 int
-main(volatile int argc, char **volatile argv)
+main_ftp(int argc, char **argv)
 {
 	register char *cp;
 	struct servent *sp;

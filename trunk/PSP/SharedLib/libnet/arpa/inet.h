@@ -32,7 +32,8 @@ __BEGIN_DECLS
 
 /* Convert Internet host address from numbers-and-dots notation in CP
    into binary data in network byte order.  */
-extern in_addr_t inet_addr (__const char *__cp) __THROW;
+in_addr_t sceNetInetInetAddr(__const char *__cp) __THROW;
+#define inet_addr sceNetInetInetAddr
 
 /* Return the local host address part of the Internet address in IN.  */
 extern in_addr_t inet_lnaof (struct in_addr __in) __THROW;
@@ -52,26 +53,31 @@ extern in_addr_t inet_network (__const char *__cp) __THROW;
 /* Convert Internet number in IN to ASCII representation.  The return value
    is a pointer to an internal array containing the string.  */
 extern char *inet_ntoa (struct in_addr __in) __THROW;
+#define inet_ntoa sceNetInetInetNtoa
 
 /* Convert from presentation format of an Internet number in buffer
    starting at CP to the binary network format and store result for
    interface type AF in buffer starting at BUF.  */
-extern int inet_pton (int __af, __const char *__restrict __cp,
-		      void *__restrict __buf) __THROW;
+int sceNetInetInetPton(int __af, __const char *__restrict __cp,
+		      void *__restrict __buf);
+#define inet_pton sceNetInetInetPton
 
 /* Convert a Internet address in binary network format for interface
    type AF in buffer starting at CP to presentation form and place
    result in buffer of length LEN astarting at BUF.  */
-extern __const char *inet_ntop (int __af, __const void *__restrict __cp,
-				char *__restrict __buf, socklen_t __len)
-     __THROW;
+__const char *sceNetInetInetNtop(int __af, __const void *__restrict __cp,
+				char *__restrict __buf, socklen_t __len);
+#define inet_ntop 	sceNetInetInetNtop
+
+int sceNetInetInetAton(__const char *__cp, struct in_addr *__inp);
+#define inet_aton 	sceNetInetInetAton
 
 
 /* The following functions are not part of XNS 5.2.  */
 #ifdef __USE_MISC
 /* Convert Internet host address from numbers-and-dots notation in CP
    into binary data and store the result in the structure INP.  */
-extern int inet_aton (__const char *__cp, struct in_addr *__inp) __THROW;
+//extern int inet_aton (__const char *__cp, struct in_addr *__inp) __THROW;
 
 /* Format a network number NET into presentation format and place result
    in buffer starting at BUF with length of LEN bytes.  */

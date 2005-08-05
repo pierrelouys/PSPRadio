@@ -13,10 +13,7 @@ CFLAGS		=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I$(PSPSDK)/includ
 ASFLAGS		=-march=allegrex -g -O2 -G0 -Wall -I.
 
 LIB =../lib/Tools.a
-OBJS  = Tools.o
-#OBJS += sceNet.o sceNetAdhocctl.o sceNetInet.o
-#OBJS += sceNetAdhoc.o sceNetApctl.o sceNetResolver.o
-
+OBJS  = Tools.o pg.o
 
 all: $(LIB)
 

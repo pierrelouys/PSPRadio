@@ -12,7 +12,8 @@ EXECPREFIX=/usr
 INSTALLROOT=
 CC=psp-gcc
 #CFLAGS=-O2 -Wall -W -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Winline 
-CFLAGS=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I/usr/local/pspdev/psp/sdk/include -I../../SharedLib/libnet -I../../SharedLib/Tools
+#CFLAGS=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I/usr/local/pspdev/psp/sdk/include -I../../SharedLib/libnet -I../../SharedLib/Tools -I/usr/local/pspdev/include -I/usr/local/pspdev/psp/include
+CFLAGS=-O1 -G0 -g -mgp32 -mlong32 -DVERSIONSTRING="\"netkit-ftp-0.17psp1\"" -I. -I/usr/local/pspdev/psp/sdk/include -I../../SharedLib/libnet -I../../SharedLib/Tools -I/usr/local/pspdev/include -I/usr/local/pspdev/psp/include
 LDFLAGS=
 LIBS=
 LIBTERMCAP=

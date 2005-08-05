@@ -33,3 +33,10 @@ char *basename (char *strPath)
 	
 	return pRet;
 }
+
+/** NEED TO IMPLEMENT! */
+char *getpass(const char *__prompt)
+{
+	printf(__prompt);
+	return "password";
+}

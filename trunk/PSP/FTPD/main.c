@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <machine/types.h>
+#include <netinet/ip.h>
 #include "pg.h"
 #include "ftp.h"
 #include "_itoa.h"

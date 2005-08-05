@@ -16,7 +16,7 @@ LIBS = -L../SharedLib/lib libnet.a ../SharedLib/lib/Tools.a
 INCLUDES = -I../SharedLib/libnet -I../SharedLib/Tools
 
 TARGET = ftpd
-OBJS = main.o pg.o sutils.o ftp.o _itoa.o log.o 
+OBJS = main.o sutils.o ftp.o _itoa.o log.o 
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
