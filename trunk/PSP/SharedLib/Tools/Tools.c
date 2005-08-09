@@ -40,3 +40,7 @@ char *getpass(const char *__prompt)
 	printf(__prompt);
 	return "password";
 }
+
+void herror (__const char *__str)
+{
+}
