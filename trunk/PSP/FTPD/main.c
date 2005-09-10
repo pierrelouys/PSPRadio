@@ -28,7 +28,7 @@ PSP_MAIN_THREAD_ATTR(0);
 
 /* Define printf, just to make typing easier */
 #define printf	pspDebugScreenPrintf
-void Kprintf(char *, ...);
+//void Kprintf(char *, ...);
 
 int sceNetApctlAddHandler(void *handler, void *arg );
 
