@@ -1,12 +1,15 @@
 #ifndef _TOOLS_
 #define _TOOLS_
 
+
+char *dirname (char *strPath);
+char *basename (char *strPath);
+
+#ifndef LINUX
+
 #ifndef __PSP__
 	#define __PSP__
 #endif
-
-char *dirname (char *strPath, char *strBufOut);
-char *basename (char *strPath);
 
 //typedef signed long long   int64_t;
 //typedef signed int         int32_t;
@@ -39,4 +42,5 @@ typedef unsigned char      u_int8_t;
 #define PATH_MAX MAXPATHLEN
 #define SO_DEBUG 1
 
+#endif
 #endif

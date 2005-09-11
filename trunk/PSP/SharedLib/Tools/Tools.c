@@ -1,21 +1,52 @@
 #include <stdio.h>
 #include <string.h> 
 
-char *dirname (char *strPath, char *strBufOut)
+
+char *dirname (char *strPath)
 {
+	if (strPath[0] == '/' && strPath[1] == 0)
+		return strPath;
+	
 	if (strPath && strPath[0] != 0 && strlen(strPath) > 4)
 	{
-		strcpy(strBufOut, strPath);
-		if (strrchr(strBufOut, '/'))
-			*(strrchr(strBufOut, '/') + 1) = 0;
+		if (strrchr(strPath, '/'))
+			*(strrchr(strPath, '/')) = 0;
+		else
+			strcpy(strPath, ".");
 	}
 	else
 	{
-		strcpy(strBufOut, "ms0:/");
+			strcpy(strPath, ".");
 	}
 	
-	return strBufOut;
+	return strPath;
 }
+//#endif
+#if 0
+char *psp_dirname (char *strPath)
+{
+	char *s = NULL;
+	
+	if (strPath[0] == '/' && strPath[1] == 0)
+		return strPath;
+	
+	s=strPath+strlen(strPath)-1;
+	while (s && *s == '/') {
+		*s = '\0';
+		s=strPath+strlen(strPath)-1;
+	}
+	s = strrchr(strPath, '/');
+	if (s && *s)
+		*s = '\0';
+		
+	if (s)
+		return strPath;
+	else
+		strcpy(strPath, ".");
+	
+	return strPath;	
+}
+#endif
 
 char *basename (char *strPath)
 {
