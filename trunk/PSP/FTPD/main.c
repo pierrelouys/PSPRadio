@@ -92,7 +92,7 @@ void ApctlCallback(int old_state, int state, int type, int unknown, void* arg)
 	
 	pgFillvram(0);
 
-	pgPrint(0, 1, 0xffff, "Connecting...");
+	pgPrint(0, 1, 0xffff, "Establishing Connection...");
 	char *msg = "";
 	switch (state) {
 		case 0:
@@ -105,7 +105,7 @@ void ApctlCallback(int old_state, int state, int type, int unknown, void* arg)
 		msg = "Associating...";
 		break;
 		case 3:
-		msg = "DHCP query (do not work).";
+		msg = "DHCP Enabled (Not Supported).";
 		break;
 		case 4:
 		msg = "Complete.";
@@ -123,6 +123,7 @@ void ApctlCallback(int old_state, int state, int type, int unknown, void* arg)
 		strcat(url, ipaddress);
 		strcat(url, "/");
 		pgPrint(0, 3, 0xff, url);
+
 		break;
 	}
 
@@ -279,7 +280,7 @@ close_net:
 //GLOBAL: dictionary *g_ConfDict = NULL;
 int main(int argc, char **argv)
 {
-	//pspDebugInstallKprintfHandler(NULL);
+	pspDebugInstallKprintfHandler(NULL);
 	char strCfgFile[256];
 	char strDir[256];
 	
