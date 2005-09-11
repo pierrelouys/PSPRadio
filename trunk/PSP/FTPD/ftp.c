@@ -434,6 +434,44 @@ int mftpCommandSIZE(MftpConnection* con, char* command) {
 	return 0;
 }
 
+int ConvertPathToPSP(MftpConnection* con, char *strDest, char *strSrc)
+{
+	if (strStartsWith(strSrc, "/")) {
+		strcpy(strDest, con->root);
+		strcat(strDest, strSrc);
+	} else {
+		strcpy(strDest, con->root);
+		strcat(strDest, con->curDir);
+		strcat(strDest, strSrc);
+	}
+
+	return 0;
+}
+
+
+int mftpCommandRENAME(MftpConnection* con, char* strSource, char *strDest) 
+{
+	int iRet = 0;
+	char strRealSourcePath[MAX_PATH_LENGTH];
+	char strRealDestPath[MAX_PATH_LENGTH];
+	
+	/** Are source and Dest populated? */
+	if (strlen(strSource) > 0 && strlen(strDest) > 0)
+	{
+		ConvertPathToPSP(con, strRealSourcePath, strSource);
+		ConvertPathToPSP(con, strRealDestPath, strDest);
+		
+		sceIoRename(strRealSourcePath, strRealDestPath);
+
+		sendResponseLn(con, "250 RNTO command successful.");
+	} 
+	else 
+	{
+		sendResponseLn(con, "500 'RENAME': command requires two parameters.");
+	}
+	
+	return iRet;
+}
 int mftpCommandDELE(MftpConnection* con, char* command) {
 	if (mftpRestrictedCommand(con, command)) {
 		char* fileName=skipWS(&command[5]);
@@ -530,7 +568,8 @@ int mftpCommandHELP(MftpConnection* con, char* command) {
 	sendResponseLn(con, "214-STOR    STOU*   APPE*    ALLO*   REST*    RNFR*    RNTO*    ABOR*");
 	sendResponseLn(con, "214-DELE    MDTM*    RMD     XRMD*    MKD     XMKD*    PWD     XPWD*");
 	sendResponseLn(con, "214-SIZE    LIST    NLST    SITE    SYST    STAT*    HELP    NOOP");
-	sendResponseLn(con, "214 Direct comments to psp@amoks.com.");
+	sendResponseLn(con, "214 Direct comments about original version to psp@amoks.com.");
+	sendResponseLn(con, "214 Direct comments about raf versions to http://rafpsp.blogspot.com/");
 
 	return 0;
 }
@@ -542,7 +581,8 @@ int mftpCommandSITE(MftpConnection* con, char * command) {
 	if (strcmp(param, "HELP")==0) {
 		sendResponseLn(con, "214-The following SITE commands are recognized (* =>'s unimplemented).");
 		sendResponseLn(con, "214-HELP");
-		sendResponseLn(con, "214 Direct comments to psp@amoks.com.");
+		sendResponseLn(con, "214 Direct comments about original version to psp@amoks.com.");
+		sendResponseLn(con, "214 Direct comments about raf versions to http://rafpsp.blogspot.com/");
 	} else if (strlen(param)==0) {
 		sendResponseLn(con, "500 'SITE' requires argument.");
 	} else {
@@ -689,7 +729,7 @@ int mftpCommandTYPE(MftpConnection* con, char* command) {
 			sendResponse(con, pParam1);
 			sendResponseLn(con, ".");
 		} else {
-			sendResponseLn(con, "500 'TYPE': 2 parameters extended version not understood.");
+			sendResponseLn(con, "500 'TYPE': 2 parameters -- extended version not understood.");
 		}
 	}
 
@@ -754,6 +794,7 @@ int mftpRestrictedCommand(MftpConnection* con, char* command) {
 int mftpDispatch(MftpConnection* con, char* command) {
 
 	char uCommand[MAX_COMMAND_LENGTH+1];
+	static char strRenameFrom[MAX_COMMAND_LENGTH+1];
 	strncpy(uCommand, command, MAX_COMMAND_LENGTH);
 	toUpperCase(uCommand);
 
@@ -773,6 +814,11 @@ int mftpDispatch(MftpConnection* con, char* command) {
 			ret=mftpCommandSIZE(con, command);
 		} else if (strStartsWith(uCommand, "DELE ")) {
 			ret=mftpCommandDELE(con, command);
+		} else if (strStartsWith(uCommand, "RNFR ")) {
+			strcpy(strRenameFrom, command+5);
+			sendResponseLn(con, "350 RNFR command successful.");
+		} else if (strStartsWith(uCommand, "RNTO ")) {
+			ret=mftpCommandRENAME(con, strRenameFrom, command+5);
 		} else if (strStartsWith(uCommand, "RMD ")) {
 			ret=mftpCommandRMD(con, command);
 		} else if (strStartsWith(uCommand, "MKD ")) {
