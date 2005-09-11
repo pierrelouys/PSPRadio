@@ -17,10 +17,14 @@
 #include "ftp.h"
 #include "_itoa.h"
 #include "log.h"
+#include <iniparser.h>
 
 asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
-char g_strBuf[256];
+
+//Configuration file: 
+#define CFG_FILENAME "ftpd.cfg"
+dictionary *g_ConfDict = NULL;
 
 PSP_MODULE_INFO("FTPD", 0x1000, 1, 1);
 /* Define the main thread's attribute value (optional) */
@@ -86,12 +90,9 @@ void ApctlCallback(int old_state, int state, int type, int unknown, void* arg)
 		sceNetApctlConnect(0);
 	}
 	
-	
 	pgFillvram(0);
 
 	pgPrint(0, 1, 0xffff, "Connecting...");
-	pgPrint(0, 10, 0xffff, g_strBuf);
-	LogPrintf("RCG: %s", g_strBuf);
 	char *msg = "";
 	switch (state) {
 		case 0:
@@ -110,7 +111,10 @@ void ApctlCallback(int old_state, int state, int type, int unknown, void* arg)
 		msg = "Complete.";
 
 		char url[256];
-		strcpy(url, "ftp://pspkrazy:pspftp@");
+		sprintf(url, "ftp://%s:%s@", 
+			iniparser_getstr(g_ConfDict, "USER:USER"),
+			iniparser_getstr(g_ConfDict, "USER:PASS"));
+		//strcpy(url, "ftp://pspkrazy:pspftp@");
 
 		char ipaddress[32]; ipaddress[0]=0;
 		if (sceNetApctlGetInfo(8, ipaddress) != 0) {
@@ -272,12 +276,29 @@ close_net:
     }
 }
 
-char g_DirName[256];
-
+//GLOBAL: dictionary *g_ConfDict = NULL;
 int main(int argc, char **argv)
 {
 	//pspDebugInstallKprintfHandler(NULL);
-
+	char strCfgFile[256];
+	char strDir[256];
+	
+	printf ("argv[0]='%s' \n", argv[0]);
+	
+	strcpy(strDir, argv[0]);
+	dirname(strDir); /** Retrieve the directory name */
+	
+	sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
+	
+	printf ("Opening '%s'\n", strCfgFile);
+	
+	g_ConfDict = iniparser_new(strCfgFile);
+	
+	printf ("username='%s' password='%s'\n", 
+		iniparser_getstr(g_ConfDict, "USER:USER"),
+		iniparser_getstr(g_ConfDict, "USER:PASS"));
+	
+	
 	LogOpen("ms0:/ftpd.log");
 	SetupCallbacks();
 
@@ -285,21 +306,21 @@ int main(int argc, char **argv)
 	pgScreenFrame(2, 0);
 	pgFillvram(0);
 
-	
-	sprintf(g_strBuf, "Raf log: dirname='%s'", dirname(argv[0], g_DirName));
 	pgPrint(0, 1, 0xffff, "ftpd");
 	pgScreenFlipV();
-
 	
 	nlhLoadDrivers();
 	WLANConnectionHandler();
-	
 
 	sceKernelDeleteSema(exitSema);
 	LogClose();
 
+	iniparser_free(g_ConfDict);
+
 	sceKernelExitGame();
 	//sceKernelExitDeleteThread(0);
+
+	//
 
 	return 0;
 }

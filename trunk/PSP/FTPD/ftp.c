@@ -15,6 +15,9 @@
 #include "ftp.h"
 #include "_itoa.h"
 #include "log.h"
+#include "iniparser.h"
+
+extern dictionary *g_ConfDict; /** RC: Configuration file dictionary */
 
 int mftpRestrictedCommand(MftpConnection* con, char* command);
 
@@ -658,7 +661,8 @@ int mftpCommandPASS(MftpConnection* con, char* command) {
 			} else {
 				strncpy(con->pass, pPass, MAX_PASS_LENGTH);
 
-				if (strcmp(con->user, "pspkrazy")==0 && strcmp(con->pass, "pspftp")==0) {
+				if (strcmp(con->user, iniparser_getstr(g_ConfDict, "USER:USER"))==0 
+					&& strcmp(con->pass, iniparser_getstr(g_ConfDict, "USER:PASS"))==0) {
 					sendResponseLn(con, "230 You're logged in.");
 					con->userLoggedIn=1;
 				} else {
