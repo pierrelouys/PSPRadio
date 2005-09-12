@@ -259,22 +259,3 @@ int nlhTerm()
 }
 
 ////////////////////////////////////////////////////////////////////
-
-// byte swap - REVIEW: is there a helper in the NetLib ?
-unsigned short htons(unsigned short wIn)
-{
-    u8 bHi = (wIn >> 8) & 0xFF;
-    u8 bLo = wIn & 0xFF;
-    return ((unsigned short)bLo << 8) | bHi;
-}
-
-unsigned long htonl(unsigned long wIn)
-{
-    u8 bA = wIn & 0xFF;
-    u8 bB = (wIn>>8) & 0xFF;
-    u8 bC = (wIn>>16) & 0xFF;
-    u8 bD = (wIn>>24) & 0xFF;
-    return (bA<<24) | (bB<<16) | (bC<<8) | bD;
-}
-
-////////////////////////////////////////////////////////////////////
