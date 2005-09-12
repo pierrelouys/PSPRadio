@@ -1,20 +1,17 @@
-##
-## FTPD Makefile
-##
+TARGET = PSPAppSample
+OBJS = example.o
+
+INCDIR = ../
+CFLAGS = -O2 -G0 -Wall -L../../lib
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+
+LIBDIR = 
+LDFLAGS = 
+LIBS = -lpspaudiolib -lpspaudio -lm ../../lib/PSPApp.a
 
 EXTRA_TARGETS = EBOOT.PBP
-PSP_EBOOT_TITLE = FTPDRafTest v0.21raf1
-PSP_EBOOT_ICON = resources/logo.png
-
-GCC = psp-gcc
-PSP_LD = psp-ld
-
-CFLAGS = $(INCLUDES) -O1 -G0 -Wall -Werror -g -mgp32 -mlong32 -DVERSIONSTRING="\"FTPD v0.21\""
-LIBS = -L../SharedLib/lib libnet.a ../SharedLib/lib/Tools.a ../SharedLib/lib/iniparser.a
-INCLUDES = -I../SharedLib/libnet -I../SharedLib/Tools -I../SharedLib/iniparser
-
-TARGET = ftpd
-OBJS = main.o sutils.o ftp.o _itoa.o log.o 
+PSP_EBOOT_TITLE = PSPApp example App
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
