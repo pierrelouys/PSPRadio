@@ -1,13 +1,13 @@
 /* 
  PSPApp
 */
-
+#include "PSPApp.h"
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 
+class CPSPApp *pPSPApp = NULL;
 
-#include "PSPApp.h"
 extern CPSPApp PSPApp; /** You need to create a PSPApp class in your application! */
 
 CPSPApp::CPSPApp()
@@ -17,6 +17,7 @@ CPSPApp::CPSPApp()
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread);
 	
 	memset(&m_pad, 0, sizeof (m_pad));
+	pPSPApp = this;
 	
 	
 	if (m_thCallbackSetup)
@@ -90,7 +91,7 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 {
 	int cbid;
 
-	cbid = sceKernelCreateCallback("Exit Callback", exitCallback, NULL);
+	cbid = sceKernelCreateCallback("Exit Callback", CPSPApp::exitCallback, NULL);
 	sceKernelRegisterExitCallback(cbid);
 	sceKernelSleepThreadCB();
 
@@ -103,19 +104,30 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 	return 0;
 }
 
+/** Audio */
+void CPSPApp::EnableAudio()
+{
+	pspAudioInit();
+	pspAudioSetChannelCallback(0, (void *)CPSPApp::audioCallback);
+}
+
 /* ---statics--- */
 /* System Callbacks */
 int CPSPApp::exitCallback(int arg1, int arg2, void *common) 
 {
-	return PSPApp.OnAppExit(arg1, arg2, common);
+	return pPSPApp->OnAppExit(arg1, arg2, common);
 }
 
 /* Callback thread */
 int CPSPApp::callbacksetupThread(SceSize args, void *argp) 
 {
-	return PSPApp.CallbackSetupThread(args, argp);
+	return pPSPApp->CallbackSetupThread(args, argp);
 }
 
+void CPSPApp::audioCallback(void* buf, unsigned int length) 
+{
+	pPSPApp->OnAudioBufferEmpty(buf, length);
+}
 
 /** Overload new/delete */
 void operator delete(void *p) { free(p); };

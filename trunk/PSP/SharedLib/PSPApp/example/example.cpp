@@ -7,8 +7,6 @@
 */
 
 #include <PSPApp.h>
-#include <pspaudiolib.h>
-#include <pspaudio.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -38,38 +36,30 @@ class myPSPApp : public CPSPApp
 public:
 	int Setup()
 	{
-		pspAudioInit();
-		pspAudioSetChannelCallback(0, (void *)audioCallback);
-		printf("Press up and down to select frequency\nPress X to change function\n");
+		EnableAudio();
+		printf("Press up and down to select frequency\nPress CROSS/SQUARE/TRIANGLE/CIRCLE to change function\n");
 		
 		return 0;
 	}
 
 	void OnButtonPressed(int iButtonMask)
 	{
-	    static int oldButtons = 0;
-		int changedButtons;
-	
-		changedButtons = iButtonMask & (~oldButtons);
-		if (changedButtons & PSP_CTRL_CROSS) 
+		if (iButtonMask & PSP_CTRL_CROSS)
 		{
-			function = (function + 1) % 3;
-			Display();
+			function = 0;
 		}
-		oldButtons = iButtonMask;
-		/*
-		static int oldMask = 0;
-		
-		if ((oldMask & PSP_CTRL_CROSS) &&
-			!(iButtonMask & PSP_CTRL_CROSS) )
+		else if (iButtonMask & PSP_CTRL_SQUARE)
 		{
-			function = (function + 1) % 3;
-			Display();
-
+			function = 1;
 		}
-		
-		oldMask = iButtonMask;
-		*/
+		else if (iButtonMask & PSP_CTRL_TRIANGLE)
+		{
+			function = 2;
+		}
+		else if (iButtonMask & PSP_CTRL_CIRCLE)
+		{
+			function = 3;
+		}
 	};
 	
 	void OnAnalogueStickChange(int Lx, int Ly)
@@ -161,10 +151,11 @@ public:
 	 	        return 0.0f;
 	        }
 	};
+	
 	/* This function gets called by pspaudiolib every time the
     audio buffer needs to be filled. The sample format is
     16-bit, stereo. */
-	static void audioCallback(void* buf, unsigned int length) 
+	void OnAudioBufferEmpty(void* buf, unsigned int length) 
 	{
 	        const float sampleLength = 1.0f / sampleRate;
 		const float scaleFactor = SHRT_MAX - 1.0f;

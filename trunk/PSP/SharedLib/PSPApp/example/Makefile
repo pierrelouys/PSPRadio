@@ -8,7 +8,7 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR = 
 LDFLAGS = 
-LIBS = -lpspaudiolib -lpspaudio -lm ../../lib/PSPApp.a
+LIBS = -lPSPApp -lpspaudiolib -lpspaudio -lm 
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPApp example App

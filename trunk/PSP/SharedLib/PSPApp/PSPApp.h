@@ -8,6 +8,9 @@
 	#include <pspdebug.h>
 	#include <pspdisplay.h>
 	#include <pspctrl.h>
+	#include <pspaudiolib.h>
+	#include <pspaudio.h>
+
 	
 	enum true_or_false
 	{
@@ -19,6 +22,9 @@
 	#define printf	pspDebugScreenPrintf
 	
 	class CPSPThread;
+	class CPSPApp;
+	
+	extern class CPSPApp *pPSPApp;
 	
 	class CPSPApp
 	{
@@ -32,6 +38,9 @@
 		SceCtrlData GetPadData() { return m_pad; };
 	
 	protected:
+		/** Helpers */
+		void EnableAudio();
+	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual int OnAppExit(int arg1, int arg2, void *common);
 	
@@ -39,10 +48,11 @@
 		virtual void OnButtonPressed(int iButtonMask);
 		virtual void OnVBlank(){};
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
+		virtual void OnAudioBufferEmpty(void* buf, unsigned int length){};
 
-		
 		/* System Callbacks */
-		static int exitCallback(int arg1, int arg2, void *common);
+		static int  exitCallback(int arg1, int arg2, void *common);
+		static void audioCallback(void* buf, unsigned int length);
 		/* Callback thread */
 		static int callbacksetupThread(SceSize args, void *argp);
 	
@@ -51,7 +61,6 @@
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
 		true_or_false m_Exit;
 		SceCtrlData m_pad; /** Buttons(Pad) data */
-		
 	};
 	
 	/** Wrapper class around the kernel system calls for thread management */

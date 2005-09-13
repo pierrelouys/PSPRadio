@@ -1,12 +1,13 @@
-TARGET_LIB = ../lib/PSPApp.a
+TARGET_LIB = ../lib/libPSPApp.a
 OBJS = PSPApp.o
 
 INCDIR = 
-CFLAGS = -O2 -G0 -Wall
+CFLAGS = -O2 -Wall
+#-G0
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
-LDFLAGS = 
+LDFLAGS = -lpspaudiolib -lpspaudio
 LIBS = 
 
 PSPSDK=$(shell psp-config --pspsdk-path)
