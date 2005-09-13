@@ -24,7 +24,7 @@
 	class CPSPThread;
 	class CPSPApp;
 	
-	extern class CPSPApp *pPSPApp;
+	extern class CPSPApp *pPSPApp; /** Do not access / Internal Use. */
 	
 	class CPSPApp
 	{

@@ -180,15 +180,16 @@ public:
 	};
 
 
-} PSPApp;
+};// PSPApp;
 
 
 
 
 int main(void) 
 {
-	PSPApp.Setup();
-	PSPApp.Run();
+	myPSPApp *PSPApp  = new myPSPApp();
+	PSPApp->Setup();
+	PSPApp->Run();
 	
 	return 0;
 }

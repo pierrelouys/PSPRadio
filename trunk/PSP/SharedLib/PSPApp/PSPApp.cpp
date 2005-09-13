@@ -6,9 +6,7 @@
 #include <string.h>
 #include <limits.h>
 
-class CPSPApp *pPSPApp = NULL;
-
-extern CPSPApp PSPApp; /** You need to create a PSPApp class in your application! */
+class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
 CPSPApp::CPSPApp()
 {
