@@ -1,4 +1,4 @@
-TARGET = PSPAppSample
+TARGET = Example
 OBJS = example.o
 
 INCDIR = ../

@@ -174,8 +174,3 @@ int main(void)
 	return 0;
 }
 
-void operator delete(void *p) { free(p); };
-void operator delete[](void *p) { free(p); };
-void *operator new(size_t iSize) { return (void*)malloc(iSize); };
-void *operator new[](size_t iSize) { return (void *)malloc(iSize); };
-
