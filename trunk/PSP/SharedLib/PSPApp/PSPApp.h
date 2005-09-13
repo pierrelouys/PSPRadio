@@ -9,7 +9,12 @@
 	#include <pspdisplay.h>
 	#include <pspctrl.h>
 	
-	
+	enum true_or_false
+	{
+		FALSE = 0,
+		TRUE  = 1
+	};
+		
 	/* Define printf, just to make typing easier */
 	#define printf	pspDebugScreenPrintf
 	
@@ -21,11 +26,21 @@
 		CPSPApp();
 		virtual ~CPSPApp();
 		//virtual int Run() = 0;
+		int Run();
+		void ExitApp() { m_Exit = TRUE; };
+		/** Accessors */
+		SceCtrlData GetPadData() { return m_pad; };
 	
 	protected:
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual int OnAppExit(int arg1, int arg2, void *common);
 	
+		/** Event Handlers */
+		virtual void OnButtonPressed(int iButtonMask);
+		virtual void OnVBlank(){};
+		virtual void OnAnalogueStickChange(int Lx, int Ly){};
+
+		
 		/* System Callbacks */
 		static int exitCallback(int arg1, int arg2, void *common);
 		/* Callback thread */
@@ -33,7 +48,9 @@
 	
 	private:
 		/** Data */
-		CPSPThread *m_thCallbackSetup; /** Exit thread */
+		CPSPThread *m_thCallbackSetup; /** Callback thread */
+		true_or_false m_Exit;
+		SceCtrlData m_pad; /** Buttons(Pad) data */
 		
 	};
 	
