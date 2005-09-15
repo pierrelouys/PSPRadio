@@ -3,7 +3,6 @@
 	Using MAD
 */
 
-//#include <std>
 #include <list>
 #include <PSPApp.h>
 
@@ -14,10 +13,8 @@
 #include <string.h>
 //#include <math.h>
 #include <limits.h>
-#include <malloc.h>
 #include <mad.h>
 #include "bstdfile.h"
-using namespace std;
 
 char *ProgName = "MADEXAMPLE";
 /* Define the module info section */
@@ -33,8 +30,9 @@ int g_playpos = 0;
  */
 int			DoFilter=0;
 
-#define INPUT_BUFFER_SIZE	(5*8192)
-#define OUTPUT_BUFFER_SIZE	PSP_AUDIO_SAMPLE_ALIGN(8192*2) /* Must be an integer multiple of 4. */ 
+#define INPUT_BUFFER_SIZE	(50*8192)
+//#define OUTPUT_BUFFER_SIZE	(8192) /* Must be an integer multiple of 4. */ 
+#define OUTPUT_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES
 #if 0
 unsigned char		InputBuffer[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD],
 					OutputBuffer[OUTPUT_BUFFER_SIZE],
@@ -47,11 +45,20 @@ unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
 					*OutputPtr=pOutputBuffer,
 					*GuardPtr=NULL;
 					
+#define NUM_BUFFERS 10
+#define MIN_BUFFERS 8
+class audiobuffer;
+class audiobuffer
+{ 
+public:
+	char buffer[OUTPUT_BUFFER_SIZE]; 
+	audiobuffer(){};
+	audiobuffer(audiobuffer &ab) { memcpy(buffer, ab.buffer, OUTPUT_BUFFER_SIZE); printf("*"); };
+};
+using namespace std;
+list<audiobuffer*> bufferlist;
+int currentpopbuffer = 0;
 
-					
-//char pcmbuf[OUTPUT_BUFFER_SIZE];
-list<char[OUTPUT_BUFFER_SIZE]> pcmbuflist;
-//list<int> a;
 
 class myPSPApp : public CPSPApp
 {
@@ -62,9 +69,8 @@ public:
 		printf("Loading mp3, and decoding...\n");
 		
 		pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
-		pOutputBuffer = (unsigned char*)memalign(64, OUTPUT_BUFFER_SIZE);
-
-		pcmbuflist.empty();
+		pOutputBuffer = (unsigned char*)malloc(OUTPUT_BUFFER_SIZE);
+		
 		if (pInputBuffer && pOutputBuffer)
 		{
 			OutputPtr=pOutputBuffer;
@@ -312,7 +318,7 @@ public:
 				 * their mad_timer_t arguments by value!
 				 */
 				FrameCount++;
-				//mad_timer_add(&Timer,Frame.header.duration);
+				mad_timer_add(&Timer,Frame.header.duration);
 		
 				/* Between the frame decoding and samples synthesis we can
 				 * perform some operations on the audio data. We do this only
@@ -357,9 +363,14 @@ public:
 					/* Flush the output buffer if it is full. */
 					if(OutputPtr==OutputBufferEnd)
 					{
-						//ThreadSleep(); /** Wait for buffer to empty */
-						
-						pcmbuflist.push_back(pOutputBuffer);
+						audiobuffer *mybuffer = new audiobuffer;
+						memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
+						bufferlist.push_back(mybuffer);
+						if (bufferlist.size() >= NUM_BUFFERS)
+						{
+							ThreadSleep(); /** Wait for buffer to empty */
+						}
+							
 						OutputPtr=pOutputBuffer;
 					}
 				}
@@ -552,14 +563,33 @@ public:
     16-bit, stereo. */
 	void OnAudioBufferEmpty(void* outbuf, unsigned int length) 
 	{
-		memcpy (outbuf, pOutputBuffer + g_playpos, length);
-		g_playpos = (g_playpos + (2*length+1)) % OUTPUT_BUFFER_SIZE;
-		
-		if (g_playpos > (OUTPUT_BUFFER_SIZE - 2048))
+		if (bufferlist.size() > 0)
+		{
+			//char buffer[OUTPUT_BUFFER_SIZE];
+			//char *buffer = *bufferlist.pop_front();
+			audiobuffer *mybuf = bufferlist.front();
+			if (mybuf)
+			{
+				memcpy((char*)outbuf, mybuf->buffer, length);
+				delete mybuf, mybuf = NULL;
+				bufferlist.pop_front();
+				printf("%d ", bufferlist.size());
+			}
+			else
+			{
+				printf("Error getting front node!\n");
+			}
+			if (bufferlist.size() < MIN_BUFFERS)
+			{
+				printf("-");
+				m_thDecodeFile->WakeUp();
+			}
+		}
+		else
 		{
 			/** Buffer underrun! */
-  		   m_thDecodeFile->WakeUp();
-		 //  printf(".");
+			m_thDecodeFile->WakeUp();
+			printf("!");
 		}
 	}
 };

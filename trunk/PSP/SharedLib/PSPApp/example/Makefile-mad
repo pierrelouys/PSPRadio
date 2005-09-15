@@ -1,5 +1,5 @@
 TARGET = MadEx
-OBJS = example-mad.o bstdfile.o
+OBJS = example-mad.o bstdfile.o pspaudiolib.o
 
 INCDIR = ../
 CFLAGS = -O2 -G0 -Wall -L../../lib
@@ -8,7 +8,7 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR = 
 LDFLAGS = 
-LIBS = -lPSPApp -lpspaudiolib -lpspaudio -lsupc++ -lmad
+LIBS = -lPSPApp -lpspaudio -lsupc++ -lstdc++ -lmad
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPApp MAD example App
