@@ -3,6 +3,8 @@
 	Using MAD
 */
 
+//#include <std>
+#include <list>
 #include <PSPApp.h>
 
 #include <stdio.h>
@@ -12,8 +14,10 @@
 #include <string.h>
 //#include <math.h>
 #include <limits.h>
+#include <malloc.h>
 #include <mad.h>
 #include "bstdfile.h"
+using namespace std;
 
 char *ProgName = "MADEXAMPLE";
 /* Define the module info section */
@@ -30,7 +34,7 @@ int g_playpos = 0;
 int			DoFilter=0;
 
 #define INPUT_BUFFER_SIZE	(5*8192)
-#define OUTPUT_BUFFER_SIZE	(8192) /* Must be an integer multiple of 4. */ 
+#define OUTPUT_BUFFER_SIZE	PSP_AUDIO_SAMPLE_ALIGN(8192*2) /* Must be an integer multiple of 4. */ 
 #if 0
 unsigned char		InputBuffer[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD],
 					OutputBuffer[OUTPUT_BUFFER_SIZE],
@@ -44,6 +48,10 @@ unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
 					*GuardPtr=NULL;
 					
 
+					
+//char pcmbuf[OUTPUT_BUFFER_SIZE];
+list<char[OUTPUT_BUFFER_SIZE]> pcmbuflist;
+//list<int> a;
 
 class myPSPApp : public CPSPApp
 {
@@ -54,8 +62,9 @@ public:
 		printf("Loading mp3, and decoding...\n");
 		
 		pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
-		pOutputBuffer = (unsigned char*)malloc(OUTPUT_BUFFER_SIZE);
-		
+		pOutputBuffer = (unsigned char*)memalign(64, OUTPUT_BUFFER_SIZE);
+
+		pcmbuflist.empty();
 		if (pInputBuffer && pOutputBuffer)
 		{
 			OutputPtr=pOutputBuffer;
@@ -348,7 +357,9 @@ public:
 					/* Flush the output buffer if it is full. */
 					if(OutputPtr==OutputBufferEnd)
 					{
-						ThreadSleep(); /** Wait for buffer to empty */
+						//ThreadSleep(); /** Wait for buffer to empty */
+						
+						pcmbuflist.push_back(pOutputBuffer);
 						OutputPtr=pOutputBuffer;
 					}
 				}
