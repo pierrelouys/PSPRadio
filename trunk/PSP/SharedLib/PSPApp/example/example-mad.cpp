@@ -32,7 +32,7 @@ int			DoFilter=0;
 
 #define INPUT_BUFFER_SIZE	(50*8192)
 //#define OUTPUT_BUFFER_SIZE	(8192) /* Must be an integer multiple of 4. */ 
-#define OUTPUT_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES
+#define OUTPUT_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*2*16
 #if 0
 unsigned char		InputBuffer[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD],
 					OutputBuffer[OUTPUT_BUFFER_SIZE],
