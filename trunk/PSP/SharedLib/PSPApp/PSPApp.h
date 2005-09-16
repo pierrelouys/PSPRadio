@@ -8,7 +8,6 @@
 	#include <pspdebug.h>
 	#include <pspdisplay.h>
 	#include <pspctrl.h>
-	#include <pspaudiolib.h>
 	#include <pspaudio.h>
 
 	
@@ -39,7 +38,7 @@
 	
 	protected:
 		/** Helpers */
-		void EnableAudio();
+		static void EnableAudio();
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual int OnAppExit(int arg1, int arg2, void *common);

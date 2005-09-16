@@ -17,28 +17,19 @@
 #include "bstdfile.h"
 #include <malloc.h>
 char *ProgName = "MADEXAMPLE";
+
 /* Define the module info section */
 PSP_MODULE_INFO("MADEXAMPLE", 0, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
 int errno = 0;
-int g_playpos = 0;
-
-/* DoFilter is non-nul when the Filter table defines a filter bank to
- * be applied to the decoded audio subbands.
- */
-int			DoFilter=0;
 
 #define INPUT_BUFFER_SIZE	(5*8192)
-//#define OUTPUT_BUFFER_SIZE	(8192) /* Must be an integer multiple of 4. */ 
+#define PSP_NUM_AUDIO_SAMPLES PSP_AUDIO_SAMPLE_ALIGN(8192)
+#define PSP_AUDIO_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*2*16
 #define OUTPUT_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*4
-#if 0
-unsigned char		InputBuffer[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD],
-					OutputBuffer[OUTPUT_BUFFER_SIZE],
-					*OutputPtr=OutputBuffer,
-					*GuardPtr=NULL;
-#endif
+
 unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
 					*pOutputBuffer/*[OUTPUT_BUFFER_SIZE]*/,
 					*pPlayBuffer,
@@ -46,14 +37,10 @@ unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
 					*GuardPtr=NULL;
 					
 #define NUM_BUFFERS 10
-#define MIN_BUFFERS 8
-//class audiobuffer;
 struct audiobuffer
 { 
 public:
 	char buffer[OUTPUT_BUFFER_SIZE]; 
-	//audiobuffer(){};
-	//audiobuffer(audiobuffer &ab) { memcpy(buffer, ab.buffer, OUTPUT_BUFFER_SIZE); printf("*"); };
 };
 using namespace std;
 list<audiobuffer*> bufferlist;
@@ -75,14 +62,11 @@ public:
 		if (pInputBuffer && pOutputBuffer)
 		{
 			OutputPtr=pOutputBuffer;
-			//memset(silence, 0, 1024);
 			memset(OutputPtr, 0, OUTPUT_BUFFER_SIZE);
 			
 			m_thDecodeFile = new CPSPThread("filedecode_thread", ThDecodeFile, 0x11, 80000);
 			m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x11, 20000);
 		
-			//EnableAudio(); /** Tells PSPApp to start the music! */
-			//audiohandle 
 			audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_NUM_AUDIO_SAMPLES, PSP_AUDIO_FORMAT_STEREO);
 			if ( audiohandle < 0 )
 			{
@@ -93,10 +77,11 @@ public:
 			m_thDecodeFile->Start();
 			sceKernelDelayThread(500000); /** 500ms */
 			m_thPlayAudio->Start();
-			//Filedecode();
 		}
 		else
+		{
 			printf("Memory allocation error!\n");
+		}
 		
 		return 0;
 	}
@@ -107,10 +92,6 @@ public:
 		struct mad_stream	Stream;
 		struct mad_synth	Synth;
 		mad_timer_t			Timer;
-		//unsigned char		InputBuffer[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD],
-		//					OutputBuffer[OUTPUT_BUFFER_SIZE],
-		//					*OutputPtr=OutputBuffer,
-		//					*GuardPtr=NULL;
 		const unsigned char	*OutputBufferEnd;
 		int					Status=0,
 							i;
@@ -127,22 +108,9 @@ public:
 		mad_synth_init(&Synth);
 		mad_timer_reset(&Timer);
 	
-		/* Decoding options can here be set in the options field of the
-		 * Stream structure.
-		 */
-	
-			
 		FILE *InputFp = fopen("ms0:/whisper.mp3", "rb");
 		if (InputFp != NULL)
 		{
-			/* {1} When decoding from a file we need to know when the end of
-			 * the file is reached at the same time as the last bytes are read
-			 * (see also the comment marked {3} bellow). Neither the standard
-			 * C fread() function nor the POSIX read() system call provides
-			 * this feature. We thus need to perform our reads through an
-			 * interface having this feature, this is implemented here by the
-			 * bstdfile.c module.
-			 */
 			BstdFile=NewBstdFile(InputFp);
 			if(BstdFile==NULL)
 			{
@@ -153,7 +121,7 @@ public:
 			
 			/** Main decoding loop */
 			/* This is the decoding loop. */
-			do
+			for(;;)
 			{
 				/* The input bucket must be filled if it becomes empty or if
 				 * it's the first execution of the loop.
@@ -164,23 +132,6 @@ public:
 									Remaining;
 					unsigned char	*ReadStart;
 		
-					/* {2} libmad may not consume all bytes of the input
-					 * buffer. If the last frame in the buffer is not wholly
-					 * contained by it, then that frame's start is pointed by
-					 * the next_frame member of the Stream structure. This
-					 * common situation occurs when mad_frame_decode() fails,
-					 * sets the stream error code to MAD_ERROR_BUFLEN, and
-					 * sets the next_frame pointer to a non NULL value. (See
-					 * also the comment marked {4} bellow.)
-					 *
-					 * When this occurs, the remaining unused bytes must be
-					 * put back at the beginning of the buffer and taken in
-					 * account before refilling the buffer. This means that
-					 * the input buffer must be large enough to hold a whole
-					 * frame at the highest observable bit-rate (currently 448
-					 * kb/s). XXX=XXX Is 2016 bytes the size of the largest
-					 * frame? (448000*(1152/32000))/8
-					 */
 					if(Stream.next_frame!=NULL)
 					{
 						Remaining=Stream.bufend-Stream.next_frame;
@@ -193,11 +144,6 @@ public:
 							ReadStart=pInputBuffer,
 							Remaining=0;
 		
-					/* Fill-in the buffer. If an error occurs print a message
-					 * and leave the decoding loop. If the end of stream is
-					 * reached we also leave the loop but the return status is
-					 * left untouched.
-					 */
 					ReadSize=BstdRead(ReadStart,1,ReadSize,BstdFile);
 					if(ReadSize<=0)
 					{
@@ -212,30 +158,6 @@ public:
 						break;
 					}
 		
-					/* {3} When decoding the last frame of a file, it must be
-					 * followed by MAD_BUFFER_GUARD zero bytes if one wants to
-					 * decode that last frame. When the end of file is
-					 * detected we append that quantity of bytes at the end of
-					 * the available data. Note that the buffer can't overflow
-					 * as the guard size was allocated but not used the the
-					 * buffer management code. (See also the comment marked
-					 * {1}.)
-					 *
-					 * In a message to the mad-dev mailing list on May 29th,
-					 * 2001, Rob Leslie explains the guard zone as follows:
-					 *
-					 *    "The reason for MAD_BUFFER_GUARD has to do with the
-					 *    way decoding is performed. In Layer III, Huffman
-					 *    decoding may inadvertently read a few bytes beyond
-					 *    the end of the buffer in the case of certain invalid
-					 *    input. This is not detected until after the fact. To
-					 *    prevent this from causing problems, and also to
-					 *    ensure the next frame's main_data_begin pointer is
-					 *    always accessible, MAD requires MAD_BUFFER_GUARD
-					 *    (currently 8) bytes to be present in the buffer past
-					 *    the end of the current frame in order to decode the
-					 *    frame."
-					 */
 					if(BstdFileEofP(BstdFile))
 					{
 						GuardPtr=ReadStart+ReadSize;
@@ -250,49 +172,16 @@ public:
 					Stream.error=(mad_error)0;
 				}
 		
-				/* Decode the next MPEG frame. The streams is read from the
-				 * buffer, its constituents are break down and stored the the
-				 * Frame structure, ready for examination/alteration or PCM
-				 * synthesis. Decoding options are carried in the Frame
-				 * structure from the Stream structure.
-				 *
-				 * Error handling: mad_frame_decode() returns a non zero value
-				 * when an error occurs. The error condition can be checked in
-				 * the error member of the Stream structure. A mad error is
-				 * recoverable or fatal, the error status is checked with the
-				 * MAD_RECOVERABLE macro.
-				 *
-				 * {4} When a fatal error is encountered all decoding
-				 * activities shall be stopped, except when a MAD_ERROR_BUFLEN
-				 * is signaled. This condition means that the
-				 * mad_frame_decode() function needs more input to complete
-				 * its work. One shall refill the buffer and repeat the
-				 * mad_frame_decode() call. Some bytes may be left unused at
-				 * the end of the buffer if those bytes forms an incomplete
-				 * frame. Before refilling, the remaining bytes must be moved
-				 * to the beginning of the buffer and used for input for the
-				 * next mad_frame_decode() invocation. (See the comments
-				 * marked {2} earlier for more details.)
-				 *
-				 * Recoverable errors are caused by malformed bit-streams, in
-				 * this case one can call again mad_frame_decode() in order to
-				 * skip the faulty part and re-sync to the next frame.
-				 */
+				/* Decode the next MPEG frame. */
 				if(mad_frame_decode(&Frame,&Stream))
 				{
 					if(MAD_RECOVERABLE(Stream.error))
 					{
-						/* Do not print a message if the error is a loss of
-						 * synchronization and this loss is due to the end of
-						 * stream guard bytes. (See the comments marked {3}
-						 * supra for more informations about guard bytes.)
-						 */
 						if(Stream.error!=MAD_ERROR_LOSTSYNC ||
 						   Stream.this_frame!=GuardPtr)
 						{
 							printf("%s: recoverable frame level error. \n",
 									ProgName);
-							//fflush(stderr);
 						}
 						continue;
 					}
@@ -332,11 +221,6 @@ public:
 				FrameCount++;
 				mad_timer_add(&Timer,Frame.header.duration);
 		
-				/* Between the frame decoding and samples synthesis we can
-				 * perform some operations on the audio data. We do this only
-				 * if some processing was required. Detailed explanations are
-				 * given in the ApplyFilter() function.
-				 */
 				//if(DoFilter)
 				//	ApplyFilter(&Frame);
 		
@@ -347,7 +231,7 @@ public:
 		
 				/* Synthesized samples must be converted from libmad's fixed
 				 * point number to the consumer format. Here we use unsigned
-				 * 16 bit big endian integers on two channels. Integer samples
+				 * 16 bit little endian integers on two channels. Integer samples
 				 * are temporarily stored in a buffer that is flushed when
 				 * full.
 				 */
@@ -372,7 +256,8 @@ public:
 					}
 					*(OutputPtr++)=((Sample >> 0) & 0xff);
 					*(OutputPtr++)=((Sample >> 8) & 0xff);
-					/* Flush the output buffer if it is full. */
+					
+					/* Queue the output buffer if it is full. */
 					if(OutputPtr==OutputBufferEnd)
 					{
 						audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
@@ -380,7 +265,6 @@ public:
 						bufferlist.push_back(mybuffer);
 						if (bufferlist.size() >= NUM_BUFFERS)
 						{
-							//ThreadSleep(); /** Wait for buffer to empty */
 							sceKernelDelayThread(100000); /** 100ms */
 						}
 							
@@ -388,10 +272,10 @@ public:
 					}
 					
 				}
-				//sceDisplayWaitVblankStart();
 				sceKernelDelayThread(5000); /** 5ms */
 
-			}while(1);
+			};
+			printf("Done.\n");
 			
 			/* The input file was completely read; the memory allocated by our
 			 * reading module must be reclaimed.
@@ -518,26 +402,6 @@ public:
 	 ****************************************************************************/
 	static signed short MadFixedToSshort(mad_fixed_t Fixed)
 	{
-		/* A fixed point number is formed of the following bit pattern:
-		 *
-		 * SWWWFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-		 * MSB                          LSB
-		 * S ==> Sign (0 is positive, 1 is negative)
-		 * W ==> Whole part bits
-		 * F ==> Fractional part bits
-		 *
-		 * This pattern contains MAD_F_FRACBITS fractional bits, one
-		 * should alway use this macro when working on the bits of a fixed
-		 * point number. It is not guaranteed to be constant over the
-		 * different platforms supported by libmad.
-		 *
-		 * The signed short value is formed, after clipping, by the least
-		 * significant whole part bit, followed by the 15 most significant
-		 * fractional part bits. Warning: this is a quick and dirty way to
-		 * compute the 16-bit number, madplay includes much better
-		 * algorithms.
-		 */
-	
 		/* Clipping */
 		if(Fixed>=MAD_F_ONE)
 			return(SHRT_MAX);
@@ -569,49 +433,11 @@ public:
 		}
 	};
 
-//	void OnVBlank()
-//	{
-
-//	}
-	
-	
-	
-	/* This function gets called by pspaudiolib every time the
-    audio buffer needs to be filled. The sample format is
-    16-bit, stereo. */
-	void OnAudioBufferEmpty(void* outbuf, unsigned int length) 
-	{
-		//if (bufferlist.size() > 0)
-		//{
-			//char buffer[OUTPUT_BUFFER_SIZE];
-			//char *buffer = *bufferlist.pop_front();
-			audiobuffer *mybuf = bufferlist.front();
-			if (mybuf)
-			{
-				memcpy(outbuf, mybuf->buffer, OUTPUT_BUFFER_SIZE);
-				free(mybuf), mybuf = NULL;
-				bufferlist.pop_front();
-				//printf("%d ", bufferlist.size());
-			}
-			else
-			{
-				//printf("Error getting front node!\n");
-				/** Buffer underrun! */
-				//m_thDecodeFile->WakeUp();
-				printf("!");
-			}
-			//if (bufferlist.size() < MIN_BUFFERS)
-			//{
-				//printf("-");
-			//	m_thDecodeFile->WakeUp();
-			//}
-	}
-	
 	static int ThPlayAudio(SceSize args, void *argp)
 	{
 			//static char outbuf[OUTPUT_BUFFER_SIZE];
 			
-			for (;;)
+			for(;;)
 			{
 				audiobuffer *mybuf = bufferlist.front();
 				if (mybuf)
@@ -620,14 +446,11 @@ public:
 					sceAudioOutputPannedBlocking(audiohandle,PSP_AUDIO_VOLUME_MAX,PSP_AUDIO_VOLUME_MAX,mybuf->buffer);
 					free(mybuf), mybuf = NULL;
 					bufferlist.pop_front();
-					//printf("%d ", bufferlist.size());
 				}
 				else
 				{
-					//printf("Error getting front node!\n");
 					/** Buffer underrun! */
-					//m_thDecodeFile->WakeUp();
-					printf("!");
+					printf("Buffer Underrun!");
 					sceKernelDelayThread(100000); /** 100ms */
 				}
 			}

@@ -1,6 +1,7 @@
 /* 
  PSPApp
 */
+#include <new>
 #include "PSPApp.h"
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +50,9 @@ int CPSPApp::Run()
 	
 	while (m_Exit == FALSE)
 	{
+		//sceKernelSleepThread();
 		sceDisplayWaitVblankStart();
+		sceKernelDelayThread(10);
 		sceCtrlReadBufferPositive(&m_pad, 1); 
 		
 		OnVBlank();
@@ -99,14 +102,15 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
 	m_Exit = TRUE;
+	//sceKernelDelayThread(1000);
 	return 0;
 }
 
 /** Audio */
 void CPSPApp::EnableAudio()
 {
-	pspAudioInit();
-	pspAudioSetChannelCallback(0, (void *)CPSPApp::audioCallback);
+	//pspAudioInit();
+	//pspAudioSetChannelCallback((void *)CPSPApp::audioCallback);
 }
 
 /* ---statics--- */
@@ -127,8 +131,10 @@ void CPSPApp::audioCallback(void* buf, unsigned int length)
 	pPSPApp->OnAudioBufferEmpty(buf, length);
 }
 
+#if 0
 /** Overload new/delete */
 void operator delete(void *p) { free(p); };
 void operator delete[](void *p) { free(p); };
 void *operator new(size_t iSize) { return (void*)malloc(iSize); };
 void *operator new[](size_t iSize) { return (void *)malloc(iSize); };
+#endif
