@@ -16,6 +16,7 @@
 #include <mad.h>
 #include "bstdfile.h"
 #include <malloc.h>
+
 char *ProgName = "MADEXAMPLE";
 
 /* Define the module info section */
@@ -29,28 +30,27 @@ int errno = 0;
 #define PSP_NUM_AUDIO_SAMPLES PSP_AUDIO_SAMPLE_ALIGN(8192)
 #define PSP_AUDIO_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*2*16
 #define OUTPUT_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*4
-
-unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
-					*pOutputBuffer/*[OUTPUT_BUFFER_SIZE]*/,
-					*pPlayBuffer,
-					*OutputPtr=pOutputBuffer,
-					*GuardPtr=NULL;
-					
 #define NUM_BUFFERS 10
-struct audiobuffer
-{ 
-public:
-	char buffer[OUTPUT_BUFFER_SIZE]; 
-};
-using namespace std;
-list<audiobuffer*> bufferlist;
-int currentpopbuffer = 0;
 
-int audiohandle;
 
 class myPSPApp : public CPSPApp
 {
 public:
+	unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
+						*pOutputBuffer/*[OUTPUT_BUFFER_SIZE]*/,
+						*pPlayBuffer,
+						*OutputPtr=pOutputBuffer,
+						*GuardPtr=NULL;
+	struct audiobuffer
+	{ 
+	public:
+		char buffer[OUTPUT_BUFFER_SIZE]; 
+	};
+	using namespace std;
+	list<audiobuffer*> bufferlist;
+	int currentpopbuffer = 0;
+	
+	int audiohandle;
 	CPSPThread *m_thDecodeFile,*m_thPlayAudio;
 	int Setup()
 	{
@@ -74,9 +74,9 @@ public:
 				return 0;
 			}
 			
-			m_thDecodeFile->Start();
+			m_thDecodeFile->Start(1, this);
 			sceKernelDelayThread(500000); /** 500ms */
-			m_thPlayAudio->Start();
+			m_thPlayAudio->Start(1, this);
 		}
 		else
 		{
