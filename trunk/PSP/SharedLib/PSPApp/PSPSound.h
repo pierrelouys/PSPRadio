@@ -11,30 +11,37 @@
 	
 	/** Internal use */
 	//extern CPSPSound *pPSPSound = NULL;
-	
-	class CPSPSound
+	class CPSPSoundBuffer
 	{
-	protected:
+	public:
+		void  PushBuffer(char *buf);
+		char *PopBuffer();
+		int   GetBufferSize() { return m_PCMBufferList.size(); };
+		void  Empty() { m_PCMBufferList.empty(); };
+	
+	private:
 		struct audiobuffer
 		{ 
 			char buffer[OUTPUT_BUFFER_SIZE]; 
 		};
+		std::list<audiobuffer*> m_PCMBufferList;
+	};
+	
+	class CPSPSound
+	{
+	protected:
 		enum pspsound_state
 		{
 			PLAY,
 			PAUSE,
 			STOP,
 		};
-		//std::list<audiobuffer*> *GetPCMBufferList(){ return &m_PCMBufferList; };
 		
-		void  PushBuffer(char *buf);
-		char *PopBuffer();
-		int   GetBufferSize() { return m_PCMBufferList.size(); };
+		CPSPSoundBuffer Buffer;
 		
 	private:
 		void Initialize();
 		
-		std::list<audiobuffer*> m_PCMBufferList;
 		
 		CPSPThread *m_thDecode,*m_thPlayAudio;
 		int m_audiohandle ;

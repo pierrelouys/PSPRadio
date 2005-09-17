@@ -55,29 +55,6 @@ CPSPSound::~CPSPSound()
 	Stop();
 }
 
-void CPSPSound::PushBuffer(char *buf)
-{
-	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
-	memcpy(mybuffer->buffer, buf, OUTPUT_BUFFER_SIZE);
-	m_PCMBufferList.push_back(mybuffer);
-}
-
-char * CPSPSound::PopBuffer()
-{
-	static audiobuffer *sbuf = NULL;
-	if (sbuf == NULL)
-	{
-		sbuf = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
-	}
-	audiobuffer *pBuf = NULL;
-	pBuf = m_PCMBufferList.front();
-	memcpy(sbuf, pBuf, sizeof(audiobuffer));
-	free(pBuf), pBuf = NULL;
-	m_PCMBufferList.pop_front();
-	
-	return sbuf->buffer;
-}
-
 int CPSPSound::Play()
 {
 	switch(m_CurrentState)
@@ -201,4 +178,29 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 void CPSPSound::Decode()
 {
 	printf("Not Implemented!");
+}
+
+/** Sound buffer class implementation */
+
+void CPSPSoundBuffer::PushBuffer(char *buf)
+{
+	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
+	memcpy(mybuffer->buffer, buf, OUTPUT_BUFFER_SIZE);
+	m_PCMBufferList.push_back(mybuffer);
+}
+
+char * CPSPSoundBuffer::PopBuffer()
+{
+	static audiobuffer *sbuf = NULL;
+	if (sbuf == NULL)
+	{
+		sbuf = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
+	}
+	audiobuffer *pBuf = NULL;
+	pBuf = m_PCMBufferList.front();
+	memcpy(sbuf, pBuf, sizeof(audiobuffer));
+	free(pBuf), pBuf = NULL;
+	m_PCMBufferList.pop_front();
+	
+	return sbuf->buffer;
 }
