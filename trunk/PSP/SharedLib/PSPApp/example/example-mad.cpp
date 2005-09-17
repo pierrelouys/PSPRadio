@@ -2,9 +2,8 @@
 	PSPApp Example 2
 	Using MAD
 */
-
 #include <PSPApp.h>
-#include <PSPSound.h>
+#include <PSPSound_MP3.h>
 #include <stdio.h>
 #include <unistd.h> 
 #include <stdlib.h>
@@ -26,9 +25,10 @@ public:
 	{
 		printf("PSPApp MAD Example...\n");
 		
-		CPSPSound *MP3 = new CPSPSound();
+		CPSPSound_MP3 *MP3 = new CPSPSound_MP3();
 		if (MP3)
 		{
+			MP3->SetFile("ms0:/sparkless.mp3");
 			MP3->Play();
 		}
 	

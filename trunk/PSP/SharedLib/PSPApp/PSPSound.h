@@ -9,36 +9,43 @@
 	#include <list>
 	#include <mad.h>
 	
+	/** Internal use */
+	//extern CPSPSound *pPSPSound = NULL;
 	
 	class CPSPSound
 	{
-	private:
-	
+	protected:
 		struct audiobuffer
 		{ 
 			char buffer[OUTPUT_BUFFER_SIZE]; 
 		};
-		std::list<audiobuffer*> m_PCMBufferList;
-		
-		CPSPThread *m_thDecodeFile,*m_thPlayAudio;
-		int m_audiohandle ;
-		
-		/** Accessors */
-		int GetAudioHandle();
-		std::list<audiobuffer*> *GetPCMBufferList(){ return &m_PCMBufferList; };
-;
-		char *GetFile();
 		enum pspsound_state
 		{
 			PLAY,
 			PAUSE,
 			STOP,
 		};
+		std::list<audiobuffer*> *GetPCMBufferList(){ return &m_PCMBufferList; };
+		
+	private:
+		void Initialize();
+		
+		std::list<audiobuffer*> m_PCMBufferList;
+		
+		CPSPThread *m_thDecode,*m_thPlayAudio;
+		int m_audiohandle ;
+		
+		/** Accessors */
+		int GetAudioHandle();
 		
 		pspsound_state m_CurrentState;
 	
+	protected:
+		virtual void Decode();
+	
 	public:
 		CPSPSound();
+		virtual ~CPSPSound();
 		
 		int Play();
 		int Pause();
@@ -46,10 +53,7 @@
 	
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);
-		static int ThDecodeFile(SceSize args, void *argp);
-		static signed int scale(mad_fixed_t &sample);
-		static int PrintFrameInfo(struct mad_header *Header);
-		static signed short MadFixedToSshort(mad_fixed_t Fixed);
+		static int ThDecode(SceSize args, void *argp);
 	};
 	
 #endif
