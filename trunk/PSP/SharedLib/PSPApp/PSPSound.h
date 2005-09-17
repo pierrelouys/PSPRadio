@@ -25,7 +25,11 @@
 			PAUSE,
 			STOP,
 		};
-		std::list<audiobuffer*> *GetPCMBufferList(){ return &m_PCMBufferList; };
+		//std::list<audiobuffer*> *GetPCMBufferList(){ return &m_PCMBufferList; };
+		
+		void  PushBuffer(char *buf);
+		char *PopBuffer();
+		int   GetBufferSize() { return m_PCMBufferList.size(); };
 		
 	private:
 		void Initialize();

@@ -33,7 +33,7 @@ void CPSPSound::Initialize()
 	}
 	pPSPSound = this;
 	
-	GetPCMBufferList()->empty();
+	m_PCMBufferList.empty();
 	
 	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_NUM_AUDIO_SAMPLES, PSP_AUDIO_FORMAT_STEREO);
 	if ( m_audiohandle < 0 )
@@ -55,6 +55,28 @@ CPSPSound::~CPSPSound()
 	Stop();
 }
 
+void CPSPSound::PushBuffer(char *buf)
+{
+	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
+	memcpy(mybuffer->buffer, buf, OUTPUT_BUFFER_SIZE);
+	m_PCMBufferList.push_back(mybuffer);
+}
+
+char * CPSPSound::PopBuffer()
+{
+	static audiobuffer *sbuf = NULL;
+	if (sbuf == NULL)
+	{
+		sbuf = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
+	}
+	audiobuffer *pBuf = NULL;
+	pBuf = m_PCMBufferList.front();
+	memcpy(sbuf, pBuf, sizeof(audiobuffer));
+	free(pBuf), pBuf = NULL;
+	m_PCMBufferList.pop_front();
+	
+	return sbuf->buffer;
+}
 
 int CPSPSound::Play()
 {
@@ -115,7 +137,7 @@ int CPSPSound::Stop()
 	{
 		case PLAY:
 		case PAUSE:
-			GetPCMBufferList()->empty();
+			m_PCMBufferList.empty();
 			if (m_thDecode)
 			{
 				delete(m_thDecode), m_thDecode = NULL;
@@ -137,31 +159,30 @@ int CPSPSound::Stop()
 /** Threads */
 int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
-		//static char outbuf[OUTPUT_BUFFER_SIZE];
-		audiobuffer *mybuf = NULL;
-		//myPSPApp *pPSPSound = (myPSPApp*)pPSPApp;
+		//audiobuffer *mybuf = NULL;
+		char *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
-		list<audiobuffer*> *PCMBufferList = pPSPSound->GetPCMBufferList();
+		//list<audiobuffer*> *PCMBufferList = pPSPSound->GetPCMBufferList();
 		
 		pspDebugScreenSetXY(0,15);
 		printf ("Starting Play Thread (AudioHandle=%d)\n", ah);
 		
 		for(;;)
 		{
-			mybuf = PCMBufferList->front();
+			//mybuf = PCMBufferList->front();
+			mybuf = pPSPSound->PopBuffer();
 			if (mybuf)
 			{
-				//memcpy(outbuf, mybuf->buffer, OUTPUT_BUFFER_SIZE);
-				sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX,PSP_AUDIO_VOLUME_MAX,mybuf->buffer);
-				free(mybuf), mybuf = NULL;
-				PCMBufferList->pop_front();
-				pspDebugScreenSetXY(0,16);
+				sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
+				//free(mybuf), mybuf = NULL;
+				//PCMBufferList->pop_front();
+				//pspDebugScreenSetXY(0,16);
 			}
 			else
 			{
 				/** Buffer underrun! */
 				pspDebugScreenSetXY(0,17);
-				printf("! %03d   ", PCMBufferList->size());
+				printf("! %03d   ", pPSPSound->GetBufferSize());
 				sceKernelDelayThread(100000); /** 100ms */
 			}
 		}

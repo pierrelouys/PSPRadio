@@ -50,7 +50,7 @@ void CPSPSound_MP3::Decode()
 						*GuardPtr		= NULL;
 	
 	//myPSPApp *pPSPSound_MP3 = (myPSPApp*)pPSPApp;
-	list<audiobuffer*> *PCMBufferList = pPSPSound_MP3->GetPCMBufferList();
+	//list<audiobuffer*> *PCMBufferList = pPSPSound_MP3->GetPCMBufferList();
 
 	printf ("Starting Decoding Thread\n");
 	
@@ -227,15 +227,14 @@ void CPSPSound_MP3::Decode()
 				/* Queue the output buffer if it is full. */
 				if(OutputPtr==OutputBufferEnd)
 				{
-					//printf("+");
-					audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
-					memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
-					/*pPSPSound_MP3->*/PCMBufferList->push_back(mybuffer);
-					//printf("+2");
+				//	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
+				//	memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
+				//	PCMBufferList->push_back(mybuffer);
+					pPSPSound_MP3->PushBuffer((char*)pOutputBuffer);
 
 					pspDebugScreenSetXY(0,10);
-					printf("Buffers: %03d/%03d   ", PCMBufferList->size(), NUM_BUFFERS);
-					if (/*pPSPSound_MP3->*/PCMBufferList->size() >= NUM_BUFFERS)
+					printf("Buffers: %03d/%03d   ", GetBufferSize(), NUM_BUFFERS);
+					if (/*pPSPSound_MP3->*/GetBufferSize() >= NUM_BUFFERS)
 					{
 						pspDebugScreenSetXY(0,11);
 						printf("+");							
