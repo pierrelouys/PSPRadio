@@ -1,5 +1,5 @@
 TARGET = MadEx
-OBJS = example-mad.o bstdfile.o
+OBJS = example-mad.o
 
 INCDIR = ../
 CFLAGS = -O2 -G0 -Wall -L../../lib

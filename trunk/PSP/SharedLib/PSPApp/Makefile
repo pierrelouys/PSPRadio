@@ -1,5 +1,5 @@
 TARGET_LIB = ../lib/libPSPApp.a
-OBJS = PSPApp.o
+OBJS = PSPApp.o PSPSound.o bstdfile.o
 
 INCDIR = 
 CFLAGS = -O2 -Wall
