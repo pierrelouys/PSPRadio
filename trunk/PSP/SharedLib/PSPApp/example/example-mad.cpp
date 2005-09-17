@@ -5,13 +5,10 @@
 
 #include <list>
 #include <PSPApp.h>
-
 #include <stdio.h>
 #include <unistd.h> 
-
 #include <stdlib.h>
 #include <string.h>
-//#include <math.h>
 #include <limits.h>
 #include <mad.h>
 #include "bstdfile.h"
@@ -28,42 +25,49 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
 int errno = 0;
 
-#define INPUT_BUFFER_SIZE	(5*8192)
-#define PSP_NUM_AUDIO_SAMPLES PSP_AUDIO_SAMPLE_ALIGN(8192)
-#define PSP_AUDIO_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*2*16
-#define OUTPUT_BUFFER_SIZE PSP_NUM_AUDIO_SAMPLES*4
-#define NUM_BUFFERS 10
+#define INPUT_BUFFER_SIZE		(5*8192)
+#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192)
+#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
+#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
+#define NUM_BUFFERS 			10
 
 class myPSPApp : public CPSPApp
 {
-public:
-
+private:
 	struct audiobuffer
 	{ 
-	public:
 		char buffer[OUTPUT_BUFFER_SIZE]; 
 	};
-	list<audiobuffer*> m_bufferlist;
-
+	list<audiobuffer*> m_PCMBufferList;
 	
 	CPSPThread *m_thDecodeFile,*m_thPlayAudio;
 	int m_audiohandle ;
 
+
+/** Accessors */
 	int GetAudioHandle()
 	{
 		return m_audiohandle;
 	}
 	
-	list<audiobuffer*> *GetBufferList()
+	list<audiobuffer*> *GetPCMBufferList()
 	{
-		return &m_bufferlist;
+		return &m_PCMBufferList;
 	}
 	
+	char *GetFile() 
+	{ 
+		return "ms0:/sparkless.mp3"; 
+	}
+
+public:
+	/** Setup */
 	int Setup()
 	{
 		printf("PSPApp MAD Example...\n");
 		
-		//bufferlist.empty();
+		GetPCMBufferList()->empty();
+		
 		m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_NUM_AUDIO_SAMPLES, PSP_AUDIO_FORMAT_STEREO);
 		if ( m_audiohandle < 0 )
 		{
@@ -84,27 +88,59 @@ public:
 		return 0;
 	}
 	
-	char *GetFile() { return "ms0:/sparkless.mp3"; }
-	
+	/** Threads */
+	static int ThPlayAudio(SceSize args, void *argp)
+	{
+			//static char outbuf[OUTPUT_BUFFER_SIZE];
+			audiobuffer *mybuf = NULL;
+			myPSPApp *This = (myPSPApp*)pPSPApp;
+			int ah = This->GetAudioHandle();
+			list<audiobuffer*> *PCMBufferList = This->GetPCMBufferList();
+			
+			pspDebugScreenSetXY(0,15);
+			printf ("Starting Play Thread (AudioHandle=%d)\n", ah);
+			
+			for(;;)
+			{
+				mybuf = PCMBufferList->front();
+				if (mybuf)
+				{
+					//memcpy(outbuf, mybuf->buffer, OUTPUT_BUFFER_SIZE);
+					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX,PSP_AUDIO_VOLUME_MAX,mybuf->buffer);
+					free(mybuf), mybuf = NULL;
+					PCMBufferList->pop_front();
+					pspDebugScreenSetXY(0,16);
+				}
+				else
+				{
+					/** Buffer underrun! */
+					pspDebugScreenSetXY(0,17);
+					printf("! %03d   ", PCMBufferList->size());
+					sceKernelDelayThread(100000); /** 100ms */
+				}
+			}
+			sceKernelExitThread(0);
+			return 0;
+	}
+
 	static int ThDecodeFile(SceSize args, void *argp)
 	{
 		struct mad_frame	Frame;
 		struct mad_stream	Stream;
 		struct mad_synth	Synth;
 		mad_timer_t			Timer;
-		const unsigned char	*OutputBufferEnd;
+		const unsigned char	*OutputBufferEnd = NULL;
 		int					Status=0,
-							i;
+							i = 0;
 		unsigned long		FrameCount=0;
 		bstdfile_t			*BstdFile = NULL;
-		//char *pPlayBuffer,
-		unsigned char		*pInputBuffer/*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/,
-							*pOutputBuffer/*[OUTPUT_BUFFER_SIZE]*/;
-		unsigned char		*OutputPtr;
-		unsigned char		*GuardPtr;
+		unsigned char		*pInputBuffer 	= NULL, /*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/
+							*pOutputBuffer	= NULL, /*[OUTPUT_BUFFER_SIZE]*/
+							*OutputPtr		= NULL,
+							*GuardPtr		= NULL;
 		
 		myPSPApp *This = (myPSPApp*)pPSPApp;
-		list<audiobuffer*> *bufferlist = This->GetBufferList();
+		list<audiobuffer*> *PCMBufferList = This->GetPCMBufferList();
 	
 		printf ("Starting Decoding Thread\n");
 		
@@ -284,12 +320,12 @@ public:
 						//printf("+");
 						audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
 						memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
-						/*This->*/bufferlist->push_back(mybuffer);
+						/*This->*/PCMBufferList->push_back(mybuffer);
 						//printf("+2");
 
 						pspDebugScreenSetXY(0,10);
-						printf("Buffers: %03d/%03d   ", bufferlist->size(), NUM_BUFFERS);
-						if (/*This->*/bufferlist->size() >= NUM_BUFFERS)
+						printf("Buffers: %03d/%03d   ", PCMBufferList->size(), NUM_BUFFERS);
+						if (/*This->*/PCMBufferList->size() >= NUM_BUFFERS)
 						{
 							pspDebugScreenSetXY(0,11);
 							printf("+");							
@@ -469,42 +505,6 @@ public:
 			printf ("CIRCLE   ");
 		}
 	};
-
-	static int ThPlayAudio(SceSize args, void *argp)
-	{
-			//static char outbuf[OUTPUT_BUFFER_SIZE];
-			audiobuffer *mybuf = NULL;
-			myPSPApp *This = (myPSPApp*)pPSPApp;
-			int ah = This->GetAudioHandle();
-			list<audiobuffer*> *bufferlist = This->GetBufferList();
-			
-			pspDebugScreenSetXY(0,15);
-			printf ("Starting Play Thread (AudioHandle=%d)\n", ah);
-			
-			for(;;)
-			{
-				mybuf = bufferlist->front();
-				if (mybuf)
-				{
-					//printf("Playing %03d (handle=%d)  ", bufferlist.size(), This->m_audiohandle);
-					//memcpy(outbuf, mybuf->buffer, OUTPUT_BUFFER_SIZE);
-					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX,PSP_AUDIO_VOLUME_MAX,mybuf->buffer);
-					free(mybuf), mybuf = NULL;
-					bufferlist->pop_front();
-					pspDebugScreenSetXY(0,16);
-				}
-				else
-				{
-					/** Buffer underrun! */
-					//printf("Buffer Underrun!\n");
-					pspDebugScreenSetXY(0,17);
-					printf("! %03d   ", bufferlist->size());
-					sceKernelDelayThread(100000); /** 100ms */
-				}
-			}
-			sceKernelExitThread(0);
-			return 0;
-	}
 	
 };
 	
