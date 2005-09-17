@@ -230,11 +230,11 @@ void CPSPSound_MP3::Decode()
 				//	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
 				//	memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
 				//	PCMBufferList->push_back(mybuffer);
-					pPSPSound_MP3->PushBuffer((char*)pOutputBuffer);
+					pPSPSound_MP3->Buffer.PushBuffer((char*)pOutputBuffer);
 
 					pspDebugScreenSetXY(0,10);
-					printf("Buffers: %03d/%03d   ", GetBufferSize(), NUM_BUFFERS);
-					if (/*pPSPSound_MP3->*/GetBufferSize() >= NUM_BUFFERS)
+					printf("Buffers: %03d/%03d   ", pPSPSound_MP3->Buffer.GetBufferSize(), NUM_BUFFERS);
+					if (pPSPSound_MP3->Buffer.GetBufferSize() >= NUM_BUFFERS)
 					{
 						pspDebugScreenSetXY(0,11);
 						printf("+");							

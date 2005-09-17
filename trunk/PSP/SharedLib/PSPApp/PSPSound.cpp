@@ -33,7 +33,7 @@ void CPSPSound::Initialize()
 	}
 	pPSPSound = this;
 	
-	m_PCMBufferList.empty();
+	Buffer.Empty();
 	
 	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_NUM_AUDIO_SAMPLES, PSP_AUDIO_FORMAT_STEREO);
 	if ( m_audiohandle < 0 )
@@ -114,7 +114,7 @@ int CPSPSound::Stop()
 	{
 		case PLAY:
 		case PAUSE:
-			m_PCMBufferList.empty();
+			Buffer.Empty();
 			if (m_thDecode)
 			{
 				delete(m_thDecode), m_thDecode = NULL;
@@ -147,7 +147,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		for(;;)
 		{
 			//mybuf = PCMBufferList->front();
-			mybuf = pPSPSound->PopBuffer();
+			mybuf = pPSPSound->Buffer.PopBuffer();
 			if (mybuf)
 			{
 				sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
@@ -159,7 +159,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 			{
 				/** Buffer underrun! */
 				pspDebugScreenSetXY(0,17);
-				printf("! %03d   ", pPSPSound->GetBufferSize());
+				printf("! %03d   ", pPSPSound->Buffer.GetBufferSize());
 				sceKernelDelayThread(100000); /** 100ms */
 			}
 		}
