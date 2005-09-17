@@ -28,7 +28,7 @@ public:
 		CPSPSound_MP3 *MP3 = new CPSPSound_MP3();
 		if (MP3)
 		{
-			MP3->SetFile("ms0:/sparkless.mp3");
+			MP3->SetFile("ms0:/believe.mp3");
 			MP3->Play();
 		}
 	

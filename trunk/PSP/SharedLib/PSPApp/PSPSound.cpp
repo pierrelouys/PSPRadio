@@ -69,7 +69,7 @@ int CPSPSound::Play()
 				delete(m_thPlayAudio), m_thPlayAudio = NULL;
 			}
 			m_thDecode = new CPSPThread("decode_thread", ThDecode, 0x11, 80000);
-			m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x11, 80000);
+			m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x20, 80000);
 			m_thDecode->Start();
 			sceKernelDelayThread(500000); /** 500ms */
 			m_thPlayAudio->Start();
@@ -136,30 +136,28 @@ int CPSPSound::Stop()
 /** Threads */
 int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
-		//audiobuffer *mybuf = NULL;
 		char *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
-		//list<audiobuffer*> *PCMBufferList = pPSPSound->GetPCMBufferList();
 		
 		pspDebugScreenSetXY(0,15);
 		printf ("Starting Play Thread (AudioHandle=%d)\n", ah);
 		
 		for(;;)
 		{
-			//mybuf = PCMBufferList->front();
-			mybuf = pPSPSound->Buffer.PopBuffer();
+			if (pPSPSound->Buffer.IsDone())
+			{
+				break;
+			}
+			mybuf = pPSPSound->Buffer.Pop();
 			if (mybuf)
 			{
 				sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
-				//free(mybuf), mybuf = NULL;
-				//PCMBufferList->pop_front();
-				//pspDebugScreenSetXY(0,16);
 			}
 			else
 			{
 				/** Buffer underrun! */
 				pspDebugScreenSetXY(0,17);
-				printf("! %03d   ", pPSPSound->Buffer.GetBufferSize());
+				printf("! %03d   ", pPSPSound->Buffer.GetPushPos());
 				sceKernelDelayThread(100000); /** 100ms */
 			}
 		}
@@ -222,7 +220,7 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 	ringbuf = (char*)memalign(64, OUTPUT_BUFFER_SIZE * (NUM_BUFFERS + 5));
 	Empty();
 }
-int CPSPSoundBuffer::GetBufferSize() 
+int CPSPSoundBuffer::GetPushPos() 
 { 
 	return pushpos; 
 }
@@ -230,21 +228,37 @@ void  CPSPSoundBuffer::Empty()
 { 
 	memset(ringbuf, 0, OUTPUT_BUFFER_SIZE * NUM_BUFFERS);
 	pushpos = poppos = 0;
+	m_lastpushpos = -1;
 }
 
-void CPSPSoundBuffer::PushBuffer(char *buf)
+void CPSPSoundBuffer::Push(char *buf)
 {
 	while(pushpos - poppos > NUM_BUFFERS/2)
 	{
-		sceKernelDelayThread(100000); /** 100ms */
+		sceKernelDelayThread(500); /** 500us */
 	}
 	memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
 	pushpos = (pushpos + 1) % NUM_BUFFERS;
 }
 
-char * CPSPSoundBuffer::PopBuffer()
+char * CPSPSoundBuffer::Pop()
 {
 	char *ret = ringbuf+(poppos*OUTPUT_BUFFER_SIZE);
 	poppos = (poppos + 1) % NUM_BUFFERS;
 	return ret;
+}
+
+void CPSPSoundBuffer::Done()
+{
+	m_lastpushpos = pushpos;
+}
+
+int CPSPSoundBuffer::IsDone()
+{
+	if (m_lastpushpos == poppos)
+	{
+		return 1;
+	}
+	
+	return 0;
 }

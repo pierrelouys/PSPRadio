@@ -230,32 +230,30 @@ void CPSPSound_MP3::Decode()
 				//	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
 				//	memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
 				//	PCMBufferList->push_back(mybuffer);
-					pPSPSound_MP3->Buffer.PushBuffer((char*)pOutputBuffer);
+					pPSPSound_MP3->Buffer.Push((char*)pOutputBuffer);
 
-					pspDebugScreenSetXY(0,10);
-					printf("Buffers: %03d/%03d   ", pPSPSound_MP3->Buffer.GetBufferSize(), NUM_BUFFERS);
-					if (pPSPSound_MP3->Buffer.GetBufferSize() >= NUM_BUFFERS)
+					static int count = 0;
+					if (count % 5 == 0)
 					{
-						pspDebugScreenSetXY(0,11);
-						printf("+");							
-						//static int audiostarted = 0;
-						//if (audiostarted == 0)
-						//{
-						//	printf("Done Buffering.\n");
-						//	pPSPSound_MP3->m_thPlayAudio->Start(1, pPSPSound_MP3);
-						//	audiostarted = 1;
-						//}
-						sceKernelDelayThread(100000); /** 100ms */
+						pspDebugScreenSetXY(0,10);
+						printf("Buffers: %03d/%03d   ", pPSPSound_MP3->Buffer.GetPushPos(), NUM_BUFFERS);
 					}
+					count++;
 						
 					OutputPtr=pOutputBuffer;
+					//sceKernelDelayThread(100); /** .1ms */
+
+					//sceKernelDelayThread(1); /** 1us */
 				}
-				
+				//sceKernelDelayThread(100); /** .1ms */
+
+
 			}
-			sceKernelDelayThread(5000); /** 5ms */
+			sceKernelDelayThread(10); /** 100us */
 
 		};
 		printf("Done.\n");
+		pPSPSound_MP3->Buffer.Done();
 		
 		/* The input file was completely read; the memory allocated by our
 		 * reading module must be reclaimed.
