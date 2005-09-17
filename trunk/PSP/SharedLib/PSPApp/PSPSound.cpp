@@ -181,6 +181,18 @@ void CPSPSound::Decode()
 }
 
 /** Sound buffer class implementation */
+#if 0
+CPSPSoundBuffer::CPSPSoundBuffer()
+{
+}
+int   CPSPSoundBuffer::GetBufferSize() 
+{ 
+	return m_PCMBufferList.size(); 
+}
+void  CPSPSoundBuffer::Empty() 
+{ 
+	m_PCMBufferList.empty(); 
+}
 
 void CPSPSoundBuffer::PushBuffer(char *buf)
 {
@@ -203,4 +215,36 @@ char * CPSPSoundBuffer::PopBuffer()
 	m_PCMBufferList.pop_front();
 	
 	return sbuf->buffer;
+}
+#endif
+CPSPSoundBuffer::CPSPSoundBuffer()
+{
+	ringbuf = (char*)memalign(64, OUTPUT_BUFFER_SIZE * (NUM_BUFFERS + 5));
+	Empty();
+}
+int CPSPSoundBuffer::GetBufferSize() 
+{ 
+	return pushpos; 
+}
+void  CPSPSoundBuffer::Empty() 
+{ 
+	memset(ringbuf, 0, OUTPUT_BUFFER_SIZE * NUM_BUFFERS);
+	pushpos = poppos = 0;
+}
+
+void CPSPSoundBuffer::PushBuffer(char *buf)
+{
+	while(pushpos - poppos > NUM_BUFFERS/2)
+	{
+		sceKernelDelayThread(100000); /** 100ms */
+	}
+	memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
+	pushpos = (pushpos + 1) % NUM_BUFFERS;
+}
+
+char * CPSPSoundBuffer::PopBuffer()
+{
+	char *ret = ringbuf+(poppos*OUTPUT_BUFFER_SIZE);
+	poppos = (poppos + 1) % NUM_BUFFERS;
+	return ret;
 }

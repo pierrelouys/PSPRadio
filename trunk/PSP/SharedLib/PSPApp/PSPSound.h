@@ -4,7 +4,7 @@
 	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192)
 	#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
 	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
-	#define NUM_BUFFERS 			10
+	#define NUM_BUFFERS 			100
 	
 	#include <list>
 	#include <mad.h>
@@ -14,17 +14,22 @@
 	class CPSPSoundBuffer
 	{
 	public:
+		CPSPSoundBuffer();
 		void  PushBuffer(char *buf);
 		char *PopBuffer();
-		int   GetBufferSize() { return m_PCMBufferList.size(); };
-		void  Empty() { m_PCMBufferList.empty(); };
+		int   GetBufferSize();
+		void  Empty();
 	
 	private:
+		#if 0
 		struct audiobuffer
 		{ 
 			char buffer[OUTPUT_BUFFER_SIZE]; 
 		};
 		std::list<audiobuffer*> m_PCMBufferList;
+		#endif
+		int pushpos,poppos;
+		char *ringbuf;
 	};
 	
 	class CPSPSound
