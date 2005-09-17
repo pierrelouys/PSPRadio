@@ -76,8 +76,8 @@
 		~CPSPThread()
 				{ if (m_thid>=0) sceKernelTerminateDeleteThread(m_thid);  };
 				
-		int Start(SceSize argc = 0, void *argp = NULL)
-				{ return m_thid>=0?sceKernelStartThread(m_thid, argc, argp):-1; };
+		int Start()
+				{ return m_thid>=0?sceKernelStartThread(m_thid, 0, NULL):-1; };
 		int Suspend()
 				{ return m_thid>=0?sceKernelSuspendThread(m_thid):-1; };
 		int Resume()
