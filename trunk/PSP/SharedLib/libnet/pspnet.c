@@ -6,6 +6,9 @@
 #include "pspnet.h"
 #define LogPrintf	pspDebugScreenPrintf
 
+asm(".global __lib_stub_top");
+asm(".global __lib_stub_bottom");
+
 
 ////////////////////////////////////////////////////////////////////
 // SLIME NOTE: Module library linkage trickery

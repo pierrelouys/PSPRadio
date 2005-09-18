@@ -4,7 +4,13 @@
 	#ifndef __PSP__
 		#define __PSP__
 	#endif
+	
+	#ifdef __cplusplus
+		extern "C" {
+	#endif
+ 
 
+	#include <pspkerneltypes.h>
 	#include <sys/types.h>
 	#include <psputility.h>
 	#include <reent.h>
@@ -54,4 +60,9 @@
 	                  (((u32)(A) & 0x000000ff) << 24))
 	#define ntohs     htons
 	#define ntohl     htohl
+	
+	#ifdef __cplusplus
+		}
+	#endif
+
 #endif
