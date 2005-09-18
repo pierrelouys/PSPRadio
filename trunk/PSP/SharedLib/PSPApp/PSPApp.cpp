@@ -111,12 +111,12 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 }
 
 /** Audio */
-int CPSPApp::EnableNetwork()
+int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
 	if (nlhLoadDrivers() == 0)
 	{
-		if (WLANConnectionHandler() == 0)
+		if (WLANConnectionHandler(profile) == 0)
 		{
 			printf("PSP IP = %s\n", GetMyIP());
 			iRet = 0;
@@ -152,7 +152,7 @@ void CPSPApp::DisableNetwork()
 }
 
 /** From FTPD */
-int CPSPApp::WLANConnectionHandler() 
+int CPSPApp::WLANConnectionHandler(int profile) 
 {
     u32 err;
     int iRet = 0;
@@ -164,7 +164,7 @@ int CPSPApp::WLANConnectionHandler()
         iRet = -1;
     }
 
-	err = sceNetApctlConnect(/**profile */0);
+	err = sceNetApctlConnect(profile);
     if (err != 0) {
 		printf("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '%d'.\n", err);
         DisableNetwork();

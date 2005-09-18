@@ -1,30 +1,18 @@
 ### 
 ## PSP iniparser library makefile
 ###
+TARGET_LIB = ../lib/libiniparser.a
+OBJS = iniparser.o
 
-GCC = psp-gcc
-LD = psp-ld
-AR = psp-ar
-RANLIB = psp-ranlib
+INCDIR = 
+CFLAGS = -O2 -Wall -D__PSP__
+#-G0
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
 
-PSPSDK		= $(shell psp-config --pspsdk-path)
+LDFLAGS =
+LIBS = 
 
-CFLAGS		=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I$(PSPSDK)/include
-ASFLAGS		=-march=allegrex -g -O2 -G0 -Wall -I.
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak
 
-LIB =../lib/libiniparser.a
-OBJS  = iniparser.o
-
-all: $(LIB)
-
-$(LIB): $(OBJS)
-	$(AR) r $(LIB) $(OBJS)
-
-.c.o:
-	$(GCC) $(CFLAGS) -c $*.c
-
-.S.o:
-	$(GCC) $(ASFLAGS) -c $*.S
-
-clean:
-	rm -f *.o $(LIB)

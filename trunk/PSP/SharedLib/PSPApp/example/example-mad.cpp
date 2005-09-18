@@ -10,37 +10,48 @@
 #include <string.h>
 #include <limits.h>
 #include <malloc.h>
+#include <iniparser.h>
+#include <Tools.h>
 
 asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
 
 /* Define the module info section */
-//PSP_MODULE_INFO("MADEXAMPLE", 0, 1, 1);
-/* Define the main thread's attribute value (optional) */
-//PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
-
 PSP_MODULE_INFO("MADEXAMPLE", 0x1000, 1, 1);
-PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 /* Define the main thread's attribute value (optional) */
-//PSP_MAIN_THREAD_ATTR(0);
+PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
+#define CFG_FILENAME "madraf.cfg"
 
 class myPSPApp : public CPSPApp
 {
+private:
+	CIniParser *config;
+	CPSPSound_MP3 *MP3;
+	
 public:
 	/** Setup */
-	int Setup()
+	int Setup(int argc, char **argv)
 	{
 		printf("PSPApp MAD Example...\n");
 		
+		//open config file
+		char strCfgFile[256];
+		char strDir[256];
+		strcpy(strDir, argv[0]);
+		dirname(strDir); /** Retrieve the directory name */
+		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
+
+		config = new CIniParser(strCfgFile);
+		
 		//sceKernelDelayThread(1000000);
 		printf("Starting Network...\n");
-		EnableNetwork();
+		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
 
-		CPSPSound_MP3 *MP3 = new CPSPSound_MP3();
+		MP3 = new CPSPSound_MP3();
 		if (MP3)
 		{
-			MP3->SetFile("ms0:/believe.mp3");
+			MP3->SetFile(config->GetStr("MUSIC:FILE"));
 			MP3->Play();
 		}
 		else
@@ -51,6 +62,14 @@ public:
 		return 0;
 	}
 	
+	int OnAppExit(int arg1, int arg2, void *common)
+	{
+		//delete(MP3);
+		//delete(config);
+		
+		return 0;
+	}
+
  
 	void OnButtonPressed(int iButtonMask)
 	{
@@ -76,10 +95,10 @@ public:
 };
 	
 /** main */
-int main(void) 
+int main(int argc, char **argv) 
 {
 	myPSPApp *PSPApp  = new myPSPApp();
-	PSPApp->Setup();
+	PSPApp->Setup(argc, argv);
 	PSPApp->Run();
 	
 	return 0;

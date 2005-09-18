@@ -43,7 +43,7 @@
 	
 	protected:
 		/** Helpers */
-		int EnableNetwork();
+		int EnableNetwork(int profile);
 		void DisableNetwork();
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
@@ -72,7 +72,7 @@
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
 		
-		int WLANConnectionHandler();
+		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();
 	};
 	
