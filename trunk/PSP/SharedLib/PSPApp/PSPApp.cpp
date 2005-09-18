@@ -2,10 +2,11 @@
  PSPApp
 */
 #include <new>
-#include "PSPApp.h"
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <pspnet.h>
+#include "PSPApp.h"
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
@@ -107,8 +108,9 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 }
 
 /** Audio */
-void CPSPApp::EnableAudio()
+void CPSPApp::EnableNetwork()
 {
+	nlhLoadDrivers();
 	//pspAudioInit();
 	//pspAudioSetChannelCallback((void *)CPSPApp::audioCallback);
 }

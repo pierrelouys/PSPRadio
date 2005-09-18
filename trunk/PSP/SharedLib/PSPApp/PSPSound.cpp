@@ -68,8 +68,8 @@ int CPSPSound::Play()
 			{
 				delete(m_thPlayAudio), m_thPlayAudio = NULL;
 			}
-			m_thDecode = new CPSPThread("decode_thread", ThDecode, 0x11, 80000);
-			m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x20, 80000);
+			m_thDecode = new CPSPThread("decode_thread", ThDecode, 0x20, 80000);
+			m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x11, 80000);
 			m_thDecode->Start();
 			sceKernelDelayThread(500000); /** 500ms */
 			m_thPlayAudio->Start();

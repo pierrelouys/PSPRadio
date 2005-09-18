@@ -11,6 +11,9 @@
 #include <limits.h>
 #include <malloc.h>
 
+asm(".global __lib_stub_top");
+asm(".global __lib_stub_bottom");
+
 /* Define the module info section */
 PSP_MODULE_INFO("MADEXAMPLE", 0, 1, 1);
 /* Define the main thread's attribute value (optional) */

@@ -2,13 +2,13 @@ TARGET = MadEx
 OBJS = example-mad.o
 
 INCDIR = ../
-CFLAGS = -O2 -G0 -Wall -L../../lib
+CFLAGS = -O2 -G0 -Wall -L../../lib -I../../libnet
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
 LIBDIR = 
 LDFLAGS = 
-LIBS = -lPSPApp -lpspaudio -lsupc++ -lstdc++ -lmad
+LIBS = -lPSPApp -lpspaudio -lsupc++ -lstdc++ -lnet -lmad
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPApp MAD example App

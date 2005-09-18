@@ -1,6 +1,6 @@
 #ifndef PSPSOUND
 #define __PSPSOUND__
-	#define INPUT_BUFFER_SIZE		(50*8192)
+	#define INPUT_BUFFER_SIZE		(5*8192)
 	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192)
 	#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
 	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
@@ -9,6 +9,7 @@
 	#include <list>
 	#include <mad.h>
 	
+	/** From httpget.c */
 	/** Internal use */
 	//extern CPSPSound *pPSPSound = NULL;
 	class CPSPSoundBuffer

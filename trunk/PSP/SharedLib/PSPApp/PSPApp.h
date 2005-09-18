@@ -6,17 +6,20 @@
 	
 	#include <list>
 	#include <pspkernel.h>
+	#include <pspkerneltypes.h>
+	#include <pspnet.h>
 	#include <pspdebug.h>
 	#include <pspdisplay.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 
 	
-	enum true_or_false
-	{
-		FALSE = 0,
-		TRUE  = 1
-	};
+	
+	//enum true_or_false
+	//{
+	//	FALSE = 0,
+	//	TRUE  = 1
+	//};
 		
 	/* Define printf, just to make typing easier */
 	#define printf	pspDebugScreenPrintf
@@ -39,7 +42,7 @@
 	
 	protected:
 		/** Helpers */
-		static void EnableAudio();
+		static void EnableNetwork();
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual int OnAppExit(int arg1, int arg2, void *common);
@@ -59,7 +62,7 @@
 	private:
 		/** Data */
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
-		true_or_false m_Exit;
+		BOOLEAN m_Exit;
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 	};
 	
@@ -72,7 +75,7 @@
 	
 	public:
 		CPSPThread(const char *strName, SceKernelThreadEntry ThreadEntry, int initPriority = 0x11,
-					int stackSize = 0xFA0, SceUInt attr = 0, SceKernelThreadOptParam *option = NULL)
+					int stackSize = 0xFA0, SceUInt attr = PSP_THREAD_ATTR_USER, SceKernelThreadOptParam *option = NULL)
 				{ m_thid = sceKernelCreateThread(strName, ThreadEntry, initPriority, stackSize, attr, option);  };
 		~CPSPThread()
 				{ if (m_thid>=0) sceKernelTerminateDeleteThread(m_thid);  };
@@ -95,5 +98,20 @@
 	private:
 		int m_thid;
 	};
+	/** Attribute for threads. 
+	enum PspThreadAttributes
+	{
+		// Enable VFPU access for the thread./
+		PSP_THREAD_ATTR_VFPU = 0x00004000,
+		// Start the thread in user mode (done automatically 
+		//  if the thread creating it is in user mode). /
+		PSP_THREAD_ATTR_USER = 0x80000000,
+		// Thread is part of the USB/WLAN API./
+		PSP_THREAD_ATTR_USBWLAN = 0xa0000000,
+		// Thread is part of the VSH API./
+		PSP_THREAD_ATTR_VSH = 0xc0000000,
+	};
+	*/
+ 
 	
 #endif
