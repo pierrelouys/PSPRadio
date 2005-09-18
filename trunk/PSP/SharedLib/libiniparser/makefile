@@ -12,7 +12,7 @@ PSPSDK		= $(shell psp-config --pspsdk-path)
 CFLAGS		=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I$(PSPSDK)/include
 ASFLAGS		=-march=allegrex -g -O2 -G0 -Wall -I.
 
-LIB =../lib/iniparser.a
+LIB =../lib/libiniparser.a
 OBJS  = iniparser.o
 
 all: $(LIB)

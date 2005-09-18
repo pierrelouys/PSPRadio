@@ -35,10 +35,6 @@
 
 #include "iniparser.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* strlib.c following */
 
 #define ASCIILINESZ 1024
@@ -55,7 +51,7 @@ extern "C" {
  */
 /*--------------------------------------------------------------------------*/
 
-static char * strlwc(char * s)
+char * CIniParser::strlwc(char * s)
 {
     static char l[ASCIILINESZ+1];
     int i ;
@@ -86,7 +82,7 @@ static char * strlwc(char * s)
  */
 /*--------------------------------------------------------------------------*/
 
-static char * strupc(char * s)
+char * CIniParser::strupc(char * s)
 {
     static char l[ASCIILINESZ+1];
     int i ;
@@ -115,7 +111,7 @@ static char * strupc(char * s)
  */
 /*--------------------------------------------------------------------------*/
 
-static char * strskp(char * s)
+char * CIniParser::strskp(char * s)
 {
     char * skip = s;
     if (s==NULL) return NULL ;
@@ -140,7 +136,7 @@ static char * strskp(char * s)
  */
 /*--------------------------------------------------------------------------*/
 
-static char * strcrop(char * s)
+char * CIniParser::strcrop(char * s)
 {
     static char l[ASCIILINESZ+1];
     char * last ;
@@ -174,7 +170,7 @@ static char * strcrop(char * s)
   (not re-entrant).
  */
 /*--------------------------------------------------------------------------*/
-static char * strstrip(char * s)
+char * CIniParser::strstrip(char * s)
 {
     static char l[ASCIILINESZ+1];
     char * last ;
@@ -211,7 +207,7 @@ static char * strstrip(char * s)
  Doubles the allocated size associated to a pointer
  'size' is the current allocated size.
  */
-static void * mem_double(void * ptr, int size)
+void * CIniParser::mem_double(void * ptr, int size)
 {
     void *newptr;
 
@@ -239,7 +235,7 @@ static void * mem_double(void * ptr, int size)
  */
 /*--------------------------------------------------------------------------*/
 
-static unsigned dictionary_hash(char * key)
+unsigned CIniParser::dictionary_hash(char * key)
 {
     int         len ;
     unsigned    hash ;
@@ -270,7 +266,7 @@ static unsigned dictionary_hash(char * key)
  */
 /*--------------------------------------------------------------------------*/
 
-static dictionary * dictionary_new(int size)
+CIniParser::dictionary * CIniParser::dictionary_new(int size)
 {
     dictionary *d ;
 
@@ -297,7 +293,7 @@ static dictionary * dictionary_new(int size)
  */
 /*--------------------------------------------------------------------------*/
 
-static void dictionary_del(dictionary * d)
+void CIniParser::dictionary_del(dictionary * d)
 {
     int     i ;
 
@@ -332,7 +328,7 @@ static void dictionary_del(dictionary * d)
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-static char * dictionary_get(dictionary * d, char * key, char * def)
+char * CIniParser::dictionary_get(dictionary * d, char * key, char * def)
 {
     unsigned    hash ;
     int         i ;
@@ -378,7 +374,7 @@ static char * dictionary_get(dictionary * d, char * key, char * def)
  */
 /*--------------------------------------------------------------------------*/
 
-static void dictionary_set(dictionary * d, char * key, char * val)
+void CIniParser::dictionary_set(dictionary * d, char * key, char * val)
 {
     int         i ;
     unsigned    hash ;
@@ -443,7 +439,7 @@ static void dictionary_set(dictionary * d, char * key, char * val)
   key cannot be found.
  */
 /*--------------------------------------------------------------------------*/
-static void dictionary_unset(dictionary * d, char * key)
+void CIniParser::dictionary_unset(dictionary * d, char * key)
 {
     unsigned    hash ;
     int         i ;
@@ -490,7 +486,7 @@ static void dictionary_unset(dictionary * d, char * key)
  */
 /*--------------------------------------------------------------------------*/
 
-static void dictionary_dump(dictionary *d, FILE *f)
+void CIniParser::dictionary_dump(dictionary *d, FILE *f)
 {
     int i;
 
@@ -515,7 +511,7 @@ static void dictionary_dump(dictionary *d, FILE *f)
 #define INI_INVALID_KEY     ((char*)-1)
 
 /* Private: add an entry to the dictionary */
-static void iniparser_add_entry(
+void CIniParser::iniparser_add_entry(
     dictionary * d,
     char * sec,
     char * key,
@@ -555,7 +551,7 @@ static void iniparser_add_entry(
  */
 /*--------------------------------------------------------------------------*/
 
-int iniparser_getnsec(dictionary * d)
+int CIniParser::iniparser_getnsec(dictionary * d)
 {
     int i ;
     int nsec ;
@@ -588,7 +584,7 @@ int iniparser_getnsec(dictionary * d)
  */
 /*--------------------------------------------------------------------------*/
 
-char * iniparser_getsecname(dictionary * d, int n)
+char * CIniParser::iniparser_getsecname(dictionary * d, int n)
 {
     int i ;
     int foundsec ;
@@ -624,7 +620,7 @@ char * iniparser_getsecname(dictionary * d, int n)
   purposes mostly.
  */
 /*--------------------------------------------------------------------------*/
-void iniparser_dump(dictionary * d, FILE * f)
+void CIniParser::iniparser_dump(dictionary * d, FILE * f)
 {
     dictionary_dump(d,f);
 }
@@ -642,7 +638,7 @@ void iniparser_dump(dictionary * d, FILE * f)
  */
 /*--------------------------------------------------------------------------*/
 
-void iniparser_dump_ini(dictionary * d, FILE * f)
+void CIniParser::iniparser_dump_ini(dictionary * d, FILE * f)
 {
     int     i, j ;
     char    keym[ASCIILINESZ+1];
@@ -700,7 +696,7 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
   iniparser_getstring() instead.
  */
 /*--------------------------------------------------------------------------*/
-char * iniparser_getstr(dictionary * d, char * key)
+char * CIniParser::iniparser_getstr(dictionary * d, char * key)
 {
     return iniparser_getstring(d, key, NULL);
 }
@@ -721,7 +717,7 @@ char * iniparser_getstr(dictionary * d, char * key)
   the dictionary, do not free or modify it.
  */
 /*--------------------------------------------------------------------------*/
-char * iniparser_getstring(dictionary * d, char * key, char * def)
+char * CIniParser::iniparser_getstring(dictionary * d, char * key, char * def)
 {
     char * lc_key ;
     char * sval ;
@@ -750,7 +746,7 @@ char * iniparser_getstring(dictionary * d, char * key, char * def)
   the notfound value is returned.
  */
 /*--------------------------------------------------------------------------*/
-int iniparser_getint(dictionary * d, char * key, int notfound)
+int CIniParser::iniparser_getint(dictionary * d, char * key, int notfound)
 {
     char    *   str ;
 
@@ -773,7 +769,7 @@ int iniparser_getint(dictionary * d, char * key, int notfound)
   the notfound value is returned.
  */
 /*--------------------------------------------------------------------------*/
-double iniparser_getdouble(dictionary * d, char * key, double notfound)
+double CIniParser::iniparser_getdouble(dictionary * d, char * key, double notfound)
 {
     char    *   str ;
 
@@ -816,7 +812,7 @@ double iniparser_getdouble(dictionary * d, char * key, double notfound)
   necessarily have to be 0 or 1.
  */
 /*--------------------------------------------------------------------------*/
-int iniparser_getboolean(dictionary * d, char * key, int notfound)
+int CIniParser::iniparser_getboolean(dictionary * d, char * key, int notfound)
 {
     char    *   c ;
     int         ret ;
@@ -847,7 +843,7 @@ int iniparser_getboolean(dictionary * d, char * key, int notfound)
  */
 /*--------------------------------------------------------------------------*/
 
-int iniparser_find_entry(
+int CIniParser::iniparser_find_entry(
     dictionary  *   ini,
     char        *   entry
 )
@@ -875,7 +871,7 @@ int iniparser_find_entry(
  */
 /*--------------------------------------------------------------------------*/
 
-int iniparser_setstr(dictionary * ini, char * entry, char * val)
+int CIniParser::iniparser_setstr(dictionary * ini, char * entry, char * val)
 {
     dictionary_set(ini, strlwc(entry), val);
     return 0 ;
@@ -891,7 +887,7 @@ int iniparser_setstr(dictionary * ini, char * entry, char * val)
   If the given entry can be found, it is deleted from the dictionary.
  */
 /*--------------------------------------------------------------------------*/
-void iniparser_unset(dictionary * ini, char * entry)
+void CIniParser::iniparser_unset(dictionary * ini, char * entry)
 {
     dictionary_unset(ini, strlwc(entry));
 }
@@ -912,7 +908,7 @@ void iniparser_unset(dictionary * ini, char * entry)
  */
 /*--------------------------------------------------------------------------*/
 
-dictionary * iniparser_new(char *ininame)
+CIniParser::dictionary * CIniParser::iniparser_new(char *ininame)
 {
     dictionary  *   d ;
     char        lin[ASCIILINESZ+1];
@@ -979,11 +975,7 @@ dictionary * iniparser_new(char *ininame)
  */
 /*--------------------------------------------------------------------------*/
 
-void iniparser_free(dictionary * d)
+void CIniParser::iniparser_free(dictionary * d)
 {
     dictionary_del(d);
 }
-
-#ifdef __cplusplus
-}
-#endif
