@@ -47,7 +47,7 @@
 		void DisableNetwork();
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
-		virtual int OnAppExit(int arg1, int arg2, void *common);
+		virtual void OnExit(){};
 	
 		/** Event Handlers */
 		virtual void OnButtonPressed(int iButtonMask);
@@ -72,6 +72,7 @@
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
 		
+		virtual int OnAppExit(int arg1, int arg2, void *common); /** We call OnExit here */
 		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();
 	};

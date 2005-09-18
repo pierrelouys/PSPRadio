@@ -62,12 +62,10 @@ public:
 		return 0;
 	}
 	
-	int OnAppExit(int arg1, int arg2, void *common)
+	void OnExit()
 	{
-		//delete(MP3);
-		//delete(config);
-		
-		return 0;
+		delete(MP3);
+		delete(config);
 	}
 
  

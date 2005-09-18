@@ -75,7 +75,7 @@ int CPSPApp::Run()
 		}
 	}
 	
-	sceKernelDelayThread(100000); /** 100ms */
+	sceKernelDelayThread(50000); /** 50ms */
 
 	sceKernelExitGame();
 
@@ -105,8 +105,9 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
+	OnExit();
+	sceKernelDelayThread(50000); /** 50ms */
 	m_Exit = TRUE;
-	//sceKernelDelayThread(1000);
 	return 0;
 }
 
