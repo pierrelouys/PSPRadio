@@ -43,7 +43,7 @@ void CPSPSound_MP3::Decode()
 	int					Status=0,
 						i = 0;
 	unsigned long		FrameCount=0;
-	bstdfile_t			*BstdFile = NULL;
+
 	unsigned char		*pInputBuffer 	= NULL, /*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/
 						*pOutputBuffer	= NULL, /*[OUTPUT_BUFFER_SIZE]*/
 						*OutputPtr		= NULL,
@@ -74,17 +74,12 @@ void CPSPSound_MP3::Decode()
 	mad_synth_init(&Synth);
 	mad_timer_reset(&Timer);
 
-	FILE *InputFp = fopen(pPSPSound_MP3->GetFile(), "rb");
-	if (InputFp != NULL)
+	//FILE *InputFp = fopen(pPSPSound_MP3->GetFile(), "rb");
+	CPSPSoundStream *InputStream = new CPSPSoundStream();
+	InputStream->OpenFile(pPSPSound_MP3->GetFile());
+	if (InputStream->IsOpen() == TRUE)
 	{
 		printf("'%s' Opened Successfully\n", pPSPSound_MP3->GetFile());
-		BstdFile=NewBstdFile(InputFp);
-		if(BstdFile==NULL)
-		{
-			printf("%s: can't create a new bstdfile_t (%s).\n",
-					ProgName,strerror(errno));
-			return;
-		} 
 		
 		/** Main decoding loop */
 		/* pPSPSound_MP3 is the decoding loop. */
@@ -111,21 +106,24 @@ void CPSPSound_MP3::Decode()
 						ReadStart=pInputBuffer,
 						Remaining=0;
 	
-				ReadSize=BstdRead(ReadStart,1,ReadSize,BstdFile);
+				//ReadSize=BstdRead(ReadStart,1,ReadSize,BstdFile);
+				ReadSize = InputStream->Read(ReadStart,1,ReadSize);
 				if(ReadSize<=0)
 				{
-					if(ferror(InputFp))
-					{
-						printf("%s: read error on bit-stream (%s)\n",
-								ProgName,strerror(errno));
-						Status=1;
-					}
-					if(feof(InputFp))
-						printf("%s: end of input stream\n",ProgName);
+					//if(InputStream->GetError())
+					//{
+					//	printf("%s: read error on bit-stream (%s)\n",
+					//			ProgName,strerror(errno));
+					//	Status=1;
+					//}
+					//if(feof(InputFp))
+					//	printf("%s: end of input stream\n",ProgName);
+					//else
+						printf("Read error...\n");
 					break;
 				}
 	
-				if(BstdFileEofP(BstdFile))
+				if(InputStream->IsEOF())
 				{
 					GuardPtr=ReadStart+ReadSize;
 					memset(GuardPtr,0,MAD_BUFFER_GUARD);
@@ -262,7 +260,7 @@ void CPSPSound_MP3::Decode()
 		/* The input file was completely read; the memory allocated by our
 		 * reading module must be reclaimed.
 		 */
-		BstdFileDestroy(BstdFile);
+		delete(InputStream);
 	
 		/* Mad is no longer used, the structures that were initialized must
 	     * now be cleared.

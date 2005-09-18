@@ -6,7 +6,6 @@
 #include <string.h>
 #include <limits.h>
 #include <mad.h>
-#include "bstdfile.h"
 #include <malloc.h>
 #include "PSPSound.h"
 
@@ -257,4 +256,96 @@ int CPSPSoundBuffer::IsDone()
 	}
 	
 	return 0;
+}
+
+/** class CPSPSoundStream */
+CPSPSoundStream::CPSPSoundStream()
+{
+	m_Type = STREAM_TYPE_CLOSED;
+	m_pfd = NULL;
+	m_BstdFile = NULL;
+	m_fd = -1;
+}
+
+CPSPSoundStream::~CPSPSoundStream()
+{
+	switch(m_Type)
+	{
+		case STREAM_TYPE_FILE:
+			BstdFileDestroy(m_BstdFile);
+			fclose(m_pfd);
+			m_Type = STREAM_TYPE_CLOSED;
+			break;
+		case STREAM_TYPE_URL:
+			break;
+		case STREAM_TYPE_CLOSED:
+			break;
+	}	
+}
+
+int CPSPSoundStream::OpenFile(char *filename)
+{
+	switch(m_Type)
+	{
+		case STREAM_TYPE_CLOSED:
+			m_pfd = fopen(filename, "rb");
+			m_BstdFile=NewBstdFile(m_pfd);
+			if(m_BstdFile != NULL)
+			{
+				m_Type = STREAM_TYPE_FILE;
+			}
+			else
+			{
+				printf("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
+						strerror(errno));
+			} 
+			break;
+		case STREAM_TYPE_FILE:
+		case STREAM_TYPE_URL:
+			printf("Calling OpenFile, but there is a file open already\n");
+			break;
+	}
+	
+	return m_Type!=STREAM_TYPE_CLOSED?0:-1;
+}
+
+size_t CPSPSoundStream::Read(void *pBuffer, size_t ElementSize, size_t ElementCount)
+{
+	size_t size = 0;
+	
+	switch(m_Type)
+	{
+		case STREAM_TYPE_FILE:
+			size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
+			break;
+		case STREAM_TYPE_URL:
+			break;
+		case STREAM_TYPE_CLOSED:
+			break;
+	}
+	
+	return size;
+}
+
+BOOLEAN CPSPSoundStream::IsEOF()
+{
+	int iseof = 0;
+	
+	switch(m_Type)
+	{
+		case STREAM_TYPE_FILE:
+			iseof = BstdFileEofP(m_BstdFile);
+			break;
+		case STREAM_TYPE_URL:
+			break;
+		case STREAM_TYPE_CLOSED:
+			break;
+	}
+	
+	return iseof?TRUE:FALSE;
+}
+
+BOOLEAN CPSPSoundStream::IsOpen()
+{
+	return (m_Type==STREAM_TYPE_CLOSED)?FALSE:TRUE;
 }

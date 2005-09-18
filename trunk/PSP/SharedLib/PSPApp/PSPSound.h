@@ -8,8 +8,34 @@
 	
 	#include <list>
 	#include <mad.h>
-	
+	#include "bstdfile.h"
+
 	/** From httpget.c */
+	
+	class CPSPSoundStream
+	{
+	public:
+		CPSPSoundStream();
+		~CPSPSoundStream();
+		int OpenFile(char *filename);
+		int OpenURL(char *strURL);
+		size_t Read(void *pBuffer, size_t ElementSize, size_t ElementCount);
+		BOOLEAN IsOpen();
+		BOOLEAN IsEOF();
+	private:
+		enum stream_types
+		{
+			STREAM_TYPE_CLOSED,
+			STREAM_TYPE_FILE,
+			STREAM_TYPE_URL
+		};
+		enum stream_types m_Type;
+		FILE *m_pfd;
+		bstdfile_t *m_BstdFile;
+		int   m_fd;
+	};
+	
+	
 	/** Internal use */
 	//extern CPSPSound *pPSPSound = NULL;
 	class CPSPSoundBuffer
