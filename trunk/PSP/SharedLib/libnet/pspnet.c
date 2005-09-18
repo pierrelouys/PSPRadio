@@ -4,7 +4,7 @@
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include "pspnet.h"
-#define LogPrintf	pspDebugScreenPrintf
+#define printf	pspDebugScreenPrintf
 
 asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
@@ -34,7 +34,7 @@ static u32 FindProcEntry(u32 oid, u32 nid)
 	    addr = (u32*)0x88017308;
 	    if (*addr != 0x27bdffd0)
         {
-            LogPrintf("ERROR: version error (find)!\n");
+            printf("ERROR: version error (find)!\n");
             return 0;   // something terribly wrong
         }
     }
@@ -94,7 +94,7 @@ static int PatchMyLibraryEntries(u32 oid)
 	                if (((u32)procPtr & 0xF0000000) != (proc & 0xF0000000))
 	                {
 						// if not in user space we can't use it
-		                LogPrintf("!! NOT PATCH\n");
+		                printf("!! NOT PATCH\n");
 	                }
 	                else
 	                {
@@ -105,7 +105,7 @@ static int PatchMyLibraryEntries(u32 oid)
 		                nPatched++;
 	                }
 #if 0
-                        LogPrintf("PATCH 0x%x jump_to 0x%x\n", (u32)procPtr, proc);
+                        printf("PATCH 0x%x jump_to 0x%x\n", (u32)procPtr, proc);
 #endif
 	            }
 	        }
@@ -122,7 +122,7 @@ u32 LoadAndStartAndPatch(const char* szFile)
 	u32 oid;
 
 	oid = sceKernelLoadModule(szFile, 0, NULL);
-	LogPrintf("Load: %s = %i\n", szFile, oid);
+	printf("Load: %s = %i\n", szFile, oid);
 
 //REVIEW: if already loaded - assume ok
     if (oid & 0x80000000)
@@ -132,13 +132,13 @@ u32 LoadAndStartAndPatch(const char* szFile)
     {
         u32 err;
         s32 fake = 0;
-        LogPrintf("  +start : ");
+        printf("  +start : ");
         err = sceKernelStartModule(oid, 0, 0, &fake, 0);
-	LogPrintf("%i\n", err);
+	printf("%i\n", err);
 
         if (err != oid)
         {
-            LogPrintf(" -- DID NOT START\n");
+            printf(" -- DID NOT START\n");
             return err;
         }
     }
@@ -146,7 +146,7 @@ u32 LoadAndStartAndPatch(const char* szFile)
     // Patch it
     {
 		int n = PatchMyLibraryEntries(oid);
-		LogPrintf("  +patch : %i\n", n);
+		printf("  +patch : %i\n", n);
     }
     return oid;
 }
@@ -164,7 +164,7 @@ static void FlushCaches()
 	    addr = (u32*)0x880584f0;
 	    if (*addr != 0x40088000)
         {
-            LogPrintf("ERROR: version error (flush)!\n");
+            printf("ERROR: version error (flush)!\n");
             return;   // something terribly wrong
         }
     }
@@ -209,28 +209,28 @@ int nlhInit()
 {
     u32 err;
     err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
-    LogPrintf("sceNetInit returns %i\n", err);
+    printf("sceNetInit returns %i\n", err);
     if (err != 0)
         return err;
 	err = sceNetInetInit();
-	LogPrintf("sceNetInetInit returns %i\n", err);
+	printf("sceNetInetInit returns %i\n", err);
 	if (err != 0)
         return err;
 
 	err = sceNetResolverInit();
-	LogPrintf("sceNetResolverInit returns %i\n", err);
+	printf("sceNetResolverInit returns %i\n", err);
     if (err != 0)
         return err;
 
 	err = sceNetApctlInit(0x1000, 0x42);
-	LogPrintf("sceNetApctlInit returns %i\n", err);
+	printf("sceNetApctlInit returns %i\n", err);
     if (err != 0)
         return err;
 
 #if 0
     // add handler
 	err = sceNetApctlAddHandler((u32)apctl_handler, 0);
-	LogPrintf("sceNetApctlAddHandler returns %i\n", err);
+	printf("sceNetApctlAddHandler returns %i\n", err);
     if (err & 0x80000000)
         return err;
     g_handlerHandle = err;
@@ -243,21 +243,21 @@ int nlhTerm()
     u32 err;
 #if 0
 	err = sceNetApctlDelHandler(g_handlerHandle);
-	LogPrintf("sceNetApctlDelHandler returns %i\n", err);
+	printf("sceNetApctlDelHandler returns %i\n", err);
 #endif
 
 //REVIEW: we need to do something first to stop the connection
 //REVIEW: -- sceNetApctlTerm returns 80410A04 ??
 	err = sceNetApctlTerm();
-	LogPrintf("sceNetApctlTerm returns %i\n", err);
+	printf("sceNetApctlTerm returns %i\n", err);
 
 	err = sceNetResolverTerm();
-	LogPrintf("sceNetResolverTerm returns %i\n", err);
+	printf("sceNetResolverTerm returns %i\n", err);
 
 	err = sceNetInetTerm();
-	LogPrintf("sceNetInetTerm returns %i\n", err);
+	printf("sceNetInetTerm returns %i\n", err);
 	err = sceNetTerm();
-	LogPrintf("sceNetTerm returns %i\n", err);
+	printf("sceNetTerm returns %i\n", err);
     return 0; // assume it worked
 }
 
