@@ -40,10 +40,6 @@ void CPSPSound::Initialize()
 	{
 		printf("Error getting a sound channel!\n");
 	}
-	else
-	{
-		printf("Retrieved handle=%d\n", m_audiohandle);
-	}
 	
 	m_CurrentState = STOP;
 	m_thDecode = NULL;

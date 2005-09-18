@@ -19,6 +19,10 @@ PSP_MODULE_INFO("MADEXAMPLE", 0, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
+//PSP_MODULE_INFO("MADEXAMPLE", 0x1000, 1, 1);
+/* Define the main thread's attribute value (optional) */
+//PSP_MAIN_THREAD_ATTR(0);
+
 
 class myPSPApp : public CPSPApp
 {
@@ -28,13 +32,18 @@ public:
 	{
 		printf("PSPApp MAD Example...\n");
 		
+		//EnableNetwork();
+
 		CPSPSound_MP3 *MP3 = new CPSPSound_MP3();
 		if (MP3)
 		{
 			MP3->SetFile("ms0:/believe.mp3");
 			MP3->Play();
 		}
+		else
+			printf("Error creating mp3 object\n");
 	
+		
 		return 0;
 	}
 	

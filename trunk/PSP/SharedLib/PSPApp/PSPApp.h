@@ -39,10 +39,11 @@
 		void ExitApp() { m_Exit = TRUE; };
 		/** Accessors */
 		SceCtrlData GetPadData() { return m_pad; };
+		char *GetMyIP() { return m_strMyIP; };
 	
 	protected:
 		/** Helpers */
-		void EnableNetwork();
+		int EnableNetwork();
 		void DisableNetwork();
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
@@ -57,7 +58,6 @@
 		/* System Callbacks */
 		static int  exitCallback(int arg1, int arg2, void *common);
 		static void audioCallback(void* buf, unsigned int length);
-		static void NetApctlCallback(int old_state, int state, int event, int error, void* arg);
 		/* Callback thread */
 		static int callbacksetupThread(SceSize args, void *argp);
 		
@@ -69,7 +69,8 @@
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
 		
-		void WLANConnectionHandler();
+		int WLANConnectionHandler();
+		int NetApctlHandler();
 	};
 	
 	/** Wrapper class around the kernel system calls for thread management */

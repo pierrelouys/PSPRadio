@@ -122,19 +122,25 @@ u32 LoadAndStartAndPatch(const char* szFile)
 	u32 oid;
 
 	oid = sceKernelLoadModule(szFile, 0, NULL);
-	printf("Load: %s = %i\n", szFile, oid);
 
 //REVIEW: if already loaded - assume ok
+	if (oid == 0x80020146)
+	{
+		printf("Not allowed to load module!");
+	}
     if (oid & 0x80000000)
+    {
+    	printf("Error Loading Module: %s = %i\n", szFile, oid);
         return oid; // error code
+    }
 
     // Start it
     {
         u32 err;
         s32 fake = 0;
-        printf("  +start : ");
+        //printf("  +start : ");
         err = sceKernelStartModule(oid, 0, 0, &fake, 0);
-	printf("%i\n", err);
+		//printf("%i\n", err);
 
         if (err != oid)
         {
@@ -145,8 +151,8 @@ u32 LoadAndStartAndPatch(const char* szFile)
 
     // Patch it
     {
-		int n = PatchMyLibraryEntries(oid);
-		printf("  +patch : %i\n", n);
+		/*int n = */PatchMyLibraryEntries(oid);
+		//printf("  +patch : %i\n", n);
     }
     return oid;
 }
@@ -209,23 +215,30 @@ int nlhInit()
 {
     u32 err;
     err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
-    printf("sceNetInit returns %i\n", err);
     if (err != 0)
+    {
+    	printf("nlhInit(): sceNetInit returns %i\n", err);
         return err;
+    }
 	err = sceNetInetInit();
-	printf("sceNetInetInit returns %i\n", err);
 	if (err != 0)
+	{
+		printf("nlhInit(): sceNetInetInit returns %i\n", err);
         return err;
+    }
 
 	err = sceNetResolverInit();
-	printf("sceNetResolverInit returns %i\n", err);
     if (err != 0)
+    {
+		printf("nlhInit(): sceNetResolverInit returns %i\n", err);
         return err;
-
-	err = sceNetApctlInit(0x1000, 0x42);
-	printf("sceNetApctlInit returns %i\n", err);
+	}
+	err = sceNetApctlInit(0x1000, 0x20);//0x42);
     if (err != 0)
+    {
+		printf("nlhInit(): sceNetApctlInit returns %i\n", err);
         return err;
+    }
 
 #if 0
     // add handler
@@ -243,21 +256,42 @@ int nlhTerm()
     u32 err;
 #if 0
 	err = sceNetApctlDelHandler(g_handlerHandle);
-	printf("sceNetApctlDelHandler returns %i\n", err);
+	if (err & 0x80000000)
+	{
+		printf("sceNetApctlDelHandler returns %i\n", err);
+	}
 #endif
 
 //REVIEW: we need to do something first to stop the connection
 //REVIEW: -- sceNetApctlTerm returns 80410A04 ??
 	err = sceNetApctlTerm();
-	printf("sceNetApctlTerm returns %i\n", err);
+	if (err & 0x80000000)
+	{
+		printf("sceNetApctlTerm returns %i\n", err);
+	}
 
 	err = sceNetResolverTerm();
-	printf("sceNetResolverTerm returns %i\n", err);
+	if (err & 0x80000000)
+	{
+		printf("sceNetResolverTerm returns %i\n", err);
+	}
 
 	err = sceNetInetTerm();
-	printf("sceNetInetTerm returns %i\n", err);
-	err = sceNetTerm();
-	printf("sceNetTerm returns %i\n", err);
+	if (err & 0x80000000)
+	{
+		printf("sceNetInetTerm returns %i\n", err);
+	}
+
+	if (err & 0x80000000)
+	{
+		err = sceNetTerm();
+	}
+
+	if (err & 0x80000000)
+	{
+		printf("sceNetTerm returns %i\n", err);
+	}
+	
     return 0; // assume it worked
 }
 
