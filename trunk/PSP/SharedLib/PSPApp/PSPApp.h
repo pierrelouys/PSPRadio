@@ -61,11 +61,14 @@
 		/* Callback thread */
 		static int callbacksetupThread(SceSize args, void *argp);
 		
+		friend class CPSPSound;
+		friend class CPSPSound_MP3;
+		BOOLEAN m_Exit;
+		
 	
 	private:
 		/** Data */
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
-		BOOLEAN m_Exit;
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
 		
@@ -82,7 +85,7 @@
 	
 	public:
 		CPSPThread(const char *strName, SceKernelThreadEntry ThreadEntry, int initPriority = 0x11,
-					int stackSize = 0xFA0, SceUInt attr = PSP_THREAD_ATTR_USER, SceKernelThreadOptParam *option = NULL)
+					int stackSize = 0xFA0, SceUInt attr = 0/*PSP_THREAD_ATTR_USER*/, SceKernelThreadOptParam *option = NULL)
 				{ m_thid = sceKernelCreateThread(strName, ThreadEntry, initPriority, stackSize, attr, option);  };
 		~CPSPThread()
 				{ if (m_thid>=0) sceKernelTerminateDeleteThread(m_thid);  };

@@ -250,6 +250,10 @@ void CPSPSound_MP3::Decode()
 
 			}
 			sceKernelDelayThread(10); /** 100us */
+			if (pPSPApp->m_Exit == TRUE)
+			{
+				break;
+			}
 
 		};
 		printf("Done.\n");

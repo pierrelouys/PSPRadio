@@ -15,11 +15,12 @@ asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
 
 /* Define the module info section */
-PSP_MODULE_INFO("MADEXAMPLE", 0, 1, 1);
+//PSP_MODULE_INFO("MADEXAMPLE", 0, 1, 1);
 /* Define the main thread's attribute value (optional) */
-PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
+//PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
-//PSP_MODULE_INFO("MADEXAMPLE", 0x1000, 1, 1);
+PSP_MODULE_INFO("MADEXAMPLE", 0x1000, 1, 1);
+PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 /* Define the main thread's attribute value (optional) */
 //PSP_MAIN_THREAD_ATTR(0);
 
@@ -32,7 +33,9 @@ public:
 	{
 		printf("PSPApp MAD Example...\n");
 		
-		//EnableNetwork();
+		//sceKernelDelayThread(1000000);
+		printf("Starting Network...\n");
+		EnableNetwork();
 
 		CPSPSound_MP3 *MP3 = new CPSPSound_MP3();
 		if (MP3)
@@ -42,6 +45,7 @@ public:
 		}
 		else
 			printf("Error creating mp3 object\n");
+			
 	
 		
 		return 0;

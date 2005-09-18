@@ -140,7 +140,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		
 		for(;;)
 		{
-			if (pPSPSound->Buffer.IsDone())
+			if (pPSPSound->Buffer.IsDone() || pPSPApp->m_Exit == TRUE)
 			{
 				break;
 			}

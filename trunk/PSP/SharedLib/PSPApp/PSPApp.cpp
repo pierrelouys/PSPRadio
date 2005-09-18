@@ -14,7 +14,7 @@ CPSPApp::CPSPApp()
 {
 	pspDebugScreenInit();
 	
-	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread);
+	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 0x11, 0xFA0, THREAD_ATTR_USER);
 	
 	memset(&m_pad, 0, sizeof (m_pad));
 	pPSPApp = this;
@@ -75,6 +75,8 @@ int CPSPApp::Run()
 		}
 	}
 	
+	sceKernelDelayThread(100000); /** 100ms */
+
 	sceKernelExitGame();
 
 	return 0;
