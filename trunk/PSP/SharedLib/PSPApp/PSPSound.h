@@ -1,10 +1,13 @@
 #ifndef PSPSOUND
 #define __PSPSOUND__
-	#define INPUT_BUFFER_SIZE		(5*8192)
-	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192)
+	//#define INPUT_BUFFER_SIZE		(5*8192) //original
+	#define INPUT_BUFFER_SIZE		(8192)
+	//#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192) //original
+	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(4096)
 	#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
 	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
-	#define NUM_BUFFERS 			100
+	//#define NUM_BUFFERS 			100 //original
+	#define NUM_BUFFERS 			500
 	
 	#include <list>
 	#include <mad.h>
@@ -51,6 +54,7 @@
 		void  Push(char *buf);
 		char *Pop();
 		int   GetPushPos();
+		int   GetPopPos(){return poppos;};
 		void  Empty();
 		void  Done();
 		int   IsDone();
@@ -65,6 +69,7 @@
 		#endif
 		int pushpos,poppos,m_lastpushpos;
 		char *ringbuf;
+		BOOLEAN buffering;
 	};
 	
 	class CPSPSound

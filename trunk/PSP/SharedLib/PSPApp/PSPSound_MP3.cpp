@@ -21,6 +21,7 @@ CPSPSound_MP3::CPSPSound_MP3()
 {
 	pPSPSound_MP3 = this;
 	m_strFile[0] = 0;
+	
 }
 
 /** Accessors */
@@ -48,6 +49,8 @@ void CPSPSound_MP3::Decode()
 						*pOutputBuffer	= NULL, /*[OUTPUT_BUFFER_SIZE]*/
 						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
+	int count = 0;
+	
 	
 	printf ("Starting Decoding Thread\n");
 	
@@ -225,13 +228,11 @@ void CPSPSound_MP3::Decode()
 				//	PCMBufferList->push_back(mybuffer);
 					pPSPSound_MP3->Buffer.Push((char*)pOutputBuffer);
 
-					static int count = 0;
-					if (count % 5 == 0)
+					if (count++ % 5 == 0)
 					{
 						pspDebugScreenSetXY(0,10);
-						printf("Buffers: %03d/%03d   ", pPSPSound_MP3->Buffer.GetPushPos(), NUM_BUFFERS);
+						printf("In Buffer:  %03d/%03d   ", pPSPSound_MP3->Buffer.GetPushPos(), NUM_BUFFERS);
 					}
-					count++;
 						
 					OutputPtr=pOutputBuffer;
 					//sceKernelDelayThread(100); /** .1ms */

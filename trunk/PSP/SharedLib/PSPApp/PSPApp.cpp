@@ -130,7 +130,7 @@ int CPSPApp::EnableNetwork(int profile)
 		{
 			printf("PSP IP = %s\n", GetMyIP());
 			
-			sceNetResolverInit();
+			//sceNetResolverInit();
 			int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
 			if (rc < 0)
 			{

@@ -119,6 +119,8 @@
 	#define ntohs     htons
 	#define ntohl     htohl
 	
+	int sceNetInetGetErrno();
+	
 	//char *inet_ntoa(struct in_addr in);
 	struct in_addr_b
 	{

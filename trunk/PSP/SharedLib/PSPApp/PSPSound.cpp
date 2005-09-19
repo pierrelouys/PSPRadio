@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <mad.h>
 #include <malloc.h>
+#include <errno.h>
 #include "PSPSound.h"
 
 using namespace std;
@@ -133,7 +134,8 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
 		char *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
-		
+		int count = 0;
+
 		pspDebugScreenSetXY(0,15);
 		printf ("Starting Play Thread (AudioHandle=%d)\n", ah);
 		
@@ -153,8 +155,15 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				/** Buffer underrun! */
 				pspDebugScreenSetXY(0,17);
 				printf("! %03d   ", pPSPSound->Buffer.GetPushPos());
-				sceKernelDelayThread(100000); /** 100ms */
+				sceKernelDelayThread(10); /** 10us */
 			}
+			
+			if (count++ % 5 == 0)
+			{
+				pspDebugScreenSetXY(0,11);
+				printf("Out Buffer: %03d/%03d   ", pPSPSound->Buffer.GetPopPos(), NUM_BUFFERS);
+			}
+			
 		}
 		sceKernelExitThread(0);
 		return 0;
@@ -224,13 +233,14 @@ void  CPSPSoundBuffer::Empty()
 	memset(ringbuf, 0, OUTPUT_BUFFER_SIZE * NUM_BUFFERS);
 	pushpos = poppos = 0;
 	m_lastpushpos = -1;
+	buffering = TRUE;
 }
 
 void CPSPSoundBuffer::Push(char *buf)
 {
-	while(pushpos - poppos > NUM_BUFFERS/2)
-	{
-		sceKernelDelayThread(500); /** 500us */
+	while((pushpos - poppos) > NUM_BUFFERS/2)
+	{ /*Wait for pop to catch up, we keep a min space of NUM_BUFFERS/2 */
+		sceKernelDelayThread(50); /** 500us */
 	}
 	memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
 	pushpos = (pushpos + 1) % NUM_BUFFERS;
@@ -238,6 +248,21 @@ void CPSPSoundBuffer::Push(char *buf)
 
 char * CPSPSoundBuffer::Pop()
 {
+	if (buffering)
+	{
+		while (abs(pushpos - poppos) < NUM_BUFFERS/4) 
+		{/** Buffering!! */
+			sceKernelDelayThread(50); /** 500us */
+		}
+		buffering = FALSE;
+	}
+	else
+	{
+		while (abs(pushpos - poppos) < 2) 
+		{/** Buffer almost empty!! */
+			sceKernelDelayThread(50); /** 500us */
+		}
+	}
 	char *ret = ringbuf+(poppos*OUTPUT_BUFFER_SIZE);
 	poppos = (poppos + 1) % NUM_BUFFERS;
 	return ret;
@@ -336,12 +361,10 @@ int CPSPSoundStream::Open(char *filename)
 	return m_Type!=STREAM_TYPE_CLOSED?0:-1;
 }
 
-//#define write sceIoWrite
-//#define read  sceIoRead
 size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount)
 {
 	size_t size = 0;
-	size_t bytesread = 0;
+	size_t bytesread = 0, bytestoread = 0;
 	
 	switch(m_Type)
 	{
@@ -349,22 +372,24 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 			size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
 			break;
 		case STREAM_TYPE_URL:
-			for(;;) 
+//			for(;;) 
 			{
-				bytesread = recv(m_fd, pBuffer+size, ElementCount-size, 0);
+				bytestoread = (ElementCount*ElementSize)-size;
+				bytesread = recv(m_fd, pBuffer+size, bytestoread, 0);
 				if (bytesread > 0)
 					size += bytesread;
-				if(bytesread == ElementCount-size) 
+				if(bytesread == bytestoread) 
 				{
-					break;
+					//done
+//					break;
 				}
 				else if (bytesread == 0)
 				{
-					printf ( "Connection closed by peer!\n");
+					printf ( "Connection reset by peer!\n");
 					m_sock_eof = TRUE;
-					break;
+//					break;
 				}
-				//else if(errno != EINTR) 
+				//else if(sceNetInetGetErrno() != EINTR) 
 				//{
 				//	printf ( "Error reading from socket or unexpected EOF.\n");
 				//	m_sock_eof = TRUE;
