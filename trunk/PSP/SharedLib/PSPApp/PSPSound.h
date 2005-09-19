@@ -11,15 +11,20 @@
 	#include "bstdfile.h"
 
 	/** From httpget.c */
+	/* ------ Declarations from "httpget.c" (From mpg123) ------ */
+	//extern char *proxyurl;
+	//extern unsigned long proxyip;
+	extern int http_open (char *url);
+	//extern char *httpauth; 
 	
 	class CPSPSoundStream
 	{
 	public:
 		CPSPSoundStream();
 		~CPSPSoundStream();
-		int OpenFile(char *filename);
+		int Open(char *filename);
 		int OpenURL(char *strURL);
-		size_t Read(void *pBuffer, size_t ElementSize, size_t ElementCount);
+		size_t Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount);
 		BOOLEAN IsOpen();
 		BOOLEAN IsEOF();
 	private:
@@ -33,6 +38,7 @@
 		FILE *m_pfd;
 		bstdfile_t *m_BstdFile;
 		int   m_fd;
+		BOOLEAN m_sock_eof;
 	};
 	
 	

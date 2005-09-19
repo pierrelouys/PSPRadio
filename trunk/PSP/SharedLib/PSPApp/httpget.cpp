@@ -5,12 +5,6 @@
  *   Wed Apr  9 20:57:47 MET DST 1997
  */
 
-#undef ALSA
-
-#if !defined(WIN32) && !defined(GENERIC)
-
-//#define write sceIoWrite
-//#define read  sceIoRead
 #include <unistd.h>
 
 //#include <httpnet.h>
@@ -26,11 +20,12 @@
 #include <arpa/inet.h>
 #include <sys/errno.h>
 #include <ctype.h>
+#include <PSPApp.h>
 
 extern int errno;
 
-extern char *prgName;
-extern char *prgVersion;
+extern char *ProgName;
+char *prgVersion = "0";
 //#include "mpg123.h"
 
 #ifndef INADDR_NONE
@@ -42,7 +37,10 @@ void writestring (int fd, char *string)
 	int result, bytes = strlen(string);
 
 	while (bytes) {
-		if ((result = write(fd, string, bytes)) < 0 && errno != EINTR) {
+		//if ((result = write(fd, string, bytes)) < 0 && errno != EINTR) 
+		//int sceNetInetSend(int __fd, __const void *__buf, size_t __n, int __flags); 
+		if ((result = send(fd, string, bytes, 0)) < 0 && errno != EINTR) 
+		{
 			perror ("write");
 			exit (1);
 		}
@@ -86,6 +84,34 @@ void readstring (char *string, int maxlen, FILE *f)
 	}
 #endif
 
+}
+void readstring2 (char *string, int maxlen, int sock)
+{
+
+	int pos = 0;
+	int bytesread = 0;
+
+	while(1) {
+		bytesread = recv(sock, string+pos, 1, 0);
+		if(bytesread  == 1) {
+			pos++;
+			if(string[pos-1] == '\n') {
+				string[pos] = 0;
+				break;
+			}
+		}
+		else if (bytesread == 0)
+		{
+			printf ( "Connection closed by peer!\n");
+			break;
+		}
+		else if(errno != EINTR) 
+		{
+			printf ( "Error reading from socket or unexpected EOF.\n");
+			//exit(1);
+			break;
+		}
+	}
 }
 
 void encode64 (char *source,char *destination)
@@ -239,12 +265,12 @@ int http_open (char *url)
 	unsigned char *myport;
 	int sock;
 	int relocate, numrelocs = 0;
-	FILE *myfile;
+//	FILE *myfile;
 #ifdef INET6
 	struct addrinfo hints, *res, *res0;
 	int error;
 #else
-	struct hostent *hp;
+	//struct hostent *hp;
 	struct sockaddr_in sin;
 #endif
 
@@ -342,7 +368,7 @@ int http_open (char *url)
 		}
 		sprintf (request + strlen(request),
 			" HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
-			prgName, prgVersion);
+			ProgName, prgVersion);
 		if (host) {
 			sprintf(request + strlen(request),
 				"Host: %s:%s\r\n", host, myport);
@@ -377,20 +403,40 @@ int http_open (char *url)
 		freeaddrinfo(res0);
 #else
 		sock = -1;
-		hp = gethostbyname(host);
-		if (!hp)
-			goto fail;
-		if (hp->h_length != sizeof(sin.sin_addr))
-			goto fail;
+		//hp = gethostbyname(host);
+		//printf ("Getting '%s' IP...",host);
+		in_addr addr;
+		int rc;
+		rc = sceNetResolverStartNtoA(pPSPApp->GetResolverId(), host, &addr, 2, 3);
+		if (rc < 0)
+		{
+			//in_addr_b *inb = (in_addr_b*)&addr;
+			//int inbi[4];
+			//printf("Resolver failed. Try to get address via numerical format\n");
+			//rc = sscanf(host, "%d.%d.%d.%d", &inbi[0], &inbi[1], &inbi[2], &inbi[3]);
+			//inb->b1 = (unsigned char)inbi[0]; inb->b2 = (unsigned char)inbi[1]; inb->b3 = (unsigned char)inbi[2]; inb->b4 = (unsigned char)inbi[3]; 
+			rc = inet_aton(host, &addr);
+			//if (rc != 4)
+			if (rc == 0)
+			{
+				printf("Could not resolve host!\n");
+				goto fail;
+			}
+		}
+		printf ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
+		//if (hp->h_length != sizeof(sin.sin_addr))
+		//	goto fail;
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock < 0)
 			goto fail;
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
 		/* sin.sin_len = sizeof(struct sockaddr_in); */
-		memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
-                sin.sin_port = htons(atoi( (char *) myport));
-		if (connect(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) < 0) {
+		memcpy(&sin.sin_addr, &addr, sizeof(in_addr));
+		
+        sin.sin_port = htons(atoi( (char *) myport));
+		if (connect(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) < 0) 
+		{
 			close(sock);
 			sock = -1;
 		}
@@ -415,13 +461,15 @@ fail:
 		strcat (request, "\r\n");
 
 		writestring (sock, request);
-		if (!(myfile = fdopen(sock, "rb"))) {
-			perror ("fdopen");
-			exit (1);
-		};
+		
+		//if (!(myfile = fdopen(sock, "rb"))) {
+		//	perror ("fdopen");
+		//	exit (1);
+		//};
 		relocate = FALSE;
 		purl[0] = '\0';
-		readstring (request, linelength-1, myfile);
+		//readstring (request, linelength-1, myfile);
+		readstring2 (request, linelength-1, sock);
 		if ((sptr = strchr(request, ' '))) {
 			switch (sptr[1]) {
 				case '3':
@@ -435,7 +483,7 @@ fail:
 			}
 		}
 		do {
-			readstring (request, linelength-1, myfile);
+			readstring2 (request, linelength-1, sock);
 			if (!strncmp(request, "Location:", 9))
 				strncpy (purl, request+10, 1023);
 		} while (request[0] != '\r' && request[0] != '\n');
@@ -452,38 +500,6 @@ fail:
 
 	return sock;
 }
-
-#else
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-extern int errno;
-
-#include "mpg123.h"
-
-void writestring (int fd, char *string)
-{
-}
-
-void readstring (char *string, int maxlen, FILE *f)
-{
-}
-
-char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned int *port)
-{
-}
-
-char *proxyurl = NULL;
-unsigned long proxyip = 0;
-unsigned int proxyport;
-
-#define ACCEPT_HEAD "Accept: audio/mpeg, audio/x-mpegurl, */*\r\n"
-
-int http_open (char *url)
-{
-}
-#endif
 
 /* EOF */
 

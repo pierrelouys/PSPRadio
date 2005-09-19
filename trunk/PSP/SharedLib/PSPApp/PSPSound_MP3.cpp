@@ -49,9 +49,6 @@ void CPSPSound_MP3::Decode()
 						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
 	
-	//myPSPApp *pPSPSound_MP3 = (myPSPApp*)pPSPApp;
-	//list<audiobuffer*> *PCMBufferList = pPSPSound_MP3->GetPCMBufferList();
-
 	printf ("Starting Decoding Thread\n");
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
@@ -74,9 +71,8 @@ void CPSPSound_MP3::Decode()
 	mad_synth_init(&Synth);
 	mad_timer_reset(&Timer);
 
-	//FILE *InputFp = fopen(pPSPSound_MP3->GetFile(), "rb");
 	CPSPSoundStream *InputStream = new CPSPSoundStream();
-	InputStream->OpenFile(pPSPSound_MP3->GetFile());
+	InputStream->Open(pPSPSound_MP3->GetFile());
 	if (InputStream->IsOpen() == TRUE)
 	{
 		printf("'%s' Opened Successfully\n", pPSPSound_MP3->GetFile());
@@ -106,7 +102,6 @@ void CPSPSound_MP3::Decode()
 						ReadStart=pInputBuffer,
 						Remaining=0;
 	
-				//ReadSize=BstdRead(ReadStart,1,ReadSize,BstdFile);
 				ReadSize = InputStream->Read(ReadStart,1,ReadSize);
 				if(ReadSize<=0)
 				{

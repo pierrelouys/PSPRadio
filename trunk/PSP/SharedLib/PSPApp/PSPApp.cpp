@@ -19,6 +19,7 @@ CPSPApp::CPSPApp()
 	memset(&m_pad, 0, sizeof (m_pad));
 	pPSPApp = this;
 	strcpy(m_strMyIP, "0.0.0.0");
+	m_ResolverId = 0;
 	
 	if (m_thCallbackSetup)
 	{
@@ -111,7 +112,15 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 	return 0;
 }
 
-/** Audio */
+/** Network */
+//	int sceNetResolverInit();
+//	int sceNetResolverTerm();
+//	int sceNetResolverCreate(int *rid, void *buf, SceSize buflen);
+// 	int sceNetResolverDelete(int rid);
+//	int sceNetResolverStartNtoA(int rid, const char *hostname, struct SceNetInetInAddr *addr, unsigned int timeout, int retry);
+//	int sceNetResolverStartAtoN(int rid, const struct SceNetInetInAddr *addr, char *hostname, SceSize hostname_len, unsigned int timeout, int retry);
+//	int sceNetResolverStop(int rid);
+#include <arpa/inet.h>	
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
@@ -120,7 +129,24 @@ int CPSPApp::EnableNetwork(int profile)
 		if (WLANConnectionHandler(profile) == 0)
 		{
 			printf("PSP IP = %s\n", GetMyIP());
-			iRet = 0;
+			
+			sceNetResolverInit();
+			int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
+			if (rc < 0)
+			{
+				printf ("resolvercreate = %d rid = %d\n", rc, m_ResolverId);
+				iRet = -1;
+			}
+			else
+			{
+				iRet = 0;
+				
+				/** Test! */
+				//printf ("Getting google.com's address...");
+				//in_addr addr;
+				//rc = sceNetResolverStartNtoA(m_ResolverId, "google.com", &addr, 2, 3);
+				//printf ("Got it! '%s' rc=%d\n", inet_ntoa(addr), rc);
+			}
 		}
 		else
 		{
@@ -139,6 +165,15 @@ int CPSPApp::EnableNetwork(int profile)
 void CPSPApp::DisableNetwork()
 {
 	u32 err;
+	
+	if (m_ResolverId)
+	{
+		err = sceNetResolverStop(m_ResolverId);
+		err = sceNetResolverDelete(m_ResolverId);
+		err = sceNetResolverTerm();
+		m_ResolverId = 0;
+	}
+	
 	err = sceNetApctlDisconnect();
 	if (err != 0) 
 	{

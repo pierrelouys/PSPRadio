@@ -31,8 +31,17 @@
 	int sceNetInetInit();
 	int sceNetInetTerm();
 	
+	/** Resolver */
+	#include <netinet/in.h>
+
 	int sceNetResolverInit();
 	int sceNetResolverTerm();
+	int sceNetResolverCreate(int *rid, void *buf, SceSize buflen);
+ 	int sceNetResolverDelete(int rid);
+	int sceNetResolverStartNtoA(int rid, const char *hostname, struct in_addr *addr, unsigned int timeout, int retry);
+	int sceNetResolverStartAtoN(int rid, const struct in_addr *in_addr, char *hostname, SceSize hostname_len, unsigned int timeout, int retry);
+	int sceNetResolverStop(int rid);
+	/** End Resolver */
 	
 	int sceNetAdhocInit(); 
 	int sceNetAdhocctlInit(u32 r4, u32 r5, void* r6);
@@ -109,6 +118,14 @@
 	                  (((u32)(A) & 0x000000ff) << 24))
 	#define ntohs     htons
 	#define ntohl     htohl
+	
+	//char *inet_ntoa(struct in_addr in);
+	struct in_addr_b
+	{
+		unsigned char b1,b2,b3,b4;
+	};
+	#include <netinet/in.h>	
+	char *sceNetInetInetNtoa (struct in_addr in);
 	
 	#ifdef __cplusplus
 		}

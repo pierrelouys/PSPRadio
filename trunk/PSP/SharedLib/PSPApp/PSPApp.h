@@ -40,6 +40,7 @@
 		/** Accessors */
 		SceCtrlData GetPadData() { return m_pad; };
 		char *GetMyIP() { return m_strMyIP; };
+		int GetResolverId() { return m_ResolverId; };
 	
 	protected:
 		/** Helpers */
@@ -71,6 +72,8 @@
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
+		char m_ResolverBuffer[1024*64]; /** Could be smaller, no idea */
+		int  m_ResolverId;
 		
 		virtual int OnAppExit(int arg1, int arg2, void *common); /** We call OnExit here */
 		int WLANConnectionHandler(int profile);

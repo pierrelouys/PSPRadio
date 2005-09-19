@@ -265,6 +265,7 @@ CPSPSoundStream::CPSPSoundStream()
 	m_pfd = NULL;
 	m_BstdFile = NULL;
 	m_fd = -1;
+	m_sock_eof = TRUE;
 }
 
 CPSPSoundStream::~CPSPSoundStream()
@@ -277,28 +278,54 @@ CPSPSoundStream::~CPSPSoundStream()
 			m_Type = STREAM_TYPE_CLOSED;
 			break;
 		case STREAM_TYPE_URL:
+			sceNetInetClose(m_fd);
+			m_Type = STREAM_TYPE_CLOSED;
 			break;
 		case STREAM_TYPE_CLOSED:
 			break;
 	}	
 }
 
-int CPSPSoundStream::OpenFile(char *filename)
+int CPSPSoundStream::Open(char *filename)
 {
 	switch(m_Type)
 	{
 		case STREAM_TYPE_CLOSED:
-			m_pfd = fopen(filename, "rb");
-			m_BstdFile=NewBstdFile(m_pfd);
-			if(m_BstdFile != NULL)
+			if (filename && strlen(filename) > 4)
 			{
-				m_Type = STREAM_TYPE_FILE;
+				if (memcmp(filename, "http://", strlen("http://")) == 0)
+				{
+					printf ("Opening URL '%s'\n", filename);
+					m_fd = http_open(filename);
+					if (m_fd < 0)
+					{
+						printf("CPSPSoundStream::OpenFile-Error opening URL.\n");
+						m_Type = STREAM_TYPE_CLOSED;
+					}
+					else
+					{
+						printf("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
+						m_Type = STREAM_TYPE_URL;
+						m_sock_eof = FALSE;
+					}
+				}
+				else
+				{
+					m_pfd = fopen(filename, "rb");
+					m_BstdFile=NewBstdFile(m_pfd);
+					if(m_BstdFile != NULL)
+					{
+						m_Type = STREAM_TYPE_FILE;
+					}
+					else
+					{
+						printf("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
+								strerror(errno));
+					}
+				}
 			}
 			else
-			{
-				printf("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
-						strerror(errno));
-			} 
+				printf("CPSPSoundStream::OpenFile-Invalid filename '%s'\n", filename);
 			break;
 		case STREAM_TYPE_FILE:
 		case STREAM_TYPE_URL:
@@ -309,9 +336,12 @@ int CPSPSoundStream::OpenFile(char *filename)
 	return m_Type!=STREAM_TYPE_CLOSED?0:-1;
 }
 
-size_t CPSPSoundStream::Read(void *pBuffer, size_t ElementSize, size_t ElementCount)
+//#define write sceIoWrite
+//#define read  sceIoRead
+size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount)
 {
 	size_t size = 0;
+	size_t bytesread = 0;
 	
 	switch(m_Type)
 	{
@@ -319,6 +349,28 @@ size_t CPSPSoundStream::Read(void *pBuffer, size_t ElementSize, size_t ElementCo
 			size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
 			break;
 		case STREAM_TYPE_URL:
+			for(;;) 
+			{
+				bytesread = recv(m_fd, pBuffer+size, ElementCount-size, 0);
+				if (bytesread > 0)
+					size += bytesread;
+				if(bytesread == ElementCount-size) 
+				{
+					break;
+				}
+				else if (bytesread == 0)
+				{
+					printf ( "Connection closed by peer!\n");
+					m_sock_eof = TRUE;
+					break;
+				}
+				//else if(errno != EINTR) 
+				//{
+				//	printf ( "Error reading from socket or unexpected EOF.\n");
+				//	m_sock_eof = TRUE;
+				//	break;
+				//}
+			}		
 			break;
 		case STREAM_TYPE_CLOSED:
 			break;
@@ -337,6 +389,7 @@ BOOLEAN CPSPSoundStream::IsEOF()
 			iseof = BstdFileEofP(m_BstdFile);
 			break;
 		case STREAM_TYPE_URL:
+			iseof = m_sock_eof;
 			break;
 		case STREAM_TYPE_CLOSED:
 			break;

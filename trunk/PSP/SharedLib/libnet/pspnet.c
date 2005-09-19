@@ -295,4 +295,16 @@ int nlhTerm()
     return 0; // assume it worked
 }
 
+
+//
+// inet_ntoa
+//
+char *sceNetInetInetNtoa(struct in_addr in)
+{
+  //char *buf = gettib()->hostbuf;
+  static char buf[256]; //this implementation is not thread safe!
+  struct in_addr_b *inb = (struct in_addr_b*)&in;
+  sprintf(buf, "%d.%d.%d.%d", inb->b1, inb->b2, inb->b3, inb->b4);
+  return buf;
+}
 ////////////////////////////////////////////////////////////////////
