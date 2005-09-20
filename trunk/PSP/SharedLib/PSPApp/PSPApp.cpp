@@ -35,13 +35,13 @@ CPSPApp::CPSPApp()
 		m_Exit = TRUE;
 	}
 
-	printf("CPSPApp Constructor.\n");
+	//printf("CPSPApp Constructor.\n");
 	
 }
 
 CPSPApp::~CPSPApp()
 {
-	printf("CPSPApp Destructor.\n");
+	//printf("CPSPApp Destructor.\n");
 	DisableNetwork();
 
 	return;

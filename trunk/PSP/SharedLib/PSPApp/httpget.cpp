@@ -403,35 +403,24 @@ int http_open (char *url)
 		freeaddrinfo(res0);
 #else
 		sock = -1;
-		//hp = gethostbyname(host);
-		//printf ("Getting '%s' IP...",host);
 		in_addr addr;
 		int rc;
 		rc = sceNetResolverStartNtoA(pPSPApp->GetResolverId(), host, &addr, 2, 3);
 		if (rc < 0)
 		{
-			//in_addr_b *inb = (in_addr_b*)&addr;
-			//int inbi[4];
-			//printf("Resolver failed. Try to get address via numerical format\n");
-			//rc = sscanf(host, "%d.%d.%d.%d", &inbi[0], &inbi[1], &inbi[2], &inbi[3]);
-			//inb->b1 = (unsigned char)inbi[0]; inb->b2 = (unsigned char)inbi[1]; inb->b3 = (unsigned char)inbi[2]; inb->b4 = (unsigned char)inbi[3]; 
 			rc = inet_aton(host, &addr);
-			//if (rc != 4)
 			if (rc == 0)
 			{
 				printf("Could not resolve host!\n");
 				goto fail;
 			}
 		}
-		printf ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
-		//if (hp->h_length != sizeof(sin.sin_addr))
-		//	goto fail;
+		//printf ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock < 0)
 			goto fail;
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
-		/* sin.sin_len = sizeof(struct sockaddr_in); */
 		memcpy(&sin.sin_addr, &addr, sizeof(in_addr));
 		
         sin.sin_port = htons(atoi( (char *) myport));

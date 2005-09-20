@@ -51,7 +51,7 @@ void CPSPSound_MP3::Decode()
 						*GuardPtr		= NULL;
 	int count = 0;
 	
-	
+	pspDebugScreenSetXY(0,3);
 	printf ("Starting Decoding Thread\n");
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
@@ -78,7 +78,8 @@ void CPSPSound_MP3::Decode()
 	InputStream->Open(pPSPSound_MP3->GetFile());
 	if (InputStream->IsOpen() == TRUE)
 	{
-		printf("'%s' Opened Successfully\n", pPSPSound_MP3->GetFile());
+		pspDebugScreenSetXY(0,4);
+		printf("'%s' Opened Successfully.\n", pPSPSound_MP3->GetFile());
 		
 		/** Main decoding loop */
 		/* pPSPSound_MP3 is the decoding loop. */
@@ -143,8 +144,9 @@ void CPSPSound_MP3::Decode()
 					if(Stream.error!=MAD_ERROR_LOSTSYNC ||
 					   Stream.this_frame!=GuardPtr)
 					{
-						printf("%s: recoverable frame level error. \n",
-								ProgName);
+						/** Don't log if recoverable. */
+						//printf("%s: recoverable frame level error. \n",
+						//		ProgName);
 					}
 					continue;
 				}
@@ -361,11 +363,18 @@ int CPSPSound_MP3::PrintFrameInfo(struct mad_header *Header)
 			break;
 	}
 
-	printf("%s: %lu kb/s audio MPEG layer %s stream %s CRC, "
+	/**
+	printf("%lu kb/s Audio MPEG layer %s stream %s CRC, "
 			"%s with %s emphasis at %d Hz sample rate\n",
-			ProgName,Header->bitrate,Layer,
+			Header->bitrate,Layer,
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
+	*/
+	pspDebugScreenSetXY(0,9);
+	printf("%lukbps %dHz MPEG layer %s stream. ",
+			Header->bitrate, 
+			Header->samplerate,
+			Layer);
 	return(0);
 }
 

@@ -136,8 +136,8 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		int ah = pPSPSound->GetAudioHandle();
 		int count = 0;
 
-		pspDebugScreenSetXY(0,15);
-		printf ("Starting Play Thread (AudioHandle=%d)\n", ah);
+		pspDebugScreenSetXY(30,3);
+		printf ("Starting Play Thread\n");
 		
 		for(;;)
 		{
@@ -258,7 +258,7 @@ char * CPSPSoundBuffer::Pop()
 	}
 	else
 	{
-		while (abs(pushpos - poppos) < 2) 
+		while (abs(pushpos - poppos) < 1) 
 		{/** Buffer almost empty!! */
 			sceKernelDelayThread(50); /** 500us */
 		}
@@ -295,6 +295,11 @@ CPSPSoundStream::CPSPSoundStream()
 
 CPSPSoundStream::~CPSPSoundStream()
 {
+	Close();
+}
+
+void CPSPSoundStream::Close()
+{
 	switch(m_Type)
 	{
 		case STREAM_TYPE_FILE:
@@ -320,7 +325,7 @@ int CPSPSoundStream::Open(char *filename)
 			{
 				if (memcmp(filename, "http://", strlen("http://")) == 0)
 				{
-					printf ("Opening URL '%s'\n", filename);
+					//printf ("Opening URL '%s'\n", filename);
 					m_fd = http_open(filename);
 					if (m_fd < 0)
 					{
@@ -329,7 +334,7 @@ int CPSPSoundStream::Open(char *filename)
 					}
 					else
 					{
-						printf("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
+						//printf("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
 						m_Type = STREAM_TYPE_URL;
 						m_sock_eof = FALSE;
 					}
@@ -365,6 +370,7 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 {
 	size_t size = 0;
 	size_t bytesread = 0, bytestoread = 0;
+	//int error;
 	
 	switch(m_Type)
 	{
@@ -372,7 +378,7 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 			size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
 			break;
 		case STREAM_TYPE_URL:
-//			for(;;) 
+			for(;;) 
 			{
 				bytestoread = (ElementCount*ElementSize)-size;
 				bytesread = recv(m_fd, pBuffer+size, bytestoread, 0);
@@ -381,18 +387,20 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 				if(bytesread == bytestoread) 
 				{
 					//done
-//					break;
+					break;
 				}
 				else if (bytesread == 0)
 				{
 					printf ( "Connection reset by peer!\n");
+					Close();
 					m_sock_eof = TRUE;
-//					break;
+					break;
 				}
-				//else if(sceNetInetGetErrno() != EINTR) 
+				//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
 				//{
-				//	printf ( "Error reading from socket or unexpected EOF.\n");
+				//	printf ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
 				//	m_sock_eof = TRUE;
+				//	Close();
 				//	break;
 				//}
 			}		

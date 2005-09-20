@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////
 // Must be linked with KMEM memory access
 
+#include <stdio.h>
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include "pspnet.h"
@@ -202,19 +203,11 @@ int nlhLoadDrivers()
     return 0;
 }
 
-#if 0
-// handler not needed
-static u32 g_handlerHandle; // ?
-void apctl_handler(u32 regs_unknown)
-{
-    // nothing
-}
-#endif
-
 int nlhInit()
 {
     u32 err;
-    err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
+    //err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
+    err = sceNetInit(0x20000, 0x10, 16384, 0x10, 16384);
     if (err != 0)
     {
     	printf("nlhInit(): sceNetInit returns %i\n", err);
@@ -233,21 +226,13 @@ int nlhInit()
 		printf("nlhInit(): sceNetResolverInit returns %i\n", err);
         return err;
 	}
-	err = sceNetApctlInit(0x1000, 0x42);// 0x20);//0x42);
+	err = sceNetApctlInit(0x1000, 0x10);// 0x42);// 0x20);//0x42);
     if (err != 0)
     {
 		printf("nlhInit(): sceNetApctlInit returns %i\n", err);
         return err;
     }
 
-#if 0
-    // add handler
-	err = sceNetApctlAddHandler((u32)apctl_handler, 0);
-	printf("sceNetApctlAddHandler returns %i\n", err);
-    if (err & 0x80000000)
-        return err;
-    g_handlerHandle = err;
-#endif
     return 0;   // it worked!
 }
 

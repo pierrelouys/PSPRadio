@@ -1,13 +1,13 @@
 #ifndef PSPSOUND
 #define __PSPSOUND__
 	//#define INPUT_BUFFER_SIZE		(5*8192) //original
-	#define INPUT_BUFFER_SIZE		(8192)
+	#define INPUT_BUFFER_SIZE		(16302)
 	//#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192) //original
 	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(4096)
 	#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
 	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
 	//#define NUM_BUFFERS 			100 //original
-	#define NUM_BUFFERS 			500
+	#define NUM_BUFFERS 			100
 	
 	#include <list>
 	#include <mad.h>
@@ -26,6 +26,7 @@
 		CPSPSoundStream();
 		~CPSPSoundStream();
 		int Open(char *filename);
+		void Close();
 		int OpenURL(char *strURL);
 		size_t Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount);
 		BOOLEAN IsOpen();
