@@ -52,7 +52,9 @@ public:
 		if (MP3)
 		{
 			MP3->SetFile(config->GetStr("MUSIC:FILE"));
-			MP3->Play();
+			//MP3->Play();
+			pspDebugScreenSetXY(8,30);
+			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
 		}
 		else
 			printf("Error creating mp3 object\n");
@@ -69,24 +71,41 @@ public:
 	}
 
  
-	void OnButtonPressed(int iButtonMask)
+	void OnButtonReleased(int iButtonMask)
 	{
-		pspDebugScreenSetXY(0,25);
-		if (iButtonMask & PSP_CTRL_CROSS)
+		if (MP3)
 		{
-			printf ("CROSS    ");
-		}
-		else if (iButtonMask & PSP_CTRL_SQUARE)
-		{
-			printf ("SQUARE   ");
-		}
-		else if (iButtonMask & PSP_CTRL_TRIANGLE)
-		{
-			printf ("TRIANGLE ");
-		}
-		else if (iButtonMask & PSP_CTRL_CIRCLE)
-		{
-			printf ("CIRCLE   ");
+			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
+			pspDebugScreenSetXY(30,25);
+			if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+			{
+				if (playingstate == CPSPSound::STOP || playingstate == CPSPSound::PAUSE)
+				{
+					printf ("PLAY   ");
+					MP3->Play();
+				}
+				else //play
+				{
+					printf ("PAUSE   ");
+					MP3->Pause();
+				}
+			}
+			else if (iButtonMask & PSP_CTRL_SQUARE)
+			{
+				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
+				{
+					printf ("STOP   ");
+					MP3->Stop();
+				}
+			}
+			else if (iButtonMask & PSP_CTRL_TRIANGLE)
+			{
+				printf("Disabling Network...");
+				DisableNetwork();
+				printf("Enabling Network...");
+				EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
+				printf("Ready               ");
+			}
 		}
 	};
 	

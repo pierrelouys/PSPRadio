@@ -51,7 +51,7 @@ void CPSPSound_MP3::Decode()
 						*GuardPtr		= NULL;
 	int count = 0;
 	
-	pspDebugScreenSetXY(0,3);
+	pspDebugScreenSetXY(0,4);
 	printf ("Starting Decoding Thread\n");
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
@@ -78,8 +78,8 @@ void CPSPSound_MP3::Decode()
 	InputStream->Open(pPSPSound_MP3->GetFile());
 	if (InputStream->IsOpen() == TRUE)
 	{
-		pspDebugScreenSetXY(0,4);
-		printf("'%s' Opened Successfully.\n", pPSPSound_MP3->GetFile());
+		pspDebugScreenSetXY(0,6);
+		printf("'%s' Opened Successfully.", pPSPSound_MP3->GetFile());
 		
 		/** Main decoding loop */
 		/* pPSPSound_MP3 is the decoding loop. */
@@ -121,6 +121,11 @@ void CPSPSound_MP3::Decode()
 						printf("Read error...\n");
 					break;
 				}
+				else if(pPSPSound_MP3->GetPlayState() == STOP)
+				{
+					break;
+				}
+				
 	
 				if(InputStream->IsEOF())
 				{
@@ -252,7 +257,7 @@ void CPSPSound_MP3::Decode()
 			}
 
 		};
-		printf("Done.\n");
+		//printf("Done.\n");
 		pPSPSound_MP3->Buffer.Done();
 		
 		/* The input file was completely read; the memory allocated by our
@@ -273,6 +278,11 @@ void CPSPSound_MP3::Decode()
 		printf("Error opening '%s'.\n", pPSPSound_MP3->GetFile());
 
 	}
+	pspDebugScreenSetXY(0,4);        
+	printf ("                        ");
+	pspDebugScreenSetXY(0,10);      
+	printf("                        ");
+
 }
 
 signed int CPSPSound_MP3::scale(mad_fixed_t &sample)

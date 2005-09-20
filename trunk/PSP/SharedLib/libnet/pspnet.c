@@ -206,8 +206,8 @@ int nlhLoadDrivers()
 int nlhInit()
 {
     u32 err;
-    //err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
-    err = sceNetInit(0x20000, 0x10, 16384, 0x10, 16384);
+    err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
+    //err = sceNetInit(0x20000, 0x10, 16384, 0x10, 16384);
     if (err != 0)
     {
     	printf("nlhInit(): sceNetInit returns %i\n", err);
@@ -226,7 +226,7 @@ int nlhInit()
 		printf("nlhInit(): sceNetResolverInit returns %i\n", err);
         return err;
 	}
-	err = sceNetApctlInit(0x1000, 0x10);// 0x42);// 0x20);//0x42);
+	err = sceNetApctlInit(0x1000, 0x42);// 0x20);//0x42);
     if (err != 0)
     {
 		printf("nlhInit(): sceNetApctlInit returns %i\n", err);

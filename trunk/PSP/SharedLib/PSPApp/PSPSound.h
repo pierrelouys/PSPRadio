@@ -75,7 +75,7 @@
 	
 	class CPSPSound
 	{
-	protected:
+	public:
 		enum pspsound_state
 		{
 			PLAY,
@@ -83,6 +83,7 @@
 			STOP,
 		};
 		
+	protected:
 		CPSPSoundBuffer Buffer;
 		
 	private:
@@ -107,6 +108,8 @@
 		int Play();
 		int Pause();
 		int Stop();
+		pspsound_state GetPlayState() { return m_CurrentState; };
+		
 	
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);

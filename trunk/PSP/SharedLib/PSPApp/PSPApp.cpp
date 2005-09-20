@@ -50,20 +50,33 @@ CPSPApp::~CPSPApp()
 int CPSPApp::Run()
 {
 	short oldAnalogue = 0;
+	int   oldButtonMask = 0;
+	SceCtrlLatch latch; 
+	
 	
 	while (m_Exit == FALSE)
 	{
-		//sceKernelSleepThread();
 		sceDisplayWaitVblankStart();
 		sceKernelDelayThread(10);
-		sceCtrlReadBufferPositive(&m_pad, 1); 
+		//sceCtrlReadBufferPositive(&m_pad, 1); 
 		
 		OnVBlank();
  
-		if (m_pad.Buttons != 0)
+		sceCtrlSetSamplingCycle(10); 
+		sceCtrlReadLatch(&latch);
+		//printf("latch: uiMake=%d; uiBreak=%d; uiPress=%d; uiRelease=%d;\n",
+		//	latch.uiMake, latch.uiBreak, latch.uiPress, latch.uiRelease);
+		
+		if (latch.uiMake)
 		{
 			/** Button Pressed */
-			OnButtonPressed(m_pad.Buttons);
+			oldButtonMask = latch.uiPress;
+			OnButtonPressed(oldButtonMask);
+		}
+		else if (latch.uiBreak)
+		{
+			/** Button Released */
+			OnButtonReleased(oldButtonMask);
 		}
 		
 		if (oldAnalogue != (short)m_pad.Lx)
@@ -81,16 +94,6 @@ int CPSPApp::Run()
 	sceKernelExitGame();
 
 	return 0;
-}
-
-void CPSPApp::OnButtonPressed(int iButtonMask)
-{
-	if (iButtonMask & PSP_CTRL_SQUARE){
-		printf("Square pressed \n");
-	}
-	if (iButtonMask & PSP_CTRL_TRIANGLE){
-		printf("Triangle pressed \n");
-	} 
 }
 
 int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
