@@ -1,8 +1,8 @@
-TARGET = MadEx
-OBJS = example-mad.o
+TARGET = PSPRadio
+OBJS = PSPRadio.o
 
 INCDIR = ../
-CFLAGS = -O2 -G0 -Wall -L../../lib -I../../libnet -I../../libiniparser -I../../Tools
+CFLAGS = -O2 -G0 -Wall -I../SharedLib/PSPApp -L../SharedLib/lib -I../SharedLib/libnet -I../SharedLib/libiniparser -I../SharedLib/Tools
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
