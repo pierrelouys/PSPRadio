@@ -1,6 +1,7 @@
 /* 
-	PSPApp Example 2
-	Using MAD
+	PSPRadio
+	Author: Rafael Cabezas.
+	Initial Release: Sept. 2005
 */
 #include <PSPApp.h>
 #include <PSPSound_MP3.h>
@@ -17,11 +18,11 @@ asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
 
 /* Define the module info section */
-PSP_MODULE_INFO("MADEXAMPLE", 0x1000, 1, 1);
+PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
-#define CFG_FILENAME "madraf.cfg"
+#define CFG_FILENAME "PSPRadio.cfg"
 
 class myPSPApp : public CPSPApp
 {
@@ -33,7 +34,7 @@ public:
 	/** Setup */
 	int Setup(int argc, char **argv)
 	{
-		printf("PSPApp MAD Example...\n");
+		printf("PSPRadio\n");
 		
 		//open config file
 		char strCfgFile[256];
@@ -44,17 +45,22 @@ public:
 
 		config = new CIniParser(strCfgFile);
 		
-		//sceKernelDelayThread(1000000);
-		printf("Starting Network...\n");
+		pspDebugScreenSetXY(10,32);
+		printf("Enabling Network... ");
 		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
-
+		pspDebugScreenSetXY(10,32);
+		printf("Ready               ");
+		printf("IP = %s", GetMyIP());
+		
 		MP3 = new CPSPSound_MP3();
 		if (MP3)
 		{
 			MP3->SetFile(config->GetStr("MUSIC:FILE"));
-			//MP3->Play();
 			pspDebugScreenSetXY(8,30);
 			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
+			//if (strcmp(config->GetStr("INITIAL:AUTOPLAY"), "TRUE") == 0)
+			//	MP3->Play();
+
 		}
 		else
 			printf("Error creating mp3 object\n");
@@ -100,10 +106,18 @@ public:
 			}
 			else if (iButtonMask & PSP_CTRL_TRIANGLE)
 			{
+				printf ("STOP   ");
+				MP3->Stop();
+				sceKernelDelayThread(50000);  
+				
+				pspDebugScreenSetXY(10,32);
 				printf("Disabling Network...");
 				DisableNetwork();
-				printf("Enabling Network...");
+				sceKernelDelayThread(500000);  
+				pspDebugScreenSetXY(10,32);
+				printf("Enabling Network... ");
 				EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
+				pspDebugScreenSetXY(10,32);
 				printf("Ready               ");
 			}
 		}

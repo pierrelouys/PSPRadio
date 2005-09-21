@@ -100,6 +100,7 @@
 	
 	protected:
 		virtual void Decode();
+		void SuspendDecodingThread(){m_thDecode->Suspend();};
 	
 	public:
 		CPSPSound();

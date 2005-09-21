@@ -11,7 +11,7 @@ LDFLAGS =
 LIBS = -lPSPApp -lpspaudio -lsupc++ -lstdc++ -lnet -lmad -liniparser -lTools
 
 EXTRA_TARGETS = EBOOT.PBP
-PSP_EBOOT_TITLE = PSPApp MAD example App
+PSP_EBOOT_TITLE = PSPRadio
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

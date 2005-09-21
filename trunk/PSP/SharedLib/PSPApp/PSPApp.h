@@ -37,6 +37,7 @@
 		//virtual int Run() = 0;
 		int Run();
 		void ExitApp() { m_Exit = TRUE; };
+		BOOLEAN IsExiting() { return m_Exit; };
 		/** Accessors */
 		SceCtrlData GetPadData() { return m_pad; };
 		char *GetMyIP() { return m_strMyIP; };
@@ -84,9 +85,9 @@
 	/** Wrapper class around the kernel system calls for thread management */
 	class CPSPThread
 	{
-	/** These macros can be called from inside the thread function */
-	#define ThreadSleep() sceKernelSleepThread()
-	#define ThreadSleepAndServiceCallbacks() sceKernelSleepThreadCB()
+		/** These macros can be called from inside the thread function */
+		#define Sleep() sceKernelSleepThread()
+		#define SleepAndServiceCallbacks() sceKernelSleepThreadCB()
 	
 	public:
 		CPSPThread(const char *strName, SceKernelThreadEntry ThreadEntry, int initPriority = 0x11,

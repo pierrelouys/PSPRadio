@@ -75,15 +75,22 @@ void CPSPSound_MP3::Decode()
 	mad_timer_reset(&Timer);
 
 	CPSPSoundStream *InputStream = new CPSPSoundStream();
+	
+	pspDebugScreenSetXY(0,20);
+	printf("% 70c", 0x20);
+	pspDebugScreenSetXY(0,20);
+	printf("Stream: %s (Opening)", pPSPSound_MP3->GetFile());
 	InputStream->Open(pPSPSound_MP3->GetFile());
 	if (InputStream->IsOpen() == TRUE)
 	{
-		pspDebugScreenSetXY(0,6);
-		printf("'%s' Opened Successfully.", pPSPSound_MP3->GetFile());
+		pspDebugScreenSetXY(0,20);
+		printf("% 70c", ' ');
+		pspDebugScreenSetXY(0,20);
+		printf("Stream: %s (Open)", pPSPSound_MP3->GetFile());
 		
 		/** Main decoding loop */
 		/* pPSPSound_MP3 is the decoding loop. */
-		for(;;)
+		while (pPSPApp->m_Exit == FALSE && pPSPSound_MP3->GetPlayState() != STOP)
 		{
 			/* The input bucket must be filled if it becomes empty or if
 			 * it's the first execution of the loop.
@@ -248,13 +255,13 @@ void CPSPSound_MP3::Decode()
 				}
 				//sceKernelDelayThread(100); /** .1ms */
 
+				if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
+				{
+					break;
+				}
 
 			}
 			sceKernelDelayThread(10); /** 100us */
-			if (pPSPApp->m_Exit == TRUE)
-			{
-				break;
-			}
 
 		};
 		//printf("Done.\n");
@@ -282,6 +289,8 @@ void CPSPSound_MP3::Decode()
 	printf ("                        ");
 	pspDebugScreenSetXY(0,10);      
 	printf("                        ");
+	pspDebugScreenSetXY(0,20);
+	printf("% 70c", ' ');
 
 }
 

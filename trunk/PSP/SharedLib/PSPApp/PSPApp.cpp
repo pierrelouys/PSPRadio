@@ -127,11 +127,21 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
-	if (nlhLoadDrivers() == 0)
+	static BOOLEAN fDriversLoaded = FALSE;
+	
+	if (fDriversLoaded == FALSE)
+	{
+		if (nlhLoadDrivers() == 0)
+		{
+			fDriversLoaded = TRUE;
+		}
+	}
+	
+	if (fDriversLoaded == TRUE)
 	{
 		if (WLANConnectionHandler(profile) == 0)
 		{
-			printf("PSP IP = %s\n", GetMyIP());
+			//printf("PSP IP = %s\n", GetMyIP());
 			
 			//sceNetResolverInit();
 			int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));

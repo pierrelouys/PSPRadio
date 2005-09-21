@@ -44,11 +44,20 @@ void CPSPSound::Initialize()
 	m_CurrentState = STOP;
 	m_thDecode = NULL;
 	m_thPlayAudio  = NULL;
+	
 }
 
 CPSPSound::~CPSPSound()
 {
-	Stop();
+	Buffer.Empty();
+	if (m_thDecode) 
+	{ 
+		delete(m_thDecode), m_thDecode = NULL;
+	}
+	if (m_thPlayAudio) 
+	{
+		delete(m_thPlayAudio), m_thPlayAudio = NULL;
+	}
 }
 
 int CPSPSound::Play()
@@ -56,25 +65,25 @@ int CPSPSound::Play()
 	switch(m_CurrentState)
 	{
 		case STOP:
+			m_CurrentState = PLAY;
 			if (!m_thDecode)
 			{
-				//delete(m_thDecode), m_thDecode = NULL;
 				m_thDecode = new CPSPThread("decode_thread", ThDecode, 0x40, 80000);
+				if (!m_thPlayAudio)
+				{
+					m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x18, 80000);
+					m_thPlayAudio->Start();
+					m_thDecode->Start();
+					sceKernelDelayThread(100000);
+				}
 			}
-			if (!m_thPlayAudio)
-			{
-				//delete(m_thPlayAudio), m_thPlayAudio = NULL;
-				m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x18, 80000);
-			}
-			m_CurrentState = PLAY;
-			m_thDecode->Start();
-			m_thPlayAudio->Start();
+			/** Wake the decoding thread up*/
+			m_thDecode->WakeUp();
 			break;
-			
 		case PAUSE:
+			m_CurrentState = PLAY;
 			m_thDecode->Resume();
 			m_thPlayAudio->Resume();
-			m_CurrentState = PLAY;
 			break;
 			
 		case PLAY:
@@ -89,9 +98,9 @@ int CPSPSound::Pause()
 	switch(m_CurrentState)
 	{
 		case PLAY:
+			m_CurrentState = PAUSE;
 			m_thDecode->Suspend();
 			m_thPlayAudio->Suspend();
-			m_CurrentState = PAUSE;
 			break;
 			
 		case STOP:
@@ -110,14 +119,6 @@ int CPSPSound::Stop()
 		case PAUSE:
 			m_CurrentState = STOP;
 			Buffer.Empty();
-			//if (m_thDecode)
-			//{
-			//	delete(m_thDecode), m_thDecode = NULL;
-			//}
-			//if (m_thPlayAudio)
-			//{
-			//	delete(m_thPlayAudio), m_thPlayAudio = NULL;
-			//}
 			break;
 			
 		case STOP:
@@ -139,7 +140,8 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		
 		for(;;)
 		{
-			if (pPSPSound->Buffer.IsDone() || pPSPApp->m_Exit == TRUE || pPSPSound->m_CurrentState == STOP)
+			//if (pPSPSound->Buffer.IsDone() || pPSPApp->m_Exit == TRUE || pPSPSound->m_CurrentState == STOP)
+			if (pPSPApp->m_Exit == TRUE)
 			{
 				break;
 			}
@@ -175,7 +177,15 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 
 int CPSPSound::ThDecode(SceSize args, void *argp)
 {
-	pPSPSound->Decode();
+	while (pPSPApp->m_Exit == FALSE)
+	{
+		/** Wait for the go-ahead: 
+		 *  We put ourselves to sleep
+		 *  When Play() is called, we are awaken
+		 */
+		Sleep();
+		pPSPSound->Decode();
+	}
 	sceKernelExitThread(0);
 
 	return 0;
@@ -245,7 +255,7 @@ void CPSPSoundBuffer::Push(char *buf)
 	while((pushpos - poppos) > NUM_BUFFERS/2)
 	{ /*Wait for pop to catch up, we keep a min space of NUM_BUFFERS/2 */
 		sceKernelDelayThread(50); /** 500us */
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP)
+		if (pPSPApp->IsExiting() == TRUE)
 			break;
 	}
 	memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
@@ -259,7 +269,7 @@ char * CPSPSoundBuffer::Pop()
 		while (abs(pushpos - poppos) < NUM_BUFFERS/4) 
 		{/** Buffering!! */
 			sceKernelDelayThread(50); /** 500us */
-			if (pPSPSound->GetPlayState() == CPSPSound::STOP)
+			if (pPSPApp->IsExiting() == TRUE)
 				break;
 		}
 		buffering = FALSE;
@@ -269,7 +279,7 @@ char * CPSPSoundBuffer::Pop()
 		while (abs(pushpos - poppos) < 1) 
 		{/** Buffer almost empty!! */
 			sceKernelDelayThread(50); /** 500us */
-			if (pPSPSound->GetPlayState() == CPSPSound::STOP)
+			if (pPSPApp->IsExiting() == TRUE)
 				break;
 		}
 	}
@@ -406,6 +416,8 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 					m_sock_eof = TRUE;
 					break;
 				}
+				if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+					break;
 				//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
 				//{
 				//	printf ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);

@@ -196,8 +196,6 @@ int nlhLoadDrivers()
 	LoadAndStartAndPatch("flash0:/kd/pspnet_resolver.prx");
 	// LoadAndStartAndPatch("flash0:/kd/pspnet_ap_dialog_dummy.prx");
 
-    // jumps have been patched - flush DCache and ICache
-    FlushCaches();
 
     //REVIEW: add error checks
     return 0;
@@ -206,6 +204,10 @@ int nlhLoadDrivers()
 int nlhInit()
 {
     u32 err;
+    // jumps have been patched - flush DCache and ICache
+    FlushCaches();
+    
+    
     err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
     //err = sceNetInit(0x20000, 0x10, 16384, 0x10, 16384);
     if (err != 0)
