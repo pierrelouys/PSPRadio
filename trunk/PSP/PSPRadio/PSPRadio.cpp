@@ -3,6 +3,7 @@
 	Author: Rafael Cabezas.
 	Initial Release: Sept. 2005
 */
+#include <list>
 #include <PSPApp.h>
 #include <PSPSound_MP3.h>
 #include <stdio.h>
@@ -14,6 +15,8 @@
 #include <iniparser.h>
 #include <Tools.h>
 
+using namespace std;
+
 asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
 
@@ -23,6 +26,7 @@ PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
 #define CFG_FILENAME "PSPRadio.cfg"
+#define GOTO_ERROR	pspDebugScreenSetXY(0,20); printf("% 40c",' '); pspDebugScreenSetXY(0,20);
 
 class myPSPApp : public CPSPApp
 {
@@ -30,11 +34,22 @@ private:
 	CIniParser *config;
 	CPSPSound_MP3 *MP3;
 	
+	struct songmetadata
+	{
+		char strFileName[300];
+		char strFileTitle[256];
+		char songTitle[256];
+		char songAuthor[256];
+	};
+	list<songmetadata *> m_playlist; 
+	list<songmetadata *>::iterator m_songiterator;
+		
+	
 public:
 	/** Setup */
 	int Setup(int argc, char **argv)
 	{
-		printf("PSPRadio\n");
+		printf("PSPRadio by Raf (http://rafpsp.blogspot.com/) WIP version 0.1a\n");
 		
 		//open config file
 		char strCfgFile[256];
@@ -55,7 +70,20 @@ public:
 		MP3 = new CPSPSound_MP3();
 		if (MP3)
 		{
-			MP3->SetFile(config->GetStr("MUSIC:FILE"));
+			if (strlen(config->GetStr("MUSIC:PLAYLIST")))
+			{
+				LoadPlayList(config->GetStr("MUSIC:PLAYLIST"));
+			}
+			else if (strlen(config->GetStr("MUSIC:FILE")))
+			{
+				songmetadata *songdata;
+				songdata = (songmetadata*)malloc(sizeof(songdata));
+				memset(songdata, 0, sizeof(songdata));
+				strncpy(songdata->strFileName, config->GetStr("MUSIC:FILE"), 256);
+			}
+			//MP3->SetFile(m_playlist.get_front()->m_strFileName);
+			m_songiterator = m_playlist.begin();
+
 			pspDebugScreenSetXY(8,30);
 			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
 			//if (strcmp(config->GetStr("INITIAL:AUTOPLAY"), "TRUE") == 0)
@@ -76,24 +104,115 @@ public:
 		delete(config);
 	}
 
+	void LoadPlayList(char *strFileName)
+	{
+		m_playlist.empty(); //mem leak possible
+		FILE *fd = NULL;
+		char strLine[256];
+		int iLines = 0;
+		int iFormatVersion = 1;
+		songmetadata *songdata = NULL;
+		
+		fd = fopen(strFileName, "r");
+		
+		pspDebugScreenSetXY(0,0);
+
+		if(fd != NULL)
+		{
+			while (!feof(fd))
+			{
+				fgets(strLine, 256, fd);
+				if (strlen(strLine) == 0)
+				{
+					continue;
+				}
+				if ((iLines == 0) && (strLine[0] == '['))
+				{
+					iFormatVersion = 2;
+					continue;
+				}
+				
+				strLine[strlen(strLine)-1] = 0; /** Remove LF 0D*/
+				if (strLine[strlen(strLine)-1] == 0x0D) 
+					strLine[strlen(strLine)-1] = 0; /** Remove CR 0A*/
+				
+				/** We have a line with data here */
+				
+				switch(iFormatVersion)
+				{
+					case 1:
+						//printf("inserting element %d\n", iLines);
+						songdata = (songmetadata*)malloc(sizeof(songmetadata));
+						if (songdata)
+						{
+							memset(songdata, 0, sizeof(songmetadata));
+						//	printf("file=%s\n",strLine);
+							memcpy(songdata->strFileName, strLine, 256);
+						//	printf("inserting in the list\n");
+							m_playlist.push_back(songdata);
+						//	printf("insertion complete\n");
+						}
+						else
+						{
+							printf("Memory Error \n");
+						}
+						break;
+					case 2:
+						//switch(state) //file/title/length
+						break;
+				}
+						
+				iLines++;
+			}
+			fclose(fd), fd = NULL;
+		}
+		else
+		{
+			GOTO_ERROR;
+			printf("Unable to open '%s'", strFileName);
+		}
+	}
  
 	void OnButtonReleased(int iButtonMask)
 	{
+		songmetadata *song = NULL;
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
 			pspDebugScreenSetXY(30,25);
-			if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+			if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
-				if (playingstate == CPSPSound::STOP || playingstate == CPSPSound::PAUSE)
+			}
+			else if (iButtonMask & PSP_CTRL_RTRIGGER)
+			{
+				MP3->Stop();
+				if (m_songiterator == m_playlist.end())
 				{
-					printf ("PLAY   ");
-					MP3->Play();
+					m_songiterator = m_playlist.begin();
 				}
-				else //play
+				else
 				{
-					printf ("PAUSE   ");
-					MP3->Pause();
+					m_songiterator++;
+				}
+				song = *m_songiterator;
+				MP3->SetFile(song->strFileName);
+				printf ("PLAY   ");
+				MP3->Play();
+				break;
+			}
+			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+			{
+				switch(playingstate)
+				{
+					case CPSPSound::STOP:
+					case CPSPSound::PAUSE:
+						printf ("PLAY   ");
+						MP3->Play();
+						break;
+					case CPSPSound::PLAY:
+						printf ("PAUSE   ");
+						MP3->Pause();
+						break;
 				}
 			}
 			else if (iButtonMask & PSP_CTRL_SQUARE)
