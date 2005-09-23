@@ -1,0 +1,5 @@
+-Corrected problem where the app froze when exiting while paused/stopped.
+(was caused because threads where suspended/asleep)
+-Now can play lower samplerate streams (22K, etc) let me know how it works, I tries with one at 22k.
+-It does play streams in other ports (other than 80), try /dev/null http://129.16.159.166:8000/ for example.
+The problem right now is that the server is not compatible.

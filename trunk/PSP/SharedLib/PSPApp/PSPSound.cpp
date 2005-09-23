@@ -49,7 +49,10 @@ void CPSPSound::Initialize()
 
 CPSPSound::~CPSPSound()
 {
-	Buffer.Empty();
+	Stop();
+	/** Wake the decoding thread up, so it can exit*/
+	sceKernelDelayThread(100000);
+	m_thDecode->WakeUp();
 	if (m_thDecode) 
 	{ 
 		delete(m_thDecode), m_thDecode = NULL;
@@ -115,8 +118,14 @@ int CPSPSound::Stop()
 {
 	switch(m_CurrentState)
 	{
-		case PLAY:
 		case PAUSE:
+			/** if we were paused, restart threads first! */
+			m_CurrentState = STOP;
+			Buffer.Empty();
+			m_thDecode->Resume();
+			m_thPlayAudio->Resume();
+			break;
+		case PLAY:
 			m_CurrentState = STOP;
 			Buffer.Empty();
 			break;
@@ -207,6 +216,7 @@ int   CPSPSoundBuffer::GetBufferSize()
 }
 void  CPSPSoundBuffer::Empty() 
 { 
+	//wrong: this return true if empty...
 	m_PCMBufferList.empty(); 
 }
 

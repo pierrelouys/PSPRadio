@@ -6,8 +6,8 @@
 	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(4096)
 	#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
 	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
-	//#define NUM_BUFFERS 			100 //original
 	#define NUM_BUFFERS 			100
+	#define PSP_SAMPLERATE			44100
 	
 	#include <list>
 	#include <mad.h>

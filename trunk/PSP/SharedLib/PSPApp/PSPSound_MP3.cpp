@@ -50,6 +50,7 @@ void CPSPSound_MP3::Decode()
 						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
 	int count = 0;
+	int iSampleRatio = 1;
 	
 	pspDebugScreenSetXY(0,4);
 	printf ("Starting Decoding Thread\n");
@@ -180,11 +181,14 @@ void CPSPSound_MP3::Decode()
 			 * stream.
 			 */
 			if(FrameCount==0)
+			{
 				if(PrintFrameInfo(&Frame.header))
 				{
 					Status=1;
 					break;
 				}
+				iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
+			}
 	
 			/* Accounting. The computed frame duration is in the frame
 			 * header structure. It is expressed as a fixed point number
@@ -214,32 +218,34 @@ void CPSPSound_MP3::Decode()
 			 */
 			for(i=0;i<Synth.pcm.length;i++)
 			{
-				signed short	Sample;
-	
-				/* little endian */
+				signed short	SampleL, SampleR;
+				
 				/* Left channel */
-				Sample = scale(Synth.pcm.samples[0][i]); 
+				SampleL = scale(Synth.pcm.samples[0][i]); 
 				//Sample=MadFixedToSshort(Synth.pcm.samples[0][i]);
-				*(OutputPtr++)=((Sample >> 0) & 0xff);
-				*(OutputPtr++)=((Sample >> 8) & 0xff);
-	
 				/* Right channel. If the decoded stream is monophonic then
 				 * the right output channel is the same as the left one.
 				 */
 				if(MAD_NCHANNELS(&Frame.header)==2)
 				{
 				//	Sample=MadFixedToSshort(Synth.pcm.samples[1][i]);
-					Sample = scale(Synth.pcm.samples[1][i]); 
+					SampleR = scale(Synth.pcm.samples[1][i]); 
 				}
-				*(OutputPtr++)=((Sample >> 0) & 0xff);
-				*(OutputPtr++)=((Sample >> 8) & 0xff);
+				else
+				{
+					SampleR = SampleL;
+				}
+				for (int i = 0 ; i < iSampleRatio ; i++)
+				{
+					*(OutputPtr++)=((SampleL >> 0) & 0xff);
+					*(OutputPtr++)=((SampleL >> 8) & 0xff);
+					*(OutputPtr++)=((SampleR >> 0) & 0xff);
+					*(OutputPtr++)=((SampleR >> 8) & 0xff);
+				}
 				
 				/* Queue the output buffer if it is full. */
 				if(OutputPtr==OutputBufferEnd)
 				{
-				//	audiobuffer *mybuffer = (audiobuffer*)(char*)memalign(64, sizeof(audiobuffer));
-				//	memcpy(mybuffer->buffer, pOutputBuffer, OUTPUT_BUFFER_SIZE);
-				//	PCMBufferList->push_back(mybuffer);
 					pPSPSound_MP3->Buffer.Push((char*)pOutputBuffer);
 
 					if (count++ % 5 == 0)
@@ -249,11 +255,7 @@ void CPSPSound_MP3::Decode()
 					}
 						
 					OutputPtr=pOutputBuffer;
-					//sceKernelDelayThread(100); /** .1ms */
-
-					//sceKernelDelayThread(1); /** 1us */
 				}
-				//sceKernelDelayThread(100); /** .1ms */
 
 				if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
 				{

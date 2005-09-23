@@ -28,90 +28,74 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 #define CFG_FILENAME "PSPRadio.cfg"
 #define GOTO_ERROR	pspDebugScreenSetXY(0,20); printf("% 40c",' '); pspDebugScreenSetXY(0,20);
 
-class myPSPApp : public CPSPApp
+class CPlayList
 {
-private:
-	CIniParser *config;
-	CPSPSound_MP3 *MP3;
-	
-	struct songmetadata
-	{
-		char strFileName[300];
-		char strFileTitle[256];
-		char songTitle[256];
-		char songAuthor[256];
-	};
-	list<songmetadata *> m_playlist; 
-	list<songmetadata *>::iterator m_songiterator;
-		
-	
 public:
-	/** Setup */
-	int Setup(int argc, char **argv)
+	CPlayList()
 	{
-		printf("PSPRadio by Raf (http://rafpsp.blogspot.com/) WIP version 0.1a\n");
-		
-		//open config file
-		char strCfgFile[256];
-		char strDir[256];
-		strcpy(strDir, argv[0]);
-		dirname(strDir); /** Retrieve the directory name */
-		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
+		m_songiterator = m_playlist.begin();
+	};
+	
+	~CPlayList()
+	{
+		Clear();
+	};
+	
+	char *GetCurrentFileName()
+	{
+		return (*m_songiterator).strFileName?(*m_songiterator).strFileName:(char*)"";
+	};
+	
+	char *GetCurrentTitle()
+	{
+		return (*m_songiterator).strFileTitle?(*m_songiterator).strFileTitle:(char*)"";
+	};
 
-		config = new CIniParser(strCfgFile);
-		
-		pspDebugScreenSetXY(10,32);
-		printf("Enabling Network... ");
-		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
-		pspDebugScreenSetXY(10,32);
-		printf("Ready               ");
-		printf("IP = %s", GetMyIP());
-		
-		MP3 = new CPSPSound_MP3();
-		if (MP3)
+	void Next()
+	{
+		m_songiterator++;
+		if (m_songiterator == m_playlist.end())
 		{
-			if (strlen(config->GetStr("MUSIC:PLAYLIST")))
-			{
-				LoadPlayList(config->GetStr("MUSIC:PLAYLIST"));
-			}
-			else if (strlen(config->GetStr("MUSIC:FILE")))
-			{
-				songmetadata *songdata;
-				songdata = (songmetadata*)malloc(sizeof(songdata));
-				memset(songdata, 0, sizeof(songdata));
-				strncpy(songdata->strFileName, config->GetStr("MUSIC:FILE"), 256);
-			}
-			//MP3->SetFile(m_playlist.get_front()->m_strFileName);
 			m_songiterator = m_playlist.begin();
-
-			pspDebugScreenSetXY(8,30);
-			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
-			//if (strcmp(config->GetStr("INITIAL:AUTOPLAY"), "TRUE") == 0)
-			//	MP3->Play();
-
+		}
+	}
+	
+	void Prev()
+	{
+		if (m_songiterator == m_playlist.begin())
+		{
+			m_songiterator = m_playlist.end();
+			m_songiterator--;
 		}
 		else
-			printf("Error creating mp3 object\n");
-			
-	
-		
-		return 0;
+		{
+			m_songiterator--;
+		}
 	}
 	
-	void OnExit()
+	int GetNumberOfSongs()
 	{
-		delete(MP3);
-		delete(config);
+		return m_playlist.size();
 	}
 
-	void LoadPlayList(char *strFileName)
+	void InsertFile(char *strFileName)
 	{
-		m_playlist.empty(); //mem leak possible
+		songmetadata songdata;// = NULL;
+		//songdata = (songmetadata*)malloc(sizeof(songdata));
+		memset(&songdata, 0, sizeof(songdata));
+		strncpy(songdata.strFileName, strFileName, 256);
+		m_playlist.push_back(songdata);
+	}
+	
+	void LoadPlayListFile(char *strFileName)
+	{
 		FILE *fd = NULL;
 		char strLine[256];
 		int iLines = 0;
 		int iFormatVersion = 1;
-		songmetadata *songdata = NULL;
+		songmetadata songdata;// = NULL;
+		
+		Clear();
 		
 		fd = fopen(strFileName, "r");
 		
@@ -142,20 +126,20 @@ public:
 				{
 					case 1:
 						//printf("inserting element %d\n", iLines);
-						songdata = (songmetadata*)malloc(sizeof(songmetadata));
-						if (songdata)
+						//songdata = (songmetadata*)malloc(sizeof(songmetadata));
+						//if (songdata)
 						{
-							memset(songdata, 0, sizeof(songmetadata));
+							memset(&songdata, 0, sizeof(songmetadata));
 						//	printf("file=%s\n",strLine);
-							memcpy(songdata->strFileName, strLine, 256);
+							memcpy(songdata.strFileName, strLine, 256);
 						//	printf("inserting in the list\n");
 							m_playlist.push_back(songdata);
 						//	printf("insertion complete\n");
 						}
-						else
-						{
-							printf("Memory Error \n");
-						}
+						//else
+						//{
+						//	printf("Memory Error \n");
+						//}
 						break;
 					case 2:
 						//switch(state) //file/title/length
@@ -165,6 +149,7 @@ public:
 				iLines++;
 			}
 			fclose(fd), fd = NULL;
+			m_songiterator = m_playlist.begin();
 		}
 		else
 		{
@@ -172,33 +157,114 @@ public:
 			printf("Unable to open '%s'", strFileName);
 		}
 	}
- 
+	
+	void Clear()
+	{
+		while(m_playlist.size())
+		{
+			//free(m_playlist.front());
+			m_playlist.pop_front();
+		}
+		m_songiterator = m_playlist.begin();
+	};
+	
+private:
+	struct songmetadata
+	{
+		char strFileName[300];
+		char strFileTitle[256];
+		char songTitle[256];
+		char songAuthor[256];
+	};
+	list<songmetadata> m_playlist; 
+	list<songmetadata>::iterator m_songiterator;
+};
+
+class myPSPApp : public CPSPApp
+{
+private:
+	CIniParser *config;
+	CPSPSound_MP3 *MP3;
+	CPlayList *m_PlayList;
+	
+public:
+	/** Setup */
+	int Setup(int argc, char **argv)
+	{
+		printf("PSPRadio by Raf (http://rafpsp.blogspot.com/) WIP version 0.1a\n");
+		
+		//open config file
+		char strCfgFile[256];
+		char strDir[256];
+		strcpy(strDir, argv[0]);
+		dirname(strDir); /** Retrieve the directory name */
+		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
+
+		config = new CIniParser(strCfgFile);
+		
+		pspDebugScreenSetXY(10,32);
+		printf("Enabling Network... ");
+		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
+		pspDebugScreenSetXY(10,32);
+		printf("Ready               ");
+		printf("IP = %s", GetMyIP());
+		
+		MP3 = new CPSPSound_MP3();
+		m_PlayList = new CPlayList();
+
+		if (MP3 && m_PlayList)
+		{
+			if (strlen(config->GetStr("MUSIC:PLAYLIST")))
+			{
+				m_PlayList->LoadPlayListFile(config->GetStr("MUSIC:PLAYLIST"));
+			}
+			else if (strlen(config->GetStr("MUSIC:FILE")))
+			{
+				m_PlayList->InsertFile(config->GetStr("MUSIC:PLAYLIST"));
+			}
+
+			MP3->SetFile(m_PlayList->GetCurrentFileName());
+			
+			pspDebugScreenSetXY(8,30);
+			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
+		}
+		else
+			printf("Error creating mp3 object\n");
+			
+	
+		
+		return 0;
+	}
+	
+	void OnExit()
+	{
+		delete(MP3);
+		delete(config);
+	}
+
 	void OnButtonReleased(int iButtonMask)
 	{
-		songmetadata *song = NULL;
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
 			pspDebugScreenSetXY(30,25);
 			if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
+				MP3->Stop();
+				m_PlayList->Prev();
+				MP3->SetFile(m_PlayList->GetCurrentFileName());
+				sceKernelDelayThread(500000);  
+				printf ("PLAY   ");
+				MP3->Play();
 			}
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
 			{
 				MP3->Stop();
-				if (m_songiterator == m_playlist.end())
-				{
-					m_songiterator = m_playlist.begin();
-				}
-				else
-				{
-					m_songiterator++;
-				}
-				song = *m_songiterator;
-				MP3->SetFile(song->strFileName);
+				m_PlayList->Next();
+				MP3->SetFile(m_PlayList->GetCurrentFileName());
+				sceKernelDelayThread(500000);  
 				printf ("PLAY   ");
 				MP3->Play();
-				break;
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
 			{
@@ -243,7 +309,9 @@ public:
 	};
 	
 };
-	
+
+
+
 /** main */
 int main(int argc, char **argv) 
 {

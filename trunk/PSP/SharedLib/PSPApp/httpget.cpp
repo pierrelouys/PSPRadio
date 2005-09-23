@@ -423,6 +423,7 @@ int http_open (char *url)
 		sin.sin_family = AF_INET;
 		memcpy(&sin.sin_addr, &addr, sizeof(in_addr));
 		
+		//printf("Using port '%s'\n", myport);
         sin.sin_port = htons(atoi( (char *) myport));
 		if (connect(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) < 0) 
 		{
