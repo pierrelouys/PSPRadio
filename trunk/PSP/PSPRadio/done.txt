@@ -3,3 +3,13 @@
 -Now can play lower samplerate streams (22K, etc) let me know how it works, I tries with one at 22k.
 -It does play streams in other ports (other than 80), try /dev/null http://129.16.159.166:8000/ for example.
 The problem right now is that the server is not compatible.
+
+
+Things to try:
+http://64.202.98.193:8000 (club 977 80s channel, 24kbps, 16khz mono)
+Links to shoutcast info from athlonman
+http://www.smackfu.com/stuff/programming/shoutcast.html
+http://forums.radiotoolbox.com/viewtopic.php?t=74
+gbazone recommends:  I recommend: http://66.135.37.228:8000/ (punk/ska, 128kbps).
+
+
