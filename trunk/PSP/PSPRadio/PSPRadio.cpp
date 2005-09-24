@@ -200,7 +200,7 @@ public:
 	/** Setup */
 	int Setup(int argc, char **argv)
 	{
-		printf("PSPRadio by Raf (http://rafpsp.blogspot.com/) WIP version 0.1a\n");
+		printf("PSPRadio by Raf (http://rafpsp.blogspot.com/) WIP version 0.2b\n");
 		
 		//open config file
 		char strCfgFile[256];
