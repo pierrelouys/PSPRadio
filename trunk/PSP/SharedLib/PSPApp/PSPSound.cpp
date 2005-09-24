@@ -248,6 +248,7 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 {
 	ringbuf = (char*)memalign(64, OUTPUT_BUFFER_SIZE * (NUM_BUFFERS + 5));
 	Empty();
+	
 }
 int CPSPSoundBuffer::GetPushPos() 
 { 
@@ -322,6 +323,8 @@ CPSPSoundStream::CPSPSoundStream()
 	m_BstdFile = NULL;
 	m_fd = -1;
 	m_sock_eof = TRUE;
+	m_iMetaDataInterval = 0;
+	memset(bMetaData, 0, MAX_METADATA_SIZE);
 }
 
 CPSPSoundStream::~CPSPSoundStream()
@@ -341,10 +344,12 @@ void CPSPSoundStream::Close()
 		case STREAM_TYPE_URL:
 			sceNetInetClose(m_fd);
 			m_Type = STREAM_TYPE_CLOSED;
+			m_iMetaDataInterval = 0;
 			break;
 		case STREAM_TYPE_CLOSED:
 			break;
 	}	
+	memset(bMetaData, 0, MAX_METADATA_SIZE);
 }
 
 int CPSPSoundStream::Open(char *filename)
@@ -357,7 +362,7 @@ int CPSPSoundStream::Open(char *filename)
 				if (memcmp(filename, "http://", strlen("http://")) == 0)
 				{
 					//printf ("Opening URL '%s'\n", filename);
-					m_fd = http_open(filename);
+					m_fd = http_open(filename, m_iMetaDataInterval);
 					if (m_fd < 0)
 					{
 						printf("CPSPSoundStream::OpenFile-Error opening URL.\n");
@@ -366,6 +371,7 @@ int CPSPSoundStream::Open(char *filename)
 					else
 					{
 						//printf("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
+						printf("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
 						m_Type = STREAM_TYPE_URL;
 						m_sock_eof = FALSE;
 					}
@@ -373,15 +379,22 @@ int CPSPSoundStream::Open(char *filename)
 				else
 				{
 					m_pfd = fopen(filename, "rb");
-					m_BstdFile=NewBstdFile(m_pfd);
-					if(m_BstdFile != NULL)
+					if(m_pfd)
 					{
-						m_Type = STREAM_TYPE_FILE;
+						m_BstdFile=NewBstdFile(m_pfd);
+						if(m_BstdFile != NULL)
+						{
+							m_Type = STREAM_TYPE_FILE;
+						}
+						else
+						{
+							printf("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
+									strerror(errno));
+						}
 					}
 					else
 					{
-						printf("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
-								strerror(errno));
+						printf("Unable to open file");
 					}
 				}
 			}
@@ -400,8 +413,12 @@ int CPSPSoundStream::Open(char *filename)
 size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount)
 {
 	size_t size = 0;
-	size_t bytesread = 0, bytestoread = 0;
-	//int error;
+	size_t iRunningCountModMetadataInterval = 0;
+	size_t iBytesToRead = (ElementCount*ElementSize);
+	char bMetaDataSize = 0;
+	int iReadRet = -1;
+	
+	iRunningCountModMetadataInterval = (iRunningCountModMetadataInterval % m_iMetaDataInterval);
 	
 	switch(m_Type)
 	{
@@ -409,34 +426,43 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 			size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
 			break;
 		case STREAM_TYPE_URL:
-			for(;;) 
+			if (iBytesToRead + iRunningCountModMetadataInterval > m_iMetaDataInterval)
 			{
-				bytestoread = (ElementCount*ElementSize)-size;
-				bytesread = recv(m_fd, pBuffer+size, bytestoread, 0);
-				if (bytesread > 0)
-					size += bytesread;
-				if(bytesread == bytestoread) 
+				size = SocketRead((char*)pBuffer, m_iMetaDataInterval - iRunningCountModMetadataInterval, m_fd);
+				if (size != (m_iMetaDataInterval - iRunningCountModMetadataInterval))
 				{
-					//done
-					break;
-				}
-				else if (bytesread == 0)
-				{
-					printf ( "Connection reset by peer!\n");
 					Close();
 					m_sock_eof = TRUE;
-					break;
 				}
-				if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
-					break;
-				//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
-				//{
-				//	printf ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
-				//	m_sock_eof = TRUE;
-				//	Close();
-				//	break;
-				//}
-			}		
+				iReadRet = SocketRead(&bMetaDataSize, 1, m_fd);
+				if (iReadRet > 0)
+				{
+					iReadRet = SocketRead(bMetaData, bMetaDataSize * 16, m_fd);
+				}
+				if (iReadRet != bMetaDataSize * 16)
+				{
+					Close();
+					m_sock_eof = TRUE;
+				}
+				else
+				{
+					pspDebugScreenSetXY(0,12);
+					printf("MetaData='%s'", bMetaData);
+				}
+			}
+			else
+			{
+				size = SocketRead((char*)pBuffer, iBytesToRead, m_fd);
+				if (size != iBytesToRead)
+				{
+					Close();
+					m_sock_eof = TRUE;
+				}
+			}
+			if (size > 0)
+			{
+				iRunningCountModMetadataInterval+=size;
+			}
 			break;
 		case STREAM_TYPE_CLOSED:
 			break;

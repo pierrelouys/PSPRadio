@@ -118,6 +118,11 @@ public:
 					iFormatVersion = 2;
 					continue;
 				}
+				if (strLine[0] == ';')
+				{
+					/** A comment!, ignore */
+					continue;
+				}
 				
 				strLine[strlen(strLine)-1] = 0; /** Remove LF 0D*/
 				if (strLine[strlen(strLine)-1] == 0x0D) 
@@ -197,10 +202,14 @@ private:
 	CPlayList *m_PlayList;
 	
 public:
+	myPSPApp(): CPSPApp("PSPRadio", "0.3"){};//b-pre"){};
+
 	/** Setup */
 	int Setup(int argc, char **argv)
 	{
-		printf("PSPRadio by Raf (http://rafpsp.blogspot.com/) WIP version 0.2b\n");
+		printf("%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
+				GetProgramName(),
+				GetProgramVersion());
 		
 		//open config file
 		char strCfgFile[256];
@@ -320,8 +329,6 @@ public:
 	};
 	
 };
-
-
 
 /** main */
 int main(int argc, char **argv) 

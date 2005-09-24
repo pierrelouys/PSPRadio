@@ -10,7 +10,7 @@
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
-CPSPApp::CPSPApp()
+CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
 	pspDebugScreenInit();
 	
@@ -20,6 +20,9 @@ CPSPApp::CPSPApp()
 	pPSPApp = this;
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
+	
+	m_strProgramName = strdup(strProgramName);
+	m_strVersionNumber = strdup(strVersionNumber);
 	
 	if (m_thCallbackSetup)
 	{
@@ -43,6 +46,9 @@ CPSPApp::~CPSPApp()
 {
 	//printf("CPSPApp Destructor.\n");
 	DisableNetwork();
+	
+	free(m_strProgramName);
+	free(m_strVersionNumber);
 
 	return;
 }

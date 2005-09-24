@@ -8,16 +8,21 @@
 	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
 	#define NUM_BUFFERS 			100
 	#define PSP_SAMPLERATE			44100
+	#define MAX_METADATA_SIZE		4080
 	
 	#include <list>
 	#include <mad.h>
 	#include "bstdfile.h"
 
+	
+
+
 	/** From httpget.c */
 	/* ------ Declarations from "httpget.c" (From mpg123) ------ */
 	//extern char *proxyurl;
 	//extern unsigned long proxyip;
-	extern int http_open (char *url);
+	extern int http_open (char *url, size_t &iMetadataInterval);
+	int SocketRead(char *pBuffer, size_t LengthInBytes, int sock);
 	//extern char *httpauth; 
 	
 	class CPSPSoundStream
@@ -43,6 +48,8 @@
 		bstdfile_t *m_BstdFile;
 		int   m_fd;
 		BOOLEAN m_sock_eof;
+		size_t m_iMetaDataInterval;
+		char bMetaData[MAX_METADATA_SIZE];
 	};
 	
 	
@@ -71,6 +78,7 @@
 		int pushpos,poppos,m_lastpushpos;
 		char *ringbuf;
 		BOOLEAN buffering;
+
 	};
 	
 	class CPSPSound
@@ -116,5 +124,7 @@
 		static int ThPlayAudio(SceSize args, void *argp);
 		static int ThDecode(SceSize args, void *argp);
 	};
+	
+	extern CPSPSound *pPSPSound;
 	
 #endif

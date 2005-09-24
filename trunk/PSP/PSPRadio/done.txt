@@ -1,3 +1,10 @@
+-Added support for comments. Use ';' as the first character. (Blank lines are also ignored)
+-Now urls with no path work (http://64.202.98.193:8000 didn't work, but http://64.202.98.193:8000/ did. Now both do).
+-Now asking the server to send metadata.
+-Metadata information is displayed for the current stream.
+
+
+
 Things to try:
 http://64.202.98.193:8000 (club 977 80s channel, 24kbps, 16khz mono)
 Links to shoutcast info from athlonman

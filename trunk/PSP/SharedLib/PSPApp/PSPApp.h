@@ -32,7 +32,7 @@
 	class CPSPApp
 	{
 	public:
-		CPSPApp();
+		CPSPApp(char *strProgramName, char *strVersionNumber);
 		virtual ~CPSPApp();
 		//virtual int Run() = 0;
 		int Run();
@@ -42,6 +42,8 @@
 		SceCtrlData GetPadData() { return m_pad; };
 		char *GetMyIP() { return m_strMyIP; };
 		int GetResolverId() { return m_ResolverId; };
+		char *GetProgramName() { return m_strProgramName; };
+		char *GetProgramVersion() { return m_strVersionNumber; };
 	
 	protected:
 		/** Helpers */
@@ -76,6 +78,7 @@
 		char m_strMyIP[64];
 		char m_ResolverBuffer[1024]; /** Could be smaller, no idea */
 		int  m_ResolverId;
+		char *m_strProgramName, *m_strVersionNumber;
 		
 		virtual int OnAppExit(int arg1, int arg2, void *common); /** We call OnExit here */
 		int WLANConnectionHandler(int profile);

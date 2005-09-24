@@ -11,8 +11,6 @@
 #include "PSPSound_MP3.h"
 using namespace std;
 
-char *ProgName = "PSPSOUND";
-
 int errno = 0;
 
 CPSPSound_MP3 *pPSPSound_MP3 = NULL;
@@ -120,11 +118,11 @@ void CPSPSound_MP3::Decode()
 					//if(InputStream->GetError())
 					//{
 					//	printf("%s: read error on bit-stream (%s)\n",
-					//			ProgName,strerror(errno));
+					//			pPSPApp->GetProgramName(),strerror(errno));
 					//	Status=1;
 					//}
 					//if(feof(InputFp))
-					//	printf("%s: end of input stream\n",ProgName);
+					//	printf("%s: end of input stream\n",pPSPApp->GetProgramName());
 					//else
 						printf("Read error...\n");
 					break;
@@ -159,7 +157,7 @@ void CPSPSound_MP3::Decode()
 					{
 						/** Don't log if recoverable. */
 						//printf("%s: recoverable frame level error. \n",
-						//		ProgName);
+						//		pPSPApp->GetProgramName());
 					}
 					continue;
 				}
@@ -169,7 +167,7 @@ void CPSPSound_MP3::Decode()
 					else
 					{
 						printf("%s: unrecoverable frame level error.\n",
-								ProgName);
+								pPSPApp->GetProgramName());
 						Status=1;
 						break;
 					}

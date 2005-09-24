@@ -6,8 +6,6 @@
  */
 
 #include <unistd.h>
-
-//#include <httpnet.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,12 +19,12 @@
 #include <sys/errno.h>
 #include <ctype.h>
 #include <PSPApp.h>
+#include <PSPSound.h>
 
 extern int errno;
 
-extern char *ProgName;
-char *prgVersion = "0";
-//#include "mpg123.h"
+#define ProgName    pPSPApp->GetProgramName()
+#define ProgVersion pPSPApp->GetProgramVersion()
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -37,8 +35,6 @@ void writestring (int fd, char *string)
 	int result, bytes = strlen(string);
 
 	while (bytes) {
-		//if ((result = write(fd, string, bytes)) < 0 && errno != EINTR) 
-		//int sceNetInetSend(int __fd, __const void *__buf, size_t __n, int __flags); 
 		if ((result = send(fd, string, bytes, 0)) < 0 && errno != EINTR) 
 		{
 			printf("write Error");
@@ -52,44 +48,15 @@ void writestring (int fd, char *string)
 	}
 }
 
-void readstring (char *string, int maxlen, FILE *f)
-{
-#if 0
-	char *result;
-#endif
-	int pos = 0;
-
-	while(1) {
-		if( read(fileno(f),string+pos,1) == 1) {
-			pos++;
-			if(string[pos-1] == '\n') {
-				string[pos] = 0;
-				break;
-			}
-		}
-		else if(errno != EINTR) {
-			printf ( "Error reading from socket or unexpected EOF.\n");
-			return;
-		}
-	}
-#if 0
-	do {
-		result = fgets(string, maxlen, f);
-	} while (!result  && errno == EINTR);
-	if (!result) {
-		printf ( "Error reading from socket or unexpected EOF.\n");
-		return;
-	}
-#endif
-
-}
-void readstring2 (char *string, int maxlen, int sock)
+void readstring (char *string, int maxlen, int sock)
 {
 
 	int pos = 0;
 	int bytesread = 0;
+	string[0] = 0;
 
-	while(1) {
+	for(;;)
+	{
 		bytesread = recv(sock, string+pos, 1, 0);
 		if(bytesread  == 1) {
 			pos++;
@@ -103,13 +70,49 @@ void readstring2 (char *string, int maxlen, int sock)
 			printf ( "Connection closed by peer!\n");
 			break;
 		}
-		else if(errno != EINTR) 
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+			break;
+		//else if(errno != EINTR) 
+		//{
+		//	printf ( "Error reading from socket or unexpected EOF.\n");
+		//	break;
+		//}
+	}
+}
+
+int SocketRead(char *pBuffer, size_t LengthInBytes, int sock)
+{
+	size_t bytesread = 0, bytestoread = 0;
+	size_t size = 0;
+	for(;;) 
+	{
+		bytestoread = LengthInBytes-size;
+		bytesread = recv(sock, pBuffer+size, bytestoread, 0);
+		if (bytesread > 0)
+			size += bytesread;
+		if(bytesread == bytestoread) 
 		{
-			printf ( "Error reading from socket or unexpected EOF.\n");
-			//exit(1);
+			//done
 			break;
 		}
+		else if (bytesread == 0)
+		{
+			printf ( "Connection reset by peer!\n");
+			//Close();
+			//m_sock_eof = TRUE;
+			break;
+		}
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+			break;
+		//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
+		//{
+		//	printf ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
+		//	m_sock_eof = TRUE;
+		//	Close();
+		//	break;
+		//}
 	}
+	return size;
 }
 
 void encode64 (char *source,char *destination)
@@ -255,7 +258,7 @@ unsigned char *proxyport;
 char *httpauth = NULL;
 char httpauth1[256];
 
-int http_open (char *url)
+int http_open (char *url, size_t &iMetadataInterval)
 {
 	char *purl, *host, *request, *sptr;
 	int linelength;
@@ -263,7 +266,6 @@ int http_open (char *url)
 	unsigned char *myport;
 	int sock;
 	int relocate, numrelocs = 0;
-//	FILE *myfile;
 #ifdef INET6
 	struct addrinfo hints, *res, *res0;
 	int error;
@@ -271,6 +273,8 @@ int http_open (char *url)
 	//struct hostent *hp;
 	struct sockaddr_in sin;
 #endif
+
+	pspDebugScreenSetXY(0,0);
 
 	host = NULL;
 	proxyport = NULL;
@@ -303,12 +307,15 @@ int http_open (char *url)
                }
 
 	
-	if ((linelength = strlen(url)+200) < 1024)
-		linelength = 1024;
+	if ((linelength = strlen(url)+256) < 4096)
+		linelength = 4096;
 	if (!(request = (char*)malloc(linelength)) || !(purl = (char*)malloc(1024))) {
 		printf ( "malloc() failed, out of memory.\n");
 		return -1;
 	}
+	memset(request, 0, linelength);
+	memset(purl, 0, 1024);
+	
        /*
         * 2000-10-21:
         * We would like spaces to be automatically converted to %20's when
@@ -341,9 +348,10 @@ int http_open (char *url)
 
 	do {
 		strcpy (request, "GET ");
-		if (proxyip != INADDR_NONE) {
-                        if (strncasecmp(url, "http://", 7) != 0 && strncasecmp(url,"ftp://", 6) != 0)
-				strcat (request, "http://");
+		if (proxyip != INADDR_NONE) 
+		{
+			if (strncasecmp(url, "http://", 7) != 0 && strncasecmp(url,"ftp://", 6) != 0)
+			strcat (request, "http://");
 			strcat (request, purl);
 			myport = proxyport;
 			myip = proxyip;
@@ -357,6 +365,11 @@ int http_open (char *url)
 				free(proxyport);
 				proxyport=NULL;
 			}
+			//printf("purl+7='%s'\n", purl+7);
+			if(strchr(purl+7,'/')==NULL)
+			{
+				strcat(purl, "/");
+			} 
 			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
 				printf ( "Unknown host \"%s\".\n",
 					host ? host : "");
@@ -365,15 +378,18 @@ int http_open (char *url)
 			strcat (request, sptr);
 		}
 		sprintf (request + strlen(request),
-			" HTTP/1.0\r\nUser-Agent: %s/%s\r\n",
-			ProgName, prgVersion);
+			" %s\r\n%s\r\nUser-Agent: %s/%s\r\n",
+			//" %s\r\nUser-Agent: %s/%s\r\n",
+			"HTTP/1.0",
+			"Icy-MetaData: 1",
+			ProgName, ProgVersion);
+
+		
 		if (host) {
 			sprintf(request + strlen(request),
 				"Host: %s:%s\r\n", host, myport);
-#if 0
-			free (host);
-#endif
 		}
+		///sprintf(request+strlen(request), " HTTP/1.0 \r\nIcy-MetaData:1 \r\n\r\n");
 		strcat (request, ACCEPT_HEAD);
 
 #ifdef INET6
@@ -420,7 +436,7 @@ int http_open (char *url)
 		
 		struct timeval  timeo;
 		timeo.tv_sec  = 3;
-		timeo.tv_usec = 0;
+		timeo.tv_usec = 3;
 		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
 		{
 			printf("setsockopt SO_RCVTIMEO Failed");
@@ -463,6 +479,7 @@ fail:
 		}
 		strcat (request, "\r\n");
 
+		//printf("Sending '%s'\n", request);
 		writestring (sock, request);
 		
 		//if (!(myfile = fdopen(sock, "rb"))) {
@@ -471,9 +488,17 @@ fail:
 		//};
 		relocate = FALSE;
 		purl[0] = '\0';
-		//readstring (request, linelength-1, myfile);
-		readstring2 (request, linelength-1, sock);
-		if ((sptr = strchr(request, ' '))) {
+		request[0] = 0;
+		readstring (request, linelength-1, sock);
+		if (strlen(request) == 0)
+		{
+			printf("Error, no response.\n");
+			return -1;
+		}
+		//printf("Response: '%s'\n", request);
+		sptr = strchr(request, ' ');
+		if (sptr != NULL) 
+		{
 			switch (sptr[1]) {
 				case '3':
 					relocate = TRUE;
@@ -486,9 +511,16 @@ fail:
 			}
 		}
 		do {
-			readstring2 (request, linelength-1, sock);
-			if (!strncmp(request, "Location:", 9))
+			request[0] = 0;
+			readstring (request, linelength-1, sock);
+			if (strncmp(request, "Location:", 9) == 0)
+			{
 				strncpy (purl, request+10, 1023);
+			}
+			if (strncmp(request, "icy-metaint:", 12) == 0)
+			{
+				sscanf(request, "icy-metaint: %d", &iMetadataInterval);
+			}
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
 	if (relocate) {
