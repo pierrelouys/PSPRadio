@@ -574,7 +574,8 @@ ssize_t	sceNetInetSend(int, const void *, size_t, int);
 ssize_t	sendto(int, const void *,
 	    size_t, int, const struct sockaddr *, socklen_t);
 ssize_t	sendmsg(int, const struct msghdr *, int);
-int	setsockopt(int, int, int, const void *, socklen_t);
+int	sceNetInetSetsockopt(int, int, int, const void *, socklen_t);
+#define setsockopt sceNetInetSetsockopt
 int	shutdown(int, int);
 int	sockatmark(int);
 int	sceNetInetSocket(int, int, int);

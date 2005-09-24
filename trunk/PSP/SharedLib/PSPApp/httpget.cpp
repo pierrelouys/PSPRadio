@@ -41,13 +41,11 @@ void writestring (int fd, char *string)
 		//int sceNetInetSend(int __fd, __const void *__buf, size_t __n, int __flags); 
 		if ((result = send(fd, string, bytes, 0)) < 0 && errno != EINTR) 
 		{
-			perror ("write");
-			exit (1);
+			printf("write Error");
 		}
 		else if (result == 0) {
 			printf ( "write: %s\n",
 				"socket closed unexpectedly");
-			exit (1);
 		}
 		string += result;
 		bytes -= result;
@@ -71,7 +69,7 @@ void readstring (char *string, int maxlen, FILE *f)
 		}
 		else if(errno != EINTR) {
 			printf ( "Error reading from socket or unexpected EOF.\n");
-			exit(1);
+			return;
 		}
 	}
 #if 0
@@ -80,7 +78,7 @@ void readstring (char *string, int maxlen, FILE *f)
 	} while (!result  && errno == EINTR);
 	if (!result) {
 		printf ( "Error reading from socket or unexpected EOF.\n");
-		exit (1);
+		return;
 	}
 #endif
 
@@ -286,7 +284,7 @@ int http_open (char *url)
 			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
 				printf ( "Unknown proxy host \"%s\".\n",
 					host ? host : "");
-				exit (1);
+				return -1;
 			}
 #if 0
 			if (host)
@@ -301,7 +299,7 @@ int http_open (char *url)
        if (proxyip == INADDR_NONE)
                if (strncasecmp(url, "ftp://", 6) == 0){
                        printf ("Downloading from ftp servers without PROXY not allowed\n");
-                       exit(1);
+                       return -1;
                }
 
 	
@@ -309,7 +307,7 @@ int http_open (char *url)
 		linelength = 1024;
 	if (!(request = (char*)malloc(linelength)) || !(purl = (char*)malloc(1024))) {
 		printf ( "malloc() failed, out of memory.\n");
-		exit (1);
+		return -1;
 	}
        /*
         * 2000-10-21:
@@ -362,7 +360,7 @@ int http_open (char *url)
 			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
 				printf ( "Unknown host \"%s\".\n",
 					host ? host : "");
-				exit (1);
+				return -1;
 			}
 			strcat (request, sptr);
 		}
@@ -384,7 +382,7 @@ int http_open (char *url)
 		error = getaddrinfo(host, (char *)myport, &hints, &res0);
 		if (error) {
 			printf ( "getaddrinfo: %s\n", gai_strerror(error));
-			exit(1);
+			return -1;
 		}
 
 		sock = -1;
@@ -419,6 +417,20 @@ int http_open (char *url)
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock < 0)
 			goto fail;
+		
+		struct timeval  timeo;
+		timeo.tv_sec  = 3;
+		timeo.tv_usec = 0;
+		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
+		{
+			printf("setsockopt SO_RCVTIMEO Failed");
+		}
+		if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo)) < 0) 
+		{
+			printf("setsockopt SO_SNDTIMEO Failed");
+		}
+		
+		
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
 		memcpy(&sin.sin_addr, &addr, sizeof(in_addr));
@@ -429,13 +441,14 @@ int http_open (char *url)
 		{
 			close(sock);
 			sock = -1;
+			printf("Error Connecting");
 		}
 fail:
 #endif
 
 		if (sock < 0) {
 			perror("socket");
-			exit(1);
+			return -1;
 		}
 
 		if (strlen(httpauth1) || httpauth) {
@@ -469,7 +482,7 @@ fail:
 				default:
 					printf ( "HTTP request failed: %s",
 						sptr+1); /* '\n' is included */
-					exit (1);
+					return -1;
 			}
 		}
 		do {
@@ -480,7 +493,7 @@ fail:
 	} while (relocate && purl[0] && numrelocs++ < 5);
 	if (relocate) {
 		printf ( "Too many HTTP relocations.\n");
-		exit (1);
+		return -1;
 	}
 	free (purl);
 	free (request);

@@ -27,6 +27,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
 #define CFG_FILENAME "PSPRadio.cfg"
 #define GOTO_ERROR	pspDebugScreenSetXY(0,20); printf("% 40c",' '); pspDebugScreenSetXY(0,20);
+#define PL_TERMINATOR "!!**!!"
 
 class CPlayList
 {
@@ -54,7 +55,8 @@ public:
 	void Next()
 	{
 		m_songiterator++;
-		if (m_songiterator == m_playlist.end())
+		//if (m_songiterator == m_playlist.end())
+		if (strcmp((*m_songiterator).strFileName, PL_TERMINATOR) == 0)
 		{
 			m_songiterator = m_playlist.begin();
 		}
@@ -65,6 +67,7 @@ public:
 		if (m_songiterator == m_playlist.begin())
 		{
 			m_songiterator = m_playlist.end();
+			m_songiterator--;
 			m_songiterator--;
 		}
 		else
@@ -149,6 +152,12 @@ public:
 				iLines++;
 			}
 			fclose(fd), fd = NULL;
+			
+			/** Add terminator */
+			memset(&songdata, 0, sizeof(songmetadata));
+			memcpy(songdata.strFileName, PL_TERMINATOR, 256);
+			m_playlist.push_back(songdata);
+			
 			m_songiterator = m_playlist.begin();
 		}
 		else
@@ -254,6 +263,7 @@ public:
 				m_PlayList->Prev();
 				MP3->SetFile(m_PlayList->GetCurrentFileName());
 				sceKernelDelayThread(500000);  
+				pspDebugScreenSetXY(30,25);
 				printf ("PLAY   ");
 				MP3->Play();
 			}
@@ -263,6 +273,7 @@ public:
 				m_PlayList->Next();
 				MP3->SetFile(m_PlayList->GetCurrentFileName());
 				sceKernelDelayThread(500000);  
+				pspDebugScreenSetXY(30,25);
 				printf ("PLAY   ");
 				MP3->Play();
 			}

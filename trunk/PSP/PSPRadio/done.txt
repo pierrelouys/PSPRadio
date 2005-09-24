@@ -3,6 +3,9 @@
 -Now can play lower samplerate streams (22K, etc) let me know how it works, I tries with one at 22k.
 -It does play streams in other ports (other than 80), try /dev/null http://129.16.159.166:8000/ for example.
 The problem right now is that the server is not compatible.
+new:
+-Integrated socket header files from NetBSD.
+-Corrected problems with httpget that would cause the decoding thread to freeze if the connection failed.
 
 
 Things to try:
