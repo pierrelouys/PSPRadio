@@ -10,6 +10,8 @@
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
+#define Log(level, format, args...) m_Log.Log("CPSPApp", level, format, ## args)
+
 CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
 	pspDebugScreenInit();
@@ -38,17 +40,20 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 		m_Exit = TRUE;
 	}
 
+	
 	//printf("CPSPApp Constructor.\n");
 	
 }
 
 CPSPApp::~CPSPApp()
 {
-	//printf("CPSPApp Destructor.\n");
+	Log(LOG_LOWLEVEL, "Destructor Called.");
 	DisableNetwork();
 	
 	free(m_strProgramName);
 	free(m_strVersionNumber);
+
+	Log(LOG_LOWLEVEL, "Bye!.");
 
 	return;
 }

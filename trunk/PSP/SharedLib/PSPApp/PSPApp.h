@@ -12,6 +12,7 @@
 	#include <pspdisplay.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
+	#include <Logging.h>
 
 	
 	
@@ -44,6 +45,7 @@
 		int GetResolverId() { return m_ResolverId; };
 		char *GetProgramName() { return m_strProgramName; };
 		char *GetProgramVersion() { return m_strVersionNumber; };
+		void SetLogging(char *Filename, loglevel_enum iLevel);
 	
 	protected:
 		/** Helpers */
@@ -69,6 +71,7 @@
 		friend class CPSPSound;
 		friend class CPSPSound_MP3;
 		BOOLEAN m_Exit;
+		CLogging m_Log;
 		
 	
 	private:

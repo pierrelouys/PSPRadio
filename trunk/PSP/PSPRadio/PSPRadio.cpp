@@ -14,6 +14,7 @@
 #include <malloc.h>
 #include <iniparser.h>
 #include <Tools.h>
+#include <Logging.h>
 
 using namespace std;
 
@@ -28,6 +29,8 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 #define CFG_FILENAME "PSPRadio.cfg"
 #define GOTO_ERROR	pspDebugScreenSetXY(0,20); printf("% 40c",' '); pspDebugScreenSetXY(0,20);
 #define PL_TERMINATOR "!!**!!"
+
+#define Log(level, format, args...) m_Log.Log("PSPRadio", level, format, ## args)
 
 class CPlayList
 {
@@ -211,7 +214,16 @@ public:
 				GetProgramName(),
 				GetProgramVersion());
 		
-		//open config file
+				
+		if (config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0) == 1)
+		{
+			/** Set PSPApp to use the configured logfile and loglevels */
+			m_Log.Set(config->GetStr("DEBUGGING:LOGFILE"), (loglevel_enum)config->GetInteger("DEBUGGING:LOGLEVEL", 10));
+			//m_Log("pspradio",LOG_ALWAYS, "%s Version %s Starting", GetProgramName(), GetProgramVersion());
+			Log(LOG_ALWAYS, "%s Version %s Starting", GetProgramName(), GetProgramVersion());
+		}
+		
+		/** open config file */
 		char strCfgFile[256];
 		char strDir[256];
 		strcpy(strDir, argv[0]);
@@ -222,10 +234,12 @@ public:
 		
 		pspDebugScreenSetXY(10,32);
 		printf("Enabling Network... ");
+		Log(LOG_INFO, "Enabling Network");
 		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
 		pspDebugScreenSetXY(10,32);
 		printf("Ready               ");
 		printf("IP = %s", GetMyIP());
+		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
 		
 		MP3 = new CPSPSound_MP3();
 		m_PlayList = new CPlayList();
@@ -247,8 +261,10 @@ public:
 			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
 		}
 		else
+		{
 			printf("Error creating mp3 object\n");
-			
+			Log(LOG_ERROR, "Error creating CPSPSound_MP3 object, or CPlaylist object.");
+		}
 	
 		
 		return 0;
@@ -317,6 +333,8 @@ public:
 				
 				pspDebugScreenSetXY(10,32);
 				printf("Disabling Network...");
+				Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+
 				DisableNetwork();
 				sceKernelDelayThread(500000);  
 				pspDebugScreenSetXY(10,32);
