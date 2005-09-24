@@ -1,3 +1,4 @@
+#if 0
 /*	$NetBSD: cdefs.h,v 1.59 2005/06/02 14:31:38 he Exp $	*/
 
 /*
@@ -115,6 +116,7 @@
 /*
  * In non-ANSI C environments, new programs will want ANSI-only C keywords
  * deleted from the program and old programs will want them left alone.
+ #if 0
  * Programs using the ANSI C keywords const, inline etc. as normal
  * identifiers should define -DNO_ANSI_KEYWORDS.
  */
@@ -355,3 +357,4 @@
 #define	__link_set_entry(set, idx)	(__link_set_begin(set)[idx])
 
 #endif /* !_SYS_CDEFS_H_ */
+#endif

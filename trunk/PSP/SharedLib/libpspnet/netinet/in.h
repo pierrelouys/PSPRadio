@@ -39,12 +39,24 @@
 #ifndef _NETINET_IN_H_
 #define	_NETINET_IN_H_
 
-#include <machine/int_types.h>
+#include <sys/types.h>
 
 #ifndef uint8_t
-typedef __uint8_t	uint8_t;
+//typedef __uint8_t	uint8_t;
+typedef unsigned char	uint8_t;
 #define	uint8_t		__uint8_t
 #endif
+
+#ifndef int8_t
+typedef char int8_t;
+#define __int8_t int8_t
+#endif
+
+//#ifndef int_t
+//typedef int int_t;
+//#define __int_t int_t
+//#endif
+
 
 #ifndef uint32_t
 typedef __uint32_t	uint32_t;
@@ -472,9 +484,9 @@ struct ip_mreq {
 #endif /* _NETBSD_SOURCE */
 
 /* INET6 stuff */
-#define	__KAME_NETINET_IN_H_INCLUDED_
-#include <netinet6/in6.h>
-#undef __KAME_NETINET_IN_H_INCLUDED_
+//#define	__KAME_NETINET_IN_H_INCLUDED_
+//#include <netinet6/in6.h>
+//#undef __KAME_NETINET_IN_H_INCLUDED_
 
 #ifdef _KERNEL
 /*

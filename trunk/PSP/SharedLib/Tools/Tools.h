@@ -44,7 +44,7 @@
 		#define ARG_MAX	4096
 		
 		#define PATH_MAX MAXPATHLEN
-		#define SO_DEBUG 1
+		//#define SO_DEBUG 1
 		
 		#ifdef __cplusplus
 			}

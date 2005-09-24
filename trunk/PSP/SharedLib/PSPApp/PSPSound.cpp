@@ -8,6 +8,7 @@
 #include <mad.h>
 #include <malloc.h>
 #include <errno.h>
+#include <sys/socket.h>
 #include "PSPSound.h"
 
 using namespace std;

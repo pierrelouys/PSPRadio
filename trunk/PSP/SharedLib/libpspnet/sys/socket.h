@@ -63,6 +63,7 @@
 #ifndef _SYS_SOCKET_H_
 #define	_SYS_SOCKET_H_
 
+#include <pspnet.h>
 #include <sys/featuretest.h>
 
 /*
@@ -87,7 +88,7 @@ typedef __socklen_t	socklen_t;
 #include <machine/ansi.h>
 
 #ifdef	_BSD_SIZE_T_
-typedef	_BSD_SIZE_T_	size_t;
+//typedef	_BSD_SIZE_T_	size_t;
 #undef	_BSD_SIZE_T_
 #endif
 
@@ -286,15 +287,15 @@ struct sockaddr_storage {
 
 #if defined(_NETBSD_SOURCE)
 
-#ifndef	gid_t
-typedef	__gid_t		gid_t;		/* group id */
-#define	gid_t		__gid_t
-#endif
+//#ifndef	gid_t
+//typedef	__gid_t		gid_t;		/* group id */
+//#define	gid_t		__gid_t
+//#endif
 
-#ifndef	uid_t
-typedef	__uid_t		uid_t;		/* user id */
-#define	uid_t		__uid_t
-#endif
+//#ifndef	uid_t
+//typedef	__uid_t		uid_t;		/* user id */
+//#define	uid_t		__uid_t
+//#endif
 
 /*
  * Socket credentials.
@@ -548,34 +549,38 @@ struct omsghdr {
 
 #include <sys/cdefs.h>
 
-__BEGIN_DECLS
+//__BEGIN_DECLS
 int	__cmsg_alignbytes(void);
-__END_DECLS
+//__END_DECLS
 
 #ifndef	_KERNEL
 
-__BEGIN_DECLS
+//__BEGIN_DECLS
 int	accept(int, struct sockaddr * __restrict, socklen_t * __restrict);
 int	bind(int, const struct sockaddr *, socklen_t);
-int	connect(int, const struct sockaddr *, socklen_t);
+int	sceNetInetConnect(int, const struct sockaddr *, socklen_t);
+#define connect sceNetInetConnect 
 int	getpeername(int, struct sockaddr * __restrict, socklen_t * __restrict);
 int	getsockname(int, struct sockaddr * __restrict, socklen_t * __restrict);
 int	getsockopt(int, int, int, void * __restrict, socklen_t * __restrict);
 int	listen(int, int);
-ssize_t	recv(int, void *, size_t, int);
+ssize_t	sceNetInetRecv(int, void *, size_t, int);
+#define recv sceNetInetRecv
 ssize_t	recvfrom(int, void * __restrict, size_t, int,
 	    struct sockaddr * __restrict, socklen_t * __restrict);
 ssize_t	recvmsg(int, struct msghdr *, int);
-ssize_t	send(int, const void *, size_t, int);
+ssize_t	sceNetInetSend(int, const void *, size_t, int);
+#define send sceNetInetSend
 ssize_t	sendto(int, const void *,
 	    size_t, int, const struct sockaddr *, socklen_t);
 ssize_t	sendmsg(int, const struct msghdr *, int);
 int	setsockopt(int, int, int, const void *, socklen_t);
 int	shutdown(int, int);
 int	sockatmark(int);
-int	socket(int, int, int);
+int	sceNetInetSocket(int, int, int);
+#define socket sceNetInetSocket
 int	socketpair(int, int, int, int *);
-__END_DECLS
+//__END_DECLS
 #endif /* !_KERNEL */
 
 #endif /* !_SYS_SOCKET_H_ */

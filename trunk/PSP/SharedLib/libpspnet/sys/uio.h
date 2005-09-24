@@ -106,14 +106,14 @@ MALLOC_DECLARE(M_IOV);
 #ifndef	_KERNEL
 #include <sys/cdefs.h>
 
-__BEGIN_DECLS
+//__BEGIN_DECLS
 #if defined(_NETBSD_SOURCE)
 ssize_t preadv(int, const struct iovec *, int, off_t);
 ssize_t pwritev(int, const struct iovec *, int, off_t);
 #endif /* _NETBSD_SOURCE */
 ssize_t	readv(int, const struct iovec *, int);
 ssize_t	writev(int, const struct iovec *, int);
-__END_DECLS
+//__END_DECLS
 #else
 int ureadc(int, struct uio *);
 #endif /* !_KERNEL */
