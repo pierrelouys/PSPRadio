@@ -14,7 +14,29 @@
 	#include <pspaudio.h>
 	#include <Logging.h>
 
+	/** Sender IDs */
+	#define SID_PSPAPP			0x10000000
+	#define SID_PSPSOUND		0x11000000
+	#define SID_PSPSOUND_MP3	0x11000010
 	
+	/** Message IDs */
+	#define MID_ERROR						0x00000000
+	#define MID_THPLAY_BEGIN				0x00000010
+	#define MID_THPLAY_END					0x00000020
+	#define MID_THPLAY_BUFCYCLE				0x00000030
+	#define MID_THPLAY_DONE					0x00000031
+	#define MID_THDECODE_AWOKEN				0x00000040
+	#define MID_THDECODE_ASLEEP				0x00000050
+	#define MID_THDECODE_BEGIN				0x00000051
+	#define MID_THDECODE_END				0x00000052
+	#define MID_DECODE_STREAM_OPENING		0x00000060
+	#define MID_DECODE_STREAM_OPEN_ERROR	0x00000070
+	#define MID_DECODE_METADATA_INFO		0x00000071
+	#define MID_DECODE_STREAM_OPEN			0x00000080
+	#define MID_DECODE_BUFCYCLE				0x00000090
+	#define MID_DECODE_FRAME_INFO_HEADER	0x000000A0
+	#define MID_DECODE_FRAME_INFO_LAYER		0x000000B0
+	#define MID_DECODE_DONE					0x000000B1
 	
 	//enum true_or_false
 	//{
@@ -33,6 +55,8 @@
 	class CPSPApp
 	{
 	public:
+		CLogging m_Log;
+
 		CPSPApp(char *strProgramName, char *strVersionNumber);
 		virtual ~CPSPApp();
 		//virtual int Run() = 0;
@@ -45,7 +69,9 @@
 		int GetResolverId() { return m_ResolverId; };
 		char *GetProgramName() { return m_strProgramName; };
 		char *GetProgramVersion() { return m_strVersionNumber; };
-		void SetLogging(char *Filename, loglevel_enum iLevel);
+		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPAPP)
+			{ return OnMessage(iMessageId, pMessage, iSenderId); };
+		int ReportError(char *format, ...);
 	
 	protected:
 		/** Helpers */
@@ -61,6 +87,7 @@
 		virtual void OnVBlank(){};
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
 		virtual void OnAudioBufferEmpty(void* buf, unsigned int length){};
+		virtual int OnMessage(int iMessageId, void *pMessage, int iSenderId){return 0;};
 
 		/* System Callbacks */
 		static int  exitCallback(int arg1, int arg2, void *common);
@@ -71,7 +98,6 @@
 		friend class CPSPSound;
 		friend class CPSPSound_MP3;
 		BOOLEAN m_Exit;
-		CLogging m_Log;
 		
 	
 	private:
@@ -86,6 +112,10 @@
 		virtual int OnAppExit(int arg1, int arg2, void *common); /** We call OnExit here */
 		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();
+		
+	friend class CPSPSoundBuffer;
+	friend class CPSPSoundStream;
+
 	};
 	
 	/** Wrapper class around the kernel system calls for thread management */
@@ -120,6 +150,10 @@
 	private:
 		int m_thid;
 	};
+	
+
+	
+
 	/** Attribute for threads. 
 	enum PspThreadAttributes
 	{

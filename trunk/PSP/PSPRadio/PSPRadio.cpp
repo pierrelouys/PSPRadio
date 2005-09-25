@@ -27,10 +27,10 @@ PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
 #define CFG_FILENAME "PSPRadio.cfg"
-#define GOTO_ERROR	pspDebugScreenSetXY(0,20); printf("% 40c",' '); pspDebugScreenSetXY(0,20);
 #define PL_TERMINATOR "!!**!!"
 
-#define Log(level, format, args...) m_Log.Log("PSPRadio", level, format, ## args)
+//#define Log(level, format, args...) pPSPApp->m_Log.Log("PSPRadio", level, format, ## args)
+#define ReportError pPSPApp->ReportError
 
 class CPlayList
 {
@@ -87,9 +87,22 @@ public:
 	void InsertFile(char *strFileName)
 	{
 		songmetadata songdata;// = NULL;
+		
+		/** Remove current terminator */
+		if (m_playlist.size() > 0)
+		{
+			m_playlist.pop_back();
+		}
+		
 		//songdata = (songmetadata*)malloc(sizeof(songdata));
+		Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 		memset(&songdata, 0, sizeof(songdata));
 		strncpy(songdata.strFileName, strFileName, 256);
+		m_playlist.push_back(songdata);
+		
+		/** Add terminator */
+		memset(&songdata, 0, sizeof(songmetadata));
+		memcpy(songdata.strFileName, PL_TERMINATOR, 256);
 		m_playlist.push_back(songdata);
 	}
 	
@@ -101,7 +114,13 @@ public:
 		int iFormatVersion = 1;
 		songmetadata songdata;// = NULL;
 		
-		Clear();
+//		Clear();
+		/** Remove current terminator */
+		if (m_playlist.size() > 0)
+		{
+			m_playlist.pop_back();
+		}
+
 		
 		fd = fopen(strFileName, "r");
 		
@@ -111,14 +130,17 @@ public:
 		{
 			while (!feof(fd))
 			{
+				strLine[0] = 0;
 				fgets(strLine, 256, fd);
-				if (strlen(strLine) == 0)
+				if (strlen(strLine) == 0 || strLine[0] == '\r' || strLine[0] == '\n')
 				{
 					continue;
 				}
 				if ((iLines == 0) && (strLine[0] == '['))
 				{
 					iFormatVersion = 2;
+					ReportError("This is a version 2 playlist. This is not supported at the moment!");
+					
 					continue;
 				}
 				if (strLine[0] == ';')
@@ -136,21 +158,10 @@ public:
 				switch(iFormatVersion)
 				{
 					case 1:
-						//printf("inserting element %d\n", iLines);
-						//songdata = (songmetadata*)malloc(sizeof(songmetadata));
-						//if (songdata)
-						{
-							memset(&songdata, 0, sizeof(songmetadata));
-						//	printf("file=%s\n",strLine);
-							memcpy(songdata.strFileName, strLine, 256);
-						//	printf("inserting in the list\n");
-							m_playlist.push_back(songdata);
-						//	printf("insertion complete\n");
-						}
-						//else
-						//{
-						//	printf("Memory Error \n");
-						//}
+						memset(&songdata, 0, sizeof(songmetadata));
+						memcpy(songdata.strFileName, strLine, 256);
+						m_playlist.push_back(songdata);
+						Log(LOG_INFO, "Adding '%s' to the list.", strLine);
 						break;
 					case 2:
 						//switch(state) //file/title/length
@@ -170,8 +181,7 @@ public:
 		}
 		else
 		{
-			GOTO_ERROR;
-			printf("Unable to open '%s'", strFileName);
+			ReportError("Unable to open playlist '%s'", strFileName);
 		}
 	}
 	
@@ -205,7 +215,7 @@ private:
 	CPlayList *m_PlayList;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.3"){};//b-pre"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.3b-pre"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -215,14 +225,6 @@ public:
 				GetProgramVersion());
 		
 				
-		if (config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0) == 1)
-		{
-			/** Set PSPApp to use the configured logfile and loglevels */
-			m_Log.Set(config->GetStr("DEBUGGING:LOGFILE"), (loglevel_enum)config->GetInteger("DEBUGGING:LOGLEVEL", 10));
-			//m_Log("pspradio",LOG_ALWAYS, "%s Version %s Starting", GetProgramName(), GetProgramVersion());
-			Log(LOG_ALWAYS, "%s Version %s Starting", GetProgramName(), GetProgramVersion());
-		}
-		
 		/** open config file */
 		char strCfgFile[256];
 		char strDir[256];
@@ -231,12 +233,19 @@ public:
 		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
 
 		config = new CIniParser(strCfgFile);
-		
-		pspDebugScreenSetXY(10,32);
+
+		if (config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0) == 1)
+		{
+			/** Set Logging Global Object to use the configured logfile and loglevels */
+			Logging.Set(config->GetStr("DEBUGGING:LOGFILE"), (loglevel_enum)config->GetInteger("DEBUGGING:LOGLEVEL", 10));
+			Log(LOG_ALWAYS, "%s Version %s Starting", GetProgramName(), GetProgramVersion());
+		}
+			
+		pspDebugScreenSetXY(10,26);
 		printf("Enabling Network... ");
 		Log(LOG_INFO, "Enabling Network");
 		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
-		pspDebugScreenSetXY(10,32);
+		pspDebugScreenSetXY(10,26);
 		printf("Ready               ");
 		printf("IP = %s", GetMyIP());
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
@@ -257,8 +266,8 @@ public:
 
 			MP3->SetFile(m_PlayList->GetCurrentFileName());
 			
-			pspDebugScreenSetXY(8,30);
-			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect\n");
+			pspDebugScreenSetXY(8,25);
+			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect");
 		}
 		else
 		{
@@ -266,7 +275,9 @@ public:
 			Log(LOG_ERROR, "Error creating CPSPSound_MP3 object, or CPlaylist object.");
 		}
 	
-		
+		Log(LOG_LOWLEVEL, "Exiting Setup()");
+
+
 		return 0;
 	}
 	
@@ -281,15 +292,15 @@ public:
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
-			pspDebugScreenSetXY(30,25);
+			pspDebugScreenSetXY(30,20);
 			if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
 				MP3->Stop();
 				m_PlayList->Prev();
 				MP3->SetFile(m_PlayList->GetCurrentFileName());
 				sceKernelDelayThread(500000);  
-				pspDebugScreenSetXY(30,25);
-				printf ("PLAY   ");
+				pspDebugScreenSetXY(30,20);
+				printf("PLAY   ");
 				MP3->Play();
 			}
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
@@ -298,8 +309,8 @@ public:
 				m_PlayList->Next();
 				MP3->SetFile(m_PlayList->GetCurrentFileName());
 				sceKernelDelayThread(500000);  
-				pspDebugScreenSetXY(30,25);
-				printf ("PLAY   ");
+				pspDebugScreenSetXY(30,20);
+				printf("PLAY   ");
 				MP3->Play();
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
@@ -308,11 +319,11 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
-						printf ("PLAY   ");
+						printf("PLAY   ");
 						MP3->Play();
 						break;
 					case CPSPSound::PLAY:
-						printf ("PAUSE   ");
+						printf("PAUSE   ");
 						MP3->Pause();
 						break;
 				}
@@ -321,30 +332,146 @@ public:
 			{
 				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 				{
-					printf ("STOP   ");
+					printf("STOP   ");
 					MP3->Stop();
 				}
 			}
 			else if (iButtonMask & PSP_CTRL_TRIANGLE)
 			{
-				printf ("STOP   ");
+				printf("STOP   ");
 				MP3->Stop();
 				sceKernelDelayThread(50000);  
 				
-				pspDebugScreenSetXY(10,32);
+				pspDebugScreenSetXY(10,26);
 				printf("Disabling Network...");
 				Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
 
 				DisableNetwork();
 				sceKernelDelayThread(500000);  
-				pspDebugScreenSetXY(10,32);
+				pspDebugScreenSetXY(10,26);
 				printf("Enabling Network... ");
 				EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
-				pspDebugScreenSetXY(10,32);
+				pspDebugScreenSetXY(10,26);
 				printf("Ready               ");
 			}
 		}
 	};
+	
+	int OnMessage(int iMessageId, void *pMessage, int iSenderId)
+	{
+		if (iMessageId == MID_ERROR)
+		{
+			pspDebugScreenSetXY(0,30);
+			printf("% 70c", ' ');
+			pspDebugScreenSetXY(0,30);
+			printf("Error: %s", (char*)pMessage);
+			Log(LOG_ERROR, (char*)pMessage);
+		}
+		else
+		{
+			switch (iSenderId)
+			{
+			//case PSPAPP_SENDER_ID:
+			//	switch(iMessageId)
+			//	{
+			//	case ERROR
+			//case SID_PSPSOUND:
+			default:
+				switch(iMessageId)
+				{
+				case MID_THPLAY_BEGIN:
+					pspDebugScreenSetXY(30,4);
+					printf("Starting Play Thread\n");
+					break;
+				case MID_THPLAY_END:
+					pspDebugScreenSetXY(30,4);
+					printf("                    ");
+					pspDebugScreenSetXY(0,11);      
+					printf("                        ");
+					break;
+				case MID_THPLAY_BUFCYCLE:
+					pspDebugScreenSetXY(0,11);
+					printf("Out Buffer: %03d/%03d   ", MP3->GetBufferPopPos(), NUM_BUFFERS);
+					break;
+				case MID_THPLAY_DONE: /** Done with the current stream! */
+					/** If it was playing, then start next song in playlist 
+					 *  (Don't do it if the user pressed STOP
+					 */
+					if (MP3->GetPlayState() == CPSPSound::PLAY)
+					{
+						//IF URL, then restart instead of going to next!
+						sceKernelDelayThread(50000);  
+						MP3->Stop();
+						m_PlayList->Next();
+						MP3->SetFile(m_PlayList->GetCurrentFileName());
+						sceKernelDelayThread(500000);  
+						pspDebugScreenSetXY(30,20);
+						printf("PLAY   ");
+						MP3->Play();
+					}
+					break;
+					
+				case MID_THDECODE_AWOKEN:
+					pspDebugScreenSetXY(0,4);
+					printf("Starting Decoding Thread");
+					break;
+				case MID_THDECODE_ASLEEP:
+					pspDebugScreenSetXY(0,4);
+					printf("                        ");
+					pspDebugScreenSetXY(0,4);        
+					printf("                        ");
+					pspDebugScreenSetXY(0,10);      
+					printf("                        ");
+					//pspDebugScreenSetXY(0,18);
+					//ReportError("% 70c", ' ');
+					break;
+					
+				case MID_DECODE_STREAM_OPENING:
+					pspDebugScreenSetXY(0,18);
+					printf("% 70c", 0x20);
+					pspDebugScreenSetXY(0,18);
+					printf("Stream: %s (Opening)", MP3->GetFile());
+					break;
+				case MID_DECODE_STREAM_OPEN_ERROR:
+					pspDebugScreenSetXY(0,18);
+					printf("% 70c", ' ');
+					pspDebugScreenSetXY(0,18);
+					printf("Stream: %s (Error Opening)", MP3->GetFile());
+					break;
+				case MID_DECODE_STREAM_OPEN:
+					pspDebugScreenSetXY(0,18);
+					printf("% 70c", ' ');
+					pspDebugScreenSetXY(0,18);
+					printf("Stream: %s (Open)", MP3->GetFile());
+					break;
+				case MID_DECODE_BUFCYCLE:
+					pspDebugScreenSetXY(0,10);
+					printf("In Buffer:  %03d/%03d   ", MP3->GetBufferPushPos(), NUM_BUFFERS);
+					break;
+				case MID_DECODE_METADATA_INFO:
+					pspDebugScreenSetXY(0,12);
+					printf("MetaData '%s'", (char*)pMessage);
+					break;
+				//case MID_DECODE_DONE:
+				case MID_DECODE_FRAME_INFO_HEADER:
+					struct mad_header *Header;
+					Header = (struct mad_header *)pMessage;
+					pspDebugScreenSetXY(0,9);
+					printf("%lukbps %dHz ",
+							Header->bitrate, 
+							Header->samplerate);
+					break;
+				case MID_DECODE_FRAME_INFO_LAYER:
+					printf("MPEG layer %s stream. ", (char*)pMessage);
+					break;
+					
+				}
+			}
+			
+		}
+		
+		return 0;
+	}
 	
 };
 

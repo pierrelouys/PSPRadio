@@ -119,7 +119,11 @@
 		int Stop();
 		pspsound_state GetPlayState() { return m_CurrentState; };
 		
-	
+		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND)
+			{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
+
+		int GetBufferPopPos()  { return Buffer.GetPopPos(); };
+		int GetBufferPushPos() { return Buffer.GetPushPos(); };
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);
 		static int ThDecode(SceSize args, void *argp);

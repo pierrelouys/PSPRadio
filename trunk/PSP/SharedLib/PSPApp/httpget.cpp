@@ -20,11 +20,15 @@
 #include <ctype.h>
 #include <PSPApp.h>
 #include <PSPSound.h>
+#include <Logging.h>
 
 extern int errno;
 
 #define ProgName    pPSPApp->GetProgramName()
 #define ProgVersion pPSPApp->GetProgramVersion()
+//#define Log(level, format, args...) pPSPApp->m_Log.Log("CPSPSound", level, format, ## args)
+#define ReportError pPSPApp->ReportError
+
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -37,10 +41,10 @@ void writestring (int fd, char *string)
 	while (bytes) {
 		if ((result = send(fd, string, bytes, 0)) < 0 && errno != EINTR) 
 		{
-			printf("write Error");
+			ReportError("writestring(): write Error");
 		}
 		else if (result == 0) {
-			printf ( "write: %s\n",
+			ReportError ( "writestring(): write: %s\n",
 				"socket closed unexpectedly");
 		}
 		string += result;
@@ -67,52 +71,17 @@ void readstring (char *string, int maxlen, int sock)
 		}
 		else if (bytesread == 0)
 		{
-			printf ( "Connection closed by peer!\n");
+			ReportError ( "Connection closed by peer!\n");
 			break;
 		}
 		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
 			break;
 		//else if(errno != EINTR) 
 		//{
-		//	printf ( "Error reading from socket or unexpected EOF.\n");
+		//	ReportError ( "Error reading from socket or unexpected EOF.\n");
 		//	break;
 		//}
 	}
-}
-
-int SocketRead(char *pBuffer, size_t LengthInBytes, int sock)
-{
-	size_t bytesread = 0, bytestoread = 0;
-	size_t size = 0;
-	for(;;) 
-	{
-		bytestoread = LengthInBytes-size;
-		bytesread = recv(sock, pBuffer+size, bytestoread, 0);
-		if (bytesread > 0)
-			size += bytesread;
-		if(bytesread == bytestoread) 
-		{
-			//done
-			break;
-		}
-		else if (bytesread == 0)
-		{
-			printf ( "Connection reset by peer!\n");
-			//Close();
-			//m_sock_eof = TRUE;
-			break;
-		}
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
-			break;
-		//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
-		//{
-		//	printf ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
-		//	m_sock_eof = TRUE;
-		//	Close();
-		//	break;
-		//}
-	}
-	return size;
 }
 
 void encode64 (char *source,char *destination)
@@ -286,7 +255,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 					proxyurl = getenv("HTTP_PROXY");
 		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) {
 			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
-				printf ( "Unknown proxy host \"%s\".\n",
+				ReportError ( "Unknown proxy host \"%s\".\n",
 					host ? host : "");
 				return -1;
 			}
@@ -302,7 +271,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 
        if (proxyip == INADDR_NONE)
                if (strncasecmp(url, "ftp://", 6) == 0){
-                       printf ("Downloading from ftp servers without PROXY not allowed\n");
+                       ReportError ("Downloading from ftp servers without PROXY not allowed\n");
                        return -1;
                }
 
@@ -310,7 +279,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 	if ((linelength = strlen(url)+256) < 4096)
 		linelength = 4096;
 	if (!(request = (char*)malloc(linelength)) || !(purl = (char*)malloc(1024))) {
-		printf ( "malloc() failed, out of memory.\n");
+		ReportError ( "malloc() failed, out of memory.\n");
 		return -1;
 	}
 	memset(request, 0, linelength);
@@ -365,13 +334,13 @@ int http_open (char *url, size_t &iMetadataInterval)
 				free(proxyport);
 				proxyport=NULL;
 			}
-			//printf("purl+7='%s'\n", purl+7);
+			//ReportError("purl+7='%s'\n", purl+7);
 			if(strchr(purl+7,'/')==NULL)
 			{
 				strcat(purl, "/");
 			} 
 			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
-				printf ( "Unknown host \"%s\".\n",
+				ReportError ( "Unknown host \"%s\".\n",
 					host ? host : "");
 				return -1;
 			}
@@ -397,7 +366,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 		hints.ai_socktype = SOCK_STREAM;
 		error = getaddrinfo(host, (char *)myport, &hints, &res0);
 		if (error) {
-			printf ( "getaddrinfo: %s\n", gai_strerror(error));
+			ReportError ( "getaddrinfo: %s\n", gai_strerror(error));
 			return -1;
 		}
 
@@ -425,11 +394,11 @@ int http_open (char *url, size_t &iMetadataInterval)
 			rc = inet_aton(host, &addr);
 			if (rc == 0)
 			{
-				printf("Could not resolve host!\n");
+				ReportError("Could not resolve host!\n");
 				goto fail;
 			}
 		}
-		//printf ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
+		//ReportError ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
 		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock < 0)
 			goto fail;
@@ -439,11 +408,11 @@ int http_open (char *url, size_t &iMetadataInterval)
 		timeo.tv_usec = 3;
 		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
 		{
-			printf("setsockopt SO_RCVTIMEO Failed");
+			ReportError("setsockopt SO_RCVTIMEO Failed");
 		}
 		if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo)) < 0) 
 		{
-			printf("setsockopt SO_SNDTIMEO Failed");
+			ReportError("setsockopt SO_SNDTIMEO Failed");
 		}
 		
 		
@@ -451,13 +420,13 @@ int http_open (char *url, size_t &iMetadataInterval)
 		sin.sin_family = AF_INET;
 		memcpy(&sin.sin_addr, &addr, sizeof(in_addr));
 		
-		//printf("Using port '%s'\n", myport);
+		//ReportError("Using port '%s'\n", myport);
         sin.sin_port = htons(atoi( (char *) myport));
 		if (connect(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) < 0) 
 		{
 			close(sock);
 			sock = -1;
-			printf("Error Connecting");
+			ReportError("Error Connecting");
 		}
 fail:
 #endif
@@ -479,7 +448,7 @@ fail:
 		}
 		strcat (request, "\r\n");
 
-		//printf("Sending '%s'\n", request);
+		Log(LOG_LOWLEVEL, "http_connect(): Sending '%s'\n", request);
 		writestring (sock, request);
 		
 		//if (!(myfile = fdopen(sock, "rb"))) {
@@ -492,10 +461,10 @@ fail:
 		readstring (request, linelength-1, sock);
 		if (strlen(request) == 0)
 		{
-			printf("Error, no response.\n");
+			ReportError("Error, no response.\n");
 			return -1;
 		}
-		//printf("Response: '%s'\n", request);
+		Log(LOG_LOWLEVEL, "http_connect(): Response: '%s'\n", request);
 		sptr = strchr(request, ' ');
 		if (sptr != NULL) 
 		{
@@ -505,7 +474,7 @@ fail:
 				case '2':
 					break;
 				default:
-					printf ( "HTTP request failed: %s",
+					ReportError ( "HTTP request failed: %s",
 						sptr+1); /* '\n' is included */
 					return -1;
 			}
@@ -513,6 +482,7 @@ fail:
 		do {
 			request[0] = 0;
 			readstring (request, linelength-1, sock);
+			Log(LOG_LOWLEVEL, "http_connect(): Response: '%s'\n", request);
 			if (strncmp(request, "Location:", 9) == 0)
 			{
 				strncpy (purl, request+10, 1023);
@@ -520,11 +490,12 @@ fail:
 			if (strncmp(request, "icy-metaint:", 12) == 0)
 			{
 				sscanf(request, "icy-metaint: %d", &iMetadataInterval);
+				Log(LOG_INFO, "http_connect(): Metadata Interval received: %d\n", iMetadataInterval);
 			}
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
 	if (relocate) {
-		printf ( "Too many HTTP relocations.\n");
+		ReportError ( "Too many HTTP relocations.\n");
 		return -1;
 	}
 	free (purl);

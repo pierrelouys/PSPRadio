@@ -13,6 +13,9 @@
 
 using namespace std;
 
+//#define Log(level, format, args...) pPSPApp->m_Log.Log("CPSPSound", level, format, ## args)
+#define ReportError pPSPApp->ReportError
+
 CPSPSound *pPSPSound = NULL;
 
 /** Accessors */
@@ -23,14 +26,16 @@ int CPSPSound::GetAudioHandle()
 
 CPSPSound::CPSPSound()
 {
+	Log(LOG_LOWLEVEL, "PSPSound Constructor");
 	Initialize();
 }
 
 void CPSPSound::Initialize()
 {
+	Log(LOG_LOWLEVEL, "PSPSound Initialize()");
 	if (pPSPSound != NULL)
 	{
-		printf("Error!, only one instance of CPSPSound (including CPSPSound_*) permitted!");
+		Log(LOG_ERROR, "Error!, only one instance of CPSPSound (including CPSPSound_*) permitted!");
 	}
 	pPSPSound = this;
 	
@@ -39,7 +44,8 @@ void CPSPSound::Initialize()
 	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_NUM_AUDIO_SAMPLES, PSP_AUDIO_FORMAT_STEREO);
 	if ( m_audiohandle < 0 )
 	{
-		printf("Error getting a sound channel!\n");
+		Log(LOG_ERROR, "Error getting a sound channel!");
+		ReportError("Unable to aquire sound channel");
 	}
 	
 	m_CurrentState = STOP;
@@ -50,6 +56,7 @@ void CPSPSound::Initialize()
 
 CPSPSound::~CPSPSound()
 {
+	
 	Stop();
 	/** Wake the decoding thread up, so it can exit*/
 	sceKernelDelayThread(100000);
@@ -72,6 +79,7 @@ int CPSPSound::Play()
 			m_CurrentState = PLAY;
 			if (!m_thDecode)
 			{
+				Log(LOG_LOWLEVEL, "Play(): Creating decode and play threads.");
 				m_thDecode = new CPSPThread("decode_thread", ThDecode, 0x40, 80000);
 				if (!m_thPlayAudio)
 				{
@@ -145,12 +153,17 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		int ah = pPSPSound->GetAudioHandle();
 		int count = 0;
 
-		pspDebugScreenSetXY(30,4);
-		printf ("Starting Play Thread\n");
+		//pspDebugScreenSetXY(30,4);
+		Log(LOG_INFO, "Starting Play Thread.");
+		pPSPSound->SendMessage(MID_THPLAY_BEGIN);
 		
 		for(;;)
 		{
 			//if (pPSPSound->Buffer.IsDone() || pPSPApp->m_Exit == TRUE || pPSPSound->m_CurrentState == STOP)
+			if (pPSPSound->Buffer.IsDone())
+			{
+				pPSPSound->SendMessage(MID_THPLAY_DONE);
+			}
 			if (pPSPApp->m_Exit == TRUE)
 			{
 				break;
@@ -163,39 +176,42 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 			else
 			{
 				/** Buffer underrun! */
-				pspDebugScreenSetXY(0,17);
-				printf("! %03d   ", pPSPSound->Buffer.GetPushPos());
+				ReportError("Buffer Underrun %03d   ", pPSPSound->Buffer.GetPushPos());
 				sceKernelDelayThread(10); /** 10us */
 			}
 			
 			if (count++ % 5 == 0)
 			{
-				pspDebugScreenSetXY(0,11);
-				printf("Out Buffer: %03d/%03d   ", pPSPSound->Buffer.GetPopPos(), NUM_BUFFERS);
+				pPSPSound->SendMessage(MID_THPLAY_BUFCYCLE);
 			}
 			
 		}
-		pspDebugScreenSetXY(30,4);
-		printf ("                    ");
-		pspDebugScreenSetXY(0,11);      
-		printf("                        ");
 		
 
+		pPSPSound->SendMessage(MID_THPLAY_END);
 		sceKernelExitThread(0);
 		return 0;
 }
 
 int CPSPSound::ThDecode(SceSize args, void *argp)
 {
+	//pspDebugScreenSetXY(0,4);
+	Log(LOG_INFO,"Starting Decoding Thread; putting thread to sleep.");
+	pPSPSound->SendMessage(MID_THDECODE_BEGIN);
+
 	while (pPSPApp->m_Exit == FALSE)
 	{
 		/** Wait for the go-ahead: 
 		 *  We put ourselves to sleep
 		 *  When Play() is called, we are awaken
 		 */
+		pPSPSound->SendMessage(MID_THDECODE_ASLEEP);
 		Sleep();
+		pPSPSound->SendMessage(MID_THDECODE_AWOKEN);
+		Log(LOG_LOWLEVEL,"Awakening Decoding Thread; calling Decode().");
 		pPSPSound->Decode();
 	}
+	pPSPSound->SendMessage(MID_THDECODE_END);
 	sceKernelExitThread(0);
 
 	return 0;
@@ -203,7 +219,8 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 
 void CPSPSound::Decode()
 {
-	printf("Not Implemented!");
+	ReportError("Decode() Not Implemented!");
+	Log(LOG_ERROR, "Decode() Called, but not implemented.");
 }
 
 /** Sound buffer class implementation */
@@ -361,17 +378,17 @@ int CPSPSoundStream::Open(char *filename)
 			{
 				if (memcmp(filename, "http://", strlen("http://")) == 0)
 				{
-					//printf ("Opening URL '%s'\n", filename);
+					//ReportError ("Opening URL '%s'\n", filename);
 					m_fd = http_open(filename, m_iMetaDataInterval);
 					if (m_fd < 0)
 					{
-						printf("CPSPSoundStream::OpenFile-Error opening URL.\n");
+						ReportError("CPSPSoundStream::OpenFile-Error opening URL.\n");
 						m_Type = STREAM_TYPE_CLOSED;
 					}
 					else
 					{
-						//printf("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
-						printf("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
+						//ReportError("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
+						//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
 						m_Type = STREAM_TYPE_URL;
 						m_sock_eof = FALSE;
 					}
@@ -388,22 +405,22 @@ int CPSPSoundStream::Open(char *filename)
 						}
 						else
 						{
-							printf("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
+							ReportError("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).\n",
 									strerror(errno));
 						}
 					}
 					else
 					{
-						printf("Unable to open file");
+						ReportError("Unable to open file");
 					}
 				}
 			}
 			else
-				printf("CPSPSoundStream::OpenFile-Invalid filename '%s'\n", filename);
+				ReportError("CPSPSoundStream::OpenFile-Invalid filename '%s'\n", filename);
 			break;
 		case STREAM_TYPE_FILE:
 		case STREAM_TYPE_URL:
-			printf("Calling OpenFile, but there is a file open already\n");
+			ReportError("Calling OpenFile, but there is a file open already\n");
 			break;
 	}
 	
@@ -446,8 +463,9 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 				}
 				else
 				{
-					pspDebugScreenSetXY(0,12);
-					printf("MetaData='%s'", bMetaData);
+					//pspDebugScreenSetXY(0,12);
+					Log(LOG_INFO, "MetaData='%s'", bMetaData);
+					pPSPSound->SendMessage(MID_DECODE_METADATA_INFO, bMetaData);
 				}
 			}
 			else
@@ -493,4 +511,39 @@ BOOLEAN CPSPSoundStream::IsEOF()
 BOOLEAN CPSPSoundStream::IsOpen()
 {
 	return (m_Type==STREAM_TYPE_CLOSED)?FALSE:TRUE;
+}
+
+int SocketRead(char *pBuffer, size_t LengthInBytes, int sock)
+{
+	size_t bytesread = 0, bytestoread = 0;
+	size_t size = 0;
+	for(;;) 
+	{
+		bytestoread = LengthInBytes-size;
+		bytesread = recv(sock, pBuffer+size, bytestoread, 0);
+		if (bytesread > 0)
+			size += bytesread;
+		if(bytesread == bytestoread) 
+		{
+			//done
+			break;
+		}
+		else if (bytesread == 0)
+		{
+			ReportError("SocketRead(): Connection reset by peer!\n");
+			//Close();
+			//m_sock_eof = TRUE;
+			break;
+		}
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+			break;
+		//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
+		//{
+		//	ReportMessage ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
+		//	m_sock_eof = TRUE;
+		//	Close();
+		//	break;
+		//}
+	}
+	return size;
 }

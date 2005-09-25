@@ -2,6 +2,13 @@
 -Now urls with no path work (http://64.202.98.193:8000 didn't work, but http://64.202.98.193:8000/ did. Now both do).
 -Now asking the server to send metadata.
 -Metadata information is displayed for the current stream.
+-Added a logging library
+-Integrated logging with everything (framework, app, config)
+-Added an event system
+-Integrated the event system. This will be useful when the gui is developed.
+-When a stream finishes, it goes on to the next on the playlist
+-Fixed problem where the last entry in the playlist was getting inserted twice into the list.
+-Having trouble getting the threads to log anything..
 
 
 

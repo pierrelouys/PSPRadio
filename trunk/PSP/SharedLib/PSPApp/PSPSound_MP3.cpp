@@ -13,10 +13,14 @@ using namespace std;
 
 int errno = 0;
 
+//#define Log(level, format, args...) pPSPApp->m_Log.Log("CPSPSound_MP3", level, format, ## args)
+#define ReportError pPSPApp->ReportError
+
 CPSPSound_MP3 *pPSPSound_MP3 = NULL;
 
 CPSPSound_MP3::CPSPSound_MP3()
 {
+	Log(LOG_LOWLEVEL, "PSPSound_MP3 Constructor");
 	pPSPSound_MP3 = this;
 	m_strFile[0] = 0;
 	
@@ -28,6 +32,7 @@ void CPSPSound_MP3::SetFile(char *strFile)
 	if (strFile)
 	{
 		strncpy(m_strFile, strFile, 256);
+		Log(LOG_LOWLEVEL, "PSPSound_MP3. SetFile(%s) called", strFile);
 	}
 }
 
@@ -50,16 +55,13 @@ void CPSPSound_MP3::Decode()
 	int count = 0;
 	int iSampleRatio = 1;
 	
-	pspDebugScreenSetXY(0,4);
-	printf ("Starting Decoding Thread\n");
-	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
 	pOutputBuffer = (unsigned char*)malloc(OUTPUT_BUFFER_SIZE);
 
 	if (!(pInputBuffer && pOutputBuffer))
 	{
-		printf("Memory allocation error!\n");
-		sceKernelExitThread(0);
+		ReportError("Memory allocation error!\n");
+		Log(LOG_ERROR, "Memory allocation error!\n");
 		return;
 	}
 
@@ -75,17 +77,14 @@ void CPSPSound_MP3::Decode()
 
 	CPSPSoundStream *InputStream = new CPSPSoundStream();
 	
-	pspDebugScreenSetXY(0,20);
-	printf("% 70c", 0x20);
-	pspDebugScreenSetXY(0,20);
-	printf("Stream: %s (Opening)", pPSPSound_MP3->GetFile());
+	pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPENING);
+	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", pPSPSound_MP3->GetFile());
 	InputStream->Open(pPSPSound_MP3->GetFile());
 	if (InputStream->IsOpen() == TRUE)
 	{
-		pspDebugScreenSetXY(0,20);
-		printf("% 70c", ' ');
-		pspDebugScreenSetXY(0,20);
-		printf("Stream: %s (Open)", pPSPSound_MP3->GetFile());
+		Log(LOG_INFO, "MP3 Decode(): Stream Opened Successfully.");
+		
+		pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPEN);
 		
 		/** Main decoding loop */
 		/* pPSPSound_MP3 is the decoding loop. */
@@ -117,14 +116,14 @@ void CPSPSound_MP3::Decode()
 				{
 					//if(InputStream->GetError())
 					//{
-					//	printf("%s: read error on bit-stream (%s)\n",
+					//	ReportError("%s: read error on bit-stream (%s)\n",
 					//			pPSPApp->GetProgramName(),strerror(errno));
 					//	Status=1;
 					//}
 					//if(feof(InputFp))
-					//	printf("%s: end of input stream\n",pPSPApp->GetProgramName());
+					//	ReportError("%s: end of input stream\n",pPSPApp->GetProgramName());
 					//else
-						printf("Read error...\n");
+						ReportError("Read error (End of stream)...\n");
 					break;
 				}
 				else if(pPSPSound_MP3->GetPlayState() == STOP)
@@ -156,8 +155,10 @@ void CPSPSound_MP3::Decode()
 					   Stream.this_frame!=GuardPtr)
 					{
 						/** Don't log if recoverable. */
-						//printf("%s: recoverable frame level error. \n",
+						//ReportError("%s: recoverable frame level error. \n",
 						//		pPSPApp->GetProgramName());
+						Log(LOG_INFO,"Recoverable frame level error. (Garbage in the stream).");
+
 					}
 					continue;
 				}
@@ -166,8 +167,7 @@ void CPSPSound_MP3::Decode()
 						continue;
 					else
 					{
-						printf("%s: unrecoverable frame level error.\n",
-								pPSPApp->GetProgramName());
+						ReportError("Unrecoverable frame level error.");
 						Status=1;
 						break;
 					}
@@ -183,6 +183,7 @@ void CPSPSound_MP3::Decode()
 				if(PrintFrameInfo(&Frame.header))
 				{
 					Status=1;
+					ReportError("Error in Frame info.");
 					break;
 				}
 				iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
@@ -248,8 +249,7 @@ void CPSPSound_MP3::Decode()
 
 					if (count++ % 5 == 0)
 					{
-						pspDebugScreenSetXY(0,10);
-						printf("In Buffer:  %03d/%03d   ", pPSPSound_MP3->Buffer.GetPushPos(), NUM_BUFFERS);
+						pPSPSound_MP3->SendMessage(MID_DECODE_BUFCYCLE);
 					}
 						
 					OutputPtr=pOutputBuffer;
@@ -264,7 +264,9 @@ void CPSPSound_MP3::Decode()
 			sceKernelDelayThread(10); /** 100us */
 
 		};
-		//printf("Done.\n");
+		//ReportError("Done.\n");
+		Log(LOG_INFO, "Done decoding stream.");
+		pPSPSound_MP3->SendMessage(MID_DECODE_DONE);
 		pPSPSound_MP3->Buffer.Done();
 		
 		/* The input file was completely read; the memory allocated by our
@@ -282,15 +284,9 @@ void CPSPSound_MP3::Decode()
 	}
 	else
 	{
-		printf("Error opening '%s'.\n", pPSPSound_MP3->GetFile());
-
+		pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPEN_ERROR);
+		Log(LOG_ERROR, "Unable to open stream.");
 	}
-	pspDebugScreenSetXY(0,4);        
-	printf ("                        ");
-	pspDebugScreenSetXY(0,10);      
-	printf("                        ");
-	pspDebugScreenSetXY(0,20);
-	printf("% 70c", ' ');
 
 }
 
@@ -383,17 +379,14 @@ int CPSPSound_MP3::PrintFrameInfo(struct mad_header *Header)
 	}
 
 	/**
-	printf("%lu kb/s Audio MPEG layer %s stream %s CRC, "
+	ReportError("%lu kb/s Audio MPEG layer %s stream %s CRC, "
 			"%s with %s emphasis at %d Hz sample rate\n",
 			Header->bitrate,Layer,
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
-	pspDebugScreenSetXY(0,9);
-	printf("%lukbps %dHz MPEG layer %s stream. ",
-			Header->bitrate, 
-			Header->samplerate,
-			Layer);
+	pPSPSound_MP3->SendMessage(MID_DECODE_FRAME_INFO_HEADER, Header);
+	pPSPSound_MP3->SendMessage(MID_DECODE_FRAME_INFO_LAYER, (char*)Layer);
 	return(0);
 }
 

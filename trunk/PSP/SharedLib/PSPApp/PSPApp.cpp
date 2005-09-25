@@ -5,12 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <pspnet.h>
 #include "PSPApp.h"
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
-#define Log(level, format, args...) m_Log.Log("CPSPApp", level, format, ## args)
+//#define Log(level, format, args...) m_Log.Log("CPSPApp", level, format, ## args)
 
 CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
@@ -64,6 +65,7 @@ int CPSPApp::Run()
 	int   oldButtonMask = 0;
 	SceCtrlLatch latch; 
 	
+	Log(LOG_INFO, "Run(): Going into main loop.");
 	
 	while (m_Exit == FALSE)
 	{
@@ -158,7 +160,7 @@ int CPSPApp::EnableNetwork(int profile)
 			int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
 			if (rc < 0)
 			{
-				printf ("resolvercreate = %d rid = %d\n", rc, m_ResolverId);
+				Log(LOG_LOWLEVEL, "EnableNetwork, Resolvercreate = %d rid = %d\n", rc, m_ResolverId);
 				iRet = -1;
 			}
 			else
@@ -174,13 +176,13 @@ int CPSPApp::EnableNetwork(int profile)
 		}
 		else
 		{
-			printf("Error starting network\n");
+			ReportError("Error starting network\n");
 			iRet = -1;
 		}
 	}
 	else
 	{
-		printf("Error loading network drivers\n");
+		ReportError("Error loading network drivers\n");
 		iRet = -1;
 	}
 	return iRet;
@@ -201,13 +203,13 @@ void CPSPApp::DisableNetwork()
 	err = sceNetApctlDisconnect();
 	if (err != 0) 
 	{
-		printf("ERROR - DisableNetwork: sceNetApctlDisconnect returned '%d'.\n", err);
+		ReportError("ERROR - DisableNetwork: sceNetApctlDisconnect returned '%d'.\n", err);
     }
 
     err = nlhTerm();
 	if (err != 0) 
 	{
-		printf("ERROR - DisableNetwork: nlhTerm returned '%d'.\n", err);
+		ReportError("ERROR - DisableNetwork: nlhTerm returned '%d'.\n", err);
     }
 }
 
@@ -219,14 +221,14 @@ int CPSPApp::WLANConnectionHandler(int profile)
 
     err = nlhInit();
     if (err != 0) {
-		printf("ERROR - WLANConnectionHandler : nlhInit returned '%d'.\n", err);
+		ReportError("ERROR - WLANConnectionHandler : nlhInit returned '%d'.\n", err);
         DisableNetwork();
         iRet = -1;
     }
 
 	err = sceNetApctlConnect(profile);
     if (err != 0) {
-		printf("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '%d'.\n", err);
+		ReportError("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '%d'.\n", err);
         DisableNetwork();
         iRet =-1;
     }
@@ -245,6 +247,19 @@ int CPSPApp::WLANConnectionHandler(int profile)
 	return iRet;
 }
 
+int CPSPApp::ReportError(char *format, ...)
+{
+	char strMessage[4096];
+	va_list args;
+	
+	va_start (args, format);         /* Initialize the argument list. */
+	
+	vsprintf(strMessage, format, args);
+	
+	va_end (args);      
+	
+	return SendMessage(MID_ERROR, strMessage);
+}
 
 /* ---statics--- */
 /* System Callbacks */
@@ -271,7 +286,7 @@ int CPSPApp::NetApctlHandler()
 	u32 err = sceNetApctlGetState(&state1);
 	if (err != 0)
 	{
-		printf("NetApctlHandler: getstate: err=%d state=%d\n", err, state1);
+		ReportError("NetApctlHandler: getstate: err=%d state=%d\n", err, state1);
 		iRet = -1;
 	}
 	
@@ -285,7 +300,7 @@ int CPSPApp::NetApctlHandler()
 		err = sceNetApctlGetState(&state);
 		if (err != 0)
 		{
-			printf("NetApctlHandler: sceNetApctlGetState returns %d\n", err);
+			ReportError("NetApctlHandler: sceNetApctlGetState returns %d\n", err);
 			iRet = -1;
 			break;
 		}
@@ -319,7 +334,7 @@ int CPSPApp::NetApctlHandler()
 		if (sceNetApctlGetInfo(SCE_NET_APCTL_INFO_IP_ADDRESS, m_strMyIP) != 0)
 		{
 			strcpy(m_strMyIP, "0.0.0.0");
-			printf("NetApctlHandler: Error-could not get IP\n");
+			ReportError("NetApctlHandler: Error-could not get IP\n");
 			iRet = -1;
 		}
 		//else
