@@ -215,7 +215,7 @@ private:
 	CPlayList *m_PlayList;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.3b-pre"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.3b"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
