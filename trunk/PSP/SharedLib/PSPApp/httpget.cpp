@@ -3,6 +3,8 @@
  *
  *   Oliver Fromme  <oliver.fromme@heim3.tu-clausthal.de>
  *   Wed Apr  9 20:57:47 MET DST 1997
+ 
+ *  Modified for PSPApp by Raf 2005.
  */
 
 #include <unistd.h>
@@ -404,8 +406,8 @@ int http_open (char *url, size_t &iMetadataInterval)
 			goto fail;
 		
 		struct timeval  timeo;
-		timeo.tv_sec  = 3;
-		timeo.tv_usec = 3;
+		timeo.tv_sec  = 0;
+		timeo.tv_usec = 3000000;
 		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
 		{
 			ReportError("setsockopt SO_RCVTIMEO Failed");

@@ -1,4 +1,6 @@
 /*
+	Converted into a C++ library for the PSP
+ 	by Raf 9/2005. 
  Based upon libiniparser, by Nicolas Devillard
  Hacked into 1 file (m-iniparser) by Freek/2005
  Original terms following:
@@ -698,7 +700,7 @@ void CIniParser::iniparser_dump_ini(dictionary * d, FILE * f)
 /*--------------------------------------------------------------------------*/
 char * CIniParser::iniparser_getstr(dictionary * d, char * key)
 {
-    return iniparser_getstring(d, key, NULL);
+    return iniparser_getstring(d, key, "");//NULL);
 }
 
 

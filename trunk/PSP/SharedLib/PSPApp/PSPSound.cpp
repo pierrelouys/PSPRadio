@@ -1,3 +1,21 @@
+/* 
+	PSPApp C++ OO Application Framework. (Initial Release: Sept. 2005)
+	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
+	
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include <list>
 #include <PSPApp.h>
 #include <stdio.h>
@@ -162,6 +180,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 			//if (pPSPSound->Buffer.IsDone() || pPSPApp->m_Exit == TRUE || pPSPSound->m_CurrentState == STOP)
 			if (pPSPSound->Buffer.IsDone())
 			{
+				pPSPSound->Buffer.Empty(); /** This also clears the IsDone flag, so that the next song can keep playing */
 				pPSPSound->SendMessage(MID_THPLAY_DONE);
 			}
 			if (pPSPApp->m_Exit == TRUE)

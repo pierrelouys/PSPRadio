@@ -1,3 +1,21 @@
+/* 
+	PSPApp C++ OO Application Framework. (Initial Release: Sept. 2005)
+	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
+	
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include <list>
 #include <PSPApp.h>
 #include <stdio.h>
@@ -123,11 +141,12 @@ void CPSPSound_MP3::Decode()
 					//if(feof(InputFp))
 					//	ReportError("%s: end of input stream\n",pPSPApp->GetProgramName());
 					//else
-						ReportError("Read error (End of stream)...\n");
+						ReportError("Read error (End of stream)...");
 					break;
 				}
 				else if(pPSPSound_MP3->GetPlayState() == STOP)
 				{
+					ReportError("Stop Pressed.");
 					break;
 				}
 				
@@ -257,6 +276,7 @@ void CPSPSound_MP3::Decode()
 
 				if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
 				{
+//					ErrorReport("Decode: Exiting");
 					break;
 				}
 

@@ -1,3 +1,9 @@
+0.31b
+-Corrected problem when PLAYLIST not defined in config file.
+-Disabled feature to go to next song in list for now.
+
+
+0.3b
 -Added support for comments. Use ';' as the first character. (Blank lines are also ignored)
 -Now urls with no path work (http://64.202.98.193:8000 didn't work, but http://64.202.98.193:8000/ did. Now both do).
 -Now asking the server to send metadata.
@@ -21,5 +27,13 @@ gbazone recommends:  I recommend: http://66.135.37.228:8000/ (punk/ska, 128kbps)
 
 Suggestions:
 -yatahaze: Sleep timer (30min) - shutoff psp.
+-psp doesn't charge while app is running (beyond belief)
+-halfast ii: reports that there is corruption after putting psp to sleep
+-turbo says: that the psp doesn't charge while in wifi mode.
+
+
+Can host:
+bluebolshi@hotmail.com (wraggster)
+gbazone
 
 

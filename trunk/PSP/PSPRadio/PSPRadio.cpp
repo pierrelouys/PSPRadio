@@ -1,7 +1,20 @@
 /* 
-	PSPRadio
-	Author: Rafael Cabezas.
-	Initial Release: Sept. 2005
+	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
+	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
+	
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <list>
 #include <PSPApp.h>
@@ -104,6 +117,8 @@ public:
 		memset(&songdata, 0, sizeof(songmetadata));
 		memcpy(songdata.strFileName, PL_TERMINATOR, 256);
 		m_playlist.push_back(songdata);
+		
+		m_songiterator = m_playlist.begin();
 	}
 	
 	void LoadPlayListFile(char *strFileName)
@@ -215,7 +230,7 @@ private:
 	CPlayList *m_PlayList;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.3b"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.31b"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -257,11 +272,13 @@ public:
 		{
 			if (strlen(config->GetStr("MUSIC:PLAYLIST")))
 			{
+				Log(LOG_LOWLEVEL, "Playlist file defined ('%s'), loading.", config->GetStr("MUSIC:PLAYLIST"));
 				m_PlayList->LoadPlayListFile(config->GetStr("MUSIC:PLAYLIST"));
 			}
 			else if (strlen(config->GetStr("MUSIC:FILE")))
 			{
-				m_PlayList->InsertFile(config->GetStr("MUSIC:PLAYLIST"));
+				Log(LOG_LOWLEVEL, "Music File defined ('%s'), loading.", config->GetStr("MUSIC:FILE"));
+				m_PlayList->InsertFile(config->GetStr("MUSIC:FILE"));
 			}
 
 			MP3->SetFile(m_PlayList->GetCurrentFileName());
@@ -397,6 +414,7 @@ public:
 					/** If it was playing, then start next song in playlist 
 					 *  (Don't do it if the user pressed STOP
 					 */
+					 #if 0
 					if (MP3->GetPlayState() == CPSPSound::PLAY)
 					{
 						//IF URL, then restart instead of going to next!
@@ -409,6 +427,7 @@ public:
 						printf("PLAY   ");
 						MP3->Play();
 					}
+					#endif
 					break;
 					
 				case MID_THDECODE_AWOKEN:
