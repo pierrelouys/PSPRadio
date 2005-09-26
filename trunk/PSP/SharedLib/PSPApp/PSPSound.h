@@ -67,7 +67,9 @@
 		int   m_fd;
 		BOOLEAN m_sock_eof;
 		size_t m_iMetaDataInterval;
+		size_t m_iRunningCountModMetadataInterval;
 		char bMetaData[MAX_METADATA_SIZE];
+		char bPrevMetaData[MAX_METADATA_SIZE];
 	};
 	
 	
