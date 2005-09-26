@@ -40,9 +40,6 @@ PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
 #define CFG_FILENAME "PSPRadio.cfg"
-#define PL_TERMINATOR "!!**!!"
-
-//#define Log(level, format, args...) pPSPApp->m_Log.Log("PSPRadio", level, format, ## args)
 #define ReportError pPSPApp->ReportError
 
 class CPlayList
@@ -71,8 +68,7 @@ public:
 	void Next()
 	{
 		m_songiterator++;
-		//if (m_songiterator == m_playlist.end())
-		if (strcmp((*m_songiterator).strFileName, PL_TERMINATOR) == 0)
+		if (m_songiterator == m_playlist.end())
 		{
 			m_songiterator = m_playlist.begin();
 		}
@@ -99,23 +95,11 @@ public:
 
 	void InsertFile(char *strFileName)
 	{
-		songmetadata songdata;// = NULL;
+		songmetadata songdata;
 		
-		/** Remove current terminator */
-		if (m_playlist.size() > 0)
-		{
-			m_playlist.pop_back();
-		}
-		
-		//songdata = (songmetadata*)malloc(sizeof(songdata));
 		Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 		memset(&songdata, 0, sizeof(songdata));
 		strncpy(songdata.strFileName, strFileName, 256);
-		m_playlist.push_back(songdata);
-		
-		/** Add terminator */
-		memset(&songdata, 0, sizeof(songmetadata));
-		memcpy(songdata.strFileName, PL_TERMINATOR, 256);
 		m_playlist.push_back(songdata);
 		
 		m_songiterator = m_playlist.begin();
@@ -127,15 +111,7 @@ public:
 		char strLine[256];
 		int iLines = 0;
 		int iFormatVersion = 1;
-		songmetadata songdata;// = NULL;
-		
-//		Clear();
-		/** Remove current terminator */
-		if (m_playlist.size() > 0)
-		{
-			m_playlist.pop_back();
-		}
-
+		songmetadata songdata;
 		
 		fd = fopen(strFileName, "r");
 		
@@ -187,11 +163,6 @@ public:
 			}
 			fclose(fd), fd = NULL;
 			
-			/** Add terminator */
-			memset(&songdata, 0, sizeof(songmetadata));
-			memcpy(songdata.strFileName, PL_TERMINATOR, 256);
-			m_playlist.push_back(songdata);
-			
 			m_songiterator = m_playlist.begin();
 		}
 		else
@@ -230,7 +201,7 @@ private:
 	CPlayList *m_PlayList;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.31b"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.32b"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -238,10 +209,9 @@ public:
 		printf("%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
 				GetProgramName(),
 				GetProgramVersion());
-		
 				
 		/** open config file */
-		char strCfgFile[256];
+		char strCfgFile[256], strLogFile[256];
 		char strDir[256];
 		strcpy(strDir, argv[0]);
 		dirname(strDir); /** Retrieve the directory name */
@@ -251,9 +221,13 @@ public:
 
 		if (config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0) == 1)
 		{
+			int iLoglevel = config->GetInteger("DEBUGGING:LOGLEVEL", 100);
+			sprintf(strLogFile, "%s/%s", strDir, config->GetStr("DEBUGGING:LOGFILE"));
 			/** Set Logging Global Object to use the configured logfile and loglevels */
-			Logging.Set(config->GetStr("DEBUGGING:LOGFILE"), (loglevel_enum)config->GetInteger("DEBUGGING:LOGLEVEL", 10));
-			Log(LOG_ALWAYS, "%s Version %s Starting", GetProgramName(), GetProgramVersion());
+			Logging.Set(strLogFile, (loglevel_enum)iLoglevel);
+			Log(LOG_ALWAYS, "--------------------------------------------------------");
+			Log(LOG_ALWAYS, "%s Version %s Starting - Using Loglevel %d", GetProgramName(), GetProgramVersion(),
+				iLoglevel);
 		}
 			
 		pspDebugScreenSetXY(10,26);
@@ -293,7 +267,6 @@ public:
 		}
 	
 		Log(LOG_LOWLEVEL, "Exiting Setup()");
-
 
 		return 0;
 	}

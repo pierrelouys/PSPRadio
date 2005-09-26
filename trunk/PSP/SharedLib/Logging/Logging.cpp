@@ -65,6 +65,9 @@ int CLogging::Set(char *strLogFilename, loglevel_enum iLogLevel)
 		{
 			//fprintf(m_fp, "File opened successfully!\n");
 			Close();
+			
+			/** Remove log file - so we start with a fresh one every time */
+			sceIoRemove(m_strFilename); 
 			iRes = 0;
 		}
 		else
@@ -87,7 +90,7 @@ void CLogging::Open()
 	{
 		Close();
 	}
-	m_fp = fopen(m_strFilename, "a");
+	m_fp = fopen(m_strFilename, "a"); 
 }
 
 void CLogging::Close()
@@ -115,7 +118,6 @@ int CLogging::Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat,
 		va_start (args, strFormat);         /* Initialize the argument list. */
 		
 		Open();
-		//m_fp = fopen("PSPRadio.log", "a");
 		if (m_fp)
 		{
 			fprintf(m_fp, "%s<%d>: ", strModuleName, LogLevel);
@@ -125,7 +127,6 @@ int CLogging::Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat,
 				fprintf(m_fp, "\r\n");
 			}
 		}
-		//fclose(m_fp);
 		Close();
 		
 		va_end (args);                  /* Clean up. */
