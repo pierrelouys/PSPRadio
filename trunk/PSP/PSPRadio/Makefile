@@ -1,5 +1,9 @@
 TARGET = PSPRadio
 OBJS = PSPRadio.o
+PSP_EBOOT_ICON = resources/icon0.png
+#PSP_EBOOT_ICON1 = resources/icon0.png
+PSP_EBOOT_SND0 = resources/SND0.at3
+PSP_EBOOT_PIC1 = resources/pic1.png
 
 INCDIR = ../
 CFLAGS = -O2 -G0 -Wall -I../SharedLib/PSPApp -L../SharedLib/lib -I../SharedLib/libpspnet -I../SharedLib/libiniparser -I../SharedLib/Tools \
