@@ -171,18 +171,11 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		int ah = pPSPSound->GetAudioHandle();
 		int count = 0;
 
-		//pspDebugScreenSetXY(30,4);
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendMessage(MID_THPLAY_BEGIN);
 		
 		for(;;)
 		{
-			//if (pPSPSound->Buffer.IsDone() || pPSPApp->m_Exit == TRUE || pPSPSound->m_CurrentState == STOP)
-			if (pPSPSound->Buffer.IsDone())
-			{
-				pPSPSound->Buffer.Empty(); /** This also clears the IsDone flag, so that the next song can keep playing */
-				pPSPSound->SendMessage(MID_THPLAY_DONE);
-			}
 			if (pPSPApp->m_Exit == TRUE)
 			{
 				break;
@@ -197,6 +190,12 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				/** Buffer underrun! */
 				ReportError("Buffer Underrun %03d   ", pPSPSound->Buffer.GetPushPos());
 				sceKernelDelayThread(10); /** 10us */
+			}
+			
+			if (pPSPSound->Buffer.IsDone())
+			{
+				//pPSPSound->Buffer.Empty(); /** This also clears the IsDone flag, so that the next song can keep playing */
+				pPSPSound->SendMessage(MID_THPLAY_DONE);
 			}
 			
 			if (count++ % 5 == 0)
