@@ -359,7 +359,10 @@ CPSPSoundStream::CPSPSoundStream()
 	m_fd = -1;
 	m_sock_eof = TRUE;
 	m_iMetaDataInterval = 0;
+	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
+ 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
+	
 }
 
 CPSPSoundStream::~CPSPSoundStream()
@@ -379,12 +382,14 @@ void CPSPSoundStream::Close()
 		case STREAM_TYPE_URL:
 			sceNetInetClose(m_fd);
 			m_Type = STREAM_TYPE_CLOSED;
-			m_iMetaDataInterval = 0;
 			break;
 		case STREAM_TYPE_CLOSED:
 			break;
 	}	
+	m_iMetaDataInterval = 0;
+	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
+	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
 }
 
 int CPSPSoundStream::Open(char *filename)
