@@ -141,12 +141,12 @@ void CPSPSound_MP3::Decode()
 					//if(feof(InputFp))
 					//	ReportError("%s: end of input stream\n",pPSPApp->GetProgramName());
 					//else
-						ReportError("Read error (End of stream)...");
+						ReportError("(End of stream)...");
 					break;
 				}
 				else if(pPSPSound_MP3->GetPlayState() == STOP)
 				{
-					ReportError("Stop Pressed.");
+					Log(LOG_LOWLEVEL, "Decode: Stop decoding, because user stopped.");
 					break;
 				}
 				

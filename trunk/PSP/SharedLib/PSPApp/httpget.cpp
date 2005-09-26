@@ -466,7 +466,8 @@ fail:
 			ReportError("Error, no response.\n");
 			return -1;
 		}
-		Log(LOG_LOWLEVEL, "http_connect(): Response: '%s'\n", request);
+		
+		Log(LOG_LOWLEVEL, "http_connect(): Response: %s", request);
 		sptr = strchr(request, ' ');
 		if (sptr != NULL) 
 		{
@@ -484,7 +485,8 @@ fail:
 		do {
 			request[0] = 0;
 			readstring (request, linelength-1, sock);
-			Log(LOG_LOWLEVEL, "http_connect(): Response: '%s'\n", request);
+			
+			Log(LOG_LOWLEVEL, "http_connect(): Response: %s", request);
 			if (strncmp(request, "Location:", 9) == 0)
 			{
 				strncpy (purl, request+10, 1023);
@@ -492,7 +494,7 @@ fail:
 			if (strncmp(request, "icy-metaint:", 12) == 0)
 			{
 				sscanf(request, "icy-metaint: %d", &iMetadataInterval);
-				Log(LOG_INFO, "http_connect(): Metadata Interval received: %d\n", iMetadataInterval);
+				Log(LOG_INFO, "http_connect(): Metadata Interval received: %d", iMetadataInterval);
 			}
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
