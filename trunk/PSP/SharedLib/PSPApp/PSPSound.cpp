@@ -453,12 +453,9 @@ int CPSPSoundStream::Open(char *filename)
 size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount)
 {
 	size_t size = 0;
-	size_t iRunningCountModMetadataInterval = 0;
 	size_t iBytesToRead = (ElementCount*ElementSize);
 	char bMetaDataSize = 0;
 	int iReadRet = -1;
-	
-	iRunningCountModMetadataInterval = (iRunningCountModMetadataInterval % m_iMetaDataInterval);
 	
 	switch(m_Type)
 	{
@@ -466,10 +463,14 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 			size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
 			break;
 		case STREAM_TYPE_URL:
-			if (iBytesToRead + iRunningCountModMetadataInterval > m_iMetaDataInterval)
+			if (m_iMetaDataInterval)
 			{
-				size = SocketRead((char*)pBuffer, m_iMetaDataInterval - iRunningCountModMetadataInterval, m_fd);
-				if (size != (m_iMetaDataInterval - iRunningCountModMetadataInterval))
+				m_iRunningCountModMetadataInterval = (m_iRunningCountModMetadataInterval % m_iMetaDataInterval);
+			}
+			if (iBytesToRead + m_iRunningCountModMetadataInterval > m_iMetaDataInterval)
+			{
+				size = SocketRead((char*)pBuffer, m_iMetaDataInterval - m_iRunningCountModMetadataInterval, m_fd);
+				if (size != (m_iMetaDataInterval - m_iRunningCountModMetadataInterval))
 				{
 					Close();
 					m_sock_eof = TRUE;
@@ -486,9 +487,13 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 				}
 				else
 				{
-					//pspDebugScreenSetXY(0,12);
-					Log(LOG_INFO, "MetaData='%s'", bMetaData);
-					pPSPSound->SendMessage(MID_DECODE_METADATA_INFO, bMetaData);
+					/** If new data is received */
+					if (memcmp(bPrevMetaData, bMetaData, MAX_METADATA_SIZE) != 0)
+					{
+						Log(LOG_INFO, "MetaData='%s'", bMetaData);
+						pPSPSound->SendMessage(MID_DECODE_METADATA_INFO, bMetaData);
+						memcpy(bPrevMetaData, bMetaData, MAX_METADATA_SIZE);
+					}
 				}
 			}
 			else
@@ -502,7 +507,7 @@ size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t 
 			}
 			if (size > 0)
 			{
-				iRunningCountModMetadataInterval+=size;
+				m_iRunningCountModMetadataInterval+=size;
 			}
 			break;
 		case STREAM_TYPE_CLOSED:
