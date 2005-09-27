@@ -24,24 +24,26 @@
 #include <PSPSound.h>
 #include <Logging.h>
 
-extern int errno;
+//extern int errno;
 
 #define ProgName    pPSPApp->GetProgramName()
 #define ProgVersion pPSPApp->GetProgramVersion()
-//#define Log(level, format, args...) pPSPApp->m_Log.Log("CPSPSound", level, format, ## args)
 #define ReportError pPSPApp->ReportError
-
+#define SendMessage pPSPSound->SendMessage
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
 #endif
 
+int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in seconds */);
+
 void writestring (int fd, char *string)
 {
 	int result, bytes = strlen(string);
 
-	while (bytes) {
-		if ((result = send(fd, string, bytes, 0)) < 0 && errno != EINTR) 
+	while (bytes) 
+	{
+		if ((result = send(fd, string, bytes, 0)) < 0 && sceNetInetGetErrno() != EINTR) 
 		{
 			ReportError("writestring(): write Error");
 		}
@@ -231,12 +233,15 @@ char httpauth1[256];
 
 int http_open (char *url, size_t &iMetadataInterval)
 {
-	char *purl, *host, *request, *sptr;
-	int linelength;
-	unsigned long myip;
-	unsigned char *myport;
-	int sock;
-	int relocate, numrelocs = 0;
+	char *purl = NULL, 
+		 *host = NULL, 
+		 *request = NULL,
+		 *sptr = NULL;
+	int linelength = 0;
+	unsigned long myip = 0l;
+	unsigned char *myport = NULL;
+	int sock = 0;
+	int relocate = 0, numrelocs = 0;
 #ifdef INET6
 	struct addrinfo hints, *res, *res0;
 	int error;
@@ -245,7 +250,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 	struct sockaddr_in sin;
 #endif
 
-	pspDebugScreenSetXY(0,0);
+	Log(LOG_LOWLEVEL, "http_open(%s) called.", url);
 
 	host = NULL;
 	proxyport = NULL;
@@ -341,11 +346,14 @@ int http_open (char *url, size_t &iMetadataInterval)
 			{
 				strcat(purl, "/");
 			} 
-			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) {
+			if (!(sptr = url2hostport(purl, &host, &myip, &myport))) 
+			{
 				ReportError ( "Unknown host \"%s\".\n",
 					host ? host : "");
 				return -1;
 			}
+			
+			Log(LOG_LOWLEVEL, "url2hostport returns: host='%s' ip='0x%x' port='%s' sptr='%s'", host, myip, myport, sptr);
 			strcat (request, sptr);
 		}
 		sprintf (request + strlen(request),
@@ -360,7 +368,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 			sprintf(request + strlen(request),
 				"Host: %s:%s\r\n", host, myport);
 		}
-		///sprintf(request+strlen(request), " HTTP/1.0 \r\nIcy-MetaData:1 \r\n\r\n");
+		
 		strcat (request, ACCEPT_HEAD);
 
 #ifdef INET6
@@ -389,47 +397,63 @@ int http_open (char *url, size_t &iMetadataInterval)
 #else
 		sock = -1;
 		in_addr addr;
-		int rc;
+		int rc = 0;
+		memset(&addr, 0, sizeof(in_addr));
+		Log(LOG_LOWLEVEL, "http_connect(): Calling ntoa with resolverid = %d", pPSPApp->GetResolverId());
 		rc = sceNetResolverStartNtoA(pPSPApp->GetResolverId(), host, &addr, 2, 3);
 		if (rc < 0)
 		{
+			Log(LOG_LOWLEVEL, "Calling aton, as ntoa failed, maybe because host is in numerical form already.. (host='%s')",host);
+			memset(&addr, 0, sizeof(in_addr));
 			rc = inet_aton(host, &addr);
 			if (rc == 0)
 			{
 				ReportError("Could not resolve host!\n");
 				goto fail;
 			}
+			Log(LOG_LOWLEVEL, "aton returned addr='0x%x'", addr);
 		}
+		
+		Log(LOG_LOWLEVEL, "http_connect(): Opening socket...");
 		//ReportError ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
-		sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		sock = socket(AF_INET, SOCK_STREAM, 0);
+		Log(LOG_LOWLEVEL, "http_connect(): Aquired socket fd=%d...", sock);
 		if (sock < 0)
 			goto fail;
 		
-		struct timeval  timeo;
-		timeo.tv_sec  = 0;
-		timeo.tv_usec = 3000000;
-		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
-		{
-			ReportError("setsockopt SO_RCVTIMEO Failed");
-		}
-		if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo)) < 0) 
-		{
-			ReportError("setsockopt SO_SNDTIMEO Failed");
-		}
+	//	struct timeval  timeo;
+	//	timeo.tv_sec  = 3; //sec
+	//	timeo.tv_usec = 3; //usec
+	//	Log(LOG_LOWLEVEL, "http_connect(): Calling Setsockopt()");
+	//	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
+	//	{
+	//		ReportError("setsockopt SO_RCVTIMEO Failed");
+	//	}
+	//	if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo)) < 0) 
+	//	{
+	//		ReportError("setsockopt SO_SNDTIMEO Failed");
+	//	}
 		
 		
-		memset(&sin, 0, sizeof(sin));
+		memset(&sin, 0, sizeof(struct sockaddr_in));
 		sin.sin_family = AF_INET;
+		sin.sin_len = sizeof(struct sockaddr_in);
 		memcpy(&sin.sin_addr, &addr, sizeof(in_addr));
 		
-		//ReportError("Using port '%s'\n", myport);
+		Log(LOG_LOWLEVEL, "Using port '%s'\n", myport);
         sin.sin_port = htons(atoi( (char *) myport));
-		if (connect(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in) ) < 0) 
+        
+        Log(LOG_LOWLEVEL, "http_connect(): Calling Connect... with port='%s', sock=%d, addr='0x%x'", myport, sock, addr);
+        int iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in), 5/*5 sec timeout */ );
+		if (iCon != 0) 
 		{
-			close(sock);
+			ReportError("Error Connecting - Timeout.");
+			Log(LOG_ERROR, "Connection timeout. iCon=0x%x", iCon);
+			sceNetInetClose(sock);
 			sock = -1;
-			ReportError("Error Connecting");
 		}
+        Log(LOG_LOWLEVEL, "http_connect(): Back from Connect...");
+
 fail:
 #endif
 
@@ -438,19 +462,20 @@ fail:
 			return -1;
 		}
 
-		if (strlen(httpauth1) || httpauth) {
+		if (strlen(httpauth1) || httpauth) 
+		{
 			char buf[1023];
 			strcat (request,"Authorization: Basic ");
-                        if(strlen(httpauth1))
-                          encode64(httpauth1,buf);
-                        else
-			  encode64(httpauth,buf);
+			if(strlen(httpauth1))
+				encode64(httpauth1,buf);
+			else
+				encode64(httpauth,buf);
 			strcat (request,buf);
 			strcat (request,"\r\n");
 		}
 		strcat (request, "\r\n");
 
-		Log(LOG_LOWLEVEL, "http_connect(): Sending '%s'\n", request);
+		Log(LOG_LOWLEVEL, "http_connect(): Sending '%s'", request);
 		writestring (sock, request);
 		
 		//if (!(myfile = fdopen(sock, "rb"))) {
@@ -483,7 +508,7 @@ fail:
 			}
 		}
 		do {
-			request[0] = 0;
+			memset(request, 0, linelength);
 			readstring (request, linelength-1, sock);
 			
 			Log(LOG_LOWLEVEL, "http_connect(): Response: %s", request);
@@ -513,3 +538,42 @@ fail:
 
 /* EOF */
 
+/** Based on Code from VNC for PSP*/
+int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in s */) 
+{
+	u32 err = 0;
+	int one = 1, zero = 0;
+	sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
+	
+	err = sceNetInetConnect(sock, addr, sizeof(struct sockaddr));
+	if (err == 0)
+	{
+		sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
+		SendMessage(MID_TCP_CONNECTING_SUCCESS);
+		return 0;
+	}
+	
+	if (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x77)
+	{
+		size_t ticks;
+		for (ticks = 0; ticks < timeout; ticks++) 
+		{
+			
+			err = sceNetInetConnect(sock, addr, sizeof(struct sockaddr));
+			if (err == 0 || (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x7F)) 
+			{
+				sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
+				SendMessage(MID_TCP_CONNECTING_SUCCESS);
+				return 0;
+			}
+			sceKernelDelayThread(1000000); /* 1 s */
+			SendMessage(MID_TCP_CONNECTING_PROGRESS);
+		}
+	}
+	
+	//Log(LOG_LOWLEVEL, "Could not connect (Timeout?) geterrno = 0x%x", sceNetInetGetErrno());
+	
+	sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
+	SendMessage(MID_TCP_CONNECTING_FAILED);
+	return err;
+}

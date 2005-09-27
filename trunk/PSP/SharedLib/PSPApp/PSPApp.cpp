@@ -144,14 +144,7 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 }
 
 /** Network */
-//	int sceNetResolverInit();
-//	int sceNetResolverTerm();
-//	int sceNetResolverCreate(int *rid, void *buf, SceSize buflen);
-// 	int sceNetResolverDelete(int rid);
-//	int sceNetResolverStartNtoA(int rid, const char *hostname, struct SceNetInetInAddr *addr, unsigned int timeout, int retry);
-//	int sceNetResolverStartAtoN(int rid, const struct SceNetInetInAddr *addr, char *hostname, SceSize hostname_len, unsigned int timeout, int retry);
-//	int sceNetResolverStop(int rid);
-#include <arpa/inet.h>	
+//#include <arpa/inet.h>	
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;

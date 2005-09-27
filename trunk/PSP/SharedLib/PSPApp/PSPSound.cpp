@@ -375,12 +375,24 @@ void CPSPSoundStream::Close()
 	switch(m_Type)
 	{
 		case STREAM_TYPE_FILE:
-			BstdFileDestroy(m_BstdFile);
-			fclose(m_pfd);
+			if (m_BstdFile)
+			{
+				BstdFileDestroy(m_BstdFile);
+			}
+			if (m_pfd)
+			{
+				fclose(m_pfd);
+			}
+			m_pfd = NULL;
+			m_BstdFile = NULL;
 			m_Type = STREAM_TYPE_CLOSED;
 			break;
 		case STREAM_TYPE_URL:
-			sceNetInetClose(m_fd);
+			if (m_fd >= 0)
+			{
+				sceNetInetClose(m_fd);
+			}
+			m_fd = -1;
 			m_Type = STREAM_TYPE_CLOSED;
 			break;
 		case STREAM_TYPE_CLOSED:
