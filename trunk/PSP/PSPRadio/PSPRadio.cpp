@@ -456,6 +456,9 @@ public:
 				case MID_DECODE_FRAME_INFO_LAYER:
 					printf("MPEG layer %s stream. ", (char*)pMessage);
 					break;
+				case MID_TCP_CONNECTING_PROGRESS:
+					printf(".");
+					break;
 					
 				}
 			}
