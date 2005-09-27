@@ -134,7 +134,7 @@ typedef	_BSD_SSIZE_T_	ssize_t;
 #define SO_RCVTIMEO	0x1006		/* receive timeout */
 #define	SO_ERROR	0x1007		/* get error status and clear */
 #define	SO_TYPE		0x1008		/* get socket type */
-#define	SO_OVERFLOWED	0x1009		/* datagrams: return packets dropped */
+#define	SO_NONBLOCK	0x1009		/* non-blocking I/O */
 
 /*
  * Structure used for manipulating linger option.
@@ -581,6 +581,9 @@ int	sockatmark(int);
 int	sceNetInetSocket(int, int, int);
 #define socket sceNetInetSocket
 int	socketpair(int, int, int, int *);
+int sceNetInetSelect(int numfds, fd_set *readfds, fd_set *writefds,
+                  fd_set *exceptfds, struct timeval *timeout);
+#define select sceNetInetSelect
 //__END_DECLS
 #endif /* !_KERNEL */
 
