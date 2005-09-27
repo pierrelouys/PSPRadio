@@ -199,8 +199,8 @@ private:
 	CIniParser *config;
 	CPSPSound_MP3 *MP3;
 	CPlayList *m_PlayList;
-	CTextUI *UI;
-	
+	//CTextUI *UI;
+	IPSPRadio_UI *UI;
 public:
 	myPSPApp(): CPSPApp("PSPRadio", "0.33b"){};
 
@@ -277,6 +277,8 @@ public:
 	
 	void OnExit()
 	{
+		UI->Terminate();
+		delete(UI);
 		delete(MP3);
 		delete(config);
 	}
@@ -388,6 +390,7 @@ public:
 				case MID_THDECODE_AWOKEN:
 					//pspDebugScreenSetXY(0,4);
 					//printf("Starting Decoding Thread");
+					UI->OnNewStreamStarted();
 					break;
 				case MID_THDECODE_ASLEEP:
 					//pspDebugScreenSetXY(0,4);
@@ -399,45 +402,31 @@ public:
 					break;
 					
 				case MID_DECODE_STREAM_OPENING:
-					pspDebugScreenSetXY(0,18);
-					printf("% 70c", 0x20);
-					pspDebugScreenSetXY(0,18);
-					printf("Stream: %s (Opening)", MP3->GetFile());
+					UI->OnStreamOpening(MP3->GetFile());
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
-					pspDebugScreenSetXY(0,18);
-					printf("% 70c", ' ');
-					pspDebugScreenSetXY(0,18);
-					printf("Stream: %s (Error Opening)", MP3->GetFile());
+					UI->OnStreamOpeningError(MP3->GetFile());
 					break;
 				case MID_DECODE_STREAM_OPEN:
-					pspDebugScreenSetXY(0,18);
-					printf("% 70c", ' ');
-					pspDebugScreenSetXY(0,18);
-					printf("Stream: %s (Open)", MP3->GetFile());
+					UI->OnStreamOpeningSuccess(MP3->GetFile());
 					break;
 				case MID_DECODE_BUFCYCLE:
-					pspDebugScreenSetXY(0,10);
-					printf("In Buffer:  %03d/%03d   ", MP3->GetBufferPushPos(), NUM_BUFFERS);
+					UI->DisplayDecodeBuffer(MP3->GetBufferPushPos(), NUM_BUFFERS);
 					break;
 				case MID_DECODE_METADATA_INFO:
-					pspDebugScreenSetXY(0,12);
-					printf("MetaData '%s'", (char*)pMessage);
+					UI->DisplayMetadata((char*)pMessage);
 					break;
 				//case MID_DECODE_DONE:
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)pMessage;
-					pspDebugScreenSetXY(0,9);
-					printf("%lukbps %dHz ",
-							Header->bitrate, 
-							Header->samplerate);
+					UI->DisplaySampleRateAndKBPS(Header->samplerate, Header->bitrate);
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
-					printf("MPEG layer %s stream. ", (char*)pMessage);
+					UI->DisplayMPEGLayerType((char*)pMessage);
 					break;
 				case MID_TCP_CONNECTING_PROGRESS:
-					printf(".");
+					UI->OnConnectionProgress();
 					break;
 					
 				}

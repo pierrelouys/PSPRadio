@@ -6,20 +6,37 @@
 class CTextUI : public IPSPRadio_UI
 {
 public:
-	virtual ~CTextUI();
+	CTextUI();
+	~CTextUI();
 	
 public:
-	virtual int Initialize();
-	virtual int SetTitle(char *strTitle);
-	virtual int DisplayMessage_EnablingNetwork();
-	virtual int DisplayMessage_DisablingNetwork();
-	virtual int DisplayMessage_NetworkReady(char *strIP);
-	virtual int DisplayMainCommands();
-	virtual int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
-	virtual int DisplayErrorMessage(char *strMsg);
-	virtual int DisplayPlayBuffer(int a, int b);
+	int Initialize();
+	void Terminate();
+
+	int SetTitle(char *strTitle);
+	int DisplayMessage_EnablingNetwork();
+	int DisplayMessage_DisablingNetwork();
+	int DisplayMessage_NetworkReady(char *strIP);
+	int DisplayMainCommands();
+	int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
+	int DisplayErrorMessage(char *strMsg);
+	int DisplayPlayBuffer(int a, int b);
+	int DisplayDecodeBuffer(int a, int b);
+
+	/** these are listed in sequential order */
+	int OnNewStreamStarted();
+	int OnStreamOpening(char *StreamName);
+	int OnConnectionProgress();
+	int OnStreamOpeningError(char *StreamName);
+	int OnStreamOpeningSuccess(char *StreamName);
+	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
+	int DisplayMPEGLayerType(char *strType);
+	int DisplayMetadata(char *bMetadata);
+
 	
 private:
+	CLock *m_lockprint;
+	CLock *m_lockclear;
 	//helpers
 	enum uicolors
 	{
@@ -30,8 +47,9 @@ private:
 		COLOR_BLUE  = 0x00FF0000,
 		COLOR_YELLOW= 0x00AABB00
 	};
-	int uiprint(char *strText, int x = 0, int y = 0, uicolors color = COLOR_WHITE);
-	int uiprint(char *strFmt, char *strArg, int x = 0, int y = 0, uicolors color = COLOR_WHITE);
+	void uiPrintf(int x, int y, uicolors color, char *strFormat, ...);
+	void ClearRows(int iRowStart, int iNumRows = 1);
+
 };
 
 
