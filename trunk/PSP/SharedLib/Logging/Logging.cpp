@@ -111,6 +111,7 @@ void CLogging::SetLevel(loglevel_enum iNewLevel)
 int CLogging::Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat, ...)
 {
 	va_list args;
+	char msg[4096];
 	
 	m_lock->Lock();
 	if (LogLevel >= m_LogLevel)
@@ -121,11 +122,12 @@ int CLogging::Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat,
 		if (m_fp)
 		{
 			fprintf(m_fp, "%s<%d>: ", strModuleName, LogLevel);
-			vfprintf(m_fp, strFormat, args);
-			if (strFormat[strlen(strFormat) - 1] != '\n');
-			{
-				fprintf(m_fp, "\r\n");
-			}
+			vsprintf(msg, strFormat, args);
+			if (msg[strlen(msg)-1] == 0x0A)
+				msg[strlen(msg)-1] = 0; /** Remove LF 0D*/
+			if (msg[strlen(msg)-1] == 0x0D) 
+				msg[strlen(msg)-1] = 0; /** Remove CR 0A*/
+			fprintf(m_fp, "%s\r\n", msg);
 		}
 		Close();
 		
