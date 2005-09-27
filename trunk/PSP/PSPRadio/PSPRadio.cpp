@@ -28,6 +28,7 @@
 #include <iniparser.h>
 #include <Tools.h>
 #include <Logging.h>
+#include "TextUI.h"
 
 using namespace std;
 
@@ -175,7 +176,6 @@ public:
 	{
 		while(m_playlist.size())
 		{
-			//free(m_playlist.front());
 			m_playlist.pop_front();
 		}
 		m_songiterator = m_playlist.begin();
@@ -199,24 +199,26 @@ private:
 	CIniParser *config;
 	CPSPSound_MP3 *MP3;
 	CPlayList *m_PlayList;
+	CTextUI *UI;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.32b"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.33b"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
 	{
-		printf("%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
-				GetProgramName(),
-				GetProgramVersion());
-				
 		/** open config file */
 		char strCfgFile[256], strLogFile[256];
 		char strDir[256];
+		char strAppTitle[140];
+		
 		strcpy(strDir, argv[0]);
 		dirname(strDir); /** Retrieve the directory name */
 		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
-
+		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
+			GetProgramName(),
+			GetProgramVersion());
+			
 		config = new CIniParser(strCfgFile);
 
 		if (config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0) == 1)
@@ -229,14 +231,18 @@ public:
 			Log(LOG_ALWAYS, "%s Version %s Starting - Using Loglevel %d", GetProgramName(), GetProgramVersion(),
 				iLoglevel);
 		}
-			
-		pspDebugScreenSetXY(10,26);
-		printf("Enabling Network... ");
+		
+		UI = new CTextUI();
+		
+		UI->Initialize();
+		UI->SetTitle(strAppTitle);
+		
+		UI->DisplayMessage_EnablingNetwork();
 		Log(LOG_INFO, "Enabling Network");
 		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
-		pspDebugScreenSetXY(10,26);
-		printf("Ready               ");
-		printf("IP = %s", GetMyIP());
+		
+		UI->DisplayMessage_NetworkReady(GetMyIP());
+		
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
 		
 		MP3 = new CPSPSound_MP3();
@@ -257,12 +263,10 @@ public:
 
 			MP3->SetFile(m_PlayList->GetCurrentFileName());
 			
-			pspDebugScreenSetXY(8,25);
-			printf("O or X = Play/Pause | [] = Stop | ^ = Reconnect");
+			UI->DisplayMainCommands();
 		}
 		else
 		{
-			printf("Error creating mp3 object\n");
 			Log(LOG_ERROR, "Error creating CPSPSound_MP3 object, or CPlaylist object.");
 		}
 	
@@ -282,15 +286,13 @@ public:
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
-			pspDebugScreenSetXY(30,20);
 			if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
 				MP3->Stop();
 				m_PlayList->Prev();
 				MP3->SetFile(m_PlayList->GetCurrentFileName());
 				sceKernelDelayThread(500000);  
-				pspDebugScreenSetXY(30,20);
-				printf("PLAY   ");
+				UI->DisplayActiveCommand(playingstate);
 				MP3->Play();
 			}
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
@@ -299,8 +301,7 @@ public:
 				m_PlayList->Next();
 				MP3->SetFile(m_PlayList->GetCurrentFileName());
 				sceKernelDelayThread(500000);  
-				pspDebugScreenSetXY(30,20);
-				printf("PLAY   ");
+				UI->DisplayActiveCommand(playingstate);
 				MP3->Play();
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
@@ -309,11 +310,11 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
-						printf("PLAY   ");
+						UI->DisplayActiveCommand(CPSPSound::PLAY);
 						MP3->Play();
 						break;
 					case CPSPSound::PLAY:
-						printf("PAUSE   ");
+						UI->DisplayActiveCommand(CPSPSound::PAUSE);
 						MP3->Pause();
 						break;
 				}
@@ -322,27 +323,29 @@ public:
 			{
 				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 				{
-					printf("STOP   ");
+					UI->DisplayActiveCommand(CPSPSound::STOP);
 					MP3->Stop();
 				}
 			}
 			else if (iButtonMask & PSP_CTRL_TRIANGLE)
 			{
-				printf("STOP   ");
+				UI->DisplayActiveCommand(CPSPSound::STOP);
 				MP3->Stop();
 				sceKernelDelayThread(50000);  
 				
-				pspDebugScreenSetXY(10,26);
-				printf("Disabling Network...");
+				UI->DisplayMessage_DisablingNetwork();
+
 				Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
 
 				DisableNetwork();
 				sceKernelDelayThread(500000);  
-				pspDebugScreenSetXY(10,26);
-				printf("Enabling Network... ");
+				
+				UI->DisplayMessage_EnablingNetwork();
+
 				EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
-				pspDebugScreenSetXY(10,26);
-				printf("Ready               ");
+				
+				UI->DisplayMessage_NetworkReady(GetMyIP());
+				
 			}
 		}
 	};
@@ -351,10 +354,7 @@ public:
 	{
 		if (iMessageId == MID_ERROR)
 		{
-			pspDebugScreenSetXY(0,30);
-			printf("% 70c", ' ');
-			pspDebugScreenSetXY(0,30);
-			printf("Error: %s", (char*)pMessage);
+			UI->DisplayErrorMessage((char*)pMessage);
 			Log(LOG_ERROR, (char*)pMessage);
 		}
 		else
@@ -370,52 +370,32 @@ public:
 				switch(iMessageId)
 				{
 				case MID_THPLAY_BEGIN:
-					pspDebugScreenSetXY(30,4);
-					printf("Starting Play Thread\n");
+					//pspDebugScreenSetXY(30,4);
+					//printf("Starting Play Thread\n");
 					break;
 				case MID_THPLAY_END:
-					pspDebugScreenSetXY(30,4);
-					printf("                    ");
-					pspDebugScreenSetXY(0,11);      
-					printf("                        ");
+					//pspDebugScreenSetXY(30,4);
+					//printf("                    ");
+					//pspDebugScreenSetXY(0,11);      
+					//printf("                        ");
 					break;
 				case MID_THPLAY_BUFCYCLE:
-					pspDebugScreenSetXY(0,11);
-					printf("Out Buffer: %03d/%03d   ", MP3->GetBufferPopPos(), NUM_BUFFERS);
+					UI->DisplayPlayBuffer(MP3->GetBufferPopPos(), NUM_BUFFERS);
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
-					/** If it was playing, then start next song in playlist 
-					 *  (Don't do it if the user pressed STOP
-					 */
-					 #if 0
-					if (MP3->GetPlayState() == CPSPSound::PLAY)
-					{
-						//IF URL, then restart instead of going to next!
-						sceKernelDelayThread(50000);  
-						MP3->Stop();
-						m_PlayList->Next();
-						MP3->SetFile(m_PlayList->GetCurrentFileName());
-						sceKernelDelayThread(500000);  
-						pspDebugScreenSetXY(30,20);
-						printf("PLAY   ");
-						MP3->Play();
-					}
-					#endif
 					break;
 					
 				case MID_THDECODE_AWOKEN:
-					pspDebugScreenSetXY(0,4);
-					printf("Starting Decoding Thread");
+					//pspDebugScreenSetXY(0,4);
+					//printf("Starting Decoding Thread");
 					break;
 				case MID_THDECODE_ASLEEP:
-					pspDebugScreenSetXY(0,4);
-					printf("                        ");
-					pspDebugScreenSetXY(0,4);        
-					printf("                        ");
-					pspDebugScreenSetXY(0,10);      
-					printf("                        ");
-					//pspDebugScreenSetXY(0,18);
-					//ReportError("% 70c", ' ');
+					//pspDebugScreenSetXY(0,4);
+					//printf("                        ");
+					//pspDebugScreenSetXY(0,4);        
+					//printf("                        ");
+					//pspDebugScreenSetXY(0,10);      
+					//printf("                        ");
 					break;
 					
 				case MID_DECODE_STREAM_OPENING:
