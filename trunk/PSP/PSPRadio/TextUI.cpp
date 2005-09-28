@@ -207,6 +207,7 @@ int CTextUI::OnNewStreamStarted()
 
 int CTextUI::OnStreamOpening(char *StreamName)
 {
+	ClearRows(12,15); /** Clear metadata info */
 	ClearRows(18);
 	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Opening)", StreamName);
 	return 0;
@@ -221,15 +222,22 @@ int CTextUI::OnStreamOpeningError(char *StreamName)
 
 int CTextUI::OnStreamOpeningSuccess(char *StreamName)
 {
+	ClearRows(12,15); /** Clear metadata info */
 	ClearRows(18);
 	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Open)", StreamName);
 	return 0;
 }
 
-int CTextUI::DisplayMetadata(char *bMetadata)
+int CTextUI::DisplayMetadata(char *strTitle, char *strURL)
 {
 	ClearRows(12,15);
-	uiPrintf(0,12, COLOR_WHITE, "%s", bMetadata);
+	uiPrintf(0 , 12,    COLOR_WHITE,  "Title: ");
+	uiPrintf(7 , 12,    COLOR_YELLOW, "%s ", strTitle);
+	if (strURL && strlen(strURL))
+	{
+		uiPrintf(0, 13, COLOR_WHITE,  "URL:   ");
+		uiPrintf(7, 13, COLOR_YELLOW, "%s ", strURL);
+	}
 	return 0;
 }
 

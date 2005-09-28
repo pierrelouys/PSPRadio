@@ -28,6 +28,7 @@
 #include <iniparser.h>
 #include <Tools.h>
 #include <Logging.h>
+#include <pspwlan.h> 
 #include "TextUI.h"
 
 using namespace std;
@@ -42,6 +43,9 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 
 #define CFG_FILENAME "PSPRadio.cfg"
 #define ReportError pPSPApp->ReportError
+
+#define METADATA_STREAMURL_TAG "StreamUrl='"
+#define METADATA_STREAMTITLE_TAG "StreamTitle='"
 
 class CPlayList
 {
@@ -204,7 +208,7 @@ private:
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre2"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre3"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -381,27 +385,34 @@ public:
 			}
 			else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
 			{
-				UI->DisplayActiveCommand(CPSPSound::STOP);
-				MP3->Stop();
-				sceKernelDelayThread(50000);  
-				
-				if (m_NetworkStarted)
+				if (sceWlanGetSwitchState() != 0)
 				{
-					UI->DisplayMessage_DisablingNetwork();
+					UI->DisplayActiveCommand(CPSPSound::STOP);
+					MP3->Stop();
+					sceKernelDelayThread(50000);  
+					
+					if (m_NetworkStarted)
+					{
+						UI->DisplayMessage_DisablingNetwork();
+		
+						Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+		
+						DisableNetwork();
+						sceKernelDelayThread(500000);  
+					}
+					
+					UI->DisplayMessage_EnablingNetwork();
 	
-					Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-	
-					DisableNetwork();
-					sceKernelDelayThread(500000);  
+					EnableNetwork(m_iNetworkProfile);
+					
+					UI->DisplayMessage_NetworkReady(GetMyIP());
+					
+					m_NetworkStarted = 1;
 				}
-				
-				UI->DisplayMessage_EnablingNetwork();
-
-				EnableNetwork(m_iNetworkProfile);
-				
-				UI->DisplayMessage_NetworkReady(GetMyIP());
-				
-				m_NetworkStarted = 1;
+				else
+				{
+					ReportError("The Network Switch is OFF, Cannot Start Network.");
+				}
 				
 			}
 		}
@@ -409,6 +420,10 @@ public:
 	
 	int OnMessage(int iMessageId, void *pMessage, int iSenderId)
 	{
+		char MData[MAX_METADATA_SIZE];
+		char *strURL = "";
+		char *strTitle = "";
+		
 		if (iMessageId == MID_ERROR)
 		{
 			UI->DisplayErrorMessage((char*)pMessage);
@@ -470,7 +485,14 @@ public:
 					UI->DisplayDecodeBuffer(MP3->GetBufferPushPos(), NUM_BUFFERS);
 					break;
 				case MID_DECODE_METADATA_INFO:
-					UI->DisplayMetadata((char*)pMessage);
+					memcpy(MData, pMessage, MAX_METADATA_SIZE);
+					
+					/** GetMetadataValue() modifies the metadata, so call it
+					with the last tag first */
+					strURL   = GetMetadataValue(MData, METADATA_STREAMURL_TAG);
+					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
+						
+					UI->DisplayMetadata(strTitle, strURL);
 					break;
 				//case MID_DECODE_DONE:
 				case MID_DECODE_FRAME_INFO_HEADER:
@@ -491,6 +513,28 @@ public:
 		}
 		
 		return 0;
+	}
+	
+	/** Raw metadata looks like this:
+	 *  "StreamTitle='title of the song';StreamUrl='url address';"
+	 */
+	char *GetMetadataValue(char *strMetadata, char *strTag)
+	{
+		char *ret = "Parse Error";
+		
+		if (strMetadata && 
+			strTag && 
+			(strlen(strMetadata) > strlen(strTag)) && 
+			strstr(strMetadata, strTag))
+		{
+			ret = strstr(strMetadata, strTag) + strlen(strTag);
+			if (strchr(ret, ';'))
+			{
+				*(strchr(ret, ';') - 1) = 0;
+			}
+		}
+		
+		return ret;
 	}
 	
 };

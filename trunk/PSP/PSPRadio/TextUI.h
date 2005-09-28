@@ -32,7 +32,7 @@ public:
 	int OnStreamOpeningSuccess(char *StreamName);
 	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	int DisplayMPEGLayerType(char *strType);
-	int DisplayMetadata(char *bMetadata);
+	int DisplayMetadata(char *strTitle, char *strURL);
 
 	
 private:

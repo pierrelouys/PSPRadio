@@ -29,7 +29,7 @@ public:
 	virtual int OnStreamOpeningSuccess(char *StreamName);
 	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	virtual int DisplayMPEGLayerType(char *strType);
-	virtual int DisplayMetadata(char *bMetadata);
+	virtual int DisplayMetadata(char *strTitle, char *strURL);
 
 
 };
