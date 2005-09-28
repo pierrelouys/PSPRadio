@@ -25,7 +25,8 @@
 
 enum loglevel_enum
 {
-	LOG_LOWLEVEL = 10,
+	LOG_VERYLOW  = 10,
+	LOG_LOWLEVEL = 20,
 	LOG_INFO	 = 50,
 	LOG_ERROR	 = 80,
 	LOG_ALWAYS	 = 100

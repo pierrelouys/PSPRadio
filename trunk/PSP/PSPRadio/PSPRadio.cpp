@@ -199,13 +199,12 @@ private:
 	CIniParser *config;
 	CPSPSound_MP3 *MP3;
 	CPlayList *m_PlayList;
-	//CTextUI *UI;
 	IPSPRadio_UI *UI;
 	int m_iNetworkProfile;
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre2"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -293,14 +292,32 @@ public:
 	
 	void OnExit()
 	{
-		UI->Terminate();
-		delete(UI);
-		delete(MP3);
-		delete(config);
+		Log(LOG_LOWLEVEL, "PSPRadio::OnExit()");
+		if (UI)
+		{
+			Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
+			UI->Terminate();
+			Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
+			delete(UI);
+			UI = NULL;
+		}
+		if (MP3)
+		{
+			Log(LOG_LOWLEVEL, "Exiting. Destroying MP3 object");
+			delete(MP3);
+			MP3 = NULL;
+		}
+		if (config)
+		{
+			Log(LOG_LOWLEVEL, "Exiting. Destroying config object");
+			delete(config);
+		}
+		Log(LOG_LOWLEVEL, "Exiting. The end.");
 	}
 
 	void OnButtonReleased(int iButtonMask)
 	{
+		Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
@@ -399,6 +416,7 @@ public:
 		}
 		else
 		{
+			Log(LOG_VERYLOW, "OnMessage: MID=0x%x SID=0x%x", iMessageId, iSenderId);
 			switch (iSenderId)
 			{
 			//case PSPAPP_SENDER_ID:

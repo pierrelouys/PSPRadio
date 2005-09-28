@@ -98,6 +98,7 @@
 		/** Helpers */
 		int EnableNetwork(int profile);
 		void DisableNetwork();
+		BOOLEAN IsNetworkEnabled() { return m_NetworkEnabled; };
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual void OnExit(){};
@@ -119,6 +120,7 @@
 		friend class CPSPSound;
 		friend class CPSPSound_MP3;
 		BOOLEAN m_Exit;
+		BOOLEAN m_NetworkEnabled;
 		
 	
 	private:

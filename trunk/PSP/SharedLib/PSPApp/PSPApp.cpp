@@ -26,8 +26,6 @@
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
-//#define Log(level, format, args...) m_Log.Log("CPSPApp", level, format, ## args)
-
 CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 0x11, 0xFA0, THREAD_ATTR_USER);
@@ -36,6 +34,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	pPSPApp = this;
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
+	m_NetworkEnabled = FALSE;
 	
 	m_strProgramName = strdup(strProgramName);
 	m_strVersionNumber = strdup(strVersionNumber);
@@ -62,7 +61,11 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 CPSPApp::~CPSPApp()
 {
 	Log(LOG_LOWLEVEL, "Destructor Called.");
-	DisableNetwork();
+	
+	if (IsNetworkEnabled() == TRUE)
+	{
+		DisableNetwork();
+	}
 	
 	free(m_strProgramName);
 	free(m_strVersionNumber);
@@ -135,9 +138,9 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
-	OnExit();
-	sceKernelDelayThread(50000); /** 50ms */
 	m_Exit = TRUE;
+	OnExit();
+	sceKernelDelayThread(150000); /** 150ms */
 	return 0;
 }
 
@@ -173,6 +176,7 @@ int CPSPApp::EnableNetwork(int profile)
 			{
 				iRet = 0;
 				
+				m_NetworkEnabled = TRUE;
 				/** Test! */
 				//printf ("Getting google.com's address...");
 				//in_addr addr;
@@ -198,24 +202,31 @@ void CPSPApp::DisableNetwork()
 {
 	u32 err;
 	
-	if (m_ResolverId)
+	if (IsNetworkEnabled() == TRUE)
 	{
-		err = sceNetResolverStop(m_ResolverId);
-		err = sceNetResolverDelete(m_ResolverId);
-		err = sceNetResolverTerm();
-		m_ResolverId = 0;
-	}
+		if (m_ResolverId)
+		{
+			err = sceNetResolverStop(m_ResolverId);
+			err = sceNetResolverDelete(m_ResolverId);
+			err = sceNetResolverTerm();
+			m_ResolverId = 0;
+		}
+		
+		err = sceNetApctlDisconnect();
+		if (err != 0) 
+		{
+			ReportError("ERROR - DisableNetwork: sceNetApctlDisconnect returned '%d'.\n", err);
+	    }
 	
-	err = sceNetApctlDisconnect();
-	if (err != 0) 
-	{
-		ReportError("ERROR - DisableNetwork: sceNetApctlDisconnect returned '%d'.\n", err);
+	    err = nlhTerm();
+		if (err != 0) 
+		{
+			ReportError("ERROR - DisableNetwork: nlhTerm returned '%d'.\n", err);
+	    }
     }
-
-    err = nlhTerm();
-	if (err != 0) 
-	{
-		ReportError("ERROR - DisableNetwork: nlhTerm returned '%d'.\n", err);
+    else
+    {
+	    Log(LOG_ERROR, "DisableNetwork() Called, but networking was not enabled. Ignoring.");
     }
 }
 

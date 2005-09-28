@@ -44,13 +44,13 @@ int CPSPSound::GetAudioHandle()
 
 CPSPSound::CPSPSound()
 {
-	Log(LOG_LOWLEVEL, "PSPSound Constructor");
+	Log(LOG_VERYLOW, "PSPSound Constructor");
 	Initialize();
 }
 
 void CPSPSound::Initialize()
 {
-	Log(LOG_LOWLEVEL, "PSPSound Initialize()");
+	Log(LOG_VERYLOW, "PSPSound Initialize()");
 	if (pPSPSound != NULL)
 	{
 		Log(LOG_ERROR, "Error!, only one instance of CPSPSound (including CPSPSound_*) permitted!");
@@ -74,11 +74,12 @@ void CPSPSound::Initialize()
 
 CPSPSound::~CPSPSound()
 {
-	
+	Log(LOG_VERYLOW, "~CSPSSound(): pPSPApp->m_Exit=%d", pPSPApp->m_Exit);
 	Stop();
 	/** Wake the decoding thread up, so it can exit*/
 	sceKernelDelayThread(100000);
 	m_thDecode->WakeUp();
+	sceKernelDelayThread(100000);
 	if (m_thDecode) 
 	{ 
 		delete(m_thDecode), m_thDecode = NULL;
@@ -87,6 +88,8 @@ CPSPSound::~CPSPSound()
 	{
 		delete(m_thPlayAudio), m_thPlayAudio = NULL;
 	}
+	Log(LOG_VERYLOW, "~CSPSSound(): The End.");
+
 }
 
 int CPSPSound::Play()
@@ -225,9 +228,17 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 		 */
 		pPSPSound->SendMessage(MID_THDECODE_ASLEEP);
 		Sleep();
-		pPSPSound->SendMessage(MID_THDECODE_AWOKEN);
-		Log(LOG_LOWLEVEL,"Awakening Decoding Thread; calling Decode().");
-		pPSPSound->Decode();
+		if (pPSPApp->m_Exit == TRUE)
+		{
+			Log(LOG_LOWLEVEL,"Awakening Decoding Thread; Application Exiting.");
+			break;
+		}
+		else
+		{
+			Log(LOG_LOWLEVEL,"Awakening Decoding Thread; calling Decode().");
+			pPSPSound->SendMessage(MID_THDECODE_AWOKEN);
+			pPSPSound->Decode();
+		}
 	}
 	pPSPSound->SendMessage(MID_THDECODE_END);
 	sceKernelExitThread(0);

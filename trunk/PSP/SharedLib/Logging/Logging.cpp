@@ -27,8 +27,6 @@
 #include "Logging.h"
 
 CLogging Logging;
-//static char *m_strFilename = NULL;
-//static FILE *m_fp = NULL;
 
 CLogging::CLogging()
 {
@@ -48,7 +46,10 @@ CLogging::~CLogging()
 	{
 		fclose(m_fp), m_fp = NULL;
 	}
-	delete m_lock;
+	if(m_lock)
+	{
+		delete m_lock;
+	}
 	
 }
 

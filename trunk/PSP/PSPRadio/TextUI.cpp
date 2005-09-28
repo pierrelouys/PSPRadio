@@ -37,16 +37,24 @@
 
 CTextUI::CTextUI()
 {
+	m_lockprint = NULL;
+	m_lockclear = NULL;
+	
+	m_lockprint = new CLock("Print_Lock");
+	m_lockclear = new CLock("Clear_Lock");
+
 }
 
 CTextUI::~CTextUI()
 {
+	delete(m_lockprint);
+	m_lockprint = NULL;
+	delete(m_lockclear);
+	m_lockclear = NULL;
 }
 
 int CTextUI::Initialize()
 {
-	m_lockprint = new CLock("Print_Lock");
-	m_lockclear = new CLock("Clear_Lock");
 	pspDebugScreenInit();
 	pspDebugScreenSetBackColor(COLOR_BLUE);
 	pspDebugScreenSetTextColor(COLOR_WHITE);
@@ -57,10 +65,6 @@ int CTextUI::Initialize()
 
 void CTextUI::Terminate()
 {
-	delete(m_lockprint);
-	m_lockprint = NULL;
-	delete(m_lockclear);
-	m_lockclear = NULL;
 }
 
 
