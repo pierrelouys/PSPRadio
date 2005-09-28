@@ -17,7 +17,7 @@ public:
 	int DisplayMessage_EnablingNetwork();
 	int DisplayMessage_DisablingNetwork();
 	int DisplayMessage_NetworkReady(char *strIP);
-	int DisplayMessage_NetworkSelection(int iProfile);
+	int DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName);
 	int DisplayMainCommands();
 	int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	int DisplayErrorMessage(char *strMsg);

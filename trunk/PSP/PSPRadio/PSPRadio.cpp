@@ -218,7 +218,7 @@ public:
 		char strDir[256];
 		char strAppTitle[140];
 		
-		m_iNetworkProfile = 0;
+		m_iNetworkProfile = 1;
 		m_NetworkStarted = 0;
 		
 		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
@@ -247,7 +247,13 @@ public:
 		UI->Initialize();
 		UI->SetTitle(strAppTitle);
 		
-		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 0);
+		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
+		
+		if (m_iNetworkProfile < 1)
+		{
+			m_iNetworkProfile = 1;
+			Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
+		}
 		
 		if (config->GetInteger("WIFI:AUTOSTART", 0) == 1)
 		{
@@ -261,7 +267,7 @@ public:
 		else
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
-			UI->DisplayMessage_NetworkSelection(m_NetworkStarted);
+			DisplayCurrentNetworkSelection();
 		}
 		
 		MP3 = new CPSPSound_MP3();
@@ -282,7 +288,6 @@ public:
 
 			MP3->SetFile(m_PlayList->GetCurrentFileName());
 			UI->DisplayMainCommands();
-			
 		}
 		else
 		{
@@ -329,18 +334,20 @@ public:
 			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
 			{
 				m_iNetworkProfile --;
-				if (m_iNetworkProfile < 0)
-					m_iNetworkProfile = 0;
-				m_iNetworkProfile %= 10;
+				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
+				if (m_iNetworkProfile < 1)
+					m_iNetworkProfile = 1;
 				
-				UI->DisplayMessage_NetworkSelection(m_iNetworkProfile);
+				DisplayCurrentNetworkSelection();
 			}
 			else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
 			{
 				m_iNetworkProfile ++;
-				m_iNetworkProfile %= 10;
+				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
+				if (m_iNetworkProfile < 1)
+					m_iNetworkProfile = 1;
 				
-				UI->DisplayMessage_NetworkSelection(m_iNetworkProfile);
+				DisplayCurrentNetworkSelection();
 			}
 			else if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
@@ -396,7 +403,6 @@ public:
 						UI->DisplayMessage_DisablingNetwork();
 		
 						Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-		
 						DisableNetwork();
 						sceKernelDelayThread(500000);  
 					}
@@ -406,6 +412,7 @@ public:
 					EnableNetwork(m_iNetworkProfile);
 					
 					UI->DisplayMessage_NetworkReady(GetMyIP());
+					Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
 					
 					m_NetworkStarted = 1;
 				}
@@ -536,6 +543,28 @@ public:
 		
 		return ret;
 	}
+	
+	int GetNumberOfNetworkProfiles()
+	{
+		int numNetConfigs = 1;
+		while (sceUtilityCheckNetParam(numNetConfigs++) == 0)
+		{};
+		
+	
+		return numNetConfigs-1;
+	}
+	
+	void DisplayCurrentNetworkSelection()
+	{
+		netData data;
+		data.asUint = 0xBADF00D;
+		memset(&data.asString[4], 0, 124);
+		sceUtilityGetNetParam(m_iNetworkProfile, 0/**Profile Name*/, &data);
+		
+		UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
+		Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
+	}
+
 	
 };
 

@@ -128,10 +128,10 @@ int CTextUI::DisplayMessage_EnablingNetwork()
 	return 0;
 }
 
-int CTextUI::DisplayMessage_NetworkSelection(int iProfile)
+int CTextUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
 	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_RED, "Select Profile: %d Then Press TRIANGLE", iProfile);
+	uiPrintf(-1, 26, COLOR_RED, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
 }
 
 int CTextUI::DisplayMessage_DisablingNetwork()
