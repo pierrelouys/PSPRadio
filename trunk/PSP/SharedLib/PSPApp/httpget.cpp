@@ -399,20 +399,26 @@ int http_open (char *url, size_t &iMetadataInterval)
 		in_addr addr;
 		int rc = 0;
 		memset(&addr, 0, sizeof(in_addr));
-		Log(LOG_LOWLEVEL, "http_connect(): Calling ntoa with resolverid = %d", pPSPApp->GetResolverId());
-		rc = sceNetResolverStartNtoA(pPSPApp->GetResolverId(), host, &addr, 2, 3);
-		if (rc < 0)
+
+		/* Let's try aton first in case the address is in dotted numerical form */
+		Log(LOG_LOWLEVEL, "Calling aton.. (host='%s')",host);
+		memset(&addr, 0, sizeof(in_addr));
+		rc = inet_aton(host, &addr);
+		if (rc == 0)
 		{
-			Log(LOG_LOWLEVEL, "Calling aton, as ntoa failed, maybe because host is in numerical form already.. (host='%s')",host);
-			memset(&addr, 0, sizeof(in_addr));
-			rc = inet_aton(host, &addr);
-			if (rc == 0)
+			/** That didn't work!, it must be a hostname, let's try the resolver... */
+			Log(LOG_LOWLEVEL, "http_connect(): Calling sceNetResolverStartNtoA() with resolverid = %d",
+				 pPSPApp->GetResolverId());
+			rc = sceNetResolverStartNtoA(pPSPApp->GetResolverId(), host, &addr, 2, 3);
+			if (rc < 0)
 			{
 				ReportError("Could not resolve host!\n");
 				goto fail;
 			}
-			Log(LOG_LOWLEVEL, "aton returned addr='0x%x'", addr);
+			
 		}
+		Log(LOG_LOWLEVEL, "aton/ntoa succeeded, returned addr='0x%x'", addr);
+
 		
 		Log(LOG_LOWLEVEL, "http_connect(): Opening socket...");
 		//ReportError ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
