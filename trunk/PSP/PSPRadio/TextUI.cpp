@@ -132,6 +132,8 @@ int CTextUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileNam
 {
 	ClearRows(26);
 	uiPrintf(-1, 26, COLOR_RED, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
+
+	return 0;
 }
 
 int CTextUI::DisplayMessage_DisablingNetwork()
@@ -179,9 +181,15 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CTextUI::DisplayErrorMessage(char *strMsg)
 {
-	ClearRows(30,32);
+	ClearErrorMessage();
 	uiPrintf(0, 30, COLOR_RED, "Error: %s", strMsg);
 	
+	return 0;
+}
+
+int CTextUI::ClearErrorMessage()
+{
+	ClearRows(30,32);
 	return 0;
 }
 
@@ -201,12 +209,13 @@ int CTextUI::DisplayDecodeBuffer(int a, int b)
 
 int CTextUI::OnNewStreamStarted()
 {
-	ClearRows(4, 10);
+	ClearRows(4, 11);
 	return 0;
 }
 
 int CTextUI::OnStreamOpening(char *StreamName)
 {
+	ClearErrorMessage(); /** Clear any errors */
 	ClearRows(12,15); /** Clear metadata info */
 	ClearRows(18);
 	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Opening)", StreamName);

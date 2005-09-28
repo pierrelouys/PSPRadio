@@ -51,6 +51,8 @@ private:
 	void uiPrintf(int x, int y, uicolors color, char *strFormat, ...);
 	void ClearRows(int iRowStart, int iRowEnd = -1);
 
+	int ClearErrorMessage();
+
 };
 
 
