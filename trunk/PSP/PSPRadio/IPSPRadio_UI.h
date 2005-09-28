@@ -14,6 +14,7 @@ public:
 	virtual int DisplayMessage_EnablingNetwork();
 	virtual int DisplayMessage_DisablingNetwork();
 	virtual int DisplayMessage_NetworkReady(char *strIP);
+	virtual int DisplayMessage_NetworkSelection(int iProfile);
 	virtual int DisplayMainCommands();
 	virtual int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	virtual int DisplayErrorMessage(char *strMsg);

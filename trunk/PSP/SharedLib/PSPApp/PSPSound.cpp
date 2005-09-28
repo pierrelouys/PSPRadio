@@ -417,7 +417,8 @@ int CPSPSoundStream::Open(char *filename)
 					m_fd = http_open(filename, m_iMetaDataInterval);
 					if (m_fd < 0)
 					{
-						ReportError("CPSPSoundStream::OpenFile-Error opening URL.\n");
+						//Don't report again, because http_open will report.
+						//ReportError("CPSPSoundStream::OpenFile-Error opening URL.\n");
 						m_Type = STREAM_TYPE_CLOSED;
 					}
 					else

@@ -49,7 +49,7 @@ int CTextUI::Initialize()
 	m_lockclear = new CLock("Clear_Lock");
 	pspDebugScreenInit();
 	pspDebugScreenSetBackColor(COLOR_BLUE);
-	pspDebugScreenSetTextColor(0xFFFFFFFF);
+	pspDebugScreenSetTextColor(COLOR_WHITE);
 	pspDebugScreenClear(); 
 	
 	return 0;
@@ -80,6 +80,10 @@ void CTextUI::uiPrintf(int x, int y, uicolors color, char *strFormat, ...)
 	if (msg[strlen(msg)-1] == 0x0D) 
 		msg[strlen(msg)-1] = 0; /** Remove CR 0A*/
 
+	if (x == -1) /** CENTER */
+	{
+		x = 67/2 - strlen(msg)/2;
+	}
 	pspDebugScreenSetXY(x,y);
 	pspDebugScreenSetTextColor(color);
 	printf(msg);
@@ -89,13 +93,17 @@ void CTextUI::uiPrintf(int x, int y, uicolors color, char *strFormat, ...)
 	m_lockprint->Unlock();
 }
 
-void CTextUI::ClearRows(int iRowStart, int iNumRows)
+void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 {
+	if (iRowEnd == -1)
+		iRowEnd = iRowStart;
+		
 	m_lockclear->Lock();
-	for (int iRow = 10 ; (iRow < MAX_ROWS) && (iRow < iNumRows+iRowStart); iRow++)
+	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		pspDebugScreenSetXY(0,iRow + 1);
-		printf("% 68c", ' ');
+		pspDebugScreenSetXY(0,iRow);
+		printf("% 67c", ' ');
+		//printf("% 60c", ' ');
 	}
 	m_lockclear->Unlock();
 }
@@ -110,28 +118,38 @@ int CTextUI::SetTitle(char *strTitle)
 
 int CTextUI::DisplayMessage_EnablingNetwork()
 {
-	uiPrintf(10, 26, COLOR_YELLOW, "Enabling Network");
+	ClearRows(26);
+	uiPrintf(-1, 26, COLOR_YELLOW, "Enabling Network");
 	
 	return 0;
 }
 
+int CTextUI::DisplayMessage_NetworkSelection(int iProfile)
+{
+	ClearRows(26);
+	uiPrintf(-1, 26, COLOR_RED, "Select Profile: %d Then Press TRIANGLE", iProfile);
+}
+
 int CTextUI::DisplayMessage_DisablingNetwork()
 {
-	uiPrintf(10, 26, COLOR_RED, "Disabling Network");
+	ClearRows(26);
+	uiPrintf(-1, 26, COLOR_RED, "Disabling Network");
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
-	uiPrintf(10, 26, COLOR_YELLOW, "Ready, IP %s", strIP);
+	ClearRows(26);
+	uiPrintf(-1, 26, COLOR_YELLOW, "Ready, IP %s", strIP);
 	
 	return 0;
 }
 
 int CTextUI::DisplayMainCommands()
 {
-	uiPrintf(8, 25, COLOR_GREEN, "O or X = Play/Pause | [] = Stop | ^ = Reconnect");
+	ClearRows(25);
+	uiPrintf(-1, 25, COLOR_GREEN, "X Play/Pause | [] Stop | L / R To Browse");
 		
 	return 0;
 }
@@ -157,7 +175,7 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CTextUI::DisplayErrorMessage(char *strMsg)
 {
-	//printf("% 70c", ' ');
+	ClearRows(30,32);
 	uiPrintf(0, 30, COLOR_RED, "Error: %s", strMsg);
 	
 	return 0;
@@ -179,7 +197,7 @@ int CTextUI::DisplayDecodeBuffer(int a, int b)
 
 int CTextUI::OnNewStreamStarted()
 {
-	ClearRows(4, 6);
+	ClearRows(4, 10);
 	return 0;
 }
 
@@ -206,7 +224,7 @@ int CTextUI::OnStreamOpeningSuccess(char *StreamName)
 
 int CTextUI::DisplayMetadata(char *bMetadata)
 {
-	ClearRows(12,3);
+	ClearRows(12,15);
 	uiPrintf(0,12, COLOR_WHITE, "%s", bMetadata);
 	return 0;
 }

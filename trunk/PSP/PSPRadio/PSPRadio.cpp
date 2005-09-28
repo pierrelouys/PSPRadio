@@ -81,7 +81,7 @@ public:
 		{
 			m_songiterator = m_playlist.end();
 			m_songiterator--;
-			m_songiterator--;
+			//m_songiterator--;
 		}
 		else
 		{
@@ -201,8 +201,11 @@ private:
 	CPlayList *m_PlayList;
 	//CTextUI *UI;
 	IPSPRadio_UI *UI;
+	int m_iNetworkProfile;
+	int m_NetworkStarted;
+	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.33b"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -212,12 +215,16 @@ public:
 		char strDir[256];
 		char strAppTitle[140];
 		
-		strcpy(strDir, argv[0]);
-		dirname(strDir); /** Retrieve the directory name */
-		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
+		m_iNetworkProfile = 0;
+		m_NetworkStarted = 0;
+		
 		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
 			GetProgramName(),
 			GetProgramVersion());
+		
+		strcpy(strDir, argv[0]);
+		dirname(strDir); /** Retrieve the directory name */
+		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
 			
 		config = new CIniParser(strCfgFile);
 
@@ -237,13 +244,22 @@ public:
 		UI->Initialize();
 		UI->SetTitle(strAppTitle);
 		
-		UI->DisplayMessage_EnablingNetwork();
-		Log(LOG_INFO, "Enabling Network");
-		EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
+		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 0);
 		
-		UI->DisplayMessage_NetworkReady(GetMyIP());
-		
-		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
+		if (config->GetInteger("WIFI:AUTOSTART", 0) == 1)
+		{
+			UI->DisplayMessage_EnablingNetwork();
+			Log(LOG_INFO, "Enabling Network");
+			EnableNetwork(m_iNetworkProfile);
+			UI->DisplayMessage_NetworkReady(GetMyIP());
+			Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
+			m_NetworkStarted = 1;
+		}
+		else
+		{
+			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
+			UI->DisplayMessage_NetworkSelection(m_NetworkStarted);
+		}
 		
 		MP3 = new CPSPSound_MP3();
 		m_PlayList = new CPlayList();
@@ -262,8 +278,8 @@ public:
 			}
 
 			MP3->SetFile(m_PlayList->GetCurrentFileName());
-			
 			UI->DisplayMainCommands();
+			
 		}
 		else
 		{
@@ -288,7 +304,24 @@ public:
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
-			if (iButtonMask & PSP_CTRL_LTRIGGER)
+			
+			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
+			{
+				m_iNetworkProfile --;
+				if (m_iNetworkProfile < 0)
+					m_iNetworkProfile = 0;
+				m_iNetworkProfile %= 10;
+				
+				UI->DisplayMessage_NetworkSelection(m_iNetworkProfile);
+			}
+			else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
+			{
+				m_iNetworkProfile ++;
+				m_iNetworkProfile %= 10;
+				
+				UI->DisplayMessage_NetworkSelection(m_iNetworkProfile);
+			}
+			else if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
 				MP3->Stop();
 				m_PlayList->Prev();
@@ -329,24 +362,29 @@ public:
 					MP3->Stop();
 				}
 			}
-			else if (iButtonMask & PSP_CTRL_TRIANGLE)
+			else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
 			{
 				UI->DisplayActiveCommand(CPSPSound::STOP);
 				MP3->Stop();
 				sceKernelDelayThread(50000);  
 				
-				UI->DisplayMessage_DisablingNetwork();
-
-				Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-
-				DisableNetwork();
-				sceKernelDelayThread(500000);  
+				if (m_NetworkStarted)
+				{
+					UI->DisplayMessage_DisablingNetwork();
+	
+					Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+	
+					DisableNetwork();
+					sceKernelDelayThread(500000);  
+				}
 				
 				UI->DisplayMessage_EnablingNetwork();
 
-				EnableNetwork(config->GetInteger("WIFI:PROFILE", 0));
+				EnableNetwork(m_iNetworkProfile);
 				
 				UI->DisplayMessage_NetworkReady(GetMyIP());
+				
+				m_NetworkStarted = 1;
 				
 			}
 		}

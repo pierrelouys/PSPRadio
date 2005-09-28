@@ -17,6 +17,7 @@ public:
 	int DisplayMessage_EnablingNetwork();
 	int DisplayMessage_DisablingNetwork();
 	int DisplayMessage_NetworkReady(char *strIP);
+	int DisplayMessage_NetworkSelection(int iProfile);
 	int DisplayMainCommands();
 	int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	int DisplayErrorMessage(char *strMsg);
@@ -48,7 +49,7 @@ private:
 		COLOR_YELLOW= 0x00AABB00
 	};
 	void uiPrintf(int x, int y, uicolors color, char *strFormat, ...);
-	void ClearRows(int iRowStart, int iNumRows = 1);
+	void ClearRows(int iRowStart, int iRowEnd = -1);
 
 };
 
