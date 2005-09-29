@@ -208,7 +208,7 @@ private:
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre4"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.33b"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -217,6 +217,8 @@ public:
 		char strCfgFile[256], strLogFile[256];
 		char strDir[256];
 		char strAppTitle[140];
+		
+		m_ExitSema->Up();
 		
 		m_iNetworkProfile = 1;
 		m_NetworkStarted = 0;
@@ -295,6 +297,8 @@ public:
 		}
 	
 		Log(LOG_LOWLEVEL, "Exiting Setup()");
+
+		m_ExitSema->Down();
 
 		return 0;
 	}
@@ -394,6 +398,8 @@ public:
 			{
 				if (sceWlanGetSwitchState() != 0)
 				{
+					m_ExitSema->Up();
+
 					UI->DisplayActiveCommand(CPSPSound::STOP);
 					MP3->Stop();
 					sceKernelDelayThread(50000);  
@@ -415,6 +421,8 @@ public:
 					Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
 					
 					m_NetworkStarted = 1;
+					
+					m_ExitSema->Down();
 				}
 				else
 				{
@@ -430,6 +438,8 @@ public:
 		char MData[MAX_METADATA_SIZE];
 		char *strURL = "";
 		char *strTitle = "";
+		
+		m_ExitSema->Up();
 		
 		if (iMessageId == MID_ERROR)
 		{
@@ -519,6 +529,7 @@ public:
 			
 		}
 		
+		m_ExitSema->Down();
 		return 0;
 	}
 	

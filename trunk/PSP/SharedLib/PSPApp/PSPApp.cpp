@@ -35,6 +35,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
 	m_NetworkEnabled = FALSE;
+	m_ExitSema = new CSema("PSPApp_Exit_Sema");
 	
 	m_strProgramName = strdup(strProgramName);
 	m_strVersionNumber = strdup(strVersionNumber);
@@ -69,6 +70,11 @@ CPSPApp::~CPSPApp()
 	
 	free(m_strProgramName);
 	free(m_strVersionNumber);
+	
+	if (m_ExitSema)
+	{
+		delete m_ExitSema;
+	}
 
 	Log(LOG_LOWLEVEL, "Bye!.");
 
@@ -138,7 +144,11 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
+	Log(LOG_VERYLOW, "OnAppExit:: Setting m_Exit to TRUE.");
 	m_Exit = TRUE;
+	Log(LOG_VERYLOW, "OnAppExit:: Wait()");
+	m_ExitSema->Wait();
+	Log(LOG_VERYLOW, "OnAppExit:: Calling OnExit().");
 	OnExit();
 	sceKernelDelayThread(150000); /** 150ms */
 	return 0;

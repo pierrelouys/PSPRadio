@@ -121,6 +121,7 @@
 		friend class CPSPSound_MP3;
 		BOOLEAN m_Exit;
 		BOOLEAN m_NetworkEnabled;
+		CSema *m_ExitSema;
 		
 	
 	private:
