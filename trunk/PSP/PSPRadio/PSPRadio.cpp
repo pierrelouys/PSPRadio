@@ -223,7 +223,7 @@ public:
 		m_iNetworkProfile = 1;
 		m_NetworkStarted = 0;
 		
-		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) WIP version %s\n",
+		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) Version %s\n",
 			GetProgramName(),
 			GetProgramVersion());
 		
