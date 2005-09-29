@@ -208,7 +208,7 @@ private:
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre3"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.33b-pre4"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)

@@ -122,14 +122,16 @@ int CTextUI::SetTitle(char *strTitle)
 
 int CTextUI::DisplayMessage_EnablingNetwork()
 {
+	ClearErrorMessage();
 	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_YELLOW, "Enabling Network");
+	uiPrintf(-1, 26, COLOR_CYAN, "Enabling Network");
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
+	ClearErrorMessage();
 	ClearRows(26);
 	uiPrintf(-1, 26, COLOR_RED, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
 
@@ -147,7 +149,7 @@ int CTextUI::DisplayMessage_DisablingNetwork()
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
 	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_YELLOW, "Ready, IP %s", strIP);
+	uiPrintf(-1, 26, COLOR_CYAN, "Ready, IP %s", strIP);
 	
 	return 0;
 }
@@ -162,7 +164,7 @@ int CTextUI::DisplayMainCommands()
 
 int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
-	uicolors color = COLOR_YELLOW;
+	uicolors color = COLOR_CYAN;
 	switch(playingstate)
 	{
 	case CPSPSound::STOP:
@@ -182,7 +184,7 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 int CTextUI::DisplayErrorMessage(char *strMsg)
 {
 	ClearErrorMessage();
-	uiPrintf(0, 30, COLOR_RED, "Error: %s", strMsg);
+	uiPrintf(0, 30, COLOR_YELLOW, "Error: %s", strMsg);
 	
 	return 0;
 }
@@ -240,12 +242,19 @@ int CTextUI::OnStreamOpeningSuccess(char *StreamName)
 int CTextUI::DisplayMetadata(char *strTitle, char *strURL)
 {
 	ClearRows(12,15);
+	
+	if (strlen(strTitle) >= 60)
+		strTitle[60] = 0;
+		
+	if (strlen(strURL) >= 60)
+		strURL[60] = 0;
+	
 	uiPrintf(0 , 12,    COLOR_WHITE,  "Title: ");
-	uiPrintf(7 , 12,    COLOR_YELLOW, "%s ", strTitle);
+	uiPrintf(7 , 12,    COLOR_CYAN, "%s ", strTitle);
 	if (strURL && strlen(strURL))
 	{
 		uiPrintf(0, 13, COLOR_WHITE,  "URL:   ");
-		uiPrintf(7, 13, COLOR_YELLOW, "%s ", strURL);
+		uiPrintf(7, 13, COLOR_CYAN, "%s ", strURL);
 	}
 	return 0;
 }

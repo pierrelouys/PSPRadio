@@ -253,11 +253,12 @@ void CPSPSound_MP3::Decode()
 				{
 					SampleR = SampleL;
 				}
+				
 				for (int i = 0 ; i < iSampleRatio ; i++)
 				{
-					*(OutputPtr++)=((SampleL >> 0) & 0xff);
+					*(OutputPtr++)=((SampleL) & 0xff);
 					*(OutputPtr++)=((SampleL >> 8) & 0xff);
-					*(OutputPtr++)=((SampleR >> 0) & 0xff);
+					*(OutputPtr++)=((SampleR) & 0xff);
 					*(OutputPtr++)=((SampleR >> 8) & 0xff);
 				}
 				

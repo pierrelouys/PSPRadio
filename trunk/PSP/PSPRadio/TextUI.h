@@ -46,7 +46,8 @@ private:
 		COLOR_RED   = 0x000000FF,
 		COLOR_GREEN = 0x0000FF00,
 		COLOR_BLUE  = 0x00FF0000,
-		COLOR_YELLOW= 0x00AABB00
+		COLOR_CYAN  = 0x00AABB00,
+		COLOR_YELLOW= 0x00559999
 	};
 	void uiPrintf(int x, int y, uicolors color, char *strFormat, ...);
 	void ClearRows(int iRowStart, int iRowEnd = -1);
