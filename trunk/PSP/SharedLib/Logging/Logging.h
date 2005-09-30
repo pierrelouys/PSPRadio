@@ -35,49 +35,50 @@ enum loglevel_enum
 class CLock
 {
 public:
-	CLock(char *strName){ m_mutex = sceKernelCreateSema(strName, 0, 1, 255, 0); m_timeout = 10000000;}
+	CLock(char *strName){ m_mutex = sceKernelCreateSema(strName, 0, 1, 255, 0); }
 	~CLock() { sceKernelDeleteSema(m_mutex); }
 	
-	void Lock() {	sceKernelSignalSema(m_mutex, -1); sceKernelWaitSema(m_mutex, 0, &m_timeout); m_timeout = 10000000; /*1sec*/};
-	void Unlock() { 	sceKernelSignalSema(m_mutex, 1); }
+	int Lock() {	return sceKernelWaitSema(m_mutex, 1, NULL); };
+	int Unlock() { 	return sceKernelSignalSema(m_mutex, 1); }
 private:
 	int m_mutex;
 	SceUInt m_timeout;
 };
 
-/*
+
 class CSema
 {
 public:
-	CSema(char *strName){ m_mutex = sceKernelCreateSema(strName, 0, 0, 255, 0); }
+	CSema(char *strName){ m_mutex = sceKernelCreateSema(strName, 0, 1, 255, 0); }
 	~CSema() { sceKernelDeleteSema(m_mutex); }
 	
-	void Wait() {	sceKernelWaitSemaCB(m_mutex, 0, NULL); };
+	void Wait() {	sceKernelWaitSema(m_mutex, 1, NULL); };
 	void Up() { 	sceKernelSignalSema(m_mutex, 1); }
 	void Down() { 	sceKernelSignalSema(m_mutex, -1); }
 private:
 	int m_mutex;
 };
-*/
+
 
 /** Can't get the kernel semaphore to work right, so for now implementing in user-space.
 	(This will only work for simple things like what m_ExitSema is doing, though, so
 	 be careful)
 */
+/*
 class CSema
 {
 public:
-	CSema(char *strName){ m_count = 0; m_timeout = 20*10;/*10 secs*/}
+	CSema(char *strName){ m_count = 0; m_timeout = 20*10;}//10 secs
 	~CSema() { }
 	
-	void Wait() { while(m_count > 0 && m_timeout) { sceKernelDelayThread(50000); m_timeout--;}; m_timeout = 20*10;/*10 secs*/ }
+	void Wait() { while(m_count > 0 && m_timeout) { sceKernelDelayThread(50000); m_timeout--;}; m_timeout = 20*10;} //10 secs
 	void Up()   { m_count++;  }
 	void Down() { if (m_count > 0) m_count--; }
 private:
 	int m_count;
 	int m_timeout;
 };
-
+*/
 
 class CLogging
 {

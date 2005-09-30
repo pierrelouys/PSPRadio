@@ -76,12 +76,14 @@ CPSPSound::~CPSPSound()
 {
 	Log(LOG_VERYLOW, "~CSPSSound(): pPSPApp->m_Exit=%d", pPSPApp->m_Exit);
 	Stop();
-	/** Wake the decoding thread up, so it can exit*/
-	sceKernelDelayThread(100000);
-	m_thDecode->WakeUp();
-	sceKernelDelayThread(100000);
 	if (m_thDecode) 
 	{ 
+		/** Wake the decoding thread up, so it can exit*/
+		Log(LOG_VERYLOW, "~CSPSSound(): Decode thread was asleep, waking up.");
+		m_thDecode->WakeUp();
+		sceKernelDelayThread(100000);
+		
+		Log(LOG_VERYLOW, "~CSPSSound(): After WakeUp(), Destroying Threads.()");
 		delete(m_thDecode), m_thDecode = NULL;
 	}
 	if (m_thPlayAudio) 
@@ -101,10 +103,10 @@ int CPSPSound::Play()
 			if (!m_thDecode)
 			{
 				Log(LOG_LOWLEVEL, "Play(): Creating decode and play threads.");
-				m_thDecode = new CPSPThread("decode_thread", ThDecode, 0x40, 80000);
+				m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
 				if (!m_thPlayAudio)
 				{
-					m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 0x18, 80000);
+					m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
 					m_thPlayAudio->Start();
 					m_thDecode->Start();
 					sceKernelDelayThread(100000);

@@ -228,6 +228,10 @@ void CPSPSound_MP3::Decode()
 			 */
 			mad_synth_frame(&Synth,&Frame);
 	
+			/** libsamplerate, convert samplerate */
+//			for (int iSmpl = 0; iSmpl < Synth.pcm.length; 
+			
+			
 			/* Synthesized samples must be converted from libmad's fixed
 			 * point number to the consumer format. Here we use unsigned
 			 * 16 bit little endian integers on two channels. Integer samples

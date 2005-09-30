@@ -33,7 +33,7 @@ CLogging::CLogging()
 	m_strFilename = NULL;
 	m_LogLevel = LOG_INFO;
 	m_fp = NULL;
-	m_lock = new CLock("Logging_Lock");
+	m_lock = new CLock("LogLock");
 }
 
 CLogging::~CLogging()

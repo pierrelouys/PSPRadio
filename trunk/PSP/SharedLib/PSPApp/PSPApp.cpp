@@ -28,13 +28,14 @@ class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
 CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
-	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 0x11, 0xFA0, THREAD_ATTR_USER);
+	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 0xFA0, THREAD_ATTR_USER);
 	
 	memset(&m_pad, 0, sizeof (m_pad));
 	pPSPApp = this;
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
 	m_NetworkEnabled = FALSE;
+	m_USBEnabled = FALSE;
 	m_ExitSema = new CSema("PSPApp_Exit_Sema");
 	
 	m_strProgramName = strdup(strProgramName);
@@ -63,6 +64,11 @@ CPSPApp::~CPSPApp()
 {
 	Log(LOG_LOWLEVEL, "Destructor Called.");
 	
+	if (m_USBEnabled == TRUE)
+	{
+		DisableUSB();
+	}
+	
 	if (IsNetworkEnabled() == TRUE)
 	{
 		DisableNetwork();
@@ -77,6 +83,9 @@ CPSPApp::~CPSPApp()
 	}
 
 	Log(LOG_LOWLEVEL, "Bye!.");
+	
+	sceKernelExitGame();
+
 
 	return;
 }
@@ -89,6 +98,7 @@ int CPSPApp::Run()
 	
 	Log(LOG_INFO, "Run(): Going into main loop.");
 	
+	sceCtrlSetSamplingCycle(10); 
 	while (m_Exit == FALSE)
 	{
 		sceDisplayWaitVblankStart();
@@ -97,7 +107,6 @@ int CPSPApp::Run()
 		
 		OnVBlank();
  
-		sceCtrlSetSamplingCycle(10); 
 		sceCtrlReadLatch(&latch);
 		//printf("latch: uiMake=%d; uiBreak=%d; uiPress=%d; uiRelease=%d;\n",
 		//	latch.uiMake, latch.uiBreak, latch.uiPress, latch.uiRelease);
@@ -124,9 +133,15 @@ int CPSPApp::Run()
 		}
 	}
 	
-	sceKernelDelayThread(50000); /** 50ms */
+	//Log(LOG_VERYLOW, "OnAppExit:: Setting m_Exit to TRUE.");
+	//m_Exit = TRUE; //called from exit callback thread.
+	Log(LOG_VERYLOW, "OnAppExit:: Wait()");
+	m_ExitSema->Wait();
+	Log(LOG_VERYLOW, "OnAppExit:: Calling OnExit().");
+	OnExit();
+	sceKernelDelayThread(150000); // 150ms 
+	//sceKernelDelayThread(50000); /** 50ms */
 
-	sceKernelExitGame();
 
 	return 0;
 }
@@ -142,15 +157,12 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 	return 0;
 }
 
+/** OnAppExit is executed from the exit callback thread, which it running in USER MODE */
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
-	Log(LOG_VERYLOW, "OnAppExit:: Setting m_Exit to TRUE.");
 	m_Exit = TRUE;
-	Log(LOG_VERYLOW, "OnAppExit:: Wait()");
-	m_ExitSema->Wait();
-	Log(LOG_VERYLOW, "OnAppExit:: Calling OnExit().");
-	OnExit();
-	sceKernelDelayThread(150000); /** 150ms */
+/*	
+*/
 	return 0;
 }
 
@@ -373,6 +385,106 @@ int CPSPApp::NetApctlHandler()
 	return iRet;
 }
 
+//helper function to make things easier
+int LoadStartModule(char *path)
+{
+    u32 loadResult;
+    u32 startResult;
+    int status;
+
+    loadResult = sceKernelLoadModule(path, 0, NULL);
+    if (loadResult & 0x80000000)
+	return -1;
+    else
+	startResult =
+	    sceKernelStartModule(loadResult, 0, NULL, &status, NULL);
+
+    if (loadResult != startResult)
+	return -2;
+
+    return 0;
+}
+
+//Based on USB Sample v1.0 by John_K - Based off work by PSPPet
+#include <pspusb.h>
+#include <pspusbstor.h>
+int  CPSPApp::EnableUSB()
+{
+	int retVal;
+	int state = 0;
+	
+	Log(LOG_INFO, "Starting USB...");
+	
+	//start necessary drivers
+	LoadStartModule("flash0:/kd/semawm.prx");
+	LoadStartModule("flash0:/kd/usbstor.prx");
+	LoadStartModule("flash0:/kd/usbstormgr.prx");
+	LoadStartModule("flash0:/kd/usbstorms.prx");
+	LoadStartModule("flash0:/kd/usbstorboot.prx");
+	
+	//setup USB drivers
+	retVal = sceUsbStart(PSP_USBBUS_DRIVERNAME, 0, 0);
+	if (retVal != 0) 
+	{
+		Log(LOG_ERROR, "Error starting USB Bus driver (0x%08X)\n", retVal);
+		return retVal;
+	}
+	retVal = sceUsbStart(PSP_USBSTOR_DRIVERNAME, 0, 0);
+	if (retVal != 0) 
+	{
+		Log(LOG_ERROR, "Error starting USB Mass Storage driver (0x%08X)\n", retVal);
+		return retVal;
+	}
+	retVal = sceUsbstorBootSetCapacity(0x800000);
+	if (retVal != 0) 
+	{
+		Log(LOG_ERROR, "Error setting capacity with USB Mass Storage driver (0x%08X)\n", retVal);
+		return retVal;
+	}
+	
+	retVal = sceUsbActivate(0x1c8);
+	state = sceUsbGetState();
+	if (state & PSP_USB_ACTIVATED == 0) //PSP_USB_CABLE_CONNECTED , PSP_USB_CONNECTION_ESTABLISHED
+	{
+		Log(LOG_ERROR, "Error Activating USB\n", retVal);
+		return retVal;
+	}
+	
+	m_USBEnabled = TRUE;
+	
+	return retVal;
+}
+
+int CPSPApp::DisableUSB()
+{
+	int retVal = 0;
+	int state = 0;
+	
+	if (m_USBEnabled)
+	{
+		state = sceUsbGetState();
+		if (state & PSP_USB_ACTIVATED)
+		{
+			retVal = sceUsbDeactivate();
+			if (retVal != 0)
+			{
+				Log(LOG_ERROR, "Error calling sceUsbDeactivate (0x%08X)\n", retVal);
+			}
+		}
+		retVal = sceUsbStop(PSP_USBSTOR_DRIVERNAME, 0, 0);
+		if (retVal != 0)
+		{
+			Log(LOG_ERROR, "Error stopping USB Mass Storage driver (0x%08X)\n", retVal);
+		}
+		retVal = sceUsbStop(PSP_USBBUS_DRIVERNAME, 0, 0);
+		if (retVal != 0)
+		{
+			Log(LOG_ERROR, "Error stopping USB BUS driver (0x%08X)\n", retVal);
+		}
+	}
+	
+	return retVal;
+}
 #if 0
 /** Overload new/delete */
 void operator delete(void *p) { free(p); };

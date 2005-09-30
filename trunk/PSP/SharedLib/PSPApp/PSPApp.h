@@ -99,6 +99,10 @@
 		int EnableNetwork(int profile);
 		void DisableNetwork();
 		BOOLEAN IsNetworkEnabled() { return m_NetworkEnabled; };
+		
+		int  EnableUSB();
+		int  DisableUSB();
+		BOOLEAN IsUSBEnabled() { return m_USBEnabled; }
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual void OnExit(){};
@@ -121,6 +125,7 @@
 		friend class CPSPSound_MP3;
 		BOOLEAN m_Exit;
 		BOOLEAN m_NetworkEnabled;
+		BOOLEAN m_USBEnabled;
 		CSema *m_ExitSema;
 		
 	
@@ -169,8 +174,8 @@
 		int WaitAndServiceCallbacks(SceUInt *timeoutInUs) /** Wait until thread exits(servicing callbacks) or timeout */
 				{ return m_thid>=0?sceKernelWaitThreadEndCB(m_thid, timeoutInUs):-1; };
 		int SetPriority(int iNewPriority)
-				{ return m_thid>=0?sceKernelChangeThreadPriority(m_thid, iNewPriority):-1; };               
-		
+				{ return m_thid>=0?sceKernelChangeThreadPriority(m_thid, iNewPriority):-1; };    
+
 	private:
 		int m_thid;
 	};

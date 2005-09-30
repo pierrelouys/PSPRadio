@@ -40,6 +40,8 @@ asm(".global __lib_stub_bottom");
 PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
+PSP_MAIN_THREAD_PRIORITY(80);
+
 
 #define CFG_FILENAME "PSPRadio.cfg"
 #define ReportError pPSPApp->ReportError
@@ -249,6 +251,11 @@ public:
 		UI->Initialize();
 		UI->SetTitle(strAppTitle);
 		
+		if (config->GetInteger("USB:ENABLED", 0) == 1)
+		{
+			EnableUSB();
+		}
+		
 		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
 		
 		if (m_iNetworkProfile < 1)
@@ -330,105 +337,113 @@ public:
 
 	void OnButtonReleased(int iButtonMask)
 	{
+		//static BOOLEAN fInHomeMenu = FALSE;
 		Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
 			
-			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
+			//if (iButtonMask & PSP_CTRL_HOME)
+			//{
+//				fInHomeMenu = fInHomeMenu?FALSE:TRUE; /** Reverse */
+//			}
+//			if (fInHomeMenu == FALSE)
 			{
-				m_iNetworkProfile --;
-				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
-				if (m_iNetworkProfile < 1)
-					m_iNetworkProfile = 1;
-				
-				DisplayCurrentNetworkSelection();
-			}
-			else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
-			{
-				m_iNetworkProfile ++;
-				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
-				if (m_iNetworkProfile < 1)
-					m_iNetworkProfile = 1;
-				
-				DisplayCurrentNetworkSelection();
-			}
-			else if (iButtonMask & PSP_CTRL_LTRIGGER)
-			{
-				MP3->Stop();
-				m_PlayList->Prev();
-				MP3->SetFile(m_PlayList->GetCurrentFileName());
-				sceKernelDelayThread(500000);  
-				UI->DisplayActiveCommand(playingstate);
-				MP3->Play();
-			}
-			else if (iButtonMask & PSP_CTRL_RTRIGGER)
-			{
-				MP3->Stop();
-				m_PlayList->Next();
-				MP3->SetFile(m_PlayList->GetCurrentFileName());
-				sceKernelDelayThread(500000);  
-				UI->DisplayActiveCommand(playingstate);
-				MP3->Play();
-			}
-			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
-			{
-				switch(playingstate)
+				if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
 				{
-					case CPSPSound::STOP:
-					case CPSPSound::PAUSE:
-						UI->DisplayActiveCommand(CPSPSound::PLAY);
-						MP3->Play();
-						break;
-					case CPSPSound::PLAY:
-						UI->DisplayActiveCommand(CPSPSound::PAUSE);
-						MP3->Pause();
-						break;
-				}
-			}
-			else if (iButtonMask & PSP_CTRL_SQUARE)
-			{
-				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
-				{
-					UI->DisplayActiveCommand(CPSPSound::STOP);
-					MP3->Stop();
-				}
-			}
-			else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
-			{
-				if (sceWlanGetSwitchState() != 0)
-				{
-					m_ExitSema->Up();
-
-					UI->DisplayActiveCommand(CPSPSound::STOP);
-					MP3->Stop();
-					sceKernelDelayThread(50000);  
+					m_iNetworkProfile --;
+					m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
+					if (m_iNetworkProfile < 1)
+						m_iNetworkProfile = 1;
 					
-					if (m_NetworkStarted)
+					DisplayCurrentNetworkSelection();
+				}
+				else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
+				{
+					m_iNetworkProfile ++;
+					m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
+					if (m_iNetworkProfile < 1)
+						m_iNetworkProfile = 1;
+					
+					DisplayCurrentNetworkSelection();
+				}
+				else if (iButtonMask & PSP_CTRL_LTRIGGER)
+				{
+					MP3->Stop();
+					m_PlayList->Prev();
+					MP3->SetFile(m_PlayList->GetCurrentFileName());
+					sceKernelDelayThread(500000);  
+					UI->DisplayActiveCommand(playingstate);
+					MP3->Play();
+				}
+				else if (iButtonMask & PSP_CTRL_RTRIGGER)
+				{
+					MP3->Stop();
+					m_PlayList->Next();
+					MP3->SetFile(m_PlayList->GetCurrentFileName());
+					sceKernelDelayThread(500000);  
+					UI->DisplayActiveCommand(playingstate);
+					MP3->Play();
+				}
+				else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+				{
+					switch(playingstate)
 					{
-						UI->DisplayMessage_DisablingNetwork();
+						case CPSPSound::STOP:
+						case CPSPSound::PAUSE:
+							UI->DisplayActiveCommand(CPSPSound::PLAY);
+							MP3->Play();
+							break;
+						case CPSPSound::PLAY:
+							UI->DisplayActiveCommand(CPSPSound::PAUSE);
+							MP3->Pause();
+							break;
+					}
+				}
+				else if (iButtonMask & PSP_CTRL_SQUARE)
+				{
+					if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
+					{
+						UI->DisplayActiveCommand(CPSPSound::STOP);
+						MP3->Stop();
+					}
+				}
+				else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
+				{
+					if (sceWlanGetSwitchState() != 0)
+					{
+						m_ExitSema->Up();
+	
+						UI->DisplayActiveCommand(CPSPSound::STOP);
+						MP3->Stop();
+						sceKernelDelayThread(50000);  
+						
+						if (m_NetworkStarted)
+						{
+							UI->DisplayMessage_DisablingNetwork();
+			
+							Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+							DisableNetwork();
+							sceKernelDelayThread(500000);  
+						}
+						
+						UI->DisplayMessage_EnablingNetwork();
 		
-						Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-						DisableNetwork();
-						sceKernelDelayThread(500000);  
+						EnableNetwork(m_iNetworkProfile);
+						
+						UI->DisplayMessage_NetworkReady(GetMyIP());
+						Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
+						
+						m_NetworkStarted = 1;
+						
+						m_ExitSema->Down();
+					}
+					else
+					{
+						ReportError("The Network Switch is OFF, Cannot Start Network.");
 					}
 					
-					UI->DisplayMessage_EnablingNetwork();
-	
-					EnableNetwork(m_iNetworkProfile);
-					
-					UI->DisplayMessage_NetworkReady(GetMyIP());
-					Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
-					
-					m_NetworkStarted = 1;
-					
-					m_ExitSema->Down();
 				}
-				else
-				{
-					ReportError("The Network Switch is OFF, Cannot Start Network.");
-				}
-				
 			}
 		}
 	};
@@ -448,7 +463,6 @@ public:
 		}
 		else
 		{
-			Log(LOG_VERYLOW, "OnMessage: MID=0x%x SID=0x%x", iMessageId, iSenderId);
 			switch (iSenderId)
 			{
 			//case PSPAPP_SENDER_ID:
@@ -523,7 +537,10 @@ public:
 				case MID_TCP_CONNECTING_PROGRESS:
 					UI->OnConnectionProgress();
 					break;
-					
+				
+				default:
+					Log(LOG_VERYLOW, "OnMessage: Unhandled message: MID=0x%x SID=0x%x", iMessageId, iSenderId);
+					break;
 				}
 			}
 			
@@ -585,6 +602,8 @@ int main(int argc, char **argv)
 	myPSPApp *PSPApp  = new myPSPApp();
 	PSPApp->Setup(argc, argv);
 	PSPApp->Run();
+	
+	delete(PSPApp);
 	
 	return 0;
 }

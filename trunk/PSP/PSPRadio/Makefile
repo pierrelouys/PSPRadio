@@ -11,7 +11,8 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR = 
 LDFLAGS = 
-LIBS = -lPSPApp -lpspaudio -lsupc++ -lstdc++ -lpspnet -lmad -liniparser -lTools -llogging -lpspwlan -lpsputility -lsamplerate 
+LIBS = -lPSPApp -lpspaudio -lsupc++ -lstdc++ -lpspnet -lmad -liniparser -lTools -llogging \
+		-lpspwlan -lpsputility -lsamplerate -lpspusb -lpspusbstor 
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio
