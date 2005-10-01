@@ -50,6 +50,14 @@ PSP_MAIN_THREAD_PRIORITY(80);
 #define METADATA_STREAMURL_TAG "StreamUrl='"
 #define METADATA_STREAMTITLE_TAG "StreamTitle='"
 
+#define PLV2_NUMBER_OF_ENTRIES_TAG			"numberofentries="
+#define PLV2_NUMBER_OF_ENTRIES_PARSING_STR	"numberofentries=%d"
+#define PLV2_FILE_TAG						"FileX="
+#define PLV2_FILE_PARSING_STR				"File%d=%s"
+#define PLV2_TITLE_TAG						"TitleX="
+#define PLV2_TITLE_PARSING_STR				"Title%d=%s"
+#define PLV2_LENGTH_TAG						"LengthX="
+#define PLV2_LENGTH_PARSING_STR				"Length%d=%d"
 class CPlayList
 {
 public:
@@ -87,13 +95,8 @@ public:
 		if (m_songiterator == m_playlist.begin())
 		{
 			m_songiterator = m_playlist.end();
-			m_songiterator--;
-			//m_songiterator--;
 		}
-		else
-		{
-			m_songiterator--;
-		}
+		m_songiterator--;
 	}
 	
 	int GetNumberOfSongs()
@@ -120,6 +123,22 @@ public:
 		int iLines = 0;
 		int iFormatVersion = 1;
 		songmetadata songdata;
+		BOOLEAN fStopParsing = FALSE;
+		
+		int iV2_numberofentries = 0;
+		int iV2_IgnoredValue = 0; /** Used during parsing */
+		int iV2_ParsingTemp = 0;
+		char strV2_File[256];
+		char strV2_Title[256];
+		int  iV2_Length = -1;
+		
+		enum playlistv2_states
+		{
+			WAITING_FOR_NUM_OF_ENTRIES,
+			WAITING_FOR_FILE,
+			WAITING_FOR_TITLE,
+			WAITING_FOR_LENGTH,
+		} v2_state = WAITING_FOR_NUM_OF_ENTRIES;
 		
 		fd = fopen(strFileName, "r");
 		
@@ -127,7 +146,7 @@ public:
 
 		if(fd != NULL)
 		{
-			while (!feof(fd))
+			while ( (!feof(fd)) && (FALSE == fStopParsing) )
 			{
 				strLine[0] = 0;
 				fgets(strLine, 256, fd);
@@ -138,7 +157,6 @@ public:
 				if ((iLines == 0) && (strLine[0] == '['))
 				{
 					iFormatVersion = 2;
-					ReportError("This is a version 2 playlist. This is not supported at the moment!");
 					
 					continue;
 				}
@@ -163,10 +181,112 @@ public:
 						Log(LOG_INFO, "Adding '%s' to the list.", strLine);
 						break;
 					case 2:
-						//switch(state) //file/title/length
+						//Log(LOG_VERYLOW, "Line=%d strLine='%s' v2_state=%d", iLines, strLine, v2_state);
+						switch(v2_state)
+						{
+							case WAITING_FOR_NUM_OF_ENTRIES: /* ie numberofentries=5 */
+								if (strlen(strLine) > strlen(PLV2_NUMBER_OF_ENTRIES_TAG))
+								{
+									iV2_ParsingTemp = sscanf(strLine, PLV2_NUMBER_OF_ENTRIES_PARSING_STR, &iV2_numberofentries);
+									if (1 == iV2_ParsingTemp)
+									{
+										v2_state = WAITING_FOR_FILE;
+									}
+									else
+									{
+										fStopParsing = TRUE;
+									}
+								}
+								else
+								{
+									fStopParsing = TRUE;
+								}
+								break;
+							case WAITING_FOR_FILE: /* ie File1=http://64.236.34.196:80/stream/1040 */
+								if (strlen(strLine) > strlen(PLV2_FILE_TAG))
+								{
+									strV2_File[0] = 0;
+									iV2_ParsingTemp = sscanf(strLine, PLV2_FILE_PARSING_STR, &iV2_IgnoredValue, strV2_File);
+									if (2 == iV2_ParsingTemp)
+									{
+										v2_state = WAITING_FOR_TITLE;
+									}
+									else
+									{
+										fStopParsing = TRUE;
+									}
+								}
+								else
+								{
+									fStopParsing = TRUE;
+								}
+								break;
+							case WAITING_FOR_TITLE: /* ie Title1=(#1 - 524/21672) CLUB 977 The 80s Channel */
+								if (strlen(strLine) > strlen(PLV2_TITLE_TAG))
+								{
+									//iV2_ParsingTemp = sscanf(strLine, PLV2_TITLE_PARSING_STR, &iV2_IgnoredValue, strV2_Title);
+									strV2_Title[0] = 0;
+									if (strchr(strLine, '='))
+									{
+										strncpy(strV2_Title, strchr(strLine, '=') + 1, 256);
+									}
+									if (strlen(strV2_Title))
+									{
+										v2_state = WAITING_FOR_LENGTH;
+									}
+									else
+									{
+										fStopParsing = TRUE;
+									}
+								}
+								else
+								{
+									fStopParsing = TRUE;
+								}
+								break;
+							case WAITING_FOR_LENGTH: /* Length1=-1 */
+								if (strlen(strLine) > strlen(PLV2_LENGTH_TAG))
+								{
+									iV2_ParsingTemp = sscanf(strLine, PLV2_LENGTH_PARSING_STR, &iV2_IgnoredValue, &iV2_Length);
+									if (2 == iV2_ParsingTemp)
+									{
+										/** Good!, all fields for this entry aquired, let's insert in the list! */
+										memset(&songdata, 0, sizeof(songmetadata));
+										Log(LOG_INFO, "Adding V2 Entry: File='%s' Title='%s' Length='%i' to the list.", 
+											strV2_File, strV2_Title, iV2_Length);
+										memcpy(songdata.strFileName,  strV2_File,  256);
+										memcpy(songdata.strFileTitle, strV2_Title, 256);
+										songdata.iLength = iV2_Length;
+										m_playlist.push_back(songdata);
+										//Log(LOG_INFO, "Added V2 Entry: File='%s' Title='%s' Length='%s' to the list.", 
+										//	strV2_File, strV2_Title, iV2_Length);
+										iV2_numberofentries--;
+										
+										v2_state = WAITING_FOR_FILE;
+									}
+									else
+									{
+										fStopParsing = TRUE;
+									}
+								}
+								else
+								{
+									fStopParsing = TRUE;
+								}
+								break;
+						}
+						if ( (TRUE == fStopParsing) && (iV2_numberofentries > 0) )
+						{
+							Log(LOG_ERROR, "Malformed playlist found. Error on Line %d (%s)", iLines+1, strLine);
+						}
 						break;
 				}
-						
+				
+				if ( (2 == iFormatVersion) && (0 == iV2_numberofentries) ) /** Done! */
+				{
+					break;
+				}
+				
 				iLines++;
 			}
 			fclose(fd), fd = NULL;
@@ -192,9 +312,11 @@ private:
 	struct songmetadata
 	{
 		char strFileName[300];
-		char strFileTitle[256];
-		char songTitle[256];
-		char songAuthor[256];
+		char strFileTitle[300];
+		char strURL[300];
+		char songTitle[300];
+		char songAuthor[300];
+		int iLength;
 	};
 	list<songmetadata> m_playlist; 
 	list<songmetadata>::iterator m_songiterator;
@@ -211,7 +333,7 @@ private:
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.33b"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.34b-pre2"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -221,8 +343,9 @@ public:
 		char strDir[256];
 		char strAppTitle[140];
 		
-		m_ExitSema->Up();
+		m_ExitSema->Up(); /** This to prevent the app to exit while in this area */
 		
+		/** Initialize to some sensible defaults */
 		m_iNetworkProfile = 1;
 		m_NetworkStarted = 0;
 		
@@ -236,7 +359,7 @@ public:
 			
 		config = new CIniParser(strCfgFile);
 
-		if (config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0) == 1)
+		if (1 == config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0))
 		{
 			int iLoglevel = config->GetInteger("DEBUGGING:LOGLEVEL", 100);
 			sprintf(strLogFile, "%s/%s", strDir, config->GetStr("DEBUGGING:LOGFILE"));
@@ -261,23 +384,31 @@ public:
 		UI->Initialize();
 		UI->SetTitle(strAppTitle);
 		
-		if (config->GetInteger("USB:ENABLED", 0) == 1)
+		if (1 == config->GetInteger("USB:ENABLED", 0))
 		{
 			EnableUSB();
 		}
 		
-		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
-		
-		if (m_iNetworkProfile < 1)
+		if (-1 != config->GetInteger("WIFI:FORCED_PROFILE", -1))
 		{
-			m_iNetworkProfile = 1;
-			Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
+			m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
+			
+			if (m_iNetworkProfile < 1)
+			{
+				m_iNetworkProfile = 1;
+				Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
+			}
+		}
+		else
+		{
+			m_iNetworkProfile = config->GetInteger("WIFI:FORCED_PROFILE", 1);
+			Log(LOG_ERROR, "FORCED NETWORK PROFILE: %d", m_iNetworkProfile);
 		}
 		
 		if (config->GetInteger("WIFI:AUTOSTART", 0) == 1)
 		{
 			UI->DisplayMessage_EnablingNetwork();
-			Log(LOG_INFO, "Enabling Network");
+			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", m_iNetworkProfile);
 			EnableNetwork(m_iNetworkProfile);
 			UI->DisplayMessage_NetworkReady(GetMyIP());
 			Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
@@ -305,7 +436,7 @@ public:
 				m_PlayList->InsertFile(config->GetStr("MUSIC:FILE"));
 			}
 
-			MP3->SetFile(m_PlayList->GetCurrentFileName());
+			MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
 			UI->DisplayMainCommands();
 		}
 		else
@@ -381,7 +512,7 @@ public:
 				{
 					MP3->Stop();
 					m_PlayList->Prev();
-					MP3->SetFile(m_PlayList->GetCurrentFileName());
+					MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
 					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
@@ -390,7 +521,7 @@ public:
 				{
 					MP3->Stop();
 					m_PlayList->Next();
-					MP3->SetFile(m_PlayList->GetCurrentFileName());
+					MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
 					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
@@ -405,8 +536,12 @@ public:
 							MP3->Play();
 							break;
 						case CPSPSound::PLAY:
-							UI->DisplayActiveCommand(CPSPSound::PAUSE);
-							MP3->Pause();
+							/** No pausing for URLs, only for Files(local) */
+							if (MP3->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
+							{
+								UI->DisplayActiveCommand(CPSPSound::PAUSE);
+								MP3->Pause();
+							}
 							break;
 					}
 				}
@@ -514,13 +649,13 @@ public:
 					break;
 					
 				case MID_DECODE_STREAM_OPENING:
-					UI->OnStreamOpening(MP3->GetFile());
+					UI->OnStreamOpening(MP3->GetStream()->GetFile());
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
-					UI->OnStreamOpeningError(MP3->GetFile());
+					UI->OnStreamOpeningError(MP3->GetStream()->GetFile());
 					break;
 				case MID_DECODE_STREAM_OPEN:
-					UI->OnStreamOpeningSuccess(MP3->GetFile());
+					UI->OnStreamOpeningSuccess(MP3->GetStream()->GetFile());
 					break;
 				case MID_DECODE_BUFCYCLE:
 					UI->DisplayDecodeBuffer(MP3->GetBufferPushPos(), NUM_BUFFERS);
