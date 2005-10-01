@@ -239,7 +239,13 @@ int CTextUI::OnStreamOpeningSuccess(char *StreamName)
 	return 0;
 }
 
+int CTextUI::OnVBlank()
+{
+	return 0;
+}
+
 int CTextUI::DisplayMetadata(char *strTitle, char *strURL)
+
 {
 	ClearRows(12,15);
 	

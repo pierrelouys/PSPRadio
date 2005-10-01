@@ -30,6 +30,7 @@ public:
 	int OnConnectionProgress();
 	int OnStreamOpeningError(char *StreamName);
 	int OnStreamOpeningSuccess(char *StreamName);
+	int OnVBlank();
 	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	int DisplayMPEGLayerType(char *strType);
 	int DisplayMetadata(char *strTitle, char *strURL);
