@@ -27,6 +27,7 @@ public:
 	virtual int OnConnectionProgress();
 	virtual int OnStreamOpeningError(char *StreamName);
 	virtual int OnStreamOpeningSuccess(char *StreamName);
+	virtual int OnVBlank();
 	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	virtual int DisplayMPEGLayerType(char *strType);
 	virtual int DisplayMetadata(char *strTitle, char *strURL);
