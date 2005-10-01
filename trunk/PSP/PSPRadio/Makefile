@@ -1,5 +1,5 @@
 TARGET = PSPRadio
-OBJS = PSPRadio.o TextUI.o GraphicsUI.o
+OBJS = PSPRadio.o PlayList.o TextUI.o GraphicsUI.o
 #PSP_EBOOT_ICON = resources/icon0.png
 #PSP_EBOOT_PIC1 = resources/pic1.png
 
