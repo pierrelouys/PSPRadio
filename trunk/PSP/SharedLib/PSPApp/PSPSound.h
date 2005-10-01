@@ -46,26 +46,40 @@
 	class CPSPSoundStream
 	{
 	public:
-		CPSPSoundStream();
-		~CPSPSoundStream();
-		int Open(char *filename);
-		void Close();
-		int OpenURL(char *strURL);
-		size_t Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount);
-		BOOLEAN IsOpen();
-		BOOLEAN IsEOF();
-	private:
 		enum stream_types
 		{
-			STREAM_TYPE_CLOSED,
+			STREAM_TYPE_NONE,
 			STREAM_TYPE_FILE,
 			STREAM_TYPE_URL
 		};
-		enum stream_types m_Type;
+		enum stream_states
+		{
+			STREAM_STATE_CLOSED,
+			STREAM_STATE_OPEN
+		};
+		CPSPSoundStream();
+		~CPSPSoundStream();
+		
+		void SetFile(char *strName);
+		char *GetFile() { return m_strFile; };
+		int Open();
+		void Close();
+		int OpenURL(char *strURL);
+		size_t Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount);
+		bool IsOpen();
+		bool IsEOF();
+		stream_types GetType() { return m_Type; }
+		stream_states GetState() { return m_State; }
+		
+		
+	private:
+		enum stream_types  m_Type;
+		enum stream_states m_State;
+		char m_strFile[256];
 		FILE *m_pfd;
 		bstdfile_t *m_BstdFile;
 		int   m_fd;
-		BOOLEAN m_sock_eof;
+		bool m_sock_eof;
 		size_t m_iMetaDataInterval;
 		size_t m_iRunningCountModMetadataInterval;
 		char bMetaData[MAX_METADATA_SIZE];
@@ -97,7 +111,7 @@
 		#endif
 		int pushpos,poppos,m_lastpushpos;
 		char *ringbuf;
-		BOOLEAN buffering;
+		bool buffering;
 
 	};
 	
@@ -113,6 +127,7 @@
 		
 	protected:
 		CPSPSoundBuffer Buffer;
+		CPSPSoundStream *m_InputStream;
 		
 	private:
 		void Initialize();
@@ -129,10 +144,16 @@
 	protected:
 		virtual void Decode();
 		void SuspendDecodingThread(){m_thDecode->Suspend();};
-	
+		
 	public:
 		CPSPSound();
 		virtual ~CPSPSound();
+		
+		/** Accessors */
+		//void SetFile(char *strName);
+		//char *GetFile() { return m_strFile; };
+		//do through Stream
+		CPSPSoundStream *GetStream() { return m_InputStream; }
 		
 		int Play();
 		int Pause();

@@ -157,7 +157,7 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 	return 0;
 }
 
-/** OnAppExit is executed from the exit callback thread, which it running in USER MODE */
+/** OnAppExit is executed from the exit callback thread, which is running in USER MODE */
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
 	m_Exit = TRUE;

@@ -40,18 +40,7 @@ CPSPSound_MP3::CPSPSound_MP3()
 {
 	Log(LOG_LOWLEVEL, "PSPSound_MP3 Constructor");
 	pPSPSound_MP3 = this;
-	m_strFile[0] = 0;
 	
-}
-
-/** Accessors */
-void CPSPSound_MP3::SetFile(char *strFile)
-{
-	if (strFile)
-	{
-		strncpy(m_strFile, strFile, 256);
-		Log(LOG_LOWLEVEL, "PSPSound_MP3. SetFile(%s) called", strFile);
-	}
 }
 
 /** Threads */
@@ -93,12 +82,10 @@ void CPSPSound_MP3::Decode()
 	mad_synth_init(&Synth);
 	mad_timer_reset(&Timer);
 
-	CPSPSoundStream *InputStream = new CPSPSoundStream();
-	
 	pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPENING);
-	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", pPSPSound_MP3->GetFile());
-	InputStream->Open(pPSPSound_MP3->GetFile());
-	if (InputStream->IsOpen() == TRUE)
+	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", m_InputStream->GetFile());
+	m_InputStream->Open();
+	if (m_InputStream->IsOpen() == TRUE)
 	{
 		Log(LOG_INFO, "MP3 Decode(): Stream Opened Successfully.");
 		
@@ -129,10 +116,10 @@ void CPSPSound_MP3::Decode()
 						ReadStart=pInputBuffer,
 						Remaining=0;
 	
-				ReadSize = InputStream->Read(ReadStart,1,ReadSize);
+				ReadSize = m_InputStream->Read(ReadStart,1,ReadSize);
 				if(ReadSize<=0)
 				{
-					//if(InputStream->GetError())
+					//if(m_InputStream->GetError())
 					//{
 					//	ReportError("%s: read error on bit-stream (%s)\n",
 					//			pPSPApp->GetProgramName(),strerror(errno));
@@ -151,7 +138,7 @@ void CPSPSound_MP3::Decode()
 				}
 				
 	
-				if(InputStream->IsEOF())
+				if(m_InputStream->IsEOF())
 				{
 					GuardPtr=ReadStart+ReadSize;
 					memset(GuardPtr,0,MAD_BUFFER_GUARD);
@@ -294,10 +281,10 @@ void CPSPSound_MP3::Decode()
 		pPSPSound_MP3->SendMessage(MID_DECODE_DONE);
 		pPSPSound_MP3->Buffer.Done();
 		
-		/* The input file was completely read; the memory allocated by our
-		 * reading module must be reclaimed.
+		/* The input file was completely read; 
+		 * Close The input stream.
 		 */
-		delete(InputStream);
+		m_InputStream->Close();
 	
 		/* Mad is no longer used, the structures that were initialized must
 	     * now be cleared.
@@ -310,7 +297,7 @@ void CPSPSound_MP3::Decode()
 	else
 	{
 		pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPEN_ERROR);
-		Log(LOG_ERROR, "Unable to open stream.");
+		Log(LOG_ERROR, "Unable to open stream '%s'.", m_InputStream->GetFile());
 	}
 
 }
