@@ -1,6 +1,8 @@
 #ifndef _UI_I_
 #define _UI_I_
 
+#include "PlayList.h"
+
 /** UI class interface */ 
 class IPSPRadio_UI
 {
@@ -30,8 +32,8 @@ public:
 	virtual int OnVBlank();
 	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	virtual int DisplayMPEGLayerType(char *strType);
-	virtual int DisplayMetadata(char *strTitle, char *strURL);
-
+	//virtual int DisplayMetadata(char *strTitle, char *strURL);
+	virtual int OnNewSongData(CPlayList::songmetadata *pData);
 
 };
 

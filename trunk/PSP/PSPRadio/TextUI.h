@@ -33,7 +33,8 @@ public:
 	int OnVBlank();
 	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	int DisplayMPEGLayerType(char *strType);
-	int DisplayMetadata(char *strTitle, char *strURL);
+	//int DisplayMetadata(char *strTitle, char *strURL);
+	int OnNewSongData(CPlayList::songmetadata *pData);
 
 	
 private:

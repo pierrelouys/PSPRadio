@@ -248,7 +248,7 @@ int CGraphicsUI::OnVBlank()
 	return 0;
 }
 
-int CGraphicsUI::DisplayMetadata(char *strTitle, char *strURL)
+int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
 	return 0;
 }

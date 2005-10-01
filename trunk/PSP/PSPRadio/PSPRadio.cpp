@@ -162,7 +162,7 @@ public:
 				m_PlayList->InsertFile(config->GetStr("MUSIC:FILE"));
 			}
 
-			MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
+			SetCurrentFile();
 			UI->DisplayMainCommands();
 		}
 		else
@@ -238,7 +238,7 @@ public:
 				{
 					MP3->Stop();
 					m_PlayList->Prev();
-					MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
+					SetCurrentFile();
 					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
@@ -247,7 +247,7 @@ public:
 				{
 					MP3->Stop();
 					m_PlayList->Next();
-					MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
+					SetCurrentFile();
 					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
@@ -322,6 +322,8 @@ public:
 	int OnMessage(int iMessageId, void *pMessage, int iSenderId)
 	{
 		char MData[MAX_METADATA_SIZE];
+		CPlayList::songmetadata data;
+		int iTmp = 0;
 		char *strURL = "";
 		char *strTitle = "";
 		
@@ -394,7 +396,17 @@ public:
 					strURL   = GetMetadataValue(MData, METADATA_STREAMURL_TAG);
 					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
 					
-					UI->DisplayMetadata(strTitle, strURL);
+					//UI->DisplayMetadata(strTitle, strURL);
+					iTmp = 0;
+					MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
+					iTmp = m_PlayList->GetCurrentSong(&data);
+					if (0 == iTmp)
+					{
+						strcpy(data.strFileTitle, strTitle);
+						strcpy(data.strURL, strURL);
+						UI->OnNewSongData(&data);
+					}
+					
 					break;
 				//case MID_DECODE_DONE:
 				case MID_DECODE_FRAME_INFO_HEADER:
@@ -467,6 +479,18 @@ public:
 		
 		UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
 		Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
+	}
+	
+	void SetCurrentFile()
+	{
+		CPlayList::songmetadata data;
+		int iRet = 0;
+		MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
+		iRet = m_PlayList->GetCurrentSong(&data);
+		if (0 == iRet)
+		{
+			UI->OnNewSongData(&data);
+		}
 	}
 
 	
