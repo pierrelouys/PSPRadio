@@ -30,6 +30,7 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include "TextUI.h"
+#include "GraphicsUI.h"
 
 using namespace std;
 
@@ -246,7 +247,16 @@ public:
 				iLoglevel);
 		}
 		
-		UI = new CTextUI();
+		Log(LOG_LOWLEVEL, "UI Mode = %s", config->GetStr("UI:MODE"));
+		
+		if (0 == strcmp(config->GetStr("UI:MODE"), "Graphics"))
+		{
+			UI = new CGraphicsUI();
+		}
+		else
+		{
+			UI = new CTextUI();
+		}
 		
 		UI->Initialize();
 		UI->SetTitle(strAppTitle);
@@ -548,6 +558,11 @@ public:
 		
 		m_ExitSema->Down();
 		return 0;
+	}
+
+	void OnVBlank()
+	{
+		UI->OnVBlank();
 	}
 	
 	/** Raw metadata looks like this:
