@@ -118,7 +118,7 @@ void CPlayList::LoadPlayListFile(char *strFileName)
 		WAITING_FOR_FILE,
 		WAITING_FOR_TITLE,
 		WAITING_FOR_LENGTH,
-	} v2_state = WAITING_FOR_NUM_OF_ENTRIES;
+	} v2_state = WAITING_FOR_FILE;//WAITING_FOR_NUM_OF_ENTRIES;
 	
 	fd = fopen(strFileName, "r");
 	
@@ -159,6 +159,10 @@ void CPlayList::LoadPlayListFile(char *strFileName)
 					Log(LOG_INFO, "Adding '%s' to the list.", strLine);
 					break;
 				case 2:
+					if ( ('n' == strLine[0]) || ('N' == strLine[0]) ) /** Number of entry entry */
+						continue;
+					if ( ('v' == strLine[0]) || ('V' == strLine[0]) ) /** Version entry */
+						continue;
 					//Log(LOG_VERYLOW, "Line=%d strLine='%s' v2_state=%d", iLines, strLine, v2_state);
 					switch(v2_state)
 					{
@@ -253,17 +257,17 @@ void CPlayList::LoadPlayListFile(char *strFileName)
 							}
 							break;
 					}
-					if ( (true == fStopParsing) && (iV2_numberofentries > 0) )
+					if ( (true == fStopParsing) )//&& (iV2_numberofentries > 0) )
 					{
 						Log(LOG_ERROR, "Malformed playlist found. Error on Line %d (%s)", iLines+1, strLine);
 					}
 					break;
 			}
 			
-			if ( (2 == iFormatVersion) && (0 == iV2_numberofentries) ) /** Done! */
-			{
-				break;
-			}
+			//if ( (2 == iFormatVersion) && (0 == iV2_numberofentries) ) /** Done! */
+			//{
+			//	break;
+			//}
 			
 			iLines++;
 		}
