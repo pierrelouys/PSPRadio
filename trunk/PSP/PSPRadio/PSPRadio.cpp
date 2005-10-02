@@ -204,117 +204,117 @@ public:
 
 	void OnButtonReleased(int iButtonMask)
 	{
-		//static BOOLEAN fInHomeMenu = FALSE;
 		Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 		if (MP3)
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
 			
-			//if (iButtonMask & PSP_CTRL_HOME)
-			//{
-//				fInHomeMenu = fInHomeMenu?FALSE:TRUE; /** Reverse */
-//			}
-//			if (fInHomeMenu == FALSE)
+			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
 			{
-				if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
+				m_iNetworkProfile --;
+				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
+				if (m_iNetworkProfile < 1)
+					m_iNetworkProfile = 1;
+				
+				DisplayCurrentNetworkSelection();
+			}
+			else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
+			{
+				m_iNetworkProfile ++;
+				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
+				if (m_iNetworkProfile < 1)
+					m_iNetworkProfile = 1;
+				
+				DisplayCurrentNetworkSelection();
+			}
+			else if (iButtonMask & PSP_CTRL_LTRIGGER)
+			{
+				MP3->Stop();
+				m_PlayList->Prev();
+				SetCurrentFile();
+				sceKernelDelayThread(500000);  
+				/** Only auto-play the prev song if currently playing */
+				if (CPSPSound::PLAY == playingstate)
 				{
-					m_iNetworkProfile --;
-					m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
-					if (m_iNetworkProfile < 1)
-						m_iNetworkProfile = 1;
-					
-					DisplayCurrentNetworkSelection();
-				}
-				else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
-				{
-					m_iNetworkProfile ++;
-					m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
-					if (m_iNetworkProfile < 1)
-						m_iNetworkProfile = 1;
-					
-					DisplayCurrentNetworkSelection();
-				}
-				else if (iButtonMask & PSP_CTRL_LTRIGGER)
-				{
-					MP3->Stop();
-					m_PlayList->Prev();
-					SetCurrentFile();
-					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
 				}
-				else if (iButtonMask & PSP_CTRL_RTRIGGER)
+			}
+			else if (iButtonMask & PSP_CTRL_RTRIGGER)
+			{
+				MP3->Stop();
+				m_PlayList->Next();
+				SetCurrentFile();
+				sceKernelDelayThread(500000);  
+				/** Only auto-play the next song if currently playing */
+				if (CPSPSound::PLAY == playingstate)
 				{
-					MP3->Stop();
-					m_PlayList->Next();
-					SetCurrentFile();
-					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
 				}
-				else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+			}
+			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+			{
+				switch(playingstate)
 				{
-					switch(playingstate)
-					{
-						case CPSPSound::STOP:
-						case CPSPSound::PAUSE:
-							UI->DisplayActiveCommand(CPSPSound::PLAY);
-							MP3->Play();
-							break;
-						case CPSPSound::PLAY:
-							/** No pausing for URLs, only for Files(local) */
-							if (MP3->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
-							{
-								UI->DisplayActiveCommand(CPSPSound::PAUSE);
-								MP3->Pause();
-							}
-							break;
-					}
-				}
-				else if (iButtonMask & PSP_CTRL_SQUARE)
-				{
-					if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
-					{
-						UI->DisplayActiveCommand(CPSPSound::STOP);
-						MP3->Stop();
-					}
-				}
-				else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
-				{
-					if (sceWlanGetSwitchState() != 0)
-					{
-						m_ExitSema->Up();
-	
-						UI->DisplayActiveCommand(CPSPSound::STOP);
-						MP3->Stop();
-						sceKernelDelayThread(50000);  
-						
-						if (m_NetworkStarted)
+					case CPSPSound::STOP:
+					case CPSPSound::PAUSE:
+						UI->DisplayActiveCommand(CPSPSound::PLAY);
+						MP3->Play();
+						break;
+					case CPSPSound::PLAY:
+						/** No pausing for URLs, only for Files(local) */
+						if (MP3->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
 						{
-							UI->DisplayMessage_DisablingNetwork();
-			
-							Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-							DisableNetwork();
-							sceKernelDelayThread(500000);  
+							UI->DisplayActiveCommand(CPSPSound::PAUSE);
+							MP3->Pause();
 						}
-						
-						UI->DisplayMessage_EnablingNetwork();
-		
-						EnableNetwork(m_iNetworkProfile);
-						
-						UI->DisplayMessage_NetworkReady(GetMyIP());
-						Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
-						
-						m_NetworkStarted = 1;
-						
-						m_ExitSema->Down();
-					}
-					else
+						break;
+				}
+			}
+			else if (iButtonMask & PSP_CTRL_SQUARE)
+			{
+				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
+				{
+					UI->DisplayActiveCommand(CPSPSound::STOP);
+					MP3->Stop();
+				}
+			}
+			else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
+			{
+				if (sceWlanGetSwitchState() != 0)
+				{
+					m_ExitSema->Up();
+
+					UI->DisplayActiveCommand(CPSPSound::STOP);
+					MP3->Stop();
+					sceKernelDelayThread(50000);  
+					
+					if (m_NetworkStarted)
 					{
-						ReportError("The Network Switch is OFF, Cannot Start Network.");
+						UI->DisplayMessage_DisablingNetwork();
+		
+						Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+						DisableNetwork();
+						sceKernelDelayThread(500000);  
 					}
 					
+					UI->DisplayMessage_EnablingNetwork();
+	
+					EnableNetwork(m_iNetworkProfile);
+					
+					UI->DisplayMessage_NetworkReady(GetMyIP());
+					Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
+					
+					m_NetworkStarted = 1;
+					
+					m_ExitSema->Down();
 				}
+				else
+				{
+					ReportError("The Network Switch is OFF, Cannot Start Network.");
+				}
+				
 			}
 		}
 	};
