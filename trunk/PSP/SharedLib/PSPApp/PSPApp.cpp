@@ -86,7 +86,6 @@ CPSPApp::~CPSPApp()
 	
 	sceKernelExitGame();
 
-
 	return;
 }
 
@@ -139,10 +138,8 @@ int CPSPApp::Run()
 	m_ExitSema->Wait();
 	Log(LOG_VERYLOW, "OnAppExit:: Calling OnExit().");
 	OnExit();
-	sceKernelDelayThread(150000); // 150ms 
-	//sceKernelDelayThread(50000); /** 50ms */
-
-
+	//sceKernelDelayThread(150000); // 150ms 
+	
 	return 0;
 }
 

@@ -41,7 +41,7 @@ void writestring (int fd, char *string)
 {
 	int result, bytes = strlen(string);
 
-	while (bytes) 
+	while (bytes && (FALSE == pPSPApp->IsExiting())) 
 	{
 		if ((result = send(fd, string, bytes, 0)) < 0 && sceNetInetGetErrno() != EINTR) 
 		{

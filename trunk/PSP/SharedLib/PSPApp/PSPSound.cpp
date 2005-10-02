@@ -31,7 +31,6 @@
 
 using namespace std;
 
-//#define Log(level, format, args...) pPSPApp->m_Log.Log("CPSPSound", level, format, ## args)
 #define ReportError pPSPApp->ReportError
 
 CPSPSound *pPSPSound = NULL;
@@ -93,17 +92,19 @@ CPSPSound::~CPSPSound()
 		m_thDecode->WakeUp();
 		sceKernelDelayThread(100000);
 		
-		Log(LOG_VERYLOW, "~CSPSSound(): After WakeUp(), Destroying Threads.()");
+		Log(LOG_VERYLOW, "~CSPSSound(): Destroying decode thread. ");
 		delete(m_thDecode), m_thDecode = NULL;
 	}
 	
 	if (m_thPlayAudio) 
 	{
+		Log(LOG_VERYLOW, "~CSPSSound(): Destroying play thread. ");
 		delete(m_thPlayAudio), m_thPlayAudio = NULL;
 	}
 	
 	if (m_InputStream)
 	{
+		Log(LOG_VERYLOW, "~CSPSSound(): Destroying input stream object. ");
 		delete(m_InputStream); m_InputStream = NULL;
 	}
 
@@ -196,6 +197,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendMessage(MID_THPLAY_BEGIN);
 		
+		pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
 		for(;;)
 		{
 			if (pPSPApp->m_Exit == true)
@@ -227,8 +229,9 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 			
 		}
 		
-
 		pPSPSound->SendMessage(MID_THPLAY_END);
+		pPSPApp->CanExit(); /** OK, App can exit now. */
+
 		sceKernelExitThread(0);
 		return 0;
 }
@@ -239,6 +242,8 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 	Log(LOG_INFO,"Starting Decoding Thread; putting thread to sleep.");
 	pPSPSound->SendMessage(MID_THDECODE_BEGIN);
 
+	pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
+	
 	while (pPSPApp->m_Exit == FALSE)
 	{
 		/** Wait for the go-ahead: 
@@ -260,6 +265,9 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 		}
 	}
 	pPSPSound->SendMessage(MID_THDECODE_END);
+	
+	pPSPApp->CanExit(); /** OK, App can exit now. */
+	
 	sceKernelExitThread(0);
 
 	return 0;
