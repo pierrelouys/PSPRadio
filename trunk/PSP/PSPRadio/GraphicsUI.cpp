@@ -32,12 +32,34 @@
 
 #include "GraphicsUI.h"
 
-#define BASE_IMAGE "ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_sansAll.jpg"
+#define BASE_IMAGE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_sansAll.jpg"
+#define STOP_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Stop_ON.jpg"
+#define STOP_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Stop_OFF.jpg"
+#define PLAY_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Play_ON.jpg"
+#define PLAY_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Play_OFF.jpg"
+#define PAUSE_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Pause_ON.jpg"
+#define PAUSE_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Pause_OFF.jpg"
+#define LOAD_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Load_ON.jpg"
+#define LOAD_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Load_OFF.jpg"
+#define SOUND_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Sound_ON.jpg"
+#define SOUND_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Sound_OFF.jpg"
 
 CGraphicsUI::CGraphicsUI()
 {
 	m_bSDLInitialized = false;
+	
 	m_pImageBase = NULL;
+	m_pImageLoad[0] = NULL;
+	m_pImageLoad[1] = NULL;
+	m_pImagePlay[0] = NULL;
+	m_pImagePlay[1] = NULL;
+	m_pImagePause[0] = NULL;
+	m_pImagePause[1] = NULL;
+	m_pImageStop[0] = NULL;
+	m_pImageStop[1] = NULL;
+	m_pImageSound[0] = NULL;
+	m_pImageSound[1] = NULL;
+	
 	m_pScreen = NULL;
 	m_nDepth = -1;
 	m_nFlags = SDL_SWSURFACE | SDL_FULLSCREEN;
@@ -69,17 +91,37 @@ int CGraphicsUI::Initialize()
 	
  	m_bSDLInitialized = true;
  	
-	Log(LOG_LOWLEVEL, "Initialize: Loading image %s", BASE_IMAGE); 	
+	Log(LOG_LOWLEVEL, "Initialize: Loading images"); 	
 		
 	/** Initialize Base Image **/
-	m_pImageBase = IMG_Load(BASE_IMAGE);
+	m_pImageBase 		= LoadImage(BASE_IMAGE);
+	m_pImageLoad[0] 	= LoadImage(LOAD_IMAGE_OFF);
+	m_pImageLoad[1] 	= LoadImage(LOAD_IMAGE_ON);
+	m_pImagePlay[0] 	= LoadImage(PLAY_IMAGE_OFF);
+	m_pImagePlay[1] 	= LoadImage(PLAY_IMAGE_ON);
+	m_pImagePause[0] 	= LoadImage(PAUSE_IMAGE_OFF);
+	m_pImagePause[1] 	= LoadImage(PAUSE_IMAGE_ON);
+	m_pImageStop[0] 	= LoadImage(STOP_IMAGE_OFF);
+	m_pImageStop[1] 	= LoadImage(STOP_IMAGE_ON);
+	m_pImageSound[0] 	= LoadImage(SOUND_IMAGE_OFF);
+	m_pImageSound[1] 	= LoadImage(SOUND_IMAGE_ON);
 	
-	Log(LOG_LOWLEVEL, "Initialize: Image loaded %s", BASE_IMAGE); 	
+	Log(LOG_LOWLEVEL, "Initialize: Images loaded"); 	
 	
 	/** Make sure image was sucessfully loaded **/
-	if(NULL == m_pImageBase)
+	if((NULL == m_pImageBase) 			||
+		(NULL == m_pImageLoad[0]) 		||
+		(NULL == m_pImageLoad[1]) 		||
+		(NULL == m_pImagePlay[0]) 		||
+		(NULL == m_pImagePlay[1]) 		||
+		(NULL == m_pImagePause[0]) 		||
+		(NULL == m_pImagePause[1]) 		||
+		(NULL == m_pImageStop[0]) 		||
+		(NULL == m_pImageStop[1]) 		||
+		(NULL == m_pImageSound[0]) 		||
+		(NULL == m_pImageSound[1]))
 	{
-		Log(LOG_ERROR, "Initialize: IMG_Load(%s) error : %s", BASE_IMAGE, SDL_GetError());
+		Log(LOG_ERROR, "Initialize: error not all images loaded");
 		return -1;
 	}
 	
@@ -135,31 +177,70 @@ int CGraphicsUI::Initialize()
 		Log(LOG_LOWLEVEL, "Initialize: Setting palette completed");
 	}
 	
-	/* Display the image */
+	/** Display the image **/
 	SDL_BlitSurface(m_pImageBase, NULL, m_pScreen, NULL);
 	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);
-	
+		
 	return 0;
+}
+
+SDL_Surface *CGraphicsUI::LoadImage(char *szImageName)
+{
+	SDL_Surface *pImage = NULL;
+	pImage = IMG_Load(szImageName);
+	
+	if(NULL == pImage)
+	{
+		Log(LOG_ERROR, "LoadImage: error loading image %s : %s",
+			szImageName,
+			SDL_GetError());		
+	}
+	else
+	{
+		Log(LOG_INFO, "LoadImage: %s loaded", szImageName);
+	}
+	
+	return pImage;
+}
+
+void CGraphicsUI::UnLoadImage(SDL_Surface **ppImage)
+{
+	Log(LOG_INFO, "UnloadImage: unloading 0x08X", *ppImage);
+	if(NULL != *ppImage)
+	{
+		SDL_FreeSurface(*ppImage);
+		*ppImage = NULL;
+	}
 }
 
 void CGraphicsUI::Terminate()
 {
+	Log(LOG_INFO, "Terminate: unloading images");
+	UnLoadImage(&m_pImageBase);
+	UnLoadImage(&m_pImageLoad[0]);
+	UnLoadImage(&m_pImageLoad[1]);
+	UnLoadImage(&m_pImagePlay[0]);
+	UnLoadImage(&m_pImagePlay[1]);
+	UnLoadImage(&m_pImagePause[0]);
+	UnLoadImage(&m_pImagePause[1]);
+	UnLoadImage(&m_pImageStop[0]);
+	UnLoadImage(&m_pImageStop[1]);
+	UnLoadImage(&m_pImageSound[0]);
+	UnLoadImage(&m_pImageSound[1]);
+	Log(LOG_INFO, "Terminate: images all unloaded");
+
 	/** If we are initialized do some cleaning up **/
 	if(true == m_bSDLInitialized)
 	{
-		/** Cleanup Images **/
-		if(NULL != m_pImageBase)
-		{
-			SDL_FreeSurface(m_pImageBase);
-			m_pImageBase = NULL;
-		}
-	
+		Log(LOG_INFO, "Terminate: cleaning up SDL");
 		/** Shut down SDL **/
 		SDL_Quit();
 		
 		/** Reset our initialized flag **/
 		m_bSDLInitialized = false;
 	}
+	
+	Log(LOG_INFO, "Terminate: completed");
 }
 
 int CGraphicsUI::SetTitle(char *strTitle)
@@ -196,16 +277,55 @@ int CGraphicsUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	switch(playingstate)
 	{
 		case CPSPSound::STOP:
+			SetPlayButton(UIBUTTONSTATE_OFF);
+			SetPauseButton(UIBUTTONSTATE_OFF);
+			SetStopButton(UIBUTTONSTATE_ON);			
 			break;
 		
 		case CPSPSound::PLAY:
+			SetPlayButton(UIBUTTONSTATE_ON);
+			SetPauseButton(UIBUTTONSTATE_OFF);
+			SetStopButton(UIBUTTONSTATE_OFF);			
 			break;
 		
 		case CPSPSound::PAUSE:
+			SetPlayButton(UIBUTTONSTATE_OFF);
+			SetPauseButton(UIBUTTONSTATE_ON);
+			SetStopButton(UIBUTTONSTATE_OFF);			
 			break;
 	}
 	
 	return 0;
+}
+
+void CGraphicsUI::SetPlayButton(uibuttonstate_enum state)
+{
+	SDL_Rect destRect;
+	destRect.x = 16;
+	destRect.y = 252;
+			
+	SDL_BlitSurface(m_pImagePlay[state], NULL, m_pScreen, &destRect);
+	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);			
+}
+
+void CGraphicsUI::SetPauseButton(uibuttonstate_enum state)
+{
+	SDL_Rect destRect;
+	destRect.x = 34;
+	destRect.y = 252;
+			
+	SDL_BlitSurface(m_pImagePause[state], NULL, m_pScreen, &destRect);
+	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);			
+}
+
+void CGraphicsUI::SetStopButton(uibuttonstate_enum state)
+{
+	SDL_Rect destRect;
+	destRect.x = 52;
+	destRect.y = 252;
+			
+	SDL_BlitSurface(m_pImageStop[state], NULL, m_pScreen, &destRect);
+	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);			
 }
 
 int CGraphicsUI::DisplayErrorMessage(char *strMsg)

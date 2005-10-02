@@ -6,6 +6,12 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 
+enum uibuttonstate_enum
+{
+	UIBUTTONSTATE_OFF = 0,
+	UIBUTTONSTATE_ON = 1
+};
+
 class CGraphicsUI : public IPSPRadio_UI
 {
 public:
@@ -38,15 +44,28 @@ public:
 	int DisplayMPEGLayerType(char *strType);
 	//int DisplayMetadata(char *strTitle, char *strURL);
 	int OnNewSongData(CPlayList::songmetadata *pData);
+	
+private:
+	SDL_Surface *LoadImage(char *szImageName);
+	void UnLoadImage(SDL_Surface **ppImage);
+
+	void SetPlayButton(uibuttonstate_enum state);
+	void SetPauseButton(uibuttonstate_enum state);
+	void SetStopButton(uibuttonstate_enum state);
 
 	
 private:
 	bool m_bSDLInitialized;
-	SDL_Surface *m_pImageBase;
+	SDL_Surface *m_pImageBase;	
+	SDL_Surface *m_pImageLoad[2];
+	SDL_Surface *m_pImagePlay[2];
+	SDL_Surface *m_pImagePause[2];
+	SDL_Surface *m_pImageStop[2];	
+	SDL_Surface *m_pImageSound[2];
+	
 	SDL_Surface *m_pScreen;
 	int m_nDepth;
- 	int m_nFlags;
-	
+ 	int m_nFlags;	
 };
 
 
