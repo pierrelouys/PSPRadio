@@ -59,7 +59,7 @@ private:
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.34b-pre2"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.34b-pre3"){};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -115,21 +115,16 @@ public:
 			EnableUSB();
 		}
 		
-		//if (-1 != config->GetInteger("WIFI:FORCED_PROFILE", -1))
-		//{
-			m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
-			
-			if (m_iNetworkProfile < 1)
-			{
-				m_iNetworkProfile = 1;
-				Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
-			}
-		//}
-		//else
-		//{
-			m_iNetworkProfile = config->GetInteger("WIFI:FORCED_PROFILE", 1);
-			Log(LOG_ERROR, "FORCED NETWORK PROFILE: %d", m_iNetworkProfile);
-		//}
+		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
+		
+		if (m_iNetworkProfile < 1)
+		{
+			m_iNetworkProfile = 1;
+			Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
+		}
+		
+		m_iNetworkProfile = config->GetInteger("WIFI:FORCED_PROFILE", 1);
+		Log(LOG_ERROR, "FORCED NETWORK PROFILE: %d", m_iNetworkProfile);
 		
 		if (config->GetInteger("WIFI:AUTOSTART", 0) == 1)
 		{
