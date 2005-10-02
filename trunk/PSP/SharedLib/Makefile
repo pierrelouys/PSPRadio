@@ -1,6 +1,6 @@
 
 all:
-	cd lib && rm *.a
+	cd lib && rm -f *.a 
 	cd Tools && make clean all
 	cd libpspnet && make clean all
 	cd libiniparser && make clean all
