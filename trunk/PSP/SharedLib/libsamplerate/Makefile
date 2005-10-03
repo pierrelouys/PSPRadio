@@ -3,7 +3,7 @@ OBJS = samplerate.o src_linear.o src_sinc.o src_zoh.o
 
 
 INCDIR = 
-CFLAGS = -O2 -Wall -I../libpspnet -D__PSP__
+CFLAGS = -O2 -Wall -D__PSP__
 #-G0
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
