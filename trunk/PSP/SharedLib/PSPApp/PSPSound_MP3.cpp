@@ -31,7 +31,6 @@ using namespace std;
 
 int errno = 0;
 
-//#define Log(level, format, args...) pPSPApp->m_Log.Log("CPSPSound_MP3", level, format, ## args)
 #define ReportError pPSPApp->ReportError
 
 CPSPSound_MP3 *pPSPSound_MP3 = NULL;
@@ -60,7 +59,7 @@ void CPSPSound_MP3::Decode()
 						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
 	int count = 0;
-	int iSampleRatio = 1;
+	//int iSampleRatio = 1;
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
 	pOutputBuffer = (unsigned char*)malloc(OUTPUT_BUFFER_SIZE);
@@ -192,7 +191,8 @@ void CPSPSound_MP3::Decode()
 					ReportError("Error in Frame info.");
 					break;
 				}
-				iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
+				pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
+				//iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
 			}
 	
 			/* Accounting. The computed frame duration is in the frame
@@ -245,7 +245,7 @@ void CPSPSound_MP3::Decode()
 					SampleR = SampleL;
 				}
 				
-				for (int i = 0 ; i < iSampleRatio ; i++)
+				//for (int i = 0 ; i < iSampleRatio ; i++)
 				{
 					*(OutputPtr++)=((SampleL) & 0xff);
 					*(OutputPtr++)=((SampleL >> 8) & 0xff);

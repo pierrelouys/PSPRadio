@@ -64,7 +64,6 @@
 		char *GetFile() { return m_strFile; };
 		int Open();
 		void Close();
-		int OpenURL(char *strURL);
 		size_t Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount);
 		bool IsOpen();
 		bool IsEOF();
@@ -93,6 +92,7 @@
 	{
 	public:
 		CPSPSoundBuffer();
+		~CPSPSoundBuffer();
 		void  Push(char *buf);
 		char *Pop();
 		int   GetPushPos();
@@ -100,6 +100,8 @@
 		void  Empty();
 		void  Done();
 		int   IsDone();
+		
+		void  SetSampleRate(size_t samplerate);
 	
 	private:
 		#if 0
@@ -110,8 +112,11 @@
 		std::list<audiobuffer*> m_PCMBufferList;
 		#endif
 		int pushpos,poppos,m_lastpushpos;
-		char *ringbuf;
+		char *ringbuf, *upsampled_buffer;
 		bool buffering;
+		size_t m_samplerate, m_dUpsampledbuffersize;
+		
+		size_t UpSample(short *bOut, short *bIn);
 
 	};
 	

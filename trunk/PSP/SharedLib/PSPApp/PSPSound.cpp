@@ -319,8 +319,25 @@ char * CPSPSoundBuffer::PopBuffer()
 #endif
 CPSPSoundBuffer::CPSPSoundBuffer()
 {
+	m_samplerate = PSP_SAMPLERATE;
+	
 	ringbuf = (char*)memalign(64, OUTPUT_BUFFER_SIZE * (NUM_BUFFERS + 5));
+	upsampled_buffer = NULL;
+	m_dUpsampledbuffersize = 0;
 	Empty();
+	
+}
+
+CPSPSoundBuffer::~CPSPSoundBuffer()
+{
+	if (upsampled_buffer)
+	{
+		free(upsampled_buffer), upsampled_buffer=NULL;
+	}
+	if (ringbuf)
+	{
+		free(ringbuf), ringbuf=NULL;
+	}
 	
 }
 int CPSPSoundBuffer::GetPushPos() 
@@ -335,16 +352,85 @@ void  CPSPSoundBuffer::Empty()
 	buffering = true;
 }
 
+void CPSPSoundBuffer::SetSampleRate(size_t samplerate)
+{
+	if (samplerate > 0)
+	{
+		if (upsampled_buffer)
+		{
+			free(upsampled_buffer);
+		}
+		m_dUpsampledbuffersize = (size_t)((double)(OUTPUT_BUFFER_SIZE+100/*padding*/)*((double)PSP_SAMPLERATE/(double)samplerate));
+		upsampled_buffer = (char *)memalign(64, (int)m_dUpsampledbuffersize);
+		
+		if (upsampled_buffer)
+		{
+			Empty();
+			m_samplerate = samplerate;
+			Log(LOG_VERYLOW, "Allocated %dbytes for upsampled_buffer, samplerate=%dHz.", m_dUpsampledbuffersize, samplerate);
+
+		}
+		else
+		{
+			Log(LOG_ERROR, "Memory allocation error creating an upsampled_buffer of %dbytes (samplerate=%dHz).", m_dUpsampledbuffersize, samplerate);
+			m_samplerate = 0;
+			m_dUpsampledbuffersize = 0;
+		}
+	}
+}
+
 void CPSPSoundBuffer::Push(char *buf)
 {
+	size_t size = 0;
+	
 	while((pushpos - poppos) > NUM_BUFFERS/2)
 	{ /*Wait for pop to catch up, we keep a min space of NUM_BUFFERS/2 */
-		sceKernelDelayThread(50); /** 500us */
+		sceKernelDelayThread(50); /** 50us */
 		if (pPSPApp->IsExiting() == true)
 			break;
 	}
-	memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
-	pushpos = (pushpos + 1) % NUM_BUFFERS;
+	
+	if (PSP_SAMPLERATE == m_samplerate)
+	{
+		memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
+		pushpos = (pushpos + 1) % NUM_BUFFERS;
+	}
+	else /** We need to upsample */
+	{
+		if (upsampled_buffer && m_dUpsampledbuffersize)
+		{
+			size = UpSample(/*out*/(short*)upsampled_buffer, /*in*/(short*)buf);
+			memcpy(ringbuf+(pushpos*size), upsampled_buffer, size);
+			pushpos = (pushpos + 1) % NUM_BUFFERS;
+		}
+		else
+		{
+			Log(LOG_ERROR, "CPSPSoundBuffer::Push() Error. No upsampled_buffer.", m_dUpsampledbuffersize, m_samplerate);
+		}
+	}
+}
+
+size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn)
+{
+	int iSampleRatio = PSP_SAMPLERATE / m_samplerate;
+	int iCnt, iInBytes;
+	char *start = (char*)bOut;
+	size_t out_size_in_bytes;
+
+	for (iInBytes = 0 ; iInBytes < OUTPUT_BUFFER_SIZE/4 ; iInBytes++) /** 4 = 2[ch] * 2[bytes-per-sample] */
+	{
+		for (iCnt = 0 ; iCnt < iSampleRatio ; iCnt++)
+		{
+			*(bOut)=*(bIn);	/** Left sample  */
+			*(bOut+1)=*(bIn+1); /** Right sample */
+		}
+		bOut+=(iSampleRatio*2);
+		bIn+=2;
+	}
+	out_size_in_bytes = (char*)bOut - start;
+	Log(LOG_VERYLOW, "Upsample: iSampleRatio=%d(int %db, out %db)", iSampleRatio, OUTPUT_BUFFER_SIZE, out_size_in_bytes);
+	
+	return out_size_in_bytes;
 }
 
 char * CPSPSoundBuffer::Pop()
