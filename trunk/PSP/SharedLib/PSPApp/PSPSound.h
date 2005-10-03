@@ -18,6 +18,14 @@
 */
 #ifndef PSPSOUND
 #define __PSPSOUND__
+	#define NUM_CHANNELS		2
+	#define BYTES_PER_SAMPLE	2
+	#define FRAMES_TO_SAMPLES(f)	(f*NUM_CHANNELS)
+	#define SAMPLES_TO_BYTES(s)		(s*BYTES_PER_SAMPLE)
+	#define BYTES_TO_FRAMES(b)		(b/(NUM_CHANNELS*BYTES_PER_SAMPLE))
+	#define BYTES_TO_SAMPLES(b)		(b/(BYTES_PER_SAMPLE))
+	#define FRAMES_TO_BYTES(f)		(f*(NUM_CHANNELS*BYTES_PER_SAMPLE))
+	
 	//#define INPUT_BUFFER_SIZE		(5*8192) //original
 	#define INPUT_BUFFER_SIZE		(16302)
 	//#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192) //original
@@ -115,6 +123,7 @@
 		char *ringbuf, *upsampled_buffer;
 		bool buffering;
 		size_t m_samplerate, m_dUpsampledbuffersize;
+		float *m_fin, *m_fout;		
 		
 		size_t UpSample(short *bOut, short *bIn);
 

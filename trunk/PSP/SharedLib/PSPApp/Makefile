@@ -1,8 +1,9 @@
 TARGET_LIB = ../lib/libPSPApp.a
 OBJS = PSPApp.o PSPSound.o bstdfile.o PSPSound_MP3.o httpget.o
 
-INCDIR = 
-CFLAGS = -O2 -Wall -I../libpspnet -I../Logging -D__PSP__
+INCDIR =
+INCLUDES= -I../libpspnet -I../Logging -I../libsamplerate
+CFLAGS = -O2 -Wall -D__PSP__ $(INCLUDES)
 #-G0
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

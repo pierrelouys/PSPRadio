@@ -323,6 +323,7 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 	
 	ringbuf = (char*)memalign(64, OUTPUT_BUFFER_SIZE * (NUM_BUFFERS + 5));
 	upsampled_buffer = NULL;
+	m_fin = m_fout = NULL;
 	m_dUpsampledbuffersize = 0;
 	Empty();
 	
@@ -333,6 +334,14 @@ CPSPSoundBuffer::~CPSPSoundBuffer()
 	if (upsampled_buffer)
 	{
 		free(upsampled_buffer), upsampled_buffer=NULL;
+	}
+	if (m_fin)
+	{
+		free(m_fin);
+	}
+	if (m_fout)
+	{
+		free(m_fout);
 	}
 	if (ringbuf)
 	{
@@ -360,8 +369,19 @@ void CPSPSoundBuffer::SetSampleRate(size_t samplerate)
 		{
 			free(upsampled_buffer);
 		}
+		if (m_fin)
+		{
+			free(m_fin);
+		}
+		if (m_fout)
+		{
+			free(m_fout);
+		}
+		
 		m_dUpsampledbuffersize = (size_t)((double)(OUTPUT_BUFFER_SIZE+100/*padding*/)*((double)PSP_SAMPLERATE/(double)samplerate));
 		upsampled_buffer = (char *)memalign(64, (int)m_dUpsampledbuffersize);
+		m_fin  = (float*)malloc(BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)*sizeof(float));
+		m_fout = (float*)malloc(BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)*sizeof(float)*10);
 		
 		if (upsampled_buffer)
 		{
@@ -410,6 +430,7 @@ void CPSPSoundBuffer::Push(char *buf)
 	}
 }
 
+#if 0
 size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn)
 {
 	int iSampleRatio = PSP_SAMPLERATE / m_samplerate;
@@ -428,9 +449,79 @@ size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn)
 		bIn+=2;
 	}
 	out_size_in_bytes = (char*)bOut - start;
-	Log(LOG_VERYLOW, "Upsample: iSampleRatio=%d(int %db, out %db)", iSampleRatio, OUTPUT_BUFFER_SIZE, out_size_in_bytes);
+	//Log(LOG_VERYLOW, "Upsample: iSampleRatio=%d(int %db, out %db)", iSampleRatio, OUTPUT_BUFFER_SIZE, out_size_in_bytes);
 	
 	return out_size_in_bytes;
+}
+#endif
+
+#include <samplerate.h>
+#include <math.h>
+size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn)
+{
+	/*
+	typedef struct
+	{   
+		float  *data_in, *data_out ;
+		
+		long   input_frames, output_frames ;
+		long   input_frames_used, output_frames_gen ;
+		
+		int    end_of_input ;
+		
+		double src_ratio ;
+	} SRC_DATA ;
+	*/
+
+	
+	//float fin[BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)];
+	//float fout[BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)*10];
+	int samplecount;
+	
+	SRC_DATA data;
+	
+	
+	if (m_fin && m_fout)
+	{
+		data.data_in  = m_fin;
+		data.data_out = m_fout;
+		data.input_frames  = BYTES_TO_FRAMES(OUTPUT_BUFFER_SIZE);
+		data.output_frames = BYTES_TO_FRAMES(((double)(1.0 * OUTPUT_BUFFER_SIZE)*((double)1.0 * PSP_SAMPLERATE/(double)m_samplerate)));
+		//data.src_ratio = (double)(1.0 * m_samplerate) / (double)PSP_SAMPLERATE;
+		data.src_ratio = (double)(1.0 * PSP_SAMPLERATE) / (double)m_samplerate;
+		
+		/** convert each input sample to float */
+		//Log(LOG_VERYLOW, "Converting input buffer to float...");
+		for (samplecount=0; samplecount < BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE); samplecount++)
+		{
+			m_fin[samplecount] = (bIn[samplecount]/32767.0);
+		}
+		
+		// int src_simple (SRC_DATA *data, int converter_type, int channels) ;
+		//Log(LOG_VERYLOW, "Calling src_simple...");
+		int errcode = src_simple(&data, SRC_LINEAR, NUM_CHANNELS);
+		
+		if (errcode != 0)
+		{
+			ReportError("libsamplerate error: '%s'", src_strerror(errcode));
+		}
+		else
+		{
+			//Log(LOG_VERYLOW, "Converting output buffer back to shorts (%d frames)...", data.output_frames_gen);
+			/** convert output back to shorts */
+			for (samplecount = 0; samplecount < FRAMES_TO_SAMPLES(data.output_frames_gen); samplecount++)
+			{
+				bOut[samplecount] = /*lrint*/(32767.0 * m_fout[samplecount]);
+			}
+		}
+		
+		return FRAMES_TO_BYTES(data.output_frames_gen);
+	}
+	else
+	{
+		ReportError("UpSample error: No buffers");
+		return 0;
+	}
 }
 
 char * CPSPSoundBuffer::Pop()
