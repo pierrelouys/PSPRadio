@@ -218,7 +218,6 @@ int CTextUI::OnNewStreamStarted()
 int CTextUI::OnStreamOpening(char *StreamName)
 {
 	ClearErrorMessage(); /** Clear any errors */
-	//ClearRows(12,15); /** Clear metadata info */
 	ClearRows(18);
 	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Opening)", StreamName);
 	return 0;
@@ -233,7 +232,6 @@ int CTextUI::OnStreamOpeningError(char *StreamName)
 
 int CTextUI::OnStreamOpeningSuccess(char *StreamName)
 {
-	//ClearRows(12,15); /** Clear metadata info */
 	ClearRows(18);
 	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Open)", StreamName);
 	return 0;
@@ -248,20 +246,20 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
 	ClearRows(12,15);
 	
-	if (strlen(pData->strFileTitle) >= 60)
-		pData->strFileTitle[60] = 0;
+	if (strlen(pData->strFileTitle) >= 59)
+		pData->strFileTitle[59] = 0;
 		
-	if (strlen(pData->strURL) >= 60)
-		pData->strURL[60] = 0;
+	if (strlen(pData->strURL) >= 59)
+		pData->strURL[59] = 0;
 	
-	uiPrintf(0 , 13,	COLOR_WHITE,  "File : ");
-	uiPrintf(7 , 13,	COLOR_CYAN, "%s ", pData->strFileName);
-	uiPrintf(0 , 14,    COLOR_WHITE,  "Title: ");
-	uiPrintf(7 , 14,    COLOR_CYAN, "%s ", pData->strFileTitle);
+	uiPrintf(0 , 13,	COLOR_WHITE,  "Stream: ");
+	uiPrintf(8 , 13,	COLOR_CYAN, "%s ", pData->strFileName);
+	uiPrintf(0 , 14,    COLOR_WHITE,  "Title : ");
+	uiPrintf(8 , 14,    COLOR_CYAN, "%s ", pData->strFileTitle);
 	if (pData->strURL && strlen(pData->strURL))
 	{
-		uiPrintf(0, 15, COLOR_WHITE,  "URL:   ");
-		uiPrintf(7, 15, COLOR_CYAN, "%s ", pData->strURL);
+		uiPrintf(0, 15, COLOR_WHITE,  "URL   : ");
+		uiPrintf(8, 15, COLOR_CYAN, "%s ", pData->strURL);
 	}
 	return 0;
 }
