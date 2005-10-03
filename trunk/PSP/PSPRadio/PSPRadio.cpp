@@ -342,14 +342,10 @@ public:
 				switch(iMessageId)
 				{
 				case MID_THPLAY_BEGIN:
-					//pspDebugScreenSetXY(30,4);
-					//printf("Starting Play Thread\n");
+
 					break;
 				case MID_THPLAY_END:
-					//pspDebugScreenSetXY(30,4);
-					//printf("                    ");
-					//pspDebugScreenSetXY(0,11);      
-					//printf("                        ");
+
 					break;
 				case MID_THPLAY_BUFCYCLE:
 					UI->DisplayPlayBuffer(MP3->GetBufferPopPos(), NUM_BUFFERS);
@@ -358,27 +354,19 @@ public:
 					break;
 					
 				case MID_THDECODE_AWOKEN:
-					//pspDebugScreenSetXY(0,4);
-					//printf("Starting Decoding Thread");
 					UI->OnNewStreamStarted();
 					break;
 				case MID_THDECODE_ASLEEP:
-					//pspDebugScreenSetXY(0,4);
-					//printf("                        ");
-					//pspDebugScreenSetXY(0,4);        
-					//printf("                        ");
-					//pspDebugScreenSetXY(0,10);      
-					//printf("                        ");
 					break;
 					
 				case MID_DECODE_STREAM_OPENING:
-					UI->OnStreamOpening(MP3->GetStream()->GetFile());
+					UI->OnStreamOpening();
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
-					UI->OnStreamOpeningError(MP3->GetStream()->GetFile());
+					UI->OnStreamOpeningError();
 					break;
 				case MID_DECODE_STREAM_OPEN:
-					UI->OnStreamOpeningSuccess(MP3->GetStream()->GetFile());
+					UI->OnStreamOpeningSuccess();
 					break;
 				case MID_DECODE_BUFCYCLE:
 					UI->DisplayDecodeBuffer(MP3->GetBufferPushPos(), NUM_BUFFERS);

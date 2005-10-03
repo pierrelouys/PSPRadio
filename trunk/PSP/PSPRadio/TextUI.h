@@ -26,10 +26,10 @@ public:
 
 	/** these are listed in sequential order */
 	int OnNewStreamStarted();
-	int OnStreamOpening(char *StreamName);
+	int OnStreamOpening();
 	int OnConnectionProgress();
-	int OnStreamOpeningError(char *StreamName);
-	int OnStreamOpeningSuccess(char *StreamName);
+	int OnStreamOpeningError();
+	int OnStreamOpeningSuccess();
 	int OnVBlank();
 	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	int DisplayMPEGLayerType(char *strType);

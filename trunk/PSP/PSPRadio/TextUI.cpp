@@ -215,25 +215,25 @@ int CTextUI::OnNewStreamStarted()
 	return 0;
 }
 
-int CTextUI::OnStreamOpening(char *StreamName)
+int CTextUI::OnStreamOpening()
 {
 	ClearErrorMessage(); /** Clear any errors */
 	ClearRows(18);
-	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Opening)", StreamName);
+	uiPrintf(0, 18, COLOR_WHITE, "Opening Stream");
 	return 0;
 }
 
-int CTextUI::OnStreamOpeningError(char *StreamName)
+int CTextUI::OnStreamOpeningError()
 {
 	ClearRows(18);
-	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Error Opening)", StreamName);
+	uiPrintf(0, 18, COLOR_WHITE, "Error Opening Stream");
 	return 0;
 }
 
-int CTextUI::OnStreamOpeningSuccess(char *StreamName)
+int CTextUI::OnStreamOpeningSuccess()
 {
 	ClearRows(18);
-	uiPrintf(0, 18, COLOR_WHITE, "Stream: %s (Open)", StreamName);
+	uiPrintf(0, 18, COLOR_WHITE, "Stream Opened");
 	return 0;
 }
 

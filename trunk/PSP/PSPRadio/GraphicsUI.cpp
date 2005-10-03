@@ -348,17 +348,17 @@ int CGraphicsUI::OnNewStreamStarted()
 	return 0;
 }
 
-int CGraphicsUI::OnStreamOpening(char *StreamName)
+int CGraphicsUI::OnStreamOpening()
 {
 	return 0;
 }
 
-int CGraphicsUI::OnStreamOpeningError(char *StreamName)
+int CGraphicsUI::OnStreamOpeningError()
 {
 	return 0;
 }
 
-int CGraphicsUI::OnStreamOpeningSuccess(char *StreamName)
+int CGraphicsUI::OnStreamOpeningSuccess()
 {
 	return 0;
 }

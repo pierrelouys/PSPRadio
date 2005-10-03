@@ -25,10 +25,10 @@ public:
 
 	/** these are listed in sequential order */
 	virtual int OnNewStreamStarted();
-	virtual int OnStreamOpening(char *StreamName);
+	virtual int OnStreamOpening();
 	virtual int OnConnectionProgress();
-	virtual int OnStreamOpeningError(char *StreamName);
-	virtual int OnStreamOpeningSuccess(char *StreamName);
+	virtual int OnStreamOpeningError();
+	virtual int OnStreamOpeningSuccess();
 	virtual int OnVBlank();
 	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	virtual int DisplayMPEGLayerType(char *strType);
