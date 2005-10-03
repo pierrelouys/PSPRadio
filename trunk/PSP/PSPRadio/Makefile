@@ -17,7 +17,7 @@ LDFLAGS =
 
 LIBS = -lPSPApp -lsupc++ -lstdc++ -lpspnet -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
-		-lsamplerate \
+		-lsamplerate -lm \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor
 
