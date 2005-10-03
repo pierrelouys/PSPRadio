@@ -257,14 +257,14 @@ int CPSPApp::WLANConnectionHandler(int profile)
 
     err = nlhInit();
     if (err != 0) {
-		ReportError("ERROR - WLANConnectionHandler : nlhInit returned '%d'.\n", err);
+		ReportError("ERROR - WLANConnectionHandler : nlhInit returned '0x%x'.\n", err);
         DisableNetwork();
         iRet = -1;
     }
 
 	err = sceNetApctlConnect(profile);
     if (err != 0) {
-		ReportError("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '%d'.\n", err);
+		ReportError("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '0x%x'.\n", err);
         DisableNetwork();
         iRet =-1;
     }

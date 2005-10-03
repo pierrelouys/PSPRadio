@@ -191,8 +191,9 @@ void CPSPSound_MP3::Decode()
 					ReportError("Error in Frame info.");
 					break;
 				}
-				pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
+				//pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
 				//iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
+				Synth.pcm.samplerate = Frame.header.samplerate;
 			}
 	
 			/* Accounting. The computed frame duration is in the frame
