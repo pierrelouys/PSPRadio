@@ -407,7 +407,7 @@ public:
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)pMessage;
-					UI->DisplaySampleRateAndKBPS(Header->samplerate, Header->bitrate);
+					UI->DisplaySampleRateAndKBPS(Header->samplerate, Header->bitrate/1000);
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
 					UI->DisplayMPEGLayerType((char*)pMessage);
