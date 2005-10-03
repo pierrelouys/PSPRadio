@@ -165,6 +165,7 @@ int CTextUI::DisplayMainCommands()
 int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
 	uicolors color = COLOR_CYAN;
+	ClearRows(20);
 	switch(playingstate)
 	{
 	case CPSPSound::STOP:
