@@ -244,28 +244,6 @@ int CTextUI::OnVBlank()
 	return 0;
 }
 
-#if 0
-int CTextUI::DisplayMetadata(char *strTitle, char *strURL)
-{
-	ClearRows(12,15);
-	
-	if (strlen(strTitle) >= 60)
-		strTitle[60] = 0;
-		
-	if (strlen(strURL) >= 60)
-		strURL[60] = 0;
-	
-	uiPrintf(0 , 12,    COLOR_WHITE,  "Title: ");
-	uiPrintf(7 , 12,    COLOR_CYAN, "%s ", strTitle);
-	if (strURL && strlen(strURL))
-	{
-		uiPrintf(0, 13, COLOR_WHITE,  "URL:   ");
-		uiPrintf(7, 13, COLOR_CYAN, "%s ", strURL);
-	}
-	return 0;
-}
-#endif
-
 int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
 	ClearRows(12,15);
@@ -276,14 +254,14 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 	if (strlen(pData->strURL) >= 60)
 		pData->strURL[60] = 0;
 	
-	uiPrintf(0 , 12,	COLOR_WHITE,  "File : ");
-	uiPrintf(7 , 12,	COLOR_CYAN, "%s ", pData->strFileName);
-	uiPrintf(0 , 13,    COLOR_WHITE,  "Title: ");
-	uiPrintf(7 , 13,    COLOR_CYAN, "%s ", pData->strFileTitle);
+	uiPrintf(0 , 13,	COLOR_WHITE,  "File : ");
+	uiPrintf(7 , 13,	COLOR_CYAN, "%s ", pData->strFileName);
+	uiPrintf(0 , 14,    COLOR_WHITE,  "Title: ");
+	uiPrintf(7 , 14,    COLOR_CYAN, "%s ", pData->strFileTitle);
 	if (pData->strURL && strlen(pData->strURL))
 	{
-		uiPrintf(0, 14, COLOR_WHITE,  "URL:   ");
-		uiPrintf(7, 14, COLOR_CYAN, "%s ", pData->strURL);
+		uiPrintf(0, 15, COLOR_WHITE,  "URL:   ");
+		uiPrintf(7, 15, COLOR_CYAN, "%s ", pData->strURL);
 	}
 	return 0;
 }
