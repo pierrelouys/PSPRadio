@@ -18,22 +18,26 @@
 */
 #ifndef PSPSOUND
 #define __PSPSOUND__
-	#define NUM_CHANNELS		2
-	#define BYTES_PER_SAMPLE	2
+	/** Useful macros */
 	#define FRAMES_TO_SAMPLES(f)	(f*NUM_CHANNELS)
 	#define SAMPLES_TO_BYTES(s)		(s*BYTES_PER_SAMPLE)
 	#define BYTES_TO_FRAMES(b)		(b/(NUM_CHANNELS*BYTES_PER_SAMPLE))
 	#define BYTES_TO_SAMPLES(b)		(b/(BYTES_PER_SAMPLE))
 	#define FRAMES_TO_BYTES(f)		(f*(NUM_CHANNELS*BYTES_PER_SAMPLE))
 	
-	//#define INPUT_BUFFER_SIZE		(5*8192) //original
-	#define INPUT_BUFFER_SIZE		(16302)
-	//#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(8192) //original
-	#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(4096)
-	#define PSP_AUDIO_BUFFER_SIZE 	PSP_NUM_AUDIO_SAMPLES*2*16
-	#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
-	#define NUM_BUFFERS 			100
 	#define PSP_SAMPLERATE			44100
+	#define NUM_CHANNELS			2	/** L and R */
+	#define BYTES_PER_SAMPLE		2	/** 16bit sound */
+	
+	/** Configurable */
+	#define PSP_BUFFER_SIZE_IN_FRAMES	4096	/** 4096frames =16384bytes =8192samples-l-r-combined.*/
+	//#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(4096)
+	//#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
+	#define NUM_BUFFERS 			10	/* 10 frames */
+	
+	#define INPUT_BUFFER_SIZE		16302
+	
+	/** Fixed */
 	#define MAX_METADATA_SIZE		4080
 	
 	#include <list>
@@ -41,15 +45,11 @@
 	#include "bstdfile.h"
 
 	
-
-
-	/** From httpget.c */
 	/* ------ Declarations from "httpget.c" (From mpg123) ------ */
-	//extern char *proxyurl;
-	//extern unsigned long proxyip;
 	extern int http_open (char *url, size_t &iMetadataInterval);
+	
+	/** Other functions */
 	int SocketRead(char *pBuffer, size_t LengthInBytes, int sock);
-	//extern char *httpauth; 
 	
 	class CPSPSoundStream
 	{
@@ -120,12 +120,11 @@
 		std::list<audiobuffer*> m_PCMBufferList;
 		#endif
 		int pushpos,poppos,m_lastpushpos;
-		char *ringbuf, *upsampled_buffer;
+		char *ringbuf;
 		bool buffering;
-		size_t m_samplerate, m_dUpsampledbuffersize;
-		float *m_fin, *m_fout;		
-		
-		size_t UpSample(short *bOut, short *bIn);
+		size_t m_samplerate;
+		short *m_bUpsamplingTemp, *m_bUpsamplingOut;
+		size_t UpSample(short *bOut, short *bIn, int mult, int div);
 
 	};
 	

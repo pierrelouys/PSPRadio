@@ -67,7 +67,10 @@ void CPSPSound::Initialize()
 		ReportError("Sound Initialization Error");
 	}
 
-	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, PSP_NUM_AUDIO_SAMPLES, PSP_AUDIO_FORMAT_STEREO);
+	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, 
+									PSP_BUFFER_SIZE_IN_FRAMES, 
+									PSP_AUDIO_FORMAT_STEREO);
+
 	if ( m_audiohandle < 0 )
 	{
 		Log(LOG_ERROR, "Error getting a sound channel!");
@@ -321,27 +324,23 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 {
 	m_samplerate = PSP_SAMPLERATE;
 	
-	ringbuf = (char*)memalign(64, OUTPUT_BUFFER_SIZE * (NUM_BUFFERS + 5));
-	upsampled_buffer = NULL;
-	m_fin = m_fout = NULL;
-	m_dUpsampledbuffersize = 0;
+	ringbuf = (char*)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * (NUM_BUFFERS + 5))*15/*padding for upsampling*/);
+	m_bUpsamplingTemp = (short*)memalign(64, (int)(FRAMES_TO_SAMPLES(PSP_BUFFER_SIZE_IN_FRAMES)*15/** max multiplier = 11*/));
+	m_bUpsamplingOut = (short*)memalign(64, (int)(FRAMES_TO_SAMPLES(PSP_BUFFER_SIZE_IN_FRAMES)*15/** max multiplier = 11*/));
+	
 	Empty();
 	
 }
 
 CPSPSoundBuffer::~CPSPSoundBuffer()
 {
-	if (upsampled_buffer)
+	if (m_bUpsamplingTemp)
 	{
-		free(upsampled_buffer), upsampled_buffer=NULL;
+		free(m_bUpsamplingTemp);
 	}
-	if (m_fin)
+	if (m_bUpsamplingOut)
 	{
-		free(m_fin);
-	}
-	if (m_fout)
-	{
-		free(m_fout);
+		free(m_bUpsamplingOut);
 	}
 	if (ringbuf)
 	{
@@ -355,7 +354,7 @@ int CPSPSoundBuffer::GetPushPos()
 }
 void  CPSPSoundBuffer::Empty() 
 { 
-	memset(ringbuf, 0, OUTPUT_BUFFER_SIZE * NUM_BUFFERS);
+	memset(ringbuf, 0, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * NUM_BUFFERS);
 	pushpos = poppos = 0;
 	m_lastpushpos = -1;
 	buffering = true;
@@ -365,36 +364,18 @@ void CPSPSoundBuffer::SetSampleRate(size_t samplerate)
 {
 	if (samplerate > 0)
 	{
-		if (upsampled_buffer)
-		{
-			free(upsampled_buffer);
-		}
-		if (m_fin)
-		{
-			free(m_fin);
-		}
-		if (m_fout)
-		{
-			free(m_fout);
-		}
-		
-		m_dUpsampledbuffersize = (size_t)((double)(OUTPUT_BUFFER_SIZE+100/*padding*/)*((double)PSP_SAMPLERATE/(double)samplerate));
-		upsampled_buffer = (char *)memalign(64, (int)m_dUpsampledbuffersize);
-		m_fin  = (float*)malloc(BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)*sizeof(float));
-		m_fout = (float*)malloc(BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)*sizeof(float)*10);
-		
-		if (upsampled_buffer)
+		if (m_bUpsamplingTemp && m_bUpsamplingOut)
 		{
 			Empty();
 			m_samplerate = samplerate;
-			Log(LOG_VERYLOW, "Allocated %dbytes for upsampled_buffer, samplerate=%dHz.", m_dUpsampledbuffersize, samplerate);
+			Log(LOG_VERYLOW, "Allocated m_bUpsamplingTemp, samplerate=%dHz.", samplerate);
 
 		}
 		else
 		{
-			Log(LOG_ERROR, "Memory allocation error creating an upsampled_buffer of %dbytes (samplerate=%dHz).", m_dUpsampledbuffersize, samplerate);
+			Log(LOG_ERROR, "Memory allocation error creating an m_bUpsamplingTemp (samplerate=%dHz).", 
+				samplerate);
 			m_samplerate = 0;
-			m_dUpsampledbuffersize = 0;
 		}
 	}
 }
@@ -412,116 +393,117 @@ void CPSPSoundBuffer::Push(char *buf)
 	
 	if (PSP_SAMPLERATE == m_samplerate)
 	{
-		memcpy(ringbuf+(pushpos*OUTPUT_BUFFER_SIZE), buf, OUTPUT_BUFFER_SIZE);
+		memcpy(ringbuf+(pushpos*FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES)), 
+				buf, 
+				FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
 		pushpos = (pushpos + 1) % NUM_BUFFERS;
 	}
 	else /** We need to upsample */
 	{
-		if (upsampled_buffer && m_dUpsampledbuffersize)
+		if (m_bUpsamplingTemp && m_bUpsamplingOut)
 		{
-			size = UpSample(/*out*/(short*)upsampled_buffer, /*in*/(short*)buf);
-			memcpy(ringbuf+(pushpos*size), upsampled_buffer, size);
-			pushpos = (pushpos + 1) % NUM_BUFFERS;
+			int mult = 1, div = 1;
+			switch(m_samplerate)
+			{
+			case 8000:
+				mult=11;
+				div = 2;
+				break;
+			case 11025:
+				mult=4;
+				div =1;
+				break;
+			case 16000:
+				mult=11;
+				div = 4;
+				break;
+			case 22050:
+				mult=2;
+				div =1;
+				break;
+			case 24000:
+				mult=11;
+				div =6;
+				break;
+			case 32000:
+				mult=11;
+				div = 8;
+				break;
+			case 44100:
+				mult=1;
+				div =1;
+				break;
+			case 47250:
+				break;
+			case 48000:
+				mult=11;
+				div=12;
+				break;
+			}
+				
+			size = UpSample(/*out*/(short*)m_bUpsamplingOut, /*in*/(short*)buf, mult, div);
+			memcpy(ringbuf+(pushpos*size), m_bUpsamplingOut, size);
+			//Log(LOG_LOWLEVEL, "size=%d out=%d s/o=%d", size, OUTPUT_BUFFER_SIZE, (int)size/(int)OUTPUT_BUFFER_SIZE);
+			pushpos = (pushpos + mult/div) % NUM_BUFFERS;
 		}
 		else
 		{
-			Log(LOG_ERROR, "CPSPSoundBuffer::Push() Error. No upsampled_buffer.", m_dUpsampledbuffersize, m_samplerate);
+			Log(LOG_ERROR, "CPSPSoundBuffer::Push() Error. No upsampled_buffer.");
 		}
 	}
 }
 
-#if 0
-size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn)
-{
-	int iSampleRatio = PSP_SAMPLERATE / m_samplerate;
-	int iCnt, iInBytes;
-	char *start = (char*)bOut;
-	size_t out_size_in_bytes;
 
-	for (iInBytes = 0 ; iInBytes < OUTPUT_BUFFER_SIZE/4 ; iInBytes++) /** 4 = 2[ch] * 2[bytes-per-sample] */
+size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn, int mult, int div)
+{
+	int iCnt;
+	size_t out_size_in_bytes;
+	short *bUpsamplingTemp;
+	size_t iInSamples;
+
+
+
+	//Log(LOG_VERYLOW, "Upsample(): samplerate=%d mult=%d div=%d", m_samplerate, mult, div);
+	
+	//if (mult > 1)
 	{
-		for (iCnt = 0 ; iCnt < iSampleRatio ; iCnt++)
+		bUpsamplingTemp = m_bUpsamplingTemp;
+		for (iInSamples = 0 ; iInSamples < FRAMES_TO_SAMPLES(PSP_BUFFER_SIZE_IN_FRAMES) ; iInSamples++)
 		{
-			*(bOut)=*(bIn);	/** Left sample  */
-			*(bOut+1)=*(bIn+1); /** Right sample */
+			for (iCnt = 0 ; iCnt < mult ; iCnt++)
+			{
+				*(bUpsamplingTemp)=*(bIn);	/** Left sample  */
+				*(bUpsamplingTemp+1)=*(bIn+1); /** Right sample */
+			}
+			bUpsamplingTemp+=(mult*2);
+			bIn+=2;
 		}
-		bOut+=(iSampleRatio*2);
-		bIn+=2;
+		out_size_in_bytes = (char*)bUpsamplingTemp - (char*)m_bUpsamplingTemp;
 	}
-	out_size_in_bytes = (char*)bOut - start;
-	//Log(LOG_VERYLOW, "Upsample: iSampleRatio=%d(int %db, out %db)", iSampleRatio, OUTPUT_BUFFER_SIZE, out_size_in_bytes);
+	
+	//if (div > 1)
+	{
+		int iAverageL = 0, iAverageR = 0;
+		size_t iFrames = 0;
+		size_t frames = PSP_BUFFER_SIZE_IN_FRAMES*mult;
+		bUpsamplingTemp = m_bUpsamplingTemp;
+		for (iFrames = 0; iFrames < frames; iFrames++)
+		{
+			iAverageL += *(bUpsamplingTemp);
+			iAverageR += *(bUpsamplingTemp+1);
+			if (iFrames % div == 0)
+			{
+				*(bOut)   = iAverageL/div;
+				*(bOut+1) = iAverageR/div;
+				iAverageL = iAverageR = 0;
+			}
+			bOut+=2;
+			bUpsamplingTemp+=2;
+		}
+		out_size_in_bytes = (char*)bUpsamplingTemp - (char*)m_bUpsamplingTemp;
+	}
 	
 	return out_size_in_bytes;
-}
-#endif
-
-#include <samplerate.h>
-#include <math.h>
-size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn)
-{
-	/*
-	typedef struct
-	{   
-		float  *data_in, *data_out ;
-		
-		long   input_frames, output_frames ;
-		long   input_frames_used, output_frames_gen ;
-		
-		int    end_of_input ;
-		
-		double src_ratio ;
-	} SRC_DATA ;
-	*/
-
-	
-	//float fin[BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)];
-	//float fout[BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE)*10];
-	int samplecount;
-	
-	SRC_DATA data;
-	
-	
-	if (m_fin && m_fout)
-	{
-		data.data_in  = m_fin;
-		data.data_out = m_fout;
-		data.input_frames  = BYTES_TO_FRAMES(OUTPUT_BUFFER_SIZE);
-		data.output_frames = BYTES_TO_FRAMES(((double)(1.0 * OUTPUT_BUFFER_SIZE)*((double)1.0 * PSP_SAMPLERATE/(double)m_samplerate)));
-		//data.src_ratio = (double)(1.0 * m_samplerate) / (double)PSP_SAMPLERATE;
-		data.src_ratio = (double)(1.0 * PSP_SAMPLERATE) / (double)m_samplerate;
-		
-		/** convert each input sample to float */
-		//Log(LOG_VERYLOW, "Converting input buffer to float...");
-		for (samplecount=0; samplecount < BYTES_TO_SAMPLES(OUTPUT_BUFFER_SIZE); samplecount++)
-		{
-			m_fin[samplecount] = (bIn[samplecount]/32767.0);
-		}
-		
-		// int src_simple (SRC_DATA *data, int converter_type, int channels) ;
-		//Log(LOG_VERYLOW, "Calling src_simple...");
-		int errcode = src_simple(&data, SRC_LINEAR, NUM_CHANNELS);
-		
-		if (errcode != 0)
-		{
-			ReportError("libsamplerate error: '%s'", src_strerror(errcode));
-		}
-		else
-		{
-			//Log(LOG_VERYLOW, "Converting output buffer back to shorts (%d frames)...", data.output_frames_gen);
-			/** convert output back to shorts */
-			for (samplecount = 0; samplecount < FRAMES_TO_SAMPLES(data.output_frames_gen); samplecount++)
-			{
-				bOut[samplecount] = /*lrint*/(32767.0 * m_fout[samplecount]);
-			}
-		}
-		
-		return FRAMES_TO_BYTES(data.output_frames_gen);
-	}
-	else
-	{
-		ReportError("UpSample error: No buffers");
-		return 0;
-	}
 }
 
 char * CPSPSoundBuffer::Pop()
@@ -545,7 +527,7 @@ char * CPSPSoundBuffer::Pop()
 				break;
 		}
 	}
-	char *ret = ringbuf+(poppos*OUTPUT_BUFFER_SIZE);
+	char *ret = ringbuf+(poppos*FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
 	poppos = (poppos + 1) % NUM_BUFFERS;
 	return ret;
 }

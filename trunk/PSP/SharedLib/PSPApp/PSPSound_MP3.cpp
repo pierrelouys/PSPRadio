@@ -55,14 +55,14 @@ void CPSPSound_MP3::Decode()
 	unsigned long		FrameCount=0;
 
 	unsigned char		*pInputBuffer 	= NULL, /*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/
-						*pOutputBuffer	= NULL, /*[OUTPUT_BUFFER_SIZE]*/
+						*pOutputBuffer	= NULL, 
 						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
 	int count = 0;
-	//int iSampleRatio = 1;
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
-	pOutputBuffer = (unsigned char*)malloc(OUTPUT_BUFFER_SIZE);
+	/** The output buffer holds one BUFFER */
+	pOutputBuffer = (unsigned char*)malloc(FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
 
 	if (!(pInputBuffer && pOutputBuffer))
 	{
@@ -73,7 +73,7 @@ void CPSPSound_MP3::Decode()
 
 	OutputPtr=pOutputBuffer;
 	GuardPtr = NULL;
-	OutputBufferEnd = pOutputBuffer+OUTPUT_BUFFER_SIZE;
+	OutputBufferEnd = pOutputBuffer+FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES);
 	
 	/* First the structures used by libmad must be initialized. */
 	mad_stream_init(&Stream);
@@ -191,9 +191,9 @@ void CPSPSound_MP3::Decode()
 					ReportError("Error in Frame info.");
 					break;
 				}
-				//pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
+				pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
 				//iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
-				Synth.pcm.samplerate = Frame.header.samplerate;
+				//Synth.pcm.samplerate = Frame.header.samplerate;
 			}
 	
 			/* Accounting. The computed frame duration is in the frame
