@@ -1,7 +1,5 @@
 TARGET = PSPRadio
 OBJS = PSPRadio.o PlayList.o TextUI.o GraphicsUI.o
-#PSP_EBOOT_ICON = resources/icon0.png
-#PSP_EBOOT_PIC1 = resources/pic1.png
 
 INCDIR = ../
 
@@ -17,9 +15,9 @@ LDFLAGS =
 
 LIBS = -lPSPApp -lsupc++ -lstdc++ -lpspnet -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
-		-lsamplerate -lm \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor
+#		-lsamplerate -lm \
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio

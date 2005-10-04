@@ -169,13 +169,13 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	switch(playingstate)
 	{
 	case CPSPSound::STOP:
-		uiPrintf(30, 20, color, "STOP   ");
+		uiPrintf(-1, 20, color, "STOP   ");
 		break;
 	case CPSPSound::PLAY:
-		uiPrintf(30, 20, color, "PLAY   ");
+		uiPrintf(-1, 20, color, "PLAY   ");
 		break;
 	case CPSPSound::PAUSE:
-		uiPrintf(30, 20, color, "PAUSE  ");
+		uiPrintf(-1, 20, color, "PAUSE  ");
 		break;
 	}
 	
@@ -220,21 +220,21 @@ int CTextUI::OnStreamOpening()
 {
 	ClearErrorMessage(); /** Clear any errors */
 	ClearRows(18);
-	uiPrintf(0, 18, COLOR_WHITE, "Opening Stream");
+	uiPrintf(-1, 18, COLOR_WHITE, "Opening Stream");
 	return 0;
 }
 
 int CTextUI::OnStreamOpeningError()
 {
 	ClearRows(18);
-	uiPrintf(0, 18, COLOR_WHITE, "Error Opening Stream");
+	uiPrintf(-1, 18, COLOR_WHITE, "Error Opening Stream");
 	return 0;
 }
 
 int CTextUI::OnStreamOpeningSuccess()
 {
 	ClearRows(18);
-	uiPrintf(0, 18, COLOR_WHITE, "Stream Opened");
+	uiPrintf(-1, 18, COLOR_WHITE, "Stream Opened");
 	return 0;
 }
 
