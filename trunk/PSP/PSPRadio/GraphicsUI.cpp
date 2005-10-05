@@ -35,7 +35,6 @@
 #define PSP_RES_WIDTH	480
 #define PSP_RES_HEIGHT	272
 
-#define BASE_IMAGE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.jpg"
 #define THEME_FILE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.theme"
 
 CGraphicsUI::CGraphicsUI()

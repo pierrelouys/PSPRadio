@@ -65,12 +65,8 @@ private:
 	SDL_Surface *m_pScreen;
 	int m_nDepth;
  	int m_nFlags;	
- 	bool m_bNeedsUpdate;
 	
-	CLock m_lockUpdate;
-	
-	CGraphicsUITheme m_theme;
-	
+	CGraphicsUITheme m_theme;	
 	char m_szThemeImagePath[100];
 	CGraphicsUIThemeItem m_themeItemBackground;
 	CGraphicsUIThemeItem m_themeItemPlay;
