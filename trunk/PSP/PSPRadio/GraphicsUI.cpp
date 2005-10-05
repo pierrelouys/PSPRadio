@@ -32,37 +32,20 @@
 
 #include "GraphicsUI.h"
 
-#define BASE_IMAGE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_sansAll.jpg"
-#define STOP_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Stop_ON.jpg"
-#define STOP_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Stop_OFF.jpg"
-#define PLAY_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Play_ON.jpg"
-#define PLAY_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Play_OFF.jpg"
-#define PAUSE_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Pause_ON.jpg"
-#define PAUSE_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Pause_OFF.jpg"
-#define LOAD_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Load_ON.jpg"
-#define LOAD_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Load_OFF.jpg"
-#define SOUND_IMAGE_ON 	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Sound_ON.jpg"
-#define SOUND_IMAGE_OFF	"ms0:/PSP/GAME/PSPRadio/THEME/ON_OFF_States/Sound_OFF.jpg"
+#define PSP_RES_WIDTH	480
+#define PSP_RES_HEIGHT	272
 
-CGraphicsUI::CGraphicsUI()
+#define BASE_IMAGE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.jpg"
+#define THEME_FILE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.theme"
+
+CGraphicsUI::CGraphicsUI() : m_lockUpdate("FlipUpdateLock")
 {
-	m_bSDLInitialized = false;
-	
 	m_pImageBase = NULL;
-	m_pImageLoad[0] = NULL;
-	m_pImageLoad[1] = NULL;
-	m_pImagePlay[0] = NULL;
-	m_pImagePlay[1] = NULL;
-	m_pImagePause[0] = NULL;
-	m_pImagePause[1] = NULL;
-	m_pImageStop[0] = NULL;
-	m_pImageStop[1] = NULL;
-	m_pImageSound[0] = NULL;
-	m_pImageSound[1] = NULL;
-	
 	m_pScreen = NULL;
+	m_pVideoInfo = NULL;
 	m_nDepth = -1;
-	m_nFlags = SDL_SWSURFACE | SDL_FULLSCREEN;
+	m_nFlags = SDL_FULLSCREEN | /*SDL_DOUBLEBUF |*/ SDL_HWSURFACE;
+	m_bNeedsUpdate = FALSE;
 }
 
 CGraphicsUI::~CGraphicsUI()
@@ -70,117 +53,34 @@ CGraphicsUI::~CGraphicsUI()
 }
 
 int CGraphicsUI::Initialize()
-{
-	/** If we have already initialized just return success **/
-	if(true == m_bSDLInitialized)
+{	
+	Log(LOG_LOWLEVEL, "Initialize: Theme Initializing");
+	if(FALSE == InitializeTheme(THEME_FILE))
 	{
-		Log(LOG_ERROR, "Initialize: SDL Already initialized!");
+		Log(LOG_ERROR, "Initialize: error initializing Theme");
 		return -1;
-	}
-	
-	Log(LOG_LOWLEVEL, "Initialize: SDL Initializing");
-	
-	/** Initialize SDL **/
-	if(SDL_Init(SDL_INIT_VIDEO) < 0) 
-	{	
-		Log(LOG_ERROR, "Initialize: SDL_Init error : %s", SDL_GetError());
-		return -1;
-	}
-	
-	Log(LOG_LOWLEVEL, "Initialize: SDL Initialized");
-	
- 	m_bSDLInitialized = true;
- 	
-	Log(LOG_LOWLEVEL, "Initialize: Loading images"); 	
-		
-	/** Initialize Base Image **/
-	m_pImageBase 		= LoadImage(BASE_IMAGE);
-	m_pImageLoad[0] 	= LoadImage(LOAD_IMAGE_OFF);
-	m_pImageLoad[1] 	= LoadImage(LOAD_IMAGE_ON);
-	m_pImagePlay[0] 	= LoadImage(PLAY_IMAGE_OFF);
-	m_pImagePlay[1] 	= LoadImage(PLAY_IMAGE_ON);
-	m_pImagePause[0] 	= LoadImage(PAUSE_IMAGE_OFF);
-	m_pImagePause[1] 	= LoadImage(PAUSE_IMAGE_ON);
-	m_pImageStop[0] 	= LoadImage(STOP_IMAGE_OFF);
-	m_pImageStop[1] 	= LoadImage(STOP_IMAGE_ON);
-	m_pImageSound[0] 	= LoadImage(SOUND_IMAGE_OFF);
-	m_pImageSound[1] 	= LoadImage(SOUND_IMAGE_ON);
-	
-	Log(LOG_LOWLEVEL, "Initialize: Images loaded"); 	
-	
-	/** Make sure image was sucessfully loaded **/
-	if((NULL == m_pImageBase) 			||
-		(NULL == m_pImageLoad[0]) 		||
-		(NULL == m_pImageLoad[1]) 		||
-		(NULL == m_pImagePlay[0]) 		||
-		(NULL == m_pImagePlay[1]) 		||
-		(NULL == m_pImagePause[0]) 		||
-		(NULL == m_pImagePause[1]) 		||
-		(NULL == m_pImageStop[0]) 		||
-		(NULL == m_pImageStop[1]) 		||
-		(NULL == m_pImageSound[0]) 		||
-		(NULL == m_pImageSound[1]))
-	{
-		Log(LOG_ERROR, "Initialize: error not all images loaded");
-		return -1;
-	}
-	
-	Log(LOG_LOWLEVEL, "Initialize: Setting video mode"); 	
-	
-	/** Create a display for the image **/
-	m_nDepth = SDL_VideoModeOK(m_pImageBase->w, m_pImageBase->h, 32, m_nFlags);
-	
-	Log(LOG_LOWLEVEL, "Initialize: Setting video mode completed depth %d", m_nDepth); 	
-	
-	/** Use the deepest native mode, except that we emulate 32bpp 
-		for viewing non-indexed images on 8bpp screens **/
-	if(m_nDepth == 0) 
-	{
-		if(m_pImageBase->format->BytesPerPixel > 1)
-		{
-			m_nDepth = 32;
-		} 
-		else 
-		{
-			m_nDepth = 8;
-		}
-	} 
-	else if((m_pImageBase->format->BytesPerPixel > 1) && (m_nDepth == 8))
-	{
-		m_nDepth = 32;
-	}
-	
-	Log(LOG_LOWLEVEL, "Initialize: New Depth is %d", m_nDepth); 		
-		
-	if(m_nDepth == 8)
-	{
-		m_nFlags |= SDL_HWPALETTE;
-	}
-		
-	Log(LOG_LOWLEVEL, "Initialize: Setting video mode");
- 	
- 	m_pScreen = SDL_SetVideoMode(m_pImageBase->w, m_pImageBase->h, m_nDepth, m_nFlags);
-	
-	Log(LOG_LOWLEVEL, "Initialize: Setting video mode completed");
-		
-	if(m_pScreen == NULL) 
-	{
-		Log(LOG_ERROR, "Initialize: SDL_SetVideoMode error %dx%dx%d video mode: %s\n",
-			m_pImageBase->w, m_pImageBase->h, m_nDepth, SDL_GetError());
-	}
+	}		
+	Log(LOG_LOWLEVEL, "Initialize: Theme Initialized");
 
-	/** Set the palette, if one exists **/
-	if(m_pImageBase->format->palette) 
-	{
-		Log(LOG_LOWLEVEL, "Initialize: Setting palette");
-		SDL_SetColors(m_pScreen, m_pImageBase->format->palette->colors, 0, m_pImageBase->format->palette->ncolors);
-		Log(LOG_LOWLEVEL, "Initialize: Setting palette completed");
-	}
 	
-	/** Display the image **/
-	SDL_BlitSurface(m_pImageBase, NULL, m_pScreen, NULL);
-	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);
-		
+	Log(LOG_LOWLEVEL, "Initialize: SDL Initializing");		
+	if(FALSE == InitializeSDL())
+	{
+		Log(LOG_ERROR, "Initialize: error initializing SDL");
+		return -1;
+	}	
+	Log(LOG_LOWLEVEL, "Initialize: SDL Initialized");	
+	
+	Log(LOG_LOWLEVEL, "Initialize: Images Initializing");
+	if(FALSE == InitializeImages())
+	{
+		Log(LOG_ERROR, "Initialize: error initializing images");
+		return -1;
+	}	
+	Log(LOG_LOWLEVEL, "Initialize: Images Initialied");
+	
+	SetBaseImage();
+	
 	return 0;
 }
 
@@ -205,7 +105,6 @@ SDL_Surface *CGraphicsUI::LoadImage(char *szImageName)
 
 void CGraphicsUI::UnLoadImage(SDL_Surface **ppImage)
 {
-	Log(LOG_INFO, "UnloadImage: unloading 0x08X", *ppImage);
 	if(NULL != *ppImage)
 	{
 		SDL_FreeSurface(*ppImage);
@@ -217,27 +116,14 @@ void CGraphicsUI::Terminate()
 {
 	Log(LOG_INFO, "Terminate: unloading images");
 	UnLoadImage(&m_pImageBase);
-	UnLoadImage(&m_pImageLoad[0]);
-	UnLoadImage(&m_pImageLoad[1]);
-	UnLoadImage(&m_pImagePlay[0]);
-	UnLoadImage(&m_pImagePlay[1]);
-	UnLoadImage(&m_pImagePause[0]);
-	UnLoadImage(&m_pImagePause[1]);
-	UnLoadImage(&m_pImageStop[0]);
-	UnLoadImage(&m_pImageStop[1]);
-	UnLoadImage(&m_pImageSound[0]);
-	UnLoadImage(&m_pImageSound[1]);
 	Log(LOG_INFO, "Terminate: images all unloaded");
-
+	
 	/** If we are initialized do some cleaning up **/
-	if(true == m_bSDLInitialized)
+	if(0 != SDL_WasInit(SDL_INIT_VIDEO))
 	{
 		Log(LOG_INFO, "Terminate: cleaning up SDL");
 		/** Shut down SDL **/
 		SDL_Quit();
-		
-		/** Reset our initialized flag **/
-		m_bSDLInitialized = false;
 	}
 	
 	Log(LOG_INFO, "Terminate: completed");
@@ -255,6 +141,7 @@ int CGraphicsUI::DisplayMessage_EnablingNetwork()
 
 int CGraphicsUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
+	return 0;
 }
 
 int CGraphicsUI::DisplayMessage_DisablingNetwork()
@@ -298,36 +185,6 @@ int CGraphicsUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	return 0;
 }
 
-void CGraphicsUI::SetPlayButton(uibuttonstate_enum state)
-{
-	SDL_Rect destRect;
-	destRect.x = 16;
-	destRect.y = 252;
-			
-	SDL_BlitSurface(m_pImagePlay[state], NULL, m_pScreen, &destRect);
-	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);			
-}
-
-void CGraphicsUI::SetPauseButton(uibuttonstate_enum state)
-{
-	SDL_Rect destRect;
-	destRect.x = 34;
-	destRect.y = 252;
-			
-	SDL_BlitSurface(m_pImagePause[state], NULL, m_pScreen, &destRect);
-	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);			
-}
-
-void CGraphicsUI::SetStopButton(uibuttonstate_enum state)
-{
-	SDL_Rect destRect;
-	destRect.x = 52;
-	destRect.y = 252;
-			
-	SDL_BlitSurface(m_pImageStop[state], NULL, m_pScreen, &destRect);
-	SDL_UpdateRect(m_pScreen, 0, 0, 0, 0);			
-}
-
 int CGraphicsUI::DisplayErrorMessage(char *strMsg)
 {
 	return 0;
@@ -360,6 +217,24 @@ int CGraphicsUI::OnStreamOpeningError()
 
 int CGraphicsUI::OnStreamOpeningSuccess()
 {
+	SDL_Rect src = 	{ 
+						m_themeItemLoad.GetSrc(1).x,
+						m_themeItemLoad.GetSrc(1).y,
+						m_themeItemLoad.m_pointSize.x,
+						m_themeItemLoad.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						m_themeItemLoad.m_pointDst.x,
+						m_themeItemLoad.m_pointDst.y,
+						m_themeItemLoad.m_pointDst.x,
+						m_themeItemLoad.m_pointDst.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+
+	return 0;
+
 	return 0;
 }
 
@@ -385,5 +260,209 @@ int CGraphicsUI::DisplayMPEGLayerType(char *strType)
 
 int CGraphicsUI::OnConnectionProgress()
 {
+	SDL_Rect src = 	{ 
+						m_themeItemLoad.GetSrc(0).x,
+						m_themeItemLoad.GetSrc(0).y,
+						m_themeItemLoad.m_pointSize.x,
+						m_themeItemLoad.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						m_themeItemLoad.m_pointDst.x,
+						m_themeItemLoad.m_pointDst.y,
+						m_themeItemLoad.m_pointDst.x,
+						m_themeItemLoad.m_pointDst.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+
 	return 0;
+}
+
+void CGraphicsUI::SetBaseImage(void)
+{
+	SDL_Rect src = 	{ 
+						m_themeItemBackground.GetSrc(0).x,
+						m_themeItemBackground.GetSrc(0).y,
+						m_themeItemBackground.m_pointSize.x,
+						m_themeItemBackground.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						m_themeItemBackground.m_pointDst.x,
+						m_themeItemBackground.m_pointDst.y,
+						m_themeItemBackground.m_pointDst.x,
+						m_themeItemBackground.m_pointDst.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+}
+
+void CGraphicsUI::SetPlayButton(uibuttonstate_enum state)
+{
+	SDL_Rect src = 	{ 
+						m_themeItemPlay.GetSrc(state).x,
+						m_themeItemPlay.GetSrc(state).y,
+						m_themeItemPlay.m_pointSize.x,
+						m_themeItemPlay.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						m_themeItemPlay.m_pointDst.x,
+						m_themeItemPlay.m_pointDst.y,
+						m_themeItemPlay.m_pointDst.x,
+						m_themeItemPlay.m_pointDst.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+}
+
+void CGraphicsUI::SetPauseButton(uibuttonstate_enum state)
+{
+	SDL_Rect src = 	{ 
+						m_themeItemPause.GetSrc(state).x,
+						m_themeItemPause.GetSrc(state).y,
+						m_themeItemPause.m_pointSize.x,
+						m_themeItemPause.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						m_themeItemPause.m_pointDst.x,
+						m_themeItemPause.m_pointDst.y,
+						m_themeItemPause.m_pointDst.x,
+						m_themeItemPause.m_pointDst.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+}
+
+void CGraphicsUI::SetStopButton(uibuttonstate_enum state)
+{
+	SDL_Rect src = 	{ 
+						m_themeItemStop.GetSrc(state).x,
+						m_themeItemStop.GetSrc(state).y,
+						m_themeItemStop.m_pointSize.x,
+						m_themeItemStop.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						m_themeItemStop.m_pointDst.x,
+						m_themeItemStop.m_pointDst.y,
+						m_themeItemStop.m_pointDst.x,
+						m_themeItemStop.m_pointDst.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+}
+
+bool CGraphicsUI::InitializeTheme(char *szFilename)
+{
+	if(0 != m_theme.Initialize(szFilename))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error initializing theme (%s)", szFilename);
+		return FALSE;
+	}	
+	
+	/** Get theme image */
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting image path");
+	if(0 != m_theme.GetImagePath(m_szThemeImagePath, sizeof(m_szThemeImagePath)))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme image path");
+		return FALSE;
+	}	
+	
+	/** Get the theme items */
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting background");
+	if(0 != m_theme.GetItem("background", &m_themeItemBackground))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme background");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting play");
+	if(0 != m_theme.GetItem("play", &m_themeItemPlay))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme play");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting pause");
+	if(0 != m_theme.GetItem("pause", &m_themeItemPause))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme pause");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting stop");
+	if(0 != m_theme.GetItem("stop", &m_themeItemStop))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme stop");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting load");
+	if(0 != m_theme.GetItem("load", &m_themeItemLoad))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme load");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting sound");
+	if(0 != m_theme.GetItem("sound", &m_themeItemSound))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme sound");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting volume");
+	if(0 != m_theme.GetItem("volume", &m_themeItemVolume))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme volume");
+		return FALSE;
+	}
+	
+	return TRUE;
+}
+
+bool CGraphicsUI::InitializeSDL()
+{
+	Log(LOG_LOWLEVEL, "InitializeSDL: SDL Initializing with SDL_INIT_VIDEO");
+	if(SDL_Init(SDL_INIT_VIDEO) < 0) 
+	{	
+		Log(LOG_ERROR, "InitializeSDL: SDL_Init error : %s", SDL_GetError());
+		return FALSE;
+	}	
+	Log(LOG_LOWLEVEL, "InitializeSDL: SDL Initialized with SDL_INIT_VIDEO");	
+	
+	Log(LOG_LOWLEVEL, "InitializeSDL: Checking video mode"); 	
+	m_nDepth = SDL_VideoModeOK(PSP_RES_WIDTH, PSP_RES_HEIGHT, 32, m_nFlags);
+	Log(LOG_LOWLEVEL, "InitializeSDL: Checking video mode completed depth %d", m_nDepth); 	
+	
+		
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode"); 	
+ 	if(NULL == (m_pScreen = SDL_SetVideoMode(PSP_RES_WIDTH, 
+ 												PSP_RES_HEIGHT, 
+ 												m_nDepth, 
+ 												m_nFlags)))
+ 	{
+		Log(LOG_ERROR, "InitializeSDL: SDL_SetVideoMode error %dx%dx%d video mode: %s\n",
+			PSP_RES_WIDTH, PSP_RES_HEIGHT, m_nDepth, SDL_GetError());
+		return FALSE;
+ 	}
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode completed");
+		
+	return TRUE;
+}
+
+bool CGraphicsUI::InitializeImages()
+{
+	Log(LOG_LOWLEVEL, "InitializeImages: Loading base image"); 		
+	if(NULL == (m_pImageBase = LoadImage(m_szThemeImagePath)))
+	{
+		Log(LOG_ERROR, "InitializeImages: error loading base image");
+		return FALSE;
+	}	
+	Log(LOG_LOWLEVEL, "InitializeImages: Loaded base image"); 		
+
+	return TRUE;
 }
