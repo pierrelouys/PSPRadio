@@ -58,7 +58,8 @@ void CPSPSound_MP3::Decode()
 						*pOutputBuffer	= NULL, 
 						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
-	int count = 0;
+	//int count = 0;
+	::Frame *oneframe = NULL;
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
 	/** The output buffer holds one BUFFER */
@@ -216,10 +217,6 @@ void CPSPSound_MP3::Decode()
 			 */
 			mad_synth_frame(&Synth,&Frame);
 	
-			/** libsamplerate, convert samplerate */
-//			for (int iSmpl = 0; iSmpl < Synth.pcm.length; 
-			
-			
 			/* Synthesized samples must be converted from libmad's fixed
 			 * point number to the consumer format. Here we use unsigned
 			 * 16 bit little endian integers on two channels. Integer samples
@@ -255,15 +252,11 @@ void CPSPSound_MP3::Decode()
 				}
 				
 				/* Queue the output buffer if it is full. */
-				if(OutputPtr==OutputBufferEnd)
+				//if(OutputPtr==OutputBufferEnd)
 				{
-					pPSPSound_MP3->Buffer.Push((char*)pOutputBuffer);
+					oneframe = (::Frame*)pOutputBuffer;
+					pPSPSound_MP3->Buffer.PushFrame(*oneframe);
 
-					if (count++ % 5 == 0)
-					{
-						pPSPSound_MP3->SendMessage(MID_DECODE_BUFCYCLE);
-					}
-						
 					OutputPtr=pOutputBuffer;
 				}
 

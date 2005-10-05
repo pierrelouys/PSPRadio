@@ -348,7 +348,8 @@ public:
 
 					break;
 				case MID_THPLAY_BUFCYCLE:
-					UI->DisplayPlayBuffer(MP3->GetBufferPopPos(), NUM_BUFFERS);
+					//UI->DisplayPlayBuffer(MP3->GetBufferPopPos(), NUM_BUFFERS*PSP_BUFFER_SIZE_IN_FRAMES);
+					UI->DisplayPlayBuffer(MP3->GetBufferFillPercentage(),100);
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
 					break;
@@ -369,7 +370,8 @@ public:
 					UI->OnStreamOpeningSuccess();
 					break;
 				case MID_DECODE_BUFCYCLE:
-					UI->DisplayDecodeBuffer(MP3->GetBufferPushPos(), NUM_BUFFERS);
+					//UI->DisplayDecodeBuffer(MP3->GetBufferPushPos(), NUM_BUFFERS*PSP_BUFFER_SIZE_IN_FRAMES);
+					UI->DisplayDecodeBuffer(MP3->GetBufferFillPercentage(),100);
 					break;
 				case MID_DECODE_METADATA_INFO:
 					memcpy(MData, pMessage, MAX_METADATA_SIZE);

@@ -18,22 +18,23 @@
 */
 #ifndef PSPSOUND
 #define __PSPSOUND__
+	/** Not configurable */
+	#define PSP_SAMPLERATE			44100
+	#define NUM_CHANNELS			2	/** L and R */
+	#define BYTES_PER_SAMPLE		2	/** 16bit sound */
 	/** Useful macros */
 	#define FRAMES_TO_SAMPLES(f)	(f*NUM_CHANNELS)
 	#define SAMPLES_TO_BYTES(s)		(s*BYTES_PER_SAMPLE)
 	#define BYTES_TO_FRAMES(b)		(b/(NUM_CHANNELS*BYTES_PER_SAMPLE))
 	#define BYTES_TO_SAMPLES(b)		(b/(BYTES_PER_SAMPLE))
 	#define FRAMES_TO_BYTES(f)		(f*(NUM_CHANNELS*BYTES_PER_SAMPLE))
-	
-	#define PSP_SAMPLERATE			44100
-	#define NUM_CHANNELS			2	/** L and R */
-	#define BYTES_PER_SAMPLE		2	/** 16bit sound */
+	typedef u16 Sample;
+	typedef u32 Frame;
 	
 	/** Configurable */
-	#define PSP_BUFFER_SIZE_IN_FRAMES	4096	/** 4096frames =16384bytes =8192samples-l-r-combined.*/
-	//#define PSP_NUM_AUDIO_SAMPLES 	PSP_AUDIO_SAMPLE_ALIGN(4096)
-	//#define OUTPUT_BUFFER_SIZE 		PSP_NUM_AUDIO_SAMPLES*4
-	#define NUM_BUFFERS 			10	/* 10 frames */
+	/* (frames are 2ch, 16bits, so 4096frames =16384bytes =8192samples-l-r-combined.)*/
+	#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(4096)	
+	#define NUM_BUFFERS 			50	/* 10 frames */
 	
 	#define INPUT_BUFFER_SIZE		16302
 	
@@ -95,37 +96,30 @@
 	
 	
 	/** Internal use */
-	//extern CPSPSound *pPSPSound = NULL;
 	class CPSPSoundBuffer
 	{
 	public:
 		CPSPSoundBuffer();
 		~CPSPSoundBuffer();
-		void  Push(char *buf);
-		char *Pop();
-		int   GetPushPos();
-		int   GetPopPos(){return poppos;};
+		void  PushFrame(Frame frame); /* Takes 1 frame */
+		Frame PopFrame(); 			/* Returns 1 frame */
+		Frame *PopBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
+		int   GetPushPos(){return pushpos-ringbuf_start;};
+		int   GetPopPos(){return poppos-ringbuf_start;};
+		size_t GetBufferFillPercentage();
 		void  Empty();
 		void  Done();
-		int   IsDone();
+		bool   IsDone();
 		
 		void  SetSampleRate(size_t samplerate);
 	
 	private:
-		#if 0
-		struct audiobuffer
-		{ 
-			char buffer[OUTPUT_BUFFER_SIZE]; 
-		};
-		std::list<audiobuffer*> m_PCMBufferList;
-		#endif
-		int pushpos,poppos,m_lastpushpos;
-		char *ringbuf;
+		Frame *pushpos,*poppos,*m_lastpushpos, *ringbuf_end;
+		Frame *ringbuf_start, *pspbuf;
 		bool buffering;
 		size_t m_samplerate;
-		short *m_bUpsamplingTemp, *m_bUpsamplingOut;
-		size_t UpSample(short *bOut, short *bIn, int mult, int div);
-
+		Frame *m_bUpsamplingTemp, *m_bUpsamplingOut;
+		size_t UpSample(Frame *bOut, Frame *bIn, int mult, int div);
 	};
 	
 	class CPSPSound
@@ -176,8 +170,9 @@
 		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND)
 			{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
 
-		int GetBufferPopPos()  { return Buffer.GetPopPos(); };
-		int GetBufferPushPos() { return Buffer.GetPushPos(); };
+		//int GetBufferPopPos()  { return Buffer.GetPopPos(); };
+		//int GetBufferPushPos() { return Buffer.GetPushPos(); };
+		size_t GetBufferFillPercentage() { return Buffer.GetBufferFillPercentage(); };
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);
 		static int ThDecode(SceSize args, void *argp);
