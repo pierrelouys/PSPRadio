@@ -1,5 +1,5 @@
 TARGET = PSPRadio
-OBJS = PSPRadio.o PlayList.o TextUI.o GraphicsUI.o
+OBJS = PSPRadio.o PlayList.o TextUI.o GraphicsUITheme.o GraphicsUI.o
 
 INCDIR = ../
 
