@@ -2,14 +2,15 @@
 #define _PSPRADIOGRAPHICSUI_
 
 #include "IPSPRadio_UI.h"
+#include "GraphicsUITheme.h"
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 
 enum uibuttonstate_enum
 {
-	UIBUTTONSTATE_OFF = 0,
-	UIBUTTONSTATE_ON = 1
+	UIBUTTONSTATE_ON = 0,
+	UIBUTTONSTATE_OFF = 1
 };
 
 class CGraphicsUI : public IPSPRadio_UI
@@ -49,23 +50,35 @@ private:
 	SDL_Surface *LoadImage(char *szImageName);
 	void UnLoadImage(SDL_Surface **ppImage);
 
+	void SetBaseImage(void);
 	void SetPlayButton(uibuttonstate_enum state);
 	void SetPauseButton(uibuttonstate_enum state);
 	void SetStopButton(uibuttonstate_enum state);
-
+	
+	bool InitializeTheme(char *szFilename);
+	bool InitializeSDL();
+	bool InitializeImages();
 	
 private:
-	bool m_bSDLInitialized;
+	const SDL_VideoInfo *m_pVideoInfo;
 	SDL_Surface *m_pImageBase;	
-	SDL_Surface *m_pImageLoad[2];
-	SDL_Surface *m_pImagePlay[2];
-	SDL_Surface *m_pImagePause[2];
-	SDL_Surface *m_pImageStop[2];	
-	SDL_Surface *m_pImageSound[2];
-	
 	SDL_Surface *m_pScreen;
 	int m_nDepth;
  	int m_nFlags;	
+ 	bool m_bNeedsUpdate;
+	
+	CLock m_lockUpdate;
+	
+	CGraphicsUITheme m_theme;
+	
+	char m_szThemeImagePath[100];
+	CGraphicsUIThemeItem m_themeItemBackground;
+	CGraphicsUIThemeItem m_themeItemPlay;
+	CGraphicsUIThemeItem m_themeItemPause;
+	CGraphicsUIThemeItem m_themeItemStop;
+	CGraphicsUIThemeItem m_themeItemLoad;
+	CGraphicsUIThemeItem m_themeItemSound;
+	CGraphicsUIThemeItem m_themeItemVolume;
 };
 
 
