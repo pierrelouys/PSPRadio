@@ -196,17 +196,14 @@ int CTextUI::ClearErrorMessage()
 	return 0;
 }
 
-int CTextUI::DisplayPlayBuffer(int a, int b)
+int CTextUI::DisplayBufferPercentage(int iPerc)
 {
-	ClearRows(11);
-	uiPrintf(0, 11, COLOR_WHITE, "Out Buffer: %03d/%03d   ", a, b);
-	return 0;
-}
-
-int CTextUI::DisplayDecodeBuffer(int a, int b)
-{
-	ClearRows(10);
-	uiPrintf(0, 10, COLOR_WHITE, "In Buffer: %03d/%03d   ", a, b);
+	//ClearRows(11);
+	if (iPerc > 97)
+		iPerc = 100;
+	if (iPerc < 2)
+		iPerc = 0;
+	uiPrintf(0, 11, COLOR_WHITE, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
 	return 0;
 }
 

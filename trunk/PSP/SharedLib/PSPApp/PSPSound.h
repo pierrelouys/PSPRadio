@@ -33,8 +33,9 @@
 	
 	/** Configurable */
 	/* (frames are 2ch, 16bits, so 4096frames =16384bytes =8192samples-l-r-combined.)*/
-	#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(4096)	
-	#define NUM_BUFFERS 			50	/* 10 frames */
+	//#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(4096)	
+	#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(2048)	
+	#define NUM_BUFFERS 			20	
 	
 	#define INPUT_BUFFER_SIZE		16302
 	
@@ -119,6 +120,8 @@
 		bool buffering;
 		size_t m_samplerate;
 		Frame *m_bUpsamplingTemp, *m_bUpsamplingOut;
+		int m_FrameCount; /** Used for buffer percentage */
+		
 		size_t UpSample(Frame *bOut, Frame *bIn, int mult, int div);
 	};
 	

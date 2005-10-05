@@ -188,12 +188,7 @@ int CGraphicsUI::DisplayErrorMessage(char *strMsg)
 	return 0;
 }
 
-int CGraphicsUI::DisplayPlayBuffer(int a, int b)
-{
-	return 0;
-}
-
-int CGraphicsUI::DisplayDecodeBuffer(int a, int b)
+int CGraphicsUI::DisplayBufferPercentage(int iPercentage)
 {
 	return 0;
 }

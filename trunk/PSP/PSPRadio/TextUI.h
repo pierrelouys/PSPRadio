@@ -21,8 +21,7 @@ public:
 	int DisplayMainCommands();
 	int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	int DisplayErrorMessage(char *strMsg);
-	int DisplayPlayBuffer(int a, int b);
-	int DisplayDecodeBuffer(int a, int b);
+	int DisplayBufferPercentage(int a);
 
 	/** these are listed in sequential order */
 	int OnNewStreamStarted();

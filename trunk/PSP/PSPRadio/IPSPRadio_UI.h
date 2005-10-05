@@ -20,8 +20,7 @@ public:
 	virtual int DisplayMainCommands();
 	virtual int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	virtual int DisplayErrorMessage(char *strMsg);
-	virtual int DisplayPlayBuffer(int a, int b);
-	virtual	int DisplayDecodeBuffer(int a, int b);
+	virtual int DisplayBufferPercentage(int a);
 
 	/** these are listed in sequential order */
 	virtual int OnNewStreamStarted();
