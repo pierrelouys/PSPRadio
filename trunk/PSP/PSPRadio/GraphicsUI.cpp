@@ -38,14 +38,13 @@
 #define BASE_IMAGE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.jpg"
 #define THEME_FILE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.theme"
 
-CGraphicsUI::CGraphicsUI() : m_lockUpdate("FlipUpdateLock")
+CGraphicsUI::CGraphicsUI()
 {
 	m_pImageBase = NULL;
 	m_pScreen = NULL;
 	m_pVideoInfo = NULL;
 	m_nDepth = -1;
 	m_nFlags = SDL_FULLSCREEN | /*SDL_DOUBLEBUF |*/ SDL_HWSURFACE;
-	m_bNeedsUpdate = FALSE;
 }
 
 CGraphicsUI::~CGraphicsUI()
@@ -450,7 +449,7 @@ bool CGraphicsUI::InitializeSDL()
 		return FALSE;
  	}
 	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode completed");
-		
+			
 	return TRUE;
 }
 
@@ -463,6 +462,11 @@ bool CGraphicsUI::InitializeImages()
 		return FALSE;
 	}	
 	Log(LOG_LOWLEVEL, "InitializeImages: Loaded base image"); 		
+	
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency");
+	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency completed");
+	
 
 	return TRUE;
 }
