@@ -1,7 +1,7 @@
 ; Default PSPRadio Theme version 0.1
 
 [image]
-path=ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.jpg
+path=ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.bmp
 
 [background]
 src=[0,0];
@@ -10,30 +10,38 @@ size=[480,272];
 
 [play]
 src=[485,4] [485,23];
-dst=[15,252];
-size=[13,14];
+dst=[16,252];
+size=[14,15] [14,15];
 
 [pause]
 src=[503,4] [503,23];
-dst=[33,252];
-size=[13,14];
+dst=[34,252];
+size=[14,15] [14,15];
 
 [stop]
 src=[521,4] [521,23];
-dst=[51,252];
-size=[13,14];
+dst=[52,252];
+size=[14,15] [14,15];
 
 [load]
 src=[539,4] [539,23];
-dst=[69,252];
-size=[29,14];
+dst=[70,252];
+size=[29,14] [29,14];
 
 [sound]
 src=[573,4] [573,23];
 dst=[407,252];
-size=[15,14];
+size=[17,15] [17,15];
 
 [volume]
 src=[484,89] [484,103] [484,117] [484,131] [484,145] [484,159] [484,173] [484,187];
 dst=[429,254];
-size=[40,9];
+size=[42,10] [42,10] [42,10] [42,10] [42,10] [42,10] [42,10] [42,10];
+
+[font]
+src=[542,96];
+dst=[-1,-1];
+size=[6,7];
+
+
+
