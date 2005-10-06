@@ -169,13 +169,13 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	switch(playingstate)
 	{
 	case CPSPSound::STOP:
-		uiPrintf(-1, 20, color, "STOP   ");
+		uiPrintf(-1, 20, color, "STOP");
 		break;
 	case CPSPSound::PLAY:
-		uiPrintf(-1, 20, color, "PLAY   ");
+		uiPrintf(-1, 20, color, "PLAY");
 		break;
 	case CPSPSound::PAUSE:
-		uiPrintf(-1, 20, color, "PAUSE  ");
+		uiPrintf(-1, 20, color, "PAUSE");
 		break;
 	}
 	

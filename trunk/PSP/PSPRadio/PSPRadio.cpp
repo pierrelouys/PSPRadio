@@ -123,9 +123,6 @@ public:
 			Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
 		}
 		
-		//m_iNetworkProfile = config->GetInteger("WIFI:FORCED_PROFILE", 1);
-		//Log(LOG_ERROR, "FORCED NETWORK PROFILE: %d", m_iNetworkProfile);
-		
 		if (config->GetInteger("WIFI:AUTOSTART", 0) == 1)
 		{
 			UI->DisplayMessage_EnablingNetwork();
@@ -157,6 +154,14 @@ public:
 				m_PlayList->InsertFile(config->GetStr("MUSIC:FILE"));
 			}
 
+			/** Set the sound buffer size */
+			size_t bufsize = config->GetInteger("SOUND:BUFFERSIZE", 0);
+			if (0 != bufsize)
+			{
+				Log(LOG_INFO, "SOUND BUFFERSIZE specified in config file as %d.", bufsize);
+				MP3->ChangeBufferSize(bufsize);
+			}
+			
 			SetCurrentFile();
 			UI->DisplayMainCommands();
 		}
@@ -341,23 +346,23 @@ public:
 			default:
 				switch(iMessageId)
 				{
-				case MID_THPLAY_BEGIN:
-
-					break;
-				case MID_THPLAY_END:
-
-					break;
+				//case MID_THPLAY_BEGIN:
+				//	break;
+				//case MID_THPLAY_END:
+				//	break;
 				case MID_BUFF_PERCENT_UPDATE:
 					UI->DisplayBufferPercentage(MP3->GetBufferFillPercentage());
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
+					UI->DisplayActiveCommand(CPSPSound::STOP);
+					MP3->Stop();
 					break;
 					
 				case MID_THDECODE_AWOKEN:
 					UI->OnNewStreamStarted();
 					break;
-				case MID_THDECODE_ASLEEP:
-					break;
+				//case MID_THDECODE_ASLEEP:
+				//	break;
 					
 				case MID_DECODE_STREAM_OPENING:
 					UI->OnStreamOpening();
@@ -389,6 +394,7 @@ public:
 					
 					break;
 				//case MID_DECODE_DONE:
+				//	break;
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)pMessage;
