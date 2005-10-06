@@ -1,7 +1,7 @@
 ; Default PSPRadio Theme version 0.1
 
 [image]
-path=ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.bmp
+path=PSPRadio_AllStates_JPF.jpg
 
 [background]
 src=[0,0];
@@ -38,10 +38,16 @@ src=[484,89] [484,103] [484,117] [484,131] [484,145] [484,159] [484,173] [484,18
 dst=[429,254];
 size=[42,10] [42,10] [42,10] [42,10] [42,10] [42,10] [42,10] [42,10];
 
-[font]
-src=[542,96];
+;ABCDEFGHIJKLMNOPQRSTUVWXYZ"@
+[letters]
+src=[537,93];
 dst=[-1,-1];
-size=[6,7];
+size=[8,12];
 
+;0123456789_.:()-'!_+\/[]^&%,=$#
+[numbers]
+src=[537,114];
+dst=[-1,-1];
+size=[8,12];
 
 
