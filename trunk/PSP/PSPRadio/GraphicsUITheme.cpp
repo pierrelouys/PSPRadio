@@ -102,8 +102,60 @@ int CGraphicsUITheme::GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem)
 	/** Get the Size Point **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "size");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToPoint(szTemp, &pItem->m_pointSize);
+	nCount = StringToPointList(szTemp, &pItem->m_pointSizeList);
 	
+	return 0;
+}
+
+// ABCDEFGHIJKLMNOPQRSTUVWXYZ"@ 
+int CGraphicsUITheme::GetLetters(char *szIniTag, CGraphicsUIThemeItem *pItem)
+{
+	if(-1 == GetItem(szIniTag, pItem))
+	{
+		Log(LOG_ERROR, "GetLetters: error getting base tag");
+		return -1;
+	}
+		
+	Point baseSrc = pItem->GetSrc(0);
+	Point baseSize = pItem->GetSize(0);
+	
+	/** Greate the remaining items */
+	for(int x = 1; x != 29; x++)
+	{
+		Point newSrc;
+		newSrc.x = baseSrc.x + (baseSize.x * x);
+		newSrc.y = baseSrc.y;
+		
+		pItem->m_pointSrcList[x] = newSrc;
+		pItem->m_pointSizeList[x] = baseSize;
+	}
+
+	return 0;
+}
+
+// 0123456789_.:()-'!_+\/[]^&%,=$#
+int CGraphicsUITheme::GetNumbers(char *szIniTag, CGraphicsUIThemeItem *pItem)
+{
+	if(-1 == GetItem(szIniTag, pItem))
+	{
+		Log(LOG_ERROR, "GetLetters: error getting base tag");
+		return -1;
+	}
+		
+	Point baseSrc = pItem->GetSrc(0);
+	Point baseSize = pItem->GetSize(0);
+	
+	/** Greate the remaining items */
+	for(int x = 1; x != 31; x++)
+	{
+		Point newSrc;
+		newSrc.x = baseSrc.x + (baseSize.x * x);
+		newSrc.y = baseSrc.y;
+		
+		pItem->m_pointSrcList[x] = newSrc;
+		pItem->m_pointSizeList[x] = baseSize;
+	}
+
 	return 0;
 }
 

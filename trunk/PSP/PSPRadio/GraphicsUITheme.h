@@ -27,9 +27,14 @@ public:
 		return m_pointSrcList[index];
 	}
 	
+	Point GetSize(int index)
+	{
+		return m_pointSizeList[index];
+	}
+	
 	map<int, Point> m_pointSrcList;
 	Point m_pointDst;
-	Point m_pointSize;
+	map<int, Point> m_pointSizeList;
 };
 
 class CGraphicsUITheme
@@ -39,6 +44,8 @@ public:
 	~CGraphicsUITheme();
 	
 	int GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem);
+	int GetLetters(char *szIniTag, CGraphicsUIThemeItem *pItem);
+	int GetNumbers(char *szIniTag, CGraphicsUIThemeItem *pItem);	
 	int GetImagePath(char *szImagePath, int nLength);
 	
 public:
