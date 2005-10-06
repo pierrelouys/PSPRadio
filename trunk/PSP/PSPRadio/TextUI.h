@@ -3,14 +3,14 @@
 
 #include "IPSPRadio_UI.h"
 
-class CTextUI : public IPSPRadio_UI
+class CTextUI : public virtual IPSPRadio_UI
 {
 public:
 	CTextUI();
 	~CTextUI();
 	
 public:
-	int Initialize();
+	int Initialize(char *strCWD);
 	void Terminate();
 
 	int SetTitle(char *strTitle);
@@ -39,6 +39,7 @@ public:
 private:
 	CLock *m_lockprint;
 	CLock *m_lockclear;
+	CIniParser *m_Config;
 	//helpers
 	enum uicolors
 	{
@@ -50,10 +51,12 @@ private:
 		COLOR_CYAN  = 0x00AABB00,
 		COLOR_YELLOW= 0x00559999
 	};
-	void uiPrintf(int x, int y, uicolors color, char *strFormat, ...);
+	void uiPrintf(int x, int y, int color, char *strFormat, ...);
 	void ClearRows(int iRowStart, int iRowEnd = -1);
 
 	int ClearErrorMessage();
+	int GetConfigColor(char *strKey);
+	void GetConfigPos(char *strKey, int *x, int *y);
 
 };
 

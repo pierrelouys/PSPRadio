@@ -50,7 +50,7 @@ CGraphicsUI::~CGraphicsUI()
 {
 }
 
-int CGraphicsUI::Initialize()
+int CGraphicsUI::Initialize(char *strCWD)
 {	
 	Log(LOG_LOWLEVEL, "Initialize: Theme Initializing");
 	if(FALSE == InitializeTheme(THEME_FILE))

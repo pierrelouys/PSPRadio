@@ -35,6 +35,8 @@
 #define MAX_ROWS 34
 #define MAX_COL  68
 
+#define TEXT_UI_CFG_FILENAME "TextUI.cfg"
+
 CTextUI::CTextUI()
 {
 	m_lockprint = NULL;
@@ -53,14 +55,33 @@ CTextUI::~CTextUI()
 	m_lockclear = NULL;
 }
 
-int CTextUI::Initialize()
+int CTextUI::Initialize(char *strCWD)
 {
+	char strCfgFile[256];
+
+	sprintf(strCfgFile, "%s/%s", strCWD, TEXT_UI_CFG_FILENAME);
+
+	m_Config = new CIniParser(strCfgFile);
+	
 	pspDebugScreenInit();
-	pspDebugScreenSetBackColor(COLOR_BLUE);
-	pspDebugScreenSetTextColor(COLOR_WHITE);
+	pspDebugScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
+	pspDebugScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
 	pspDebugScreenClear(); 
 	
 	return 0;
+}
+
+int CTextUI::GetConfigColor(char *strKey)
+{
+	int iRet;
+	sscanf(m_Config->GetStr(strKey), "%x", &iRet);
+	
+	return iRet;
+}
+
+void CTextUI::GetConfigPos(char *strKey, int *x, int *y)
+{
+	sscanf(m_Config->GetStr(strKey), "%d,%d", x, y);
 }
 
 void CTextUI::Terminate()
@@ -68,7 +89,7 @@ void CTextUI::Terminate()
 }
 
 
-void CTextUI::uiPrintf(int x, int y, uicolors color, char *strFormat, ...)
+void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 {
 	va_list args;
 	char msg[70*5/** 5 lines worth of text...*/];
@@ -107,75 +128,100 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	{
 		pspDebugScreenSetXY(0,iRow);
 		printf("% 67c", ' ');
-		//printf("% 60c", ' ');
 	}
 	m_lockclear->Unlock();
 }
 
 int CTextUI::SetTitle(char *strTitle)
 {
-
-	uiPrintf(0,0, COLOR_WHITE, strTitle);
+	int x,y;
+	int c;
+	GetConfigPos("TEXT_POS:TITLE", &x, &y);
+	c = GetConfigColor("COLORS:TITLE");
+	uiPrintf(x,y, c, strTitle);
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_EnablingNetwork()
 {
+	int x,y,c;
+	GetConfigPos("TEXT_POS:NETWORK_ENABLING", &x, &y);
+	c = GetConfigColor("COLORS:NETWORK_ENABLING");
+	
 	ClearErrorMessage();
-	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_CYAN, "Enabling Network");
+	ClearRows(y);
+	uiPrintf(x, y, c, "Enabling Network");
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
+	int x,y,c;
+	GetConfigPos("TEXT_POS:NETWORK_SELECTION", &x, &y);
+	c = GetConfigColor("COLORS:NETWORK_SELECTION");
+	
 	ClearErrorMessage();
-	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_RED, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
+	ClearRows(y);
+	uiPrintf(x, y, c, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
 
 	return 0;
 }
 
 int CTextUI::DisplayMessage_DisablingNetwork()
 {
-	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_RED, "Disabling Network");
+	int x,y,c;
+	GetConfigPos("TEXT_POS:NETWORK_DISABLING", &x, &y);
+	c = GetConfigColor("COLORS:NETWORK_DISABLING");
+	
+	ClearRows(y);
+	uiPrintf(x, y, c, "Disabling Network");
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
-	ClearRows(26);
-	uiPrintf(-1, 26, COLOR_CYAN, "Ready, IP %s", strIP);
+	int x,y,c;
+	GetConfigPos("TEXT_POS:NETWORK_READY", &x, &y);
+	c = GetConfigColor("COLORS:NETWORK_READY");
+	
+	ClearRows(y);
+	uiPrintf(x, y, c, "Ready, IP %s", strIP);
 	
 	return 0;
 }
 
 int CTextUI::DisplayMainCommands()
 {
-	ClearRows(25);
-	uiPrintf(-1, 25, COLOR_GREEN, "X Play/Pause | [] Stop | L / R To Browse");
+	int x,y,c;
+	GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+	c = GetConfigColor("COLORS:MAIN_COMMANDS");
+	
+	ClearRows(y);
+	uiPrintf(x, y, c, "X Play/Pause | [] Stop | L / R To Browse");
 		
 	return 0;
 }
 
 int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
-	uicolors color = COLOR_CYAN;
-	ClearRows(20);
+	int x,y,c;
+	GetConfigPos("TEXT_POS:ACTIVE_COMMAND", &x, &y);
+	c = GetConfigColor("COLORS:ACTIVE_COMMAND");
+	
+	ClearRows(y);
 	switch(playingstate)
 	{
 	case CPSPSound::STOP:
-		uiPrintf(-1, 20, color, "STOP");
+		uiPrintf(x, y, c, "STOP");
 		break;
 	case CPSPSound::PLAY:
-		uiPrintf(-1, 20, color, "PLAY");
+		uiPrintf(x, y, c, "PLAY");
 		break;
 	case CPSPSound::PAUSE:
-		uiPrintf(-1, 20, color, "PAUSE");
+		uiPrintf(x, y, c, "PAUSE");
 		break;
 	}
 	
@@ -184,54 +230,78 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CTextUI::DisplayErrorMessage(char *strMsg)
 {
+	int x,y,c;
+	GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
+	c = GetConfigColor("COLORS:ERROR_MESSAGE");
+	
 	ClearErrorMessage();
-	uiPrintf(0, 30, COLOR_YELLOW, "Error: %s", strMsg);
+	uiPrintf(x, y, c, "Error: %s", strMsg);
 	
 	return 0;
 }
 
 int CTextUI::ClearErrorMessage()
 {
-	ClearRows(30,32);
+	int x,y;
+	GetConfigPos("TEXT_POS:ERROR_MESSAGE_ROW_RANGE", &x, &y);
+	ClearRows(x, y);
 	return 0;
 }
 
 int CTextUI::DisplayBufferPercentage(int iPerc)
 {
-	//ClearRows(11);
+	int x,y,c;
+	GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
+	c = GetConfigColor("COLORS:ERROR_MESSAGE");
+
 	if (iPerc > 97)
 		iPerc = 100;
 	if (iPerc < 2)
 		iPerc = 0;
-	uiPrintf(0, 11, COLOR_WHITE, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
+	uiPrintf(x, y, c, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
 	return 0;
 }
 
 int CTextUI::OnNewStreamStarted()
 {
-	ClearRows(4, 11);
+	int x,y;
+	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &x, &y);
+	ClearRows(x, y);
+
 	return 0;
 }
 
 int CTextUI::OnStreamOpening()
 {
+	int x,y,c;
+	GetConfigPos("TEXT_POS:STREAM_OPENING", &x, &y);
+	c = GetConfigColor("COLORS:STREAM_OPENING");
+	
 	ClearErrorMessage(); /** Clear any errors */
-	ClearRows(18);
-	uiPrintf(-1, 18, COLOR_WHITE, "Opening Stream");
+	ClearRows(y);
+	uiPrintf(x, y, c, "Opening Stream");
 	return 0;
 }
 
 int CTextUI::OnStreamOpeningError()
 {
-	ClearRows(18);
-	uiPrintf(-1, 18, COLOR_WHITE, "Error Opening Stream");
+	int x,y,c;
+	GetConfigPos("TEXT_POS:STREAM_OPENING_ERROR", &x, &y);
+	c = GetConfigColor("COLORS:STREAM_OPENING_ERROR");
+	
+	ClearRows(y);
+	uiPrintf(x, y, c, "Error Opening Stream");
 	return 0;
 }
 
 int CTextUI::OnStreamOpeningSuccess()
 {
-	ClearRows(18);
-	uiPrintf(-1, 18, COLOR_WHITE, "Stream Opened");
+	int x,y,c;
+	GetConfigPos("TEXT_POS:STREAM_OPENING_SUCCESS", &x, &y);
+	c = GetConfigColor("COLORS:STREAM_OPENING_SUCCESS");
+	
+	ClearRows(y);
+	uiPrintf(x, y, c, "Stream Opened");
 	return 0;
 }
 
@@ -242,7 +312,9 @@ int CTextUI::OnVBlank()
 
 int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
-	ClearRows(12,15);
+	int x,y;
+	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &x, &y);
+	ClearRows(x, y);
 	
 	if (strlen(pData->strFileTitle) >= 59)
 		pData->strFileTitle[59] = 0;
@@ -250,14 +322,14 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 	if (strlen(pData->strURL) >= 59)
 		pData->strURL[59] = 0;
 	
-	uiPrintf(0 , 13,	COLOR_WHITE,  "Stream: ");
-	uiPrintf(8 , 13,	COLOR_CYAN, "%s ", pData->strFileName);
-	uiPrintf(0 , 14,    COLOR_WHITE,  "Title : ");
-	uiPrintf(8 , 14,    COLOR_CYAN, "%s ", pData->strFileTitle);
+	uiPrintf(0 , y,		COLOR_WHITE,	"Stream: ");
+	uiPrintf(8 , y,		COLOR_CYAN,		"%s ", pData->strFileName);
+	uiPrintf(0 , y+1,	COLOR_WHITE,	"Title : ");
+	uiPrintf(8 , y+1,	COLOR_CYAN, 	"%s ", pData->strFileTitle);
 	if (pData->strURL && strlen(pData->strURL))
 	{
-		uiPrintf(0, 15, COLOR_WHITE,  "URL   : ");
-		uiPrintf(8, 15, COLOR_CYAN, "%s ", pData->strURL);
+		uiPrintf(0, y+2, COLOR_WHITE,	"URL   : ");
+		uiPrintf(8, y+2, COLOR_CYAN,	"%s ", pData->strURL);
 	}
 	return 0;
 }

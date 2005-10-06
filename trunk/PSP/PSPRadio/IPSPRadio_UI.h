@@ -7,10 +7,10 @@
 class IPSPRadio_UI
 {
 public:
-	//virtual ~IPSPRadio_UI();//{};
+	//virtual ~IPSPRadio_UI(){};//{};
 	
-	virtual int Initialize() = 0;
-	virtual void Terminate();
+	virtual int Initialize(char *strCWD);
+	virtual void Terminate() = 0;
 
 	virtual int SetTitle(char *strTitle);
 	virtual int DisplayMessage_EnablingNetwork();
@@ -31,7 +31,6 @@ public:
 	virtual int OnVBlank();
 	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	virtual int DisplayMPEGLayerType(char *strType);
-	//virtual int DisplayMetadata(char *strTitle, char *strURL);
 	virtual int OnNewSongData(CPlayList::songmetadata *pData);
 
 };

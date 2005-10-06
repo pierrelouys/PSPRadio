@@ -107,7 +107,7 @@ public:
 			UI = new CTextUI();
 		}
 		
-		UI->Initialize();
+		UI->Initialize(strDir); /* Initialize takes cwd */
 		UI->SetTitle(strAppTitle);
 		
 		if (1 == config->GetInteger("USB:ENABLED", 0))
