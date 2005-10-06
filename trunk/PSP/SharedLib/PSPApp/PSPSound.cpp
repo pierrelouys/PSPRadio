@@ -88,6 +88,7 @@ CPSPSound::~CPSPSound()
 	Log(LOG_VERYLOW, "~CSPSSound(): pPSPApp->m_Exit=%d", pPSPApp->m_Exit);
 	Stop();
 	
+	Log(LOG_VERYLOW, "~CSPSSound(): After Stop, destroying threads...", pPSPApp->m_Exit);
 	if (m_thDecode) 
 	{ 
 		/** Wake the decoding thread up, so it can exit*/
@@ -203,18 +204,12 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
 		for(;;)
 		{
+			mybuf = pPSPSound->Buffer.PopBuffer();
 			if (pPSPApp->m_Exit == true)
 			{
 				break;
 			}
-			mybuf = pPSPSound->Buffer.PopBuffer();
 			sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
-			
-			if (pPSPSound->Buffer.IsDone())
-			{
-				//pPSPSound->Buffer.Empty(); /** This also clears the IsDone flag, so that the next song can keep playing */
-				pPSPSound->SendMessage(MID_THPLAY_DONE);
-			}
 			
 			if (count++ % 2)
 			{
@@ -231,7 +226,6 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 
 int CPSPSound::ThDecode(SceSize args, void *argp)
 {
-	//pspDebugScreenSetXY(0,4);
 	Log(LOG_INFO,"Starting Decoding Thread; putting thread to sleep.");
 	pPSPSound->SendMessage(MID_THDECODE_BEGIN);
 
@@ -281,11 +275,9 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 	/** **/
 	m_samplerate = PSP_SAMPLERATE;
 	
-	ringbuf_start = (Frame *)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * (NUM_BUFFERS + 5))*15/*padding for upsampling*/);
-	ringbuf_end = ringbuf_start+(PSP_BUFFER_SIZE_IN_FRAMES*NUM_BUFFERS);
-	pspbuf = (Frame *)memalign(64, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
-	
-	Empty();
+	m_NumBuffers = DEFAULT_NUM_BUFFERS;
+
+	AllocateBuffers();
 	
 }
 
@@ -302,9 +294,34 @@ CPSPSoundBuffer::~CPSPSoundBuffer()
 	
 }
 
+
+void CPSPSoundBuffer::AllocateBuffers()
+{
+	if (ringbuf_start)
+	{
+		free (ringbuf_start), ringbuf_start = NULL;
+	}
+	if (pspbuf)
+	{
+		free (pspbuf), pspbuf = NULL;
+	}
+	ringbuf_start = (Frame *)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * (m_NumBuffers + 5))*15/*padding for upsampling*/);
+	ringbuf_end = ringbuf_start+(PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
+	pspbuf = (Frame *)memalign(64, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
+	
+	Empty();
+}
+
+void CPSPSoundBuffer::ChangeBufferSize(size_t buffer_size) /*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
+{
+	m_NumBuffers = buffer_size;
+	AllocateBuffers();
+}
+
 void  CPSPSoundBuffer::Empty() 
 { 
-	memset(ringbuf_start, 0, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * NUM_BUFFERS);
+	Log(LOG_VERYLOW, "CPSPSoundBuffer::Empty() Called.");
+	memset(ringbuf_start, 0, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * m_NumBuffers);
 	pushpos = poppos = ringbuf_start;
 	m_lastpushpos = 0;
 	m_FrameCount = 0;
@@ -315,7 +332,7 @@ void  CPSPSoundBuffer::Empty()
 size_t CPSPSoundBuffer::GetBufferFillPercentage() 
 { 
 	
-	return 100*m_FrameCount/(PSP_BUFFER_SIZE_IN_FRAMES*NUM_BUFFERS);
+	return 100*m_FrameCount/(PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
 };
 		
 void CPSPSoundBuffer::SetSampleRate(size_t samplerate)
@@ -407,7 +424,7 @@ void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz s
 
 Frame *CPSPSoundBuffer::PopBuffer()
 {
-	for (int i = 0 ; i < PSP_BUFFER_SIZE_IN_FRAMES; i++)
+	for (int i = 0 ; (i < PSP_BUFFER_SIZE_IN_FRAMES); i++)
 	{
 		pspbuf[i] = PopFrame();
 	}
@@ -416,6 +433,14 @@ Frame *CPSPSoundBuffer::PopBuffer()
 
 Frame CPSPSoundBuffer::PopFrame()
 {
+	//if (m_FrameCount < 420)
+	//	Log(LOG_VERYLOW, "PopFrame(): m_buffering=%s poppos=%x pushpos=%x lastpushpos=%x framecount=%d",
+	//		(m_buffering==true)?"true":"false",
+	//		poppos, pushpos, m_lastpushpos, m_FrameCount);
+	if (true == IsDone())
+	{
+		pPSPSound->SendMessage(MID_THPLAY_DONE);
+	}
 	if (true == m_buffering)
 	{
 		while (GetBufferFillPercentage() != 100)
@@ -435,12 +460,14 @@ Frame CPSPSoundBuffer::PopFrame()
 				break;
 		}
 	}
+
 	Frame ret = *poppos;
 	poppos++;
 	if (poppos > ringbuf_end)
 		poppos = ringbuf_start;
 
 	m_FrameCount--;
+	
 	return ret;
 }
 

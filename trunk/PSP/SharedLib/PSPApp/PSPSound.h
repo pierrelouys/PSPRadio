@@ -35,7 +35,8 @@
 	/* (frames are 2ch, 16bits, so 4096frames =16384bytes =8192samples-l-r-combined.)*/
 	//#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(4096)	
 	#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(2048)	
-	#define NUM_BUFFERS 			20	
+	//Now configurable: #define NUM_BUFFERS 			20	
+	#define DEFAULT_NUM_BUFFERS		20		/** Default */
 	
 	#define INPUT_BUFFER_SIZE		16302
 	
@@ -100,15 +101,14 @@
 	class CPSPSoundBuffer
 	{
 	public:
-		CPSPSoundBuffer();
+		CPSPSoundBuffer();	
 		~CPSPSoundBuffer();
+		void  ChangeBufferSize(size_t buffer_size); /*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
 		void  PushFrame(Frame frame); /* Takes 1 frame for any samplerate, set samplate first. */
 		void  Push44Frame(Frame frame); /* Takes 1 frame for a 44100Hz stream */
 		Frame PopFrame(); 			/* Returns 1 frame */
 		
 		Frame *PopBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
-		int   GetPushPos(){return pushpos-ringbuf_start;};
-		int   GetPopPos(){return poppos-ringbuf_start;};
 		size_t GetBufferFillPercentage();
 		void  Empty();
 		void  Done();
@@ -121,7 +121,11 @@
 		Frame 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
 		bool  	m_buffering;
 		size_t 	m_samplerate, m_mult, m_div;
-		int 	m_FrameCount; /** Used for buffer percentage */
+		size_t 	m_FrameCount; /** Used for buffer percentage */
+		size_t	m_NumBuffers; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
+		
+		void AllocateBuffers(); /** Called by constructor/ChangeBufferSize() to (re)allocate buffers */
+
 	};
 	
 	class CPSPSound
@@ -140,14 +144,11 @@
 		
 	private:
 		void Initialize();
-		
-		
-		CPSPThread *m_thDecode,*m_thPlayAudio;
-		int m_audiohandle ;
-		
 		/** Accessors */
 		int GetAudioHandle();
 		
+		CPSPThread *m_thDecode,*m_thPlayAudio;
+		int m_audiohandle ;
 		pspsound_state m_CurrentState;
 	
 	protected:
@@ -159,9 +160,6 @@
 		virtual ~CPSPSound();
 		
 		/** Accessors */
-		//void SetFile(char *strName);
-		//char *GetFile() { return m_strFile; };
-		//do through Stream
 		CPSPSoundStream *GetStream() { return m_InputStream; }
 		
 		int Play();
@@ -172,9 +170,9 @@
 		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND)
 			{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
 
-		//int GetBufferPopPos()  { return Buffer.GetPopPos(); };
-		//int GetBufferPushPos() { return Buffer.GetPushPos(); };
 		size_t GetBufferFillPercentage() { return Buffer.GetBufferFillPercentage(); };
+		void   ChangeBufferSize(size_t size) { Buffer.ChangeBufferSize(size); };
+		
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);
 		static int ThDecode(SceSize args, void *argp);
