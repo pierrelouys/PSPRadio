@@ -161,7 +161,7 @@
 					int stackSize = 0xFA0, SceUInt attr = 0/*PSP_THREAD_ATTR_USER*/, SceKernelThreadOptParam *option = NULL)
 				{ m_thid = sceKernelCreateThread(strName, ThreadEntry, initPriority, stackSize, attr, option);  };
 		~CPSPThread()
-				{ if (m_thid>=0) /*sceKernelWaitThreadEnd(m_thid, NULL),*/sceKernelTerminateDeleteThread(m_thid);   };
+				{ /*if (m_thid>=0) sceKernelWaitThreadEnd(m_thid, NULL),sceKernelTerminateDeleteThread(m_thid); */  };
 				
 		int Start()
 				{ return m_thid>=0?sceKernelStartThread(m_thid, 0, NULL):-1; };
