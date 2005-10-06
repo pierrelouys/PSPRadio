@@ -102,8 +102,10 @@
 	public:
 		CPSPSoundBuffer();
 		~CPSPSoundBuffer();
-		void  PushFrame(Frame frame); /* Takes 1 frame */
+		void  PushFrame(Frame frame); /* Takes 1 frame for any samplerate, set samplate first. */
+		void  Push44Frame(Frame frame); /* Takes 1 frame for a 44100Hz stream */
 		Frame PopFrame(); 			/* Returns 1 frame */
+		
 		Frame *PopBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
 		int   GetPushPos(){return pushpos-ringbuf_start;};
 		int   GetPopPos(){return poppos-ringbuf_start;};
@@ -115,14 +117,11 @@
 		void  SetSampleRate(size_t samplerate);
 	
 	private:
-		Frame *pushpos,*poppos,*m_lastpushpos, *ringbuf_end;
-		Frame *ringbuf_start, *pspbuf;
-		bool buffering;
-		size_t m_samplerate;
-		Frame *m_bUpsamplingTemp, *m_bUpsamplingOut;
-		int m_FrameCount; /** Used for buffer percentage */
-		
-		size_t UpSample(Frame *bOut, Frame *bIn, int mult, int div);
+		Frame 	*ringbuf_start, *pspbuf; /** Buffers */
+		Frame 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
+		bool  	m_buffering;
+		size_t 	m_samplerate, m_mult, m_div;
+		int 	m_FrameCount; /** Used for buffer percentage */
 	};
 	
 	class CPSPSound

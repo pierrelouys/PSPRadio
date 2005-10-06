@@ -276,8 +276,6 @@ void CPSPSound::Decode()
 CPSPSoundBuffer::CPSPSoundBuffer()
 {
 	/** Initialize */
-	m_bUpsamplingTemp = NULL;
-	m_bUpsamplingOut = NULL;
 	ringbuf_start=NULL;
 	pspbuf = NULL;
 	/** **/
@@ -286,8 +284,6 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 	ringbuf_start = (Frame *)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * (NUM_BUFFERS + 5))*15/*padding for upsampling*/);
 	ringbuf_end = ringbuf_start+(PSP_BUFFER_SIZE_IN_FRAMES*NUM_BUFFERS);
 	pspbuf = (Frame *)memalign(64, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
-	//m_bUpsamplingTemp = (Frame*)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES)*11/** max multiplier = 11*/));
-	//m_bUpsamplingOut = (Frame*)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES)*11/** max multiplier = 11*/));
 	
 	Empty();
 	
@@ -295,14 +291,6 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 
 CPSPSoundBuffer::~CPSPSoundBuffer()
 {
-	if (m_bUpsamplingTemp)
-	{
-		free(m_bUpsamplingTemp);
-	}
-	if (m_bUpsamplingOut)
-	{
-		free(m_bUpsamplingOut);
-	}
 	if (ringbuf_start)
 	{
 		free(ringbuf_start), ringbuf_start=NULL;
@@ -320,7 +308,8 @@ void  CPSPSoundBuffer::Empty()
 	pushpos = poppos = ringbuf_start;
 	m_lastpushpos = 0;
 	m_FrameCount = 0;
-	buffering = true;
+	m_mult = 1, m_div = 1;
+	m_buffering = true;
 }
 
 size_t CPSPSoundBuffer::GetBufferFillPercentage() 
@@ -333,164 +322,91 @@ void CPSPSoundBuffer::SetSampleRate(size_t samplerate)
 {
 	if (samplerate > 0)
 	{
-		if (m_bUpsamplingTemp && m_bUpsamplingOut)
+		Empty();
+		m_samplerate = samplerate;
+		m_mult = 1, m_div = 1;
+		switch(m_samplerate)
 		{
-			Empty();
-			m_samplerate = samplerate;
-			Log(LOG_VERYLOW, "Allocated m_bUpsamplingTemp, samplerate=%dHz.", samplerate);
-
+		case 8000:
+			m_mult=11;
+			m_div = 2;
+			break;
+		case 11025:
+			m_mult=4;
+			m_div =1;
+			break;
+		case 16000:
+			m_mult=11;
+			m_div = 4;
+			break;
+		case 22050:
+			m_mult=2;
+			m_div =1;
+			break;
+		case 24000:
+			m_mult=11;
+			m_div =6;
+			break;
+		case 32000:
+			m_mult=11;
+			m_div = 8;
+			break;
+		case 44100:
+			m_mult=1;
+			m_div =1;
+			break;
+		case 47250:
+			break;
+		case 48000:
+			m_mult=11;
+			m_div=12;
+			break;
 		}
-		else
-		{
-			Log(LOG_ERROR, "Memory allocation error creating an m_bUpsamplingTemp (samplerate=%dHz).", 
-				samplerate);
-			m_samplerate = PSP_SAMPLERATE;
-		}
+		//Log(LOG_VERYLOW, "Allocated m_bUpsamplingTemp, samplerate=%dHz.", samplerate);
 	}
 }
 
-void CPSPSoundBuffer::PushFrame(Frame frame)
+void CPSPSoundBuffer::PushFrame(Frame frame) /** Push a frame at an arbitrary samplerate */
 {
-	//size_t size = 0;
+	static size_t iDiv = 0;
+	for (size_t iMult = 0; iMult < m_mult; iMult++)
+	{
+		iDiv++;
+		if ((iDiv % m_div) == 0)
+		{
+			Push44Frame(frame);
+		}
+	}
+	
+}
+
+void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz stream */
+{
 	static int count = 0;
 	
 	while ( GetBufferFillPercentage() == 100 )
-	{ /*Wait for pop to catch up, we keep a min space of NUM_BUFFERS/2 */
+	{ 
 		sceKernelDelayThread(50); /** 50us */
 		if ( (pPSPApp->IsExiting() == true) )
 			break;
 	}
 	
-//	if (PSP_SAMPLERATE == m_samplerate)
-	{
-		//memcpy(ringbuf_start+(pushpos*FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES)), 
-		//		buf, 
-		//		FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
-		*pushpos = frame;
-		pushpos++;// = (pushpos + 1);// % (NUM_BUFFERS*PSP_BUFFER_SIZE_IN_FRAMES);
-		m_FrameCount++;
-		if (pushpos > ringbuf_end)
-			pushpos = ringbuf_start;
+	*pushpos = frame;
+	pushpos++;
+	if (pushpos > ringbuf_end)
+		pushpos = ringbuf_start;
 		
-		if (count++ % (PSP_BUFFER_SIZE_IN_FRAMES)*2 == 0)
-		{
-			pPSPSound->SendMessage(MID_BUFF_PERCENT_UPDATE);
-		}
-	}
-#if 0
-	else /** We need to upsample */
+	m_FrameCount++;
+	
+	if (count++ % (PSP_BUFFER_SIZE_IN_FRAMES)*2 == 0)
 	{
-		if (m_bUpsamplingTemp && m_bUpsamplingOut)
-		{
-			int mult = 1, div = 1;
-			switch(m_samplerate)
-			{
-			case 8000:
-				mult=11;
-				div = 2;
-				break;
-			case 11025:
-				mult=4;
-				div =1;
-				break;
-			case 16000:
-				mult=11;
-				div = 4;
-				break;
-			case 22050:
-				mult=2;
-				div =1;
-				break;
-			case 24000:
-				mult=11;
-				div =6;
-				break;
-			case 32000:
-				mult=11;
-				div = 8;
-				break;
-			case 44100:
-				mult=1;
-				div =1;
-				break;
-			case 47250:
-				break;
-			case 48000:
-				mult=11;
-				div=12;
-				break;
-			}
-				
-			size = UpSample(/*out*/(short*)m_bUpsamplingOut, /*in*/(short*)buf, mult, div);
-			memcpy(ringbuf_start+(pushpos*size), m_bUpsamplingOut, size);
-			//Log(LOG_LOWLEVEL, "size=%d out=%d s/o=%d", size, OUTPUT_BUFFER_SIZE, (int)size/(int)OUTPUT_BUFFER_SIZE);
-			pushpos = (pushpos + mult/div) % NUM_BUFFERS;
-		}
-		else
-		{
-			Log(LOG_ERROR, "CPSPSoundBuffer::Push() Error. No upsampled_buffer.");
-		}
+		pPSPSound->SendMessage(MID_BUFF_PERCENT_UPDATE);
 	}
-#endif
 }
 
-#if 0 
-size_t CPSPSoundBuffer::UpSample(short *bOut, short *bIn, int mult, int div)
-{
-	int iCnt;
-	size_t out_size_in_bytes;
-	short *bUpsamplingTemp;
-	size_t iInSamples;
-
-
-
-	//Log(LOG_VERYLOW, "Upsample(): samplerate=%d mult=%d div=%d", m_samplerate, mult, div);
-	
-	//if (mult > 1)
-	{
-		bUpsamplingTemp = m_bUpsamplingTemp;
-		for (iInSamples = 0 ; iInSamples < FRAMES_TO_SAMPLES(PSP_BUFFER_SIZE_IN_FRAMES) ; iInSamples++)
-		{
-			for (iCnt = 0 ; iCnt < mult ; iCnt++)
-			{
-				*(bUpsamplingTemp)=*(bIn);	/** Left sample  */
-				*(bUpsamplingTemp+1)=*(bIn+1); /** Right sample */
-			}
-			bUpsamplingTemp+=(mult*2);
-			bIn+=2;
-		}
-		out_size_in_bytes = (char*)bUpsamplingTemp - (char*)m_bUpsamplingTemp;
-	}
-	
-	//if (div > 1)
-	{
-		int iAverageL = 0, iAverageR = 0;
-		size_t iFrames = 0;
-		size_t frames = PSP_BUFFER_SIZE_IN_FRAMES*mult;
-		bUpsamplingTemp = m_bUpsamplingTemp;
-		for (iFrames = 0; iFrames < frames; iFrames++)
-		{
-			iAverageL += *(bUpsamplingTemp);
-			iAverageR += *(bUpsamplingTemp+1);
-			if (iFrames % div == 0)
-			{
-				*(bOut)   = iAverageL/div;
-				*(bOut+1) = iAverageR/div;
-				iAverageL = iAverageR = 0;
-			}
-			bOut+=2;
-			bUpsamplingTemp+=2;
-		}
-		out_size_in_bytes = (char*)bUpsamplingTemp - (char*)m_bUpsamplingTemp;
-	}
-	
-	return out_size_in_bytes;
-}
-#endif
 
 Frame *CPSPSoundBuffer::PopBuffer()
 {
-//FRAMES_TO_BYTES(PSP_BUFFERS_SIZE_IN_FRAMES)
 	for (int i = 0 ; i < PSP_BUFFER_SIZE_IN_FRAMES; i++)
 	{
 		pspbuf[i] = PopFrame();
@@ -500,33 +416,31 @@ Frame *CPSPSoundBuffer::PopBuffer()
 
 Frame CPSPSoundBuffer::PopFrame()
 {
-	if (true == buffering)
+	if (true == m_buffering)
 	{
-		//while (abs(pushpos - poppos) < (PSP_BUFFER_SIZE_IN_FRAMES*NUM_BUFFERS)/4) 
 		while (GetBufferFillPercentage() != 100)
-		{/** Buffering!! */
+		{	/** Buffering!! */
 			sceKernelDelayThread(50); /** 500us */
 			if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )
 				break;
 		}
-		buffering = false;
+		m_buffering = false;
 	}
 	else
 	{
-		//while (abs((int)(pushpos - poppos)) < PSP_BUFFER_SIZE_IN_FRAMES*1) 
-		while (GetBufferFillPercentage() < 1)
-		{/** Buffer almost empty!! */
+		while (GetBufferFillPercentage() == 0)
+		{	/** Buffer Empty!! */
 			sceKernelDelayThread(50); /** 500us */
-			if (pPSPApp->IsExiting() == true)
+			if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )
 				break;
 		}
 	}
 	Frame ret = *poppos;
-	poppos++;// = (poppos + 1);// % (NUM_BUFFERS*PSP_BUFFER_SIZE_IN_FRAMES);
-	m_FrameCount--;
+	poppos++;
 	if (poppos > ringbuf_end)
 		poppos = ringbuf_start;
 
+	m_FrameCount--;
 	return ret;
 }
 
