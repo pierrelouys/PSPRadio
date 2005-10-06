@@ -43,7 +43,7 @@ public:
 	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	int DisplayMPEGLayerType(char *strType);
 	//int DisplayMetadata(char *strTitle, char *strURL);
-	int OnNewSongData(CPlayList::songmetadata *pData);
+	int OnNewSongData(CPlayList::songmetadata *pData);	
 	
 private:
 	SDL_Surface *LoadImage(char *szImageName);
@@ -54,9 +54,12 @@ private:
 	void SetPauseButton(uibuttonstate_enum state);
 	void SetStopButton(uibuttonstate_enum state);
 	
-	bool InitializeTheme(char *szFilename);
+	bool InitializeTheme(char *szFilename, char *szThemePath);
 	bool InitializeSDL();
 	bool InitializeImages();
+	
+	void DisplayWord(char *szWord, int dstX, int dxtY);
+
 	
 private:
 	const SDL_VideoInfo *m_pVideoInfo;
@@ -74,6 +77,8 @@ private:
 	CGraphicsUIThemeItem m_themeItemLoad;
 	CGraphicsUIThemeItem m_themeItemSound;
 	CGraphicsUIThemeItem m_themeItemVolume;
+	CGraphicsUIThemeItem m_themeItemLetters;
+	CGraphicsUIThemeItem m_themeItemNumbers;
 };
 
 

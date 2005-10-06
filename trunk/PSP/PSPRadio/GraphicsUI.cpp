@@ -35,7 +35,7 @@
 #define PSP_RES_WIDTH	480
 #define PSP_RES_HEIGHT	272
 
-#define THEME_FILE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.theme"
+#define THEME_FILE 		"PSPRadio_AllStates.theme"
 
 CGraphicsUI::CGraphicsUI()
 {
@@ -52,8 +52,14 @@ CGraphicsUI::~CGraphicsUI()
 
 int CGraphicsUI::Initialize(char *strCWD)
 {	
+	char szThemeFile[256];
+	char szThemePath[256];
+
+	sprintf(szThemePath, "%s/THEME/", strCWD);
+	sprintf(szThemeFile, "%s%s", szThemePath, THEME_FILE);
+
 	Log(LOG_LOWLEVEL, "Initialize: Theme Initializing");
-	if(FALSE == InitializeTheme(THEME_FILE))
+	if(FALSE == InitializeTheme(szThemeFile, szThemePath))
 	{
 		Log(LOG_ERROR, "Initialize: error initializing Theme");
 		return -1;
@@ -78,6 +84,8 @@ int CGraphicsUI::Initialize(char *strCWD)
 	Log(LOG_LOWLEVEL, "Initialize: Images Initialied");
 	
 	SetBaseImage();
+	
+	DisplayWord("This is a test", 10, 10);
 	
 	return 0;
 }
@@ -213,20 +221,16 @@ int CGraphicsUI::OnStreamOpeningSuccess()
 	SDL_Rect src = 	{ 
 						m_themeItemLoad.GetSrc(1).x,
 						m_themeItemLoad.GetSrc(1).y,
-						m_themeItemLoad.m_pointSize.x,
-						m_themeItemLoad.m_pointSize.y
+						m_themeItemLoad.GetSize(1).x,
+						m_themeItemLoad.GetSize(1).y
 					};
 					
 	SDL_Rect dst = 	{ 
 						m_themeItemLoad.m_pointDst.x,
 						m_themeItemLoad.m_pointDst.y,
-						m_themeItemLoad.m_pointDst.x,
-						m_themeItemLoad.m_pointDst.y
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
-
-	return 0;
 
 	return 0;
 }
@@ -256,15 +260,13 @@ int CGraphicsUI::OnConnectionProgress()
 	SDL_Rect src = 	{ 
 						m_themeItemLoad.GetSrc(0).x,
 						m_themeItemLoad.GetSrc(0).y,
-						m_themeItemLoad.m_pointSize.x,
-						m_themeItemLoad.m_pointSize.y
+						m_themeItemLoad.GetSize(0).x,
+						m_themeItemLoad.GetSize(0).y
 					};
 					
 	SDL_Rect dst = 	{ 
 						m_themeItemLoad.m_pointDst.x,
 						m_themeItemLoad.m_pointDst.y,
-						m_themeItemLoad.m_pointDst.x,
-						m_themeItemLoad.m_pointDst.y
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
@@ -277,15 +279,13 @@ void CGraphicsUI::SetBaseImage(void)
 	SDL_Rect src = 	{ 
 						m_themeItemBackground.GetSrc(0).x,
 						m_themeItemBackground.GetSrc(0).y,
-						m_themeItemBackground.m_pointSize.x,
-						m_themeItemBackground.m_pointSize.y
+						m_themeItemBackground.GetSize(0).x,
+						m_themeItemBackground.GetSize(0).y
 					};
 					
 	SDL_Rect dst = 	{ 
 						m_themeItemBackground.m_pointDst.x,
 						m_themeItemBackground.m_pointDst.y,
-						m_themeItemBackground.m_pointDst.x,
-						m_themeItemBackground.m_pointDst.y
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
@@ -296,15 +296,13 @@ void CGraphicsUI::SetPlayButton(uibuttonstate_enum state)
 	SDL_Rect src = 	{ 
 						m_themeItemPlay.GetSrc(state).x,
 						m_themeItemPlay.GetSrc(state).y,
-						m_themeItemPlay.m_pointSize.x,
-						m_themeItemPlay.m_pointSize.y
+						m_themeItemPlay.GetSize(state).x,
+						m_themeItemPlay.GetSize(state).y
 					};
 					
 	SDL_Rect dst = 	{ 
 						m_themeItemPlay.m_pointDst.x,
 						m_themeItemPlay.m_pointDst.y,
-						m_themeItemPlay.m_pointDst.x,
-						m_themeItemPlay.m_pointDst.y
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
@@ -315,15 +313,13 @@ void CGraphicsUI::SetPauseButton(uibuttonstate_enum state)
 	SDL_Rect src = 	{ 
 						m_themeItemPause.GetSrc(state).x,
 						m_themeItemPause.GetSrc(state).y,
-						m_themeItemPause.m_pointSize.x,
-						m_themeItemPause.m_pointSize.y
+						m_themeItemPause.GetSize(state).x,
+						m_themeItemPause.GetSize(state).y
 					};
 					
 	SDL_Rect dst = 	{ 
 						m_themeItemPause.m_pointDst.x,
 						m_themeItemPause.m_pointDst.y,
-						m_themeItemPause.m_pointDst.x,
-						m_themeItemPause.m_pointDst.y
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
@@ -334,22 +330,21 @@ void CGraphicsUI::SetStopButton(uibuttonstate_enum state)
 	SDL_Rect src = 	{ 
 						m_themeItemStop.GetSrc(state).x,
 						m_themeItemStop.GetSrc(state).y,
-						m_themeItemStop.m_pointSize.x,
-						m_themeItemStop.m_pointSize.y
+						m_themeItemStop.GetSize(state).x,
+						m_themeItemStop.GetSize(state).y
 					};
 					
 	SDL_Rect dst = 	{ 
 						m_themeItemStop.m_pointDst.x,
 						m_themeItemStop.m_pointDst.y,
-						m_themeItemStop.m_pointDst.x,
-						m_themeItemStop.m_pointDst.y
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
 }
 
-bool CGraphicsUI::InitializeTheme(char *szFilename)
+bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 {
+	char szBaseImage[256];
 	if(0 != m_theme.Initialize(szFilename))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error initializing theme (%s)", szFilename);
@@ -358,11 +353,15 @@ bool CGraphicsUI::InitializeTheme(char *szFilename)
 	
 	/** Get theme image */
 	Log(LOG_LOWLEVEL, "InitializeTheme: getting image path");
-	if(0 != m_theme.GetImagePath(m_szThemeImagePath, sizeof(m_szThemeImagePath)))
+	//if(0 != m_theme.GetImagePath(m_szThemeImagePath, sizeof(m_szThemeImagePath)))
+	if(0 != m_theme.GetImagePath(szBaseImage, sizeof(szBaseImage)))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme image path");
 		return FALSE;
 	}	
+	
+	sprintf(m_szThemeImagePath, "%s%s", szThemePath, szBaseImage);
+	Log(LOG_LOWLEVEL, "InitializeTheme: base image = %s", m_szThemeImagePath);
 	
 	/** Get the theme items */
 	Log(LOG_LOWLEVEL, "InitializeTheme: getting background");
@@ -414,6 +413,20 @@ bool CGraphicsUI::InitializeTheme(char *szFilename)
 		return FALSE;
 	}
 	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting letters");
+	if(0 != m_theme.GetLetters("letters", &m_themeItemLetters))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme letters");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting numbers");
+	if(0 != m_theme.GetNumbers("numbers", &m_themeItemNumbers))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme numbers");
+		return FALSE;
+	}
+	
 	return TRUE;
 }
 
@@ -447,6 +460,26 @@ bool CGraphicsUI::InitializeSDL()
 	return TRUE;
 }
 
+void CGraphicsUI::DisplayWord(char *szWord, int dstX, int dxtY)
+{
+	for(int x = 0; x <= 29; x++)
+	{
+		SDL_Rect src = 	{ 
+							m_themeItemLetters.GetSrc(x).x,
+							m_themeItemLetters.GetSrc(x).y,
+							m_themeItemLetters.GetSize(x).x,
+							m_themeItemLetters.GetSize(x).y
+						};
+						
+		SDL_Rect dst = 	{ 
+							dstX += src.w,
+							dxtY,
+						};
+			
+		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+	}
+}
+
 bool CGraphicsUI::InitializeImages()
 {
 	Log(LOG_LOWLEVEL, "InitializeImages: Loading base image"); 		
@@ -459,8 +492,7 @@ bool CGraphicsUI::InitializeImages()
 	
 	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency");
 	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency completed");
-	
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency completed");	
 
 	return TRUE;
 }
