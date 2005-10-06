@@ -1,0 +1,62 @@
+What's New for PSPRadio 0.34 - Released 10/04/05
+==================================================
+0.34
+-Corrected the mutex and semaphore implementations..
+(Now logging needs more resources because of this though, so it's probably a good idea to keep high).
+-Also found a bug that would cause the crash on exit (one at least).
+(PSPSound's destructor was accessing the m_ThDecode without checkin if it existed first.)
+-Also added USB support. Needs to be enabled in the config file. ([USB]ENABLED=1Wink
+-USB support is dangerous. Not recommended.
+-Disabled pause for URL streams.
+-Lots of internal refactoring.
+-Support for playlists v2 was added.
+-Now data from playlist v2 is shown, then updated when metadata arrives.
+-Can force a profile now, look in the .cfg file to see how.
+-Dropped the 'b' as is redundant with the -pre.
+-Now when pressing L and R, the song only auto starts if the user was currently playing a song.
+-Added thread exit synchronization using the semaphore. (Should help make sure the app exits correctly).
+-Removed forced network profile code. (As users having problems where able to solve them themselves).
+-Tweaked the playlist v2 support so that it (hopefully, test) works with winamp .pls files. (Now I just
+ignore the "NumberOfEntries"/"numberofentries" tag.
+
+0.33b
+-Corrected logging, so that it won't double-line feed.
+-Added connection timeout so that if the server is not respoding, PSPRadio will timeout after 5 seconds.
+-The connection now sends a message (can and will be used for the gui) for now, a '.' is printed every second while trying to connect.
+-New option in config file: WIFI-AUTOSTART if set to 0, then the user can select the WIFI profile from inside the app.
+-Now reports an error if the user tries to start the network and the switch is off
+-Metadata is now parsed
+-Network profile selection now is limited to actual configured network profiles, plus it displays the network profile name.
+-Reverted resolver ntoa / aton logic, to help ppl with DNS problems.
+-UI now completely encapsulated as a separate object, and an interface created that all UI need to follow. - This will allow for multiple
+user interfaces to coexist, and to ease transition to GUI.
+-Text UI now follows the interface; was also cleaned up a bit during conversion.
+-Added exit synchronization, to help prevent crashes on exit. This is done with a semaphore. 
+-Keeping the loglevel at 20 seems to help prevent the app from crashing on exit also.
+
+0.32b
+-Reports of sound skipping on 0.31b. Looking at the code, I realize I forgot to do something when processing metadata.
+Hopefully this is corrected now.
+-Solved the problem with threads not logging. I needed to use an absolute path to the log file.
+-Change your LOG_LEVEL to 50, (or more), so that it doesn't fill up your ms.
+-Metadata is only logged (to log file) when it changes.
+-Metadata should update faster on the screen now.
+
+
+0.31b
+-Corrected problem when PLAYLIST not defined in config file.
+-Disabled feature to go to next song in list for now.
+
+
+0.3b
+-Added support for comments. Use ';' as the first character. (Blank lines are also ignored)
+-Now urls with no path work (http://64.202.98.193:8000 didn't work, but http://64.202.98.193:8000/ did. Now both do).
+-Now asking the server to send metadata.
+-Metadata information is displayed for the current stream.
+-Added a logging library
+-Integrated logging with everything (framework, app, config)
+-Added an event system
+-Integrated the event system. This will be useful when the gui is developed.
+-When a stream finishes, it goes on to the next on the playlist
+-Fixed problem where the last entry in the playlist was getting inserted twice into the list.
+-Having trouble getting the threads to log anything..
