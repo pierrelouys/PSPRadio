@@ -14,27 +14,23 @@ struct Point
 class CGraphicsUIThemeItem
 {
 public:
-	CGraphicsUIThemeItem()
-	{
-	}
-		
-	~CGraphicsUIThemeItem()
-	{
-	}
+	CGraphicsUIThemeItem() { }		
+	~CGraphicsUIThemeItem() { }
 	
 	Point GetSrc(int index)
 	{
-		return m_pointSrcList[index];
+		return m_pointSrcMap[index];
 	}
 	
-	Point GetSize(int index)
+	int GetIndexFromKey(char key)
 	{
-		return m_pointSizeList[index];
+		return m_keyToIndexMap[key];
 	}
 	
-	map<int, Point> m_pointSrcList;
+	map<int, Point> m_pointSrcMap;
+	map<char, int> m_keyToIndexMap;
 	Point m_pointDst;
-	map<int, Point> m_pointSizeList;
+	Point m_pointSize;
 };
 
 class CGraphicsUITheme
@@ -44,8 +40,9 @@ public:
 	~CGraphicsUITheme();
 	
 	int GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem);
-	int GetLetters(char *szIniTag, CGraphicsUIThemeItem *pItem);
-	int GetNumbers(char *szIniTag, CGraphicsUIThemeItem *pItem);	
+	int GetLettersAndNumbers(char *szIniTagLetters, 
+								char *szIniTagNumbers, 
+								CGraphicsUIThemeItem *pItem);
 	int GetImagePath(char *szImagePath, int nLength);
 	
 public:
@@ -53,8 +50,8 @@ public:
 	void Terminate();
 	
 	int StringToPoint(char *szPoint, Point *pPoint);
-	int StringToPointList(char *szPoint, map<int, Point> *pPointList);
-	
+	int StringToPointMap(char *szPoint, map<int, Point> *pPointMap);
+	int StringToKeyIndexMap(char *szKey, map<char, int> *pKeyMap);
 
 private:
 	CIniParser *m_pIniTheme;

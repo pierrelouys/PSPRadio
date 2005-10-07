@@ -56,7 +56,7 @@ private:
 	bool InitializeSDL();
 	bool InitializeImages();
 	
-	void DisplayWord(char *szWord, int dstX, int dxtY);
+	void DisplayWord(char *szWord, int nLineNumber, bool bCenter=true);
 
 	
 private:
@@ -75,8 +75,8 @@ private:
 	CGraphicsUIThemeItem m_themeItemLoad;
 	CGraphicsUIThemeItem m_themeItemSound;
 	CGraphicsUIThemeItem m_themeItemVolume;
-	CGraphicsUIThemeItem m_themeItemLetters;
-	CGraphicsUIThemeItem m_themeItemNumbers;
+	CGraphicsUIThemeItem m_themeItemABC123;
+	CGraphicsUIThemeItem m_themeItemInfoArea;
 };
 
 

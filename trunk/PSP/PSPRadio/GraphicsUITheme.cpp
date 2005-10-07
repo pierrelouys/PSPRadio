@@ -92,7 +92,7 @@ int CGraphicsUITheme::GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem)
 	/** Get the Source Points **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "src");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToPointList(szTemp, &pItem->m_pointSrcList);
+	nCount = StringToPointMap(szTemp, &pItem->m_pointSrcMap);
 	
 	/** Get the Destination Point **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "dst");
@@ -102,60 +102,87 @@ int CGraphicsUITheme::GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem)
 	/** Get the Size Point **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "size");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToPointList(szTemp, &pItem->m_pointSizeList);
+	nCount = StringToPoint(szTemp, &pItem->m_pointSize);
+	
+	/** Get the Key Index Map **/
+	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "keys");
+	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
+	nCount = StringToKeyIndexMap(szTemp, &pItem->m_keyToIndexMap);	
 	
 	return 0;
 }
 
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ"@ 
-int CGraphicsUITheme::GetLetters(char *szIniTag, CGraphicsUIThemeItem *pItem)
+int CGraphicsUITheme::GetLettersAndNumbers(char *szIniTagLetters, 
+											char *szIniTagNumbers,
+											CGraphicsUIThemeItem *pItem)
 {
-	if(-1 == GetItem(szIniTag, pItem))
+	CGraphicsUIThemeItem itemNumbers;
+	int nCount = 0;
+	
+	/** Get the letters first */
+	if(-1 == GetItem(szIniTagLetters, pItem))
 	{
-		Log(LOG_ERROR, "GetLetters: error getting base tag");
+		Log(LOG_ERROR, "GetLettersAndNumbers: error getting base tag for %s", szIniTagLetters);
 		return -1;
 	}
-		
-	Point baseSrc = pItem->GetSrc(0);
-	Point baseSize = pItem->GetSize(0);
 	
-	/** Greate the remaining items */
-	for(int x = 1; x != 29; x++)
+	/** Get the numbers */
+	if(-1 == GetItem(szIniTagNumbers, &itemNumbers))
+	{
+		Log(LOG_ERROR, "GetLettersAndNumbers: error getting base tag for %s", szIniTagNumbers);
+		return -1;
+	}
+	
+	/** Check to make sure the size of our numbers is the same as our letters */
+	if((itemNumbers.m_pointSize.x != pItem->m_pointSize.x) ||
+		(itemNumbers.m_pointSize.y != pItem->m_pointSize.y))
+	{
+		Log(LOG_ERROR, "GetLettersAndNumbers: error GUI does not support size diffs for letters and numbers");
+		return -1;
+	}	
+		
+	/** Greate the remaining letter items */
+	Point baseSrc = pItem->GetSrc(0);
+	Point baseSize = pItem->m_pointSize;
+	
+	for(int x = 0; x != pItem->m_keyToIndexMap.size(); x++)
 	{
 		Point newSrc;
 		newSrc.x = baseSrc.x + (baseSize.x * x);
 		newSrc.y = baseSrc.y;
 		
-		pItem->m_pointSrcList[x] = newSrc;
-		pItem->m_pointSizeList[x] = baseSize;
-	}
-
-	return 0;
-}
-
-// 0123456789_.:()-'!_+\/[]^&%,=$#
-int CGraphicsUITheme::GetNumbers(char *szIniTag, CGraphicsUIThemeItem *pItem)
-{
-	if(-1 == GetItem(szIniTag, pItem))
-	{
-		Log(LOG_ERROR, "GetLetters: error getting base tag");
-		return -1;
-	}
-		
-	Point baseSrc = pItem->GetSrc(0);
-	Point baseSize = pItem->GetSize(0);
+		pItem->m_pointSrcMap[nCount] = newSrc;
+		nCount++;
+	}	
 	
-	/** Greate the remaining items */
-	for(int x = 1; x != 31; x++)
+	/** Greate the remaining number items */
+	baseSrc = itemNumbers.GetSrc(0);
+	
+	for(int x = 0; x != itemNumbers.m_keyToIndexMap.size(); x++)
 	{
 		Point newSrc;
 		newSrc.x = baseSrc.x + (baseSize.x * x);
 		newSrc.y = baseSrc.y;
 		
-		pItem->m_pointSrcList[x] = newSrc;
-		pItem->m_pointSizeList[x] = baseSize;
+		pItem->m_pointSrcMap[nCount] = newSrc;
+		
+		nCount++;
+	}	
+	
+	/** Update the indexes in the numbers key map */
+	map<char, int>::iterator iter = itemNumbers.m_keyToIndexMap.begin();;
+	
+	while(iter != itemNumbers.m_keyToIndexMap.end())
+	{
+		int index = iter->second;		
+		iter->second = index + pItem->m_keyToIndexMap.size();	
+		iter++;
 	}
-
+	
+	/** Add the numbers keys to the number/letters key map */
+	pItem->m_keyToIndexMap.insert(itemNumbers.m_keyToIndexMap.begin(), itemNumbers.m_keyToIndexMap.end());
+	
 	return 0;
 }
 
@@ -167,7 +194,7 @@ int CGraphicsUITheme::GetImagePath(char *szImagePath, int nLength)
 		return -1;
 	}
 	
-	char *szTemp = m_pIniTheme->GetStr("image:path");
+	char *szTemp = m_pIniTheme->GetStr("image:file");
 	
 	if(strlen(szTemp) > nLength)
 	{
@@ -207,14 +234,14 @@ int CGraphicsUITheme::StringToPoint(char *szPoint, Point *pPoint)
 	return 0;
 }
 
-int CGraphicsUITheme::StringToPointList(char *szPoint, map<int, Point> *pPointList)
+int CGraphicsUITheme::StringToPointMap(char *szPoint, map<int, Point> *pPointMap)
 {
 	char *token = strtok(szPoint, " ");
 	int nCount = 0;
 	
-	if(NULL == pPointList)
+	if(NULL == pPointMap)
 	{
-		Log(LOG_ERROR, "StringToPointList: error pPointList is NULL");
+		Log(LOG_ERROR, "StringToPointMap: error pPointMap is NULL");
 		return -1;
 	}
 	
@@ -224,8 +251,7 @@ int CGraphicsUITheme::StringToPointList(char *szPoint, map<int, Point> *pPointLi
 		
 		if(1 == StringToPoint(token, &pointTemp))
 		{
-			(*pPointList)[nCount] = pointTemp;
-			//pPointList->push_back(pointTemp);
+			(*pPointMap)[nCount] = pointTemp;
 			nCount++;
 		}	
 			
@@ -235,6 +261,24 @@ int CGraphicsUITheme::StringToPointList(char *szPoint, map<int, Point> *pPointLi
 	return nCount;
 }
 
+int CGraphicsUITheme::StringToKeyIndexMap(char *szKey, map<char, int> *pKeyMap)
+{
+	int nCount = strlen(szKey);
+	
+	if(NULL == pKeyMap)
+	{
+		Log(LOG_ERROR, "StringToKeyIndexMap: error pKeyMap is NULL");
+		return -1;
+	}
+	
+	for(int x = 0; x != nCount; x++)
+	{
+		Log(LOG_LOWLEVEL, "StringToKeyIndexMap: adding (%c) to %d", szKey[x], x);		
+		(*pKeyMap)[szKey[x]] = x;
+	}
+	
+	return nCount;
+}
 
 
 

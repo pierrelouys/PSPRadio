@@ -85,8 +85,9 @@ int CGraphicsUI::Initialize(char *strCWD)
 	
 	SetBaseImage();
 	
-	DisplayWord("This is a test", 10, 10);
-	
+	//DisplayWord("ABCDEFGHIJKLMNOPQRSTUVWXYZ \"@", 1, true);
+	//DisplayWord("0123456789=()-+*[]&^%$#.,\\/", 2, true);
+		
 	return 0;
 }
 
@@ -162,6 +163,7 @@ int CGraphicsUI::DisplayMessage_NetworkReady(char *strIP)
 
 int CGraphicsUI::DisplayMainCommands()
 {
+	DisplayWord("X Play/Pause | [] Stop | L / R To Browse", 4, true);
 	return 0;
 }
 
@@ -221,8 +223,8 @@ int CGraphicsUI::OnStreamOpeningSuccess()
 	SDL_Rect src = 	{ 
 						m_themeItemLoad.GetSrc(1).x,
 						m_themeItemLoad.GetSrc(1).y,
-						m_themeItemLoad.GetSize(1).x,
-						m_themeItemLoad.GetSize(1).y
+						m_themeItemLoad.m_pointSize.x,
+						m_themeItemLoad.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
@@ -242,6 +244,14 @@ int CGraphicsUI::OnVBlank()
 
 int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
+	DisplayWord(pData->strFileName, 1, true);
+	DisplayWord(pData->strFileTitle, 2, true);
+	
+	if (pData->strURL && strlen(pData->strURL))
+	{
+		DisplayWord(pData->strURL, 3, true);
+	}
+	
 	return 0;
 }
 
@@ -255,8 +265,8 @@ int CGraphicsUI::OnConnectionProgress()
 	SDL_Rect src = 	{ 
 						m_themeItemLoad.GetSrc(0).x,
 						m_themeItemLoad.GetSrc(0).y,
-						m_themeItemLoad.GetSize(0).x,
-						m_themeItemLoad.GetSize(0).y
+						m_themeItemLoad.m_pointSize.x,
+						m_themeItemLoad.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
@@ -274,8 +284,8 @@ void CGraphicsUI::SetBaseImage(void)
 	SDL_Rect src = 	{ 
 						m_themeItemBackground.GetSrc(0).x,
 						m_themeItemBackground.GetSrc(0).y,
-						m_themeItemBackground.GetSize(0).x,
-						m_themeItemBackground.GetSize(0).y
+						m_themeItemBackground.m_pointSize.x,
+						m_themeItemBackground.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
@@ -291,8 +301,8 @@ void CGraphicsUI::SetPlayButton(uibuttonstate_enum state)
 	SDL_Rect src = 	{ 
 						m_themeItemPlay.GetSrc(state).x,
 						m_themeItemPlay.GetSrc(state).y,
-						m_themeItemPlay.GetSize(state).x,
-						m_themeItemPlay.GetSize(state).y
+						m_themeItemPlay.m_pointSize.x,
+						m_themeItemPlay.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
@@ -308,8 +318,8 @@ void CGraphicsUI::SetPauseButton(uibuttonstate_enum state)
 	SDL_Rect src = 	{ 
 						m_themeItemPause.GetSrc(state).x,
 						m_themeItemPause.GetSrc(state).y,
-						m_themeItemPause.GetSize(state).x,
-						m_themeItemPause.GetSize(state).y
+						m_themeItemPause.m_pointSize.x,
+						m_themeItemPause.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
@@ -325,8 +335,8 @@ void CGraphicsUI::SetStopButton(uibuttonstate_enum state)
 	SDL_Rect src = 	{ 
 						m_themeItemStop.GetSrc(state).x,
 						m_themeItemStop.GetSrc(state).y,
-						m_themeItemStop.GetSize(state).x,
-						m_themeItemStop.GetSize(state).y
+						m_themeItemStop.m_pointSize.x,
+						m_themeItemStop.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
@@ -408,17 +418,17 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting letters");
-	if(0 != m_theme.GetLetters("letters", &m_themeItemLetters))
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting letters adn numbers");
+	if(0 != m_theme.GetLettersAndNumbers("letters", "numbers", &m_themeItemABC123))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme letters");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme letters and numbers");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting numbers");
-	if(0 != m_theme.GetNumbers("numbers", &m_themeItemNumbers))
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting info area");
+	if(0 != m_theme.GetItem("infoarea", &m_themeItemInfoArea))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme numbers");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme info area");
 		return FALSE;
 	}
 	
@@ -451,27 +461,51 @@ bool CGraphicsUI::InitializeSDL()
 		return FALSE;
  	}
 	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode completed");
+	
+	Log(LOG_LOWLEVEL, "InitializeSDL: disabling cursor"); 	
+	SDL_ShowCursor(SDL_DISABLE);
+	Log(LOG_LOWLEVEL, "InitializeSDL: disabled cursor"); 	
+	
 			
 	return TRUE;
 }
 
-void CGraphicsUI::DisplayWord(char *szWord, int dstX, int dxtY)
+void CGraphicsUI::DisplayWord(char *szWord, int nLineNumber, bool bCenter)
 {
-	for(int x = 0; x <= 29; x++)
+	int nFontWidth = m_themeItemABC123.m_pointSize.x;
+	int nFontHeight = m_themeItemABC123.m_pointSize.y;
+	
+	int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x; 
+	int nCurrentYPos = m_themeItemInfoArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+	
+	if(true == bCenter)
 	{
+		int nStringWidth = strlen(szWord) * nFontWidth;
+		
+		nCurrentXPos = m_themeItemInfoArea.m_pointDst.x + 
+						(m_themeItemInfoArea.m_pointSize.x / 2) - 
+						(nStringWidth / 2);
+	}
+	
+	for(int x = 0; x != strlen(szWord); x++)
+	{
+		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
+		
 		SDL_Rect src = 	{ 
-							m_themeItemLetters.GetSrc(x).x,
-							m_themeItemLetters.GetSrc(x).y,
-							m_themeItemLetters.GetSize(x).x,
-							m_themeItemLetters.GetSize(x).y
+							m_themeItemABC123.GetSrc(index).x,
+							m_themeItemABC123.GetSrc(index).y,
+							m_themeItemABC123.m_pointSize.x,
+							m_themeItemABC123.m_pointSize.y
 						};
 						
 		SDL_Rect dst = 	{ 
-							dstX += src.w,
-							dxtY,
+							nCurrentXPos,
+							nCurrentYPos,
 						};
 			
 		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+		
+		nCurrentXPos += nFontWidth;		
 	}
 }
 
