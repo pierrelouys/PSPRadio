@@ -57,6 +57,7 @@ private:
 	bool InitializeImages();
 	
 	void DisplayWord(char *szWord, int nLineNumber, bool bCenter=true);
+	void ClearLine(int nLineNumber);
 
 	
 private:

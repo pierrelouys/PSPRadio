@@ -85,9 +85,6 @@ int CGraphicsUI::Initialize(char *strCWD)
 	
 	SetBaseImage();
 	
-	//DisplayWord("ABCDEFGHIJKLMNOPQRSTUVWXYZ \"@", 1, true);
-	//DisplayWord("0123456789=()-+*[]&^%$#.,\\/", 2, true);
-		
 	return 0;
 }
 
@@ -163,7 +160,6 @@ int CGraphicsUI::DisplayMessage_NetworkReady(char *strIP)
 
 int CGraphicsUI::DisplayMainCommands()
 {
-	DisplayWord("X Play/Pause | [] Stop | L / R To Browse", 4, true);
 	return 0;
 }
 
@@ -200,6 +196,10 @@ int CGraphicsUI::DisplayErrorMessage(char *strMsg)
 
 int CGraphicsUI::DisplayBufferPercentage(int iPercentage)
 {
+	char szTemp[50];
+	sprintf(szTemp, "Buffer %03d%%", iPercentage);
+	DisplayWord(szTemp, 4, false);
+	
 	return 0;
 }
 
@@ -477,6 +477,8 @@ void CGraphicsUI::DisplayWord(char *szWord, int nLineNumber, bool bCenter)
 	
 	int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x; 
 	int nCurrentYPos = m_themeItemInfoArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+		
+	ClearLine(nLineNumber);
 	
 	if(true == bCenter)
 	{
@@ -507,6 +509,28 @@ void CGraphicsUI::DisplayWord(char *szWord, int nLineNumber, bool bCenter)
 		
 		nCurrentXPos += nFontWidth;		
 	}
+}
+
+void CGraphicsUI::ClearLine(int nLineNumber)
+{
+	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
+	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
+	
+	int nCurrentYPos = m_themeItemInfoArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+	
+	SDL_Rect src = 	{ 
+						m_themeItemInfoArea.m_pointDst.x,
+						nCurrentYPos,
+						m_themeItemInfoArea.m_pointSize.x,
+						nFontHeight
+					};
+						
+	SDL_Rect dst = 	{ 
+						m_themeItemInfoArea.m_pointDst.x,
+						nCurrentYPos,
+					};
+			
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
 }
 
 bool CGraphicsUI::InitializeImages()
