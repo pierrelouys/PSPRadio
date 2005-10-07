@@ -296,7 +296,7 @@ int http_open (char *url, size_t &iMetadataInterval)
         * 2000-10-21:
         * We would like spaces to be automatically converted to %20's when
         * fetching via HTTP.
-        * -- Martin Sjögren <md9ms@mdstud.chalmers.se>
+        * -- Martin Sjï¿½ren <md9ms@mdstud.chalmers.se>
         */
        if ((sptr = strchr(url, ' ')) == NULL) {
                strncpy (purl, url, 1023);
@@ -508,8 +508,9 @@ fail:
 				case '2':
 					break;
 				default:
-					ReportError ( "HTTP request failed: %s",
+					Log (LOG_ERROR, "HTTP request failed: %s",
 						sptr+1); /* '\n' is included */
+					ReportError("HTTP Request Failed.");
 					return -1;
 			}
 		}

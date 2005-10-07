@@ -237,6 +237,13 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 	c = GetConfigColor("COLORS:ERROR_MESSAGE");
 	
 	ClearErrorMessage();
+	/** If message is longer than 2 lines, then truncate;
+	The -10 is to accomodate for the "Error: " plus a bit.
+	*/
+	if (strlen(strMsg)>(MAX_COL*2 - 10))
+	{
+		strMsg[MAX_COL*2 - 10] = 0;
+	}
 	uiPrintf(x, y, c, "Error: %s", strMsg);
 	
 	return 0;
