@@ -2,13 +2,12 @@
 #define _UI_I_
 
 #include "PlayList.h"
+#include "DirList.h"
 
 /** UI class interface */ 
 class IPSPRadio_UI
 {
 public:
-	//virtual ~IPSPRadio_UI(){};//{};
-	
 	virtual int Initialize(char *strCWD);
 	virtual void Terminate() = 0;
 
@@ -32,7 +31,7 @@ public:
 	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
 	virtual int DisplayMPEGLayerType(char *strType);
 	virtual int OnNewSongData(CPlayList::songmetadata *pData);
-
+	virtual int DisplayPLList(CDirList *plList);
 };
 
 #endif

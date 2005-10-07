@@ -37,6 +37,8 @@
 
 #define TEXT_UI_CFG_FILENAME "TextUI.cfg"
 
+#define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+
 CTextUI::CTextUI()
 {
 	m_lockprint = NULL;
@@ -76,7 +78,7 @@ int CTextUI::GetConfigColor(char *strKey)
 	int iRet;
 	sscanf(m_Config->GetStr(strKey), "%x", &iRet);
 	
-	return iRet;
+	return RGB2BGR(iRet);
 }
 
 void CTextUI::GetConfigPos(char *strKey, int *x, int *y)
@@ -312,9 +314,9 @@ int CTextUI::OnVBlank()
 
 int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
-	int x,y;
-	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &x, &y);
-	ClearRows(x, y);
+	int r1,r2;
+	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+	ClearRows(r1, r1);
 	
 	if (strlen(pData->strFileTitle) >= 59)
 		pData->strFileTitle[59] = 0;
@@ -322,14 +324,14 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 	if (strlen(pData->strURL) >= 59)
 		pData->strURL[59] = 0;
 	
-	uiPrintf(0 , y,		COLOR_WHITE,	"Stream: ");
-	uiPrintf(8 , y,		COLOR_CYAN,		"%s ", pData->strFileName);
-	uiPrintf(0 , y+1,	COLOR_WHITE,	"Title : ");
-	uiPrintf(8 , y+1,	COLOR_CYAN, 	"%s ", pData->strFileTitle);
+	uiPrintf(0 , r1,	COLOR_WHITE,	"Stream: ");
+	uiPrintf(8 , r1,	COLOR_CYAN,		"%s ", pData->strFileName);
+	uiPrintf(0 , r1+1,	COLOR_WHITE,	"Title : ");
+	uiPrintf(8 , r1+1,	COLOR_CYAN, 	"%s ", pData->strFileTitle);
 	if (pData->strURL && strlen(pData->strURL))
 	{
-		uiPrintf(0, y+2, COLOR_WHITE,	"URL   : ");
-		uiPrintf(8, y+2, COLOR_CYAN,	"%s ", pData->strURL);
+		uiPrintf(0, r1+2, COLOR_WHITE,	"URL   : ");
+		uiPrintf(8, r1+2, COLOR_CYAN,	"%s ", pData->strURL);
 	}
 	return 0;
 }
@@ -352,5 +354,16 @@ int CTextUI::DisplayMPEGLayerType(char *strType)
 int CTextUI::OnConnectionProgress()
 {
 	printf(".");
+	return 0;
+}
+
+int CTextUI::DisplayPLList(CDirList *plList)
+{
+	int x,y,c;
+	GetConfigPos("TEXT_POS:PLAYLIST_DISPLAY", &x, &y);
+	c = GetConfigColor("COLORS:PLAYLIST_DISPLAY");
+
+	uiPrintf(x, y, c, "Current PlayList: %s", plList->GetCurrentURI());
+	
 	return 0;
 }

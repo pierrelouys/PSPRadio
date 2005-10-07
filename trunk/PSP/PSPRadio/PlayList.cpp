@@ -84,7 +84,7 @@ int CPlayList::GetCurrentSong(songmetadata *pData)
 	}
 }
 
-void CPlayList::InsertFile(char *strFileName)
+void CPlayList::InsertURI(char *strFileName)
 {
 	songmetadata songdata;
 	
@@ -96,7 +96,7 @@ void CPlayList::InsertFile(char *strFileName)
 	m_songiterator = m_playlist.begin();
 }
 
-void CPlayList::LoadPlayListFile(char *strFileName)
+void CPlayList::LoadPlayListURI(char *strFileName)
 {
 	FILE *fd = NULL;
 	char strLine[256];

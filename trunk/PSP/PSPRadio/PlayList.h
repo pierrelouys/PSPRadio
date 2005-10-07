@@ -27,9 +27,9 @@
 	public:
 		struct songmetadata
 		{
-			char strFileName[300];
+			char strFileName[MAXPATHLEN];
 			char strFileTitle[300];
-			char strURL[300];
+			char strURL[MAXPATHLEN];
 			char songTitle[300];
 			char songAuthor[300];
 			int iLength;
@@ -44,8 +44,8 @@
 		void Next();
 		void Prev();
 		int GetNumberOfSongs();
-		void InsertFile(char *strFileName);
-		void LoadPlayListFile(char *strFileName);
+		void InsertURI(char *strFileName);
+		void LoadPlayListURI(char *strFileName);
 		void Clear();
 		
 	private:

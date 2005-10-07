@@ -255,6 +255,11 @@ int CGraphicsUI::DisplayMPEGLayerType(char *strType)
 	return 0;
 }
 
+int CGraphicsUI::DisplayPLList(CDirList *plList)
+{
+	return 0;
+}
+
 int CGraphicsUI::OnConnectionProgress()
 {
 	SDL_Rect src = 	{ 

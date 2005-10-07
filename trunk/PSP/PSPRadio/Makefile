@@ -2,7 +2,7 @@ TARGET = PSPRadio
 KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
-OBJS = PSPRadio.o PlayList.o TextUI.o GraphicsUITheme.o GraphicsUI.o
+OBJS = PSPRadio.o  DirList.o PlayList.o TextUI.o GraphicsUITheme.o GraphicsUI.o
 
 INCDIR = ../
 

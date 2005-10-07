@@ -28,6 +28,7 @@
 #include <Tools.h>
 #include <Logging.h>
 #include <pspwlan.h> 
+#include "DirList.h"
 #include "PlayList.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
@@ -40,6 +41,7 @@ PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 PSP_MAIN_THREAD_PRIORITY(80);
+//PSP_MAIN_THREAD_STACK_SIZE_KB(512);
 
 
 #define CFG_FILENAME "PSPRadio.cfg"
@@ -53,13 +55,21 @@ class myPSPApp : public CPSPApp
 private:
 	CIniParser *config;
 	CPSPSound_MP3 *MP3;
-	CPlayList *m_PlayList;
+	CPlayList *m_CurrentPlayList;
+	CDirList  *m_CurrentPlayListDir;
 	IPSPRadio_UI *UI;
 	int m_iNetworkProfile;
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre1"){};
+	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre1")
+	{
+		CIniParser *config = NULL;
+		CPSPSound_MP3 *MP3 = NULL;
+		CPlayList *m_CurrentPlayList = NULL;
+		CDirList  *m_CurrentPlayListDir = NULL;
+		IPSPRadio_UI *UI = NULL;
+	};
 
 	/** Setup */
 	int Setup(int argc, char **argv)
@@ -139,21 +149,9 @@ public:
 		}
 		
 		MP3 = new CPSPSound_MP3();
-		m_PlayList = new CPlayList();
 
-		if (MP3 && m_PlayList)
+		if (MP3)
 		{
-			if (strlen(config->GetStr("MUSIC:PLAYLIST")))
-			{
-				Log(LOG_LOWLEVEL, "Playlist file defined ('%s'), loading.", config->GetStr("MUSIC:PLAYLIST"));
-				m_PlayList->LoadPlayListFile(config->GetStr("MUSIC:PLAYLIST"));
-			}
-			else if (strlen(config->GetStr("MUSIC:FILE")))
-			{
-				Log(LOG_LOWLEVEL, "Music File defined ('%s'), loading.", config->GetStr("MUSIC:FILE"));
-				m_PlayList->InsertFile(config->GetStr("MUSIC:FILE"));
-			}
-
 			/** Set the sound buffer size */
 			size_t bufsize = config->GetInteger("SOUND:BUFFERSIZE", 0);
 			if (0 != bufsize)
@@ -161,13 +159,37 @@ public:
 				Log(LOG_INFO, "SOUND BUFFERSIZE specified in config file as %d.", bufsize);
 				MP3->ChangeBufferSize(bufsize);
 			}
+		}
+		else
+		{
+			Log(LOG_ERROR, "Error creating MP3 object.");
+		}	
 			
-			SetCurrentFile();
+		m_CurrentPlayList = new CPlayList();
+		
+		if (m_CurrentPlayList)
+		{
+		
+			m_CurrentPlayListDir = new CDirList();
+			
+			if (m_CurrentPlayListDir)
+			{
+				m_CurrentPlayListDir->LoadDirectory("PlayLists");
+				if (m_CurrentPlayListDir->Size() > 0)
+				{
+					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
+					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+					UI->DisplayPLList(m_CurrentPlayListDir);
+					
+					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+						SetCurrentURI();
+				}
+			}
 			UI->DisplayMainCommands();
 		}
 		else
 		{
-			Log(LOG_ERROR, "Error creating CPSPSound_MP3 object, or CPlaylist object.");
+			Log(LOG_ERROR, "Error creating CPlaylist object.");
 		}
 	
 		Log(LOG_LOWLEVEL, "Exiting Setup()");
@@ -198,6 +220,14 @@ public:
 		{
 			Log(LOG_LOWLEVEL, "Exiting. Destroying config object");
 			delete(config);
+		}
+		if (m_CurrentPlayListDir)
+		{
+			delete(m_CurrentPlayListDir);
+		}
+		if (m_CurrentPlayList)
+		{
+			delete(m_CurrentPlayList);
 		}
 		Log(LOG_LOWLEVEL, "Exiting. The end.");
 	}
@@ -230,8 +260,8 @@ public:
 			else if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
 				MP3->Stop();
-				m_PlayList->Prev();
-				SetCurrentFile();
+				m_CurrentPlayList->Prev();
+				SetCurrentURI();
 				sceKernelDelayThread(500000);  
 				/** Only auto-play the prev song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
@@ -243,8 +273,8 @@ public:
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
 			{
 				MP3->Stop();
-				m_PlayList->Next();
-				SetCurrentFile();
+				m_CurrentPlayList->Next();
+				SetCurrentURI();
 				sceKernelDelayThread(500000);  
 				/** Only auto-play the next song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
@@ -383,8 +413,8 @@ public:
 					
 					//UI->DisplayMetadata(strTitle, strURL);
 					iTmp = 0;
-					MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
-					iTmp = m_PlayList->GetCurrentSong(&data);
+					MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+					iTmp = m_CurrentPlayList->GetCurrentSong(&data);
 					if (0 == iTmp)
 					{
 						strcpy(data.strFileTitle, strTitle);
@@ -467,12 +497,12 @@ public:
 		Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
 	}
 	
-	void SetCurrentFile()
+	void SetCurrentURI()
 	{
 		CPlayList::songmetadata data;
 		int iRet = 0;
-		MP3->GetStream()->SetFile(m_PlayList->GetCurrentFileName());
-		iRet = m_PlayList->GetCurrentSong(&data);
+		MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+		iRet = m_CurrentPlayList->GetCurrentSong(&data);
 		if (0 == iRet)
 		{
 			UI->OnNewSongData(&data);
