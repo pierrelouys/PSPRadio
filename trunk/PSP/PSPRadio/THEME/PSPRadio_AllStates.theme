@@ -1,53 +1,58 @@
 ; Default PSPRadio Theme version 0.1
 
 [image]
-path=PSPRadio_AllStates_JPF.jpg
+file=PSPRadio_AllStates.bmp
 
 [background]
 src=[0,0];
 dst=[0,0];
 size=[480,272];
 
+[infoarea]
+src=[0,0];
+dst=[28,28];
+size=[420,45];
+
 [play]
 src=[485,4] [485,23];
 dst=[16,252];
-size=[14,15] [14,15];
+size=[14,15];
 
 [pause]
 src=[503,4] [503,23];
 dst=[34,252];
-size=[14,15] [14,15];
+size=[14,15];
 
 [stop]
 src=[521,4] [521,23];
 dst=[52,252];
-size=[14,15] [14,15];
+size=[14,15];
 
 [load]
 src=[539,4] [539,23];
 dst=[70,252];
-size=[29,14] [29,14];
+size=[29,14];
 
 [sound]
 src=[573,4] [573,23];
 dst=[407,252];
-size=[17,15] [17,15];
+size=[17,15];
 
 [volume]
 src=[484,89] [484,103] [484,117] [484,131] [484,145] [484,159] [484,173] [484,187];
 dst=[429,254];
-size=[42,10] [42,10] [42,10] [42,10] [42,10] [42,10] [42,10] [42,10];
+size=[42,10];
 
-;ABCDEFGHIJKLMNOPQRSTUVWXYZ"@
 [letters]
-src=[537,93];
+keys=ABCDEFGHIJKLMNOPQRSTUVWXYZ "@ 
+src=[540,97];
 dst=[-1,-1];
-size=[8,12];
+size=[5,6];
 
-;0123456789_.:()-'!_+\/[]^&%,=$#
 [numbers]
-src=[537,114];
+keys=0123456789=()-+*[]&^%$.,\/#
+src=[540,103];
 dst=[-1,-1];
-size=[8,12];
+size=[5,6];
 
 
