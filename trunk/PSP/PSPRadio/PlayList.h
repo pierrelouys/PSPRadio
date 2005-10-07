@@ -33,6 +33,9 @@
 			char songTitle[300];
 			char songAuthor[300];
 			int iLength;
+			int SampleRate;
+			int BitRate;
+			char strMPEGLayer[20];
 		};
 		
 		CPlayList();

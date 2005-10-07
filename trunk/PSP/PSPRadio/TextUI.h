@@ -30,8 +30,6 @@ public:
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
 	int OnVBlank();
-	int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
-	int DisplayMPEGLayerType(char *strType);
 	int OnNewSongData(CPlayList::songmetadata *pData);
 	int DisplayPLList(CDirList *plList);
 

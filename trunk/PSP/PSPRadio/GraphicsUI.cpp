@@ -245,16 +245,6 @@ int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
 	return 0;
 }
 
-int CGraphicsUI::DisplaySampleRateAndKBPS(int samplerate, int bitrate)
-{
-	return 0;
-}
-
-int CGraphicsUI::DisplayMPEGLayerType(char *strType)
-{
-	return 0;
-}
-
 int CGraphicsUI::DisplayPLList(CDirList *plList)
 {
 	return 0;

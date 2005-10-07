@@ -28,8 +28,6 @@ public:
 	virtual int OnStreamOpeningError();
 	virtual int OnStreamOpeningSuccess();
 	virtual int OnVBlank();
-	virtual int DisplaySampleRateAndKBPS(int samplerate, int bitrate);
-	virtual int DisplayMPEGLayerType(char *strType);
 	virtual int OnNewSongData(CPlayList::songmetadata *pData);
 	virtual int DisplayPLList(CDirList *plList);
 };

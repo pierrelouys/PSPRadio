@@ -333,21 +333,10 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 		uiPrintf(0, r1+2, COLOR_WHITE,	"URL   : ");
 		uiPrintf(8, r1+2, COLOR_CYAN,	"%s ", pData->strURL);
 	}
-	return 0;
-}
-
-int CTextUI::DisplaySampleRateAndKBPS(int samplerate, int bitrate)
-{
-	uiPrintf(0,9, COLOR_WHITE, "%lukbps %dHz  ",
-			bitrate, 
-			samplerate);
-	return 0;
-}
-
-int CTextUI::DisplayMPEGLayerType(char *strType)
-{
-	uiPrintf(20, 9, COLOR_WHITE, "MPEG layer %s stream   ", 
-		strType);
+	uiPrintf(0,r1+3, COLOR_WHITE, "%lukbps %dHz MPEG layer %s stream",
+			pData->BitRate/1000, 
+			pData->SampleRate,
+			pData->strMPEGLayer);
 	return 0;
 }
 

@@ -53,22 +53,27 @@ PSP_MAIN_THREAD_PRIORITY(80);
 class myPSPApp : public CPSPApp
 {
 private:
-	CIniParser *config;
+	CIniParser *m_Config;
 	CPSPSound_MP3 *MP3;
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
+	CPlayList::songmetadata *m_CurrentMetaData;
 	IPSPRadio_UI *UI;
 	int m_iNetworkProfile;
-	int m_NetworkStarted;
+	bool m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre2")
+	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre3")
 	{
-		CIniParser *config = NULL;
-		CPSPSound_MP3 *MP3 = NULL;
-		CPlayList *m_CurrentPlayList = NULL;
-		CDirList  *m_CurrentPlayListDir = NULL;
-		IPSPRadio_UI *UI = NULL;
+		/** Initialize to some sensible defaults */
+		m_iNetworkProfile = 1;
+		m_NetworkStarted  = false;
+		m_Config = NULL;
+		MP3 = NULL;
+		m_CurrentPlayList = NULL;
+		m_CurrentPlayListDir = NULL;
+		UI = NULL;
+		m_CurrentMetaData = NULL;
 	};
 
 	/** Setup */
@@ -79,11 +84,8 @@ public:
 		char strDir[256];
 		char strAppTitle[140];
 		
-		m_ExitSema->Up(); /** This to prevent the app to exit while in this area */
+		m_ExitSema->Up(); /** This to prevent the app from exiting while in this area */
 		
-		/** Initialize to some sensible defaults */
-		m_iNetworkProfile = 1;
-		m_NetworkStarted = 0;
 		
 		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) Version %s\n",
 			GetProgramName(),
@@ -93,12 +95,12 @@ public:
 		dirname(strDir); /** Retrieve the directory name */
 		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
 			
-		config = new CIniParser(strCfgFile);
+		m_Config = new CIniParser(strCfgFile);
 
-		if (1 == config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0))
+		if (1 == m_Config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0))
 		{
-			int iLoglevel = config->GetInteger("DEBUGGING:LOGLEVEL", 100);
-			sprintf(strLogFile, "%s/%s", strDir, config->GetStr("DEBUGGING:LOGFILE"));
+			int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
+			sprintf(strLogFile, "%s/%s", strDir, m_Config->GetStr("DEBUGGING:LOGFILE"));
 			/** Set Logging Global Object to use the configured logfile and loglevels */
 			Logging.Set(strLogFile, (loglevel_enum)iLoglevel);
 			Log(LOG_ALWAYS, "--------------------------------------------------------");
@@ -106,9 +108,19 @@ public:
 				iLoglevel);
 		}
 		
-		Log(LOG_LOWLEVEL, "UI Mode = %s", config->GetStr("UI:MODE"));
+		m_CurrentMetaData  = new CPlayList::songmetadata;
+		if (m_CurrentMetaData)
+		{
+			memset(m_CurrentMetaData, 0, sizeof(CPlayList::songmetadata));
+		}
+		else
+		{
+			Log(LOG_ERROR, "Memory allocation error during Metadata allocation.");
+		}
 		
-		if (0 == strcmp(config->GetStr("UI:MODE"), "Graphics"))
+		Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
+		
+		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
 		{
 			UI = new CGraphicsUI();
 		}
@@ -120,20 +132,20 @@ public:
 		UI->Initialize(strDir); /* Initialize takes cwd */
 		UI->SetTitle(strAppTitle);
 		
-		if (1 == config->GetInteger("USB:ENABLED", 0))
+		if (1 == m_Config->GetInteger("USB:ENABLED", 0))
 		{
 			EnableUSB();
 		}
 		
-		m_iNetworkProfile = config->GetInteger("WIFI:PROFILE", 1);
+		m_iNetworkProfile = m_Config->GetInteger("WIFI:PROFILE", 1);
 		
 		if (m_iNetworkProfile < 1)
 		{
 			m_iNetworkProfile = 1;
-			Log(LOG_ERROR, "Network Profile in config file is invalid. Network profiles start from 1.");
+			Log(LOG_ERROR, "Network Profile in m_Config file is invalid. Network profiles start from 1.");
 		}
 		
-		if (config->GetInteger("WIFI:AUTOSTART", 0) == 1)
+		if (m_Config->GetInteger("WIFI:AUTOSTART", 0) == 1)
 		{
 			UI->DisplayMessage_EnablingNetwork();
 			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", m_iNetworkProfile);
@@ -153,10 +165,10 @@ public:
 		if (MP3)
 		{
 			/** Set the sound buffer size */
-			size_t bufsize = config->GetInteger("SOUND:BUFFERSIZE", 0);
+			size_t bufsize = m_Config->GetInteger("SOUND:BUFFERSIZE", 0);
 			if (0 != bufsize)
 			{
-				Log(LOG_INFO, "SOUND BUFFERSIZE specified in config file as %d.", bufsize);
+				Log(LOG_INFO, "SOUND BUFFERSIZE specified in m_Config file as %d.", bufsize);
 				MP3->ChangeBufferSize(bufsize);
 			}
 		}
@@ -182,7 +194,7 @@ public:
 					UI->DisplayPLList(m_CurrentPlayListDir);
 					
 					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-						SetCurrentURI();
+						UpdateCurrentMetaData();
 				}
 			}
 			UI->DisplayMainCommands();
@@ -216,10 +228,10 @@ public:
 			delete(MP3);
 			MP3 = NULL;
 		}
-		if (config)
+		if (m_Config)
 		{
-			Log(LOG_LOWLEVEL, "Exiting. Destroying config object");
-			delete(config);
+			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Config object");
+			delete(m_Config);
 		}
 		if (m_CurrentPlayListDir)
 		{
@@ -228,6 +240,10 @@ public:
 		if (m_CurrentPlayList)
 		{
 			delete(m_CurrentPlayList);
+		}
+		if (m_CurrentMetaData)
+		{
+			delete (m_CurrentMetaData);
 		}
 		Log(LOG_LOWLEVEL, "Exiting. The end.");
 	}
@@ -262,7 +278,8 @@ public:
 			{
 				MP3->Stop();
 				m_CurrentPlayList->Prev();
-				SetCurrentURI();
+				UpdateCurrentMetaData();
+				#if 0 
 				/** Only auto-play the prev song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
 				{
@@ -270,12 +287,14 @@ public:
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
 				}
+				#endif
 			}
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
 			{
 				MP3->Stop();
 				m_CurrentPlayList->Next();
-				SetCurrentURI();
+				UpdateCurrentMetaData();
+				#if 0 
 				/** Only auto-play the next song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
 				{
@@ -283,6 +302,7 @@ public:
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
 				}
+				#endif
 			}
 			else if (iButtonMask & PSP_CTRL_UP)
 			{
@@ -291,8 +311,8 @@ public:
 				UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayList->Clear();
 				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-					SetCurrentURI();
+				//if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+				//	UpdateCurrentMetaData();
 			}
 			else if (iButtonMask & PSP_CTRL_DOWN)
 			{
@@ -301,8 +321,8 @@ public:
 				UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayList->Clear();
 				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-					SetCurrentURI();
+				//if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+				//	UpdateCurrentMetaData();
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
 			{
@@ -373,7 +393,7 @@ public:
 	int OnMessage(int iMessageId, void *pMessage, int iSenderId)
 	{
 		char MData[MAX_METADATA_SIZE];
-		CPlayList::songmetadata data;
+		//CPlayList::songmetadata data;
 		int iTmp = 0;
 		char *strURL = "";
 		char *strTitle = "";
@@ -433,14 +453,15 @@ public:
 					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
 					
 					//UI->DisplayMetadata(strTitle, strURL);
-					iTmp = 0;
-					MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-					iTmp = m_CurrentPlayList->GetCurrentSong(&data);
-					if (0 == iTmp)
+					//iTmp = 0;
+					//MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+					//iTmp = m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+					//if (0 == iTmp)
 					{
-						strcpy(data.strFileTitle, strTitle);
-						strcpy(data.strURL, strURL);
-						UI->OnNewSongData(&data);
+						/** Update m_CurrentMetaData, and notify UI. */
+						strcpy(m_CurrentMetaData->strFileTitle, strTitle);
+						strcpy(m_CurrentMetaData->strURL, strURL);
+						UI->OnNewSongData(m_CurrentMetaData);
 					}
 					
 					break;
@@ -449,10 +470,18 @@ public:
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)pMessage;
-					UI->DisplaySampleRateAndKBPS(Header->samplerate, Header->bitrate/1000);
+					//UI->DisplaySampleRateAndKBPS(Header->samplerate, Header->bitrate/1000);
+					/** Update m_CurrentMetaData, and notify UI. */
+					m_CurrentMetaData->SampleRate = Header->samplerate;
+					m_CurrentMetaData->BitRate = Header->bitrate;
+					UI->OnNewSongData(m_CurrentMetaData);
+					
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
-					UI->DisplayMPEGLayerType((char*)pMessage);
+					//UI->DisplayMPEGLayerType((char*)pMessage);
+					/** Update m_CurrentMetaData, and notify UI. */
+					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)pMessage);
+					UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				case MID_TCP_CONNECTING_PROGRESS:
 					UI->OnConnectionProgress();
@@ -510,6 +539,7 @@ public:
 	void DisplayCurrentNetworkSelection()
 	{
 		netData data;
+		memset(&data, 0, sizeof(netData));
 		data.asUint = 0xBADF00D;
 		memset(&data.asString[4], 0, 124);
 		sceUtilityGetNetParam(m_iNetworkProfile, 0/**Profile Name*/, &data);
@@ -518,15 +548,16 @@ public:
 		Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
 	}
 	
-	void SetCurrentURI()
+	void UpdateCurrentMetaData()
 	{
-		CPlayList::songmetadata data;
+		//CPlayList::songmetadata data;
 		int iRet = 0;
 		MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-		iRet = m_CurrentPlayList->GetCurrentSong(&data);
+		iRet = m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
 		if (0 == iRet)
 		{
-			UI->OnNewSongData(&data);
+			/** Update screen */
+			UI->OnNewSongData(m_CurrentMetaData);
 		}
 	}
 
