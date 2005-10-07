@@ -196,7 +196,9 @@ public:
 					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
 					{
 						UI->DisplayPLEntries(m_CurrentPlayList);
-						DisplayCurrentMetaData();
+						/** Populate m_CurrentMetaData */
+						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						UI->OnNewSongData(m_CurrentMetaData);
 					}
 				}
 			}
@@ -313,7 +315,9 @@ public:
 						MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
 						UI->DisplayActiveCommand(CPSPSound::PLAY);
 						MP3->Play();
-						DisplayCurrentMetaData();
+						/** Populate m_CurrentMetaData */
+						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						UI->OnNewSongData(m_CurrentMetaData);
 						break;
 					case CPSPSound::PLAY:
 						/** No pausing for URLs, only for Files(local) */
@@ -517,20 +521,6 @@ public:
 		
 		UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
 		Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
-	}
-	
-	void DisplayCurrentMetaData()
-	{
-		if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-		{
-			CPlayList::songmetadata data;
-			int iRet = m_CurrentPlayList->GetCurrentSong(&data);
-			if (0 == iRet)
-			{
-				/** Update screen */
-				UI->OnNewSongData(&data);
-			}
-		}
 	}
 	
 };
