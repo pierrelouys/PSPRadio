@@ -276,9 +276,8 @@ public:
 			}
 			else if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
-				MP3->Stop();
 				m_CurrentPlayList->Prev();
-				UpdateCurrentMetaData();
+				DisplayCurrentMetaData();
 				#if 0 
 				/** Only auto-play the prev song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
@@ -291,9 +290,9 @@ public:
 			}
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
 			{
-				MP3->Stop();
+				//MP3->Stop();
 				m_CurrentPlayList->Next();
-				UpdateCurrentMetaData();
+				DisplayCurrentMetaData();
 				#if 0 
 				/** Only auto-play the next song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
@@ -306,23 +305,21 @@ public:
 			}
 			else if (iButtonMask & PSP_CTRL_UP)
 			{
-				MP3->Stop(); 
+				//MP3->Stop(); 
 				m_CurrentPlayListDir->Prev();
 				UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayList->Clear();
 				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				//if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-				//	UpdateCurrentMetaData();
+				DisplayCurrentMetaData();
 			}
 			else if (iButtonMask & PSP_CTRL_DOWN)
 			{
-				MP3->Stop(); 
+				//MP3->Stop(); 
 				m_CurrentPlayListDir->Next();
 				UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayList->Clear();
 				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				//if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-				//	UpdateCurrentMetaData();
+				DisplayCurrentMetaData();
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
 			{
@@ -330,6 +327,7 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
+						UpdateCurrentMetaData();
 						UI->DisplayActiveCommand(CPSPSound::PLAY);
 						MP3->Play();
 						break;
@@ -337,6 +335,7 @@ public:
 						/** No pausing for URLs, only for Files(local) */
 						if (MP3->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
 						{
+							UpdateCurrentMetaData();
 							UI->DisplayActiveCommand(CPSPSound::PAUSE);
 							MP3->Pause();
 						}
@@ -561,6 +560,20 @@ public:
 		}
 	}
 
+	void DisplayCurrentMetaData()
+	{
+		if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+		{
+			//	UpdateCurrentMetaData();
+			CPlayList::songmetadata data;
+			int iRet = m_CurrentPlayList->GetCurrentSong(&data);
+			if (0 == iRet)
+			{
+				/** Update screen */
+				UI->OnNewSongData(&data);
+			}
+		}
+	}
 	
 };
 

@@ -324,19 +324,25 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 	if (strlen(pData->strURL) >= 59)
 		pData->strURL[59] = 0;
 	
+	if (0 != pData->SampleRate)
+	{
+		uiPrintf(0,r1, COLOR_WHITE, "%lukbps %dHz MPEG layer %s stream",
+				pData->BitRate/1000, 
+				pData->SampleRate,
+				pData->strMPEGLayer);
+		r1++;
+	}
 	uiPrintf(0 , r1,	COLOR_WHITE,	"Stream: ");
 	uiPrintf(8 , r1,	COLOR_CYAN,		"%s ", pData->strFileName);
-	uiPrintf(0 , r1+1,	COLOR_WHITE,	"Title : ");
-	uiPrintf(8 , r1+1,	COLOR_CYAN, 	"%s ", pData->strFileTitle);
+	r1++;
+	uiPrintf(0 , r1,	COLOR_WHITE,	"Title : ");
+	uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strFileTitle);
+	r1++;
 	if (pData->strURL && strlen(pData->strURL))
 	{
-		uiPrintf(0, r1+2, COLOR_WHITE,	"URL   : ");
-		uiPrintf(8, r1+2, COLOR_CYAN,	"%s ", pData->strURL);
+		uiPrintf(0, r1, COLOR_WHITE,	"URL   : ");
+		uiPrintf(8, r1, COLOR_CYAN,	"%s ", pData->strURL);
 	}
-	uiPrintf(0,r1+3, COLOR_WHITE, "%lukbps %dHz MPEG layer %s stream",
-			pData->BitRate/1000, 
-			pData->SampleRate,
-			pData->strMPEGLayer);
 	return 0;
 }
 
