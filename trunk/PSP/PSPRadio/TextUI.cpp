@@ -261,7 +261,7 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 {
 	int x,y,c;
 	GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
-	c = GetConfigColor("COLORS:ERROR_MESSAGE");
+	c = GetConfigColor("COLORS:BUFFER_PERCENTAGE");
 
 	if (iPerc > 97)
 		iPerc = 100;
