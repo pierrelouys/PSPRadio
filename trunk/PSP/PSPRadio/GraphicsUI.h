@@ -42,7 +42,8 @@ public:
 	int OnVBlank();
 	int OnNewSongData(CPlayList::songmetadata *pData);	
 	int DisplayPLList(CDirList *plList);
-	
+	int DisplayPLEntries(CPlayList *PlayList);
+
 private:
 	SDL_Surface *LoadImage(char *szImageName);
 	void UnLoadImage(SDL_Surface **ppImage);

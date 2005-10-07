@@ -362,11 +362,36 @@ int CTextUI::OnConnectionProgress()
 int CTextUI::DisplayPLList(CDirList *plList)
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:PLAYLIST_DISPLAY", &x, &y);
-	c = GetConfigColor("COLORS:PLAYLIST_DISPLAY");
+	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &x, &y);
+	c = GetConfigColor("COLORS:PLAYLIST_DIRS");
 
 	ClearRows(y);
-	uiPrintf(x, y, c, "Current PlayList: %s", plList->GetCurrentURI());
+	uiPrintf(x, y, c, "PlayList: %s", plList->GetCurrentURI());
+	
+	return 0;
+}
+
+int CTextUI::DisplayPLEntries(CPlayList *PlayList)
+{
+	CPlayList::songmetadata Data;
+	int x,y,c;
+	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
+	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
+
+	ClearRows(y);
+	int iRet = PlayList->GetCurrentSong(&Data);
+	if (0 == iRet)
+	{
+		if (strlen(Data.strFileTitle))
+		{
+			uiPrintf(x, y, c, "Stream  : %s", Data.strFileTitle);
+		}
+		else
+		{
+			uiPrintf(x, y, c, "Stream  : %s", Data.strFileName);
+		}
+	}
+	
 	
 	return 0;
 }

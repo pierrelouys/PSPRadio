@@ -194,7 +194,10 @@ public:
 					UI->DisplayPLList(m_CurrentPlayListDir);
 					
 					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+					{
+						UI->DisplayPLEntries(m_CurrentPlayList);
 						DisplayCurrentMetaData();
+					}
 				}
 			}
 			UI->DisplayMainCommands();
@@ -277,49 +280,28 @@ public:
 			else if (iButtonMask & PSP_CTRL_LTRIGGER)
 			{
 				m_CurrentPlayList->Prev();
-				DisplayCurrentMetaData();
-				#if 0 
-				/** Only auto-play the prev song if currently playing */
-				if (CPSPSound::PLAY == playingstate)
-				{
-					sceKernelDelayThread(500000);  
-					UI->DisplayActiveCommand(playingstate);
-					MP3->Play();
-				}
-				#endif
+				UI->DisplayPLEntries(m_CurrentPlayList);
 			}
 			else if (iButtonMask & PSP_CTRL_RTRIGGER)
 			{
-				//MP3->Stop();
 				m_CurrentPlayList->Next();
-				DisplayCurrentMetaData();
-				#if 0 
-				/** Only auto-play the next song if currently playing */
-				if (CPSPSound::PLAY == playingstate)
-				{
-					sceKernelDelayThread(500000);  
-					UI->DisplayActiveCommand(playingstate);
-					MP3->Play();
-				}
-				#endif
+				UI->DisplayPLEntries(m_CurrentPlayList);
 			}
 			else if (iButtonMask & PSP_CTRL_UP)
 			{
-				//MP3->Stop(); 
 				m_CurrentPlayListDir->Prev();
 				UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayList->Clear();
 				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				DisplayCurrentMetaData();
+				UI->DisplayPLEntries(m_CurrentPlayList);
 			}
 			else if (iButtonMask & PSP_CTRL_DOWN)
 			{
-				//MP3->Stop(); 
 				m_CurrentPlayListDir->Next();
 				UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayList->Clear();
 				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				DisplayCurrentMetaData();
+				UI->DisplayPLEntries(m_CurrentPlayList);
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
 			{
@@ -331,6 +313,7 @@ public:
 						MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
 						UI->DisplayActiveCommand(CPSPSound::PLAY);
 						MP3->Play();
+						DisplayCurrentMetaData();
 						break;
 					case CPSPSound::PLAY:
 						/** No pausing for URLs, only for Files(local) */
@@ -393,8 +376,6 @@ public:
 	int OnMessage(int iMessageId, void *pMessage, int iSenderId)
 	{
 		char MData[MAX_METADATA_SIZE];
-		//CPlayList::songmetadata data;
-		int iTmp = 0;
 		char *strURL = "";
 		char *strTitle = "";
 		
@@ -452,25 +433,16 @@ public:
 					strURL   = GetMetadataValue(MData, METADATA_STREAMURL_TAG);
 					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
 					
-					//UI->DisplayMetadata(strTitle, strURL);
-					//iTmp = 0;
-					//MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-					//iTmp = m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-					//if (0 == iTmp)
-					{
-						/** Update m_CurrentMetaData, and notify UI. */
-						strcpy(m_CurrentMetaData->strFileTitle, strTitle);
-						strcpy(m_CurrentMetaData->strURL, strURL);
-						UI->OnNewSongData(m_CurrentMetaData);
-					}
-					
+					/** Update m_CurrentMetaData, and notify UI. */
+					strcpy(m_CurrentMetaData->strFileTitle, strTitle);
+					strcpy(m_CurrentMetaData->strURL, strURL);
+					UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				//case MID_DECODE_DONE:
 				//	break;
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)pMessage;
-					//UI->DisplaySampleRateAndKBPS(Header->samplerate, Header->bitrate/1000);
 					/** Update m_CurrentMetaData, and notify UI. */
 					m_CurrentMetaData->SampleRate = Header->samplerate;
 					m_CurrentMetaData->BitRate = Header->bitrate;
@@ -478,7 +450,6 @@ public:
 					
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
-					//UI->DisplayMPEGLayerType((char*)pMessage);
 					/** Update m_CurrentMetaData, and notify UI. */
 					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)pMessage);
 					UI->OnNewSongData(m_CurrentMetaData);

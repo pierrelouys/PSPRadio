@@ -30,6 +30,7 @@ public:
 	virtual int OnVBlank();
 	virtual int OnNewSongData(CPlayList::songmetadata *pData);
 	virtual int DisplayPLList(CDirList *plList);
+	virtual	int DisplayPLEntries(CPlayList *PlayList);
 };
 
 #endif

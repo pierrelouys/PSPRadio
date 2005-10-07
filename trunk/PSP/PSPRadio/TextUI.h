@@ -32,6 +32,7 @@ public:
 	int OnVBlank();
 	int OnNewSongData(CPlayList::songmetadata *pData);
 	int DisplayPLList(CDirList *plList);
+	int DisplayPLEntries(CPlayList *PlayList);
 
 	
 private:

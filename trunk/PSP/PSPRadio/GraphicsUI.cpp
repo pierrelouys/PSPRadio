@@ -260,6 +260,11 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 	return 0;
 }
 
+int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
+{
+	return 0;
+}
+
 int CGraphicsUI::OnConnectionProgress()
 {
 	SDL_Rect src = 	{ 
