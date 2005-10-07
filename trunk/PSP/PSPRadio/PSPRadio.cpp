@@ -62,7 +62,7 @@ private:
 	int m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre1")
+	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre2")
 	{
 		CIniParser *config = NULL;
 		CPSPSound_MP3 *MP3 = NULL;
@@ -239,6 +239,7 @@ public:
 		{
 			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
 			
+			
 			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
 			{
 				m_iNetworkProfile --;
@@ -262,10 +263,10 @@ public:
 				MP3->Stop();
 				m_CurrentPlayList->Prev();
 				SetCurrentURI();
-				sceKernelDelayThread(500000);  
 				/** Only auto-play the prev song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
 				{
+					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
 				}
@@ -275,13 +276,33 @@ public:
 				MP3->Stop();
 				m_CurrentPlayList->Next();
 				SetCurrentURI();
-				sceKernelDelayThread(500000);  
 				/** Only auto-play the next song if currently playing */
 				if (CPSPSound::PLAY == playingstate)
 				{
+					sceKernelDelayThread(500000);  
 					UI->DisplayActiveCommand(playingstate);
 					MP3->Play();
 				}
+			}
+			else if (iButtonMask & PSP_CTRL_UP)
+			{
+				MP3->Stop(); 
+				m_CurrentPlayListDir->Prev();
+				UI->DisplayPLList(m_CurrentPlayListDir);
+				m_CurrentPlayList->Clear();
+				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+					SetCurrentURI();
+			}
+			else if (iButtonMask & PSP_CTRL_DOWN)
+			{
+				MP3->Stop(); 
+				m_CurrentPlayListDir->Next();
+				UI->DisplayPLList(m_CurrentPlayListDir);
+				m_CurrentPlayList->Clear();
+				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+					SetCurrentURI();
 			}
 			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
 			{

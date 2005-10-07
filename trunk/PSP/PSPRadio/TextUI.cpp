@@ -316,7 +316,7 @@ int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
 	int r1,r2;
 	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
-	ClearRows(r1, r1);
+	ClearRows(r1, r2);
 	
 	if (strlen(pData->strFileTitle) >= 59)
 		pData->strFileTitle[59] = 0;
@@ -363,6 +363,7 @@ int CTextUI::DisplayPLList(CDirList *plList)
 	GetConfigPos("TEXT_POS:PLAYLIST_DISPLAY", &x, &y);
 	c = GetConfigColor("COLORS:PLAYLIST_DISPLAY");
 
+	ClearRows(y);
 	uiPrintf(x, y, c, "Current PlayList: %s", plList->GetCurrentURI());
 	
 	return 0;
