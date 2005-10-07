@@ -1,5 +1,27 @@
-What's New for PSPRadio 0.34 - Released 10/04/05
-==================================================
+What's New for PSPRadio 0.35-pre2 - Released 10/07/05
+======================================================
+0.35
+0.35-pre1
+-Refactored PSPSound/PSPSound_MP3. (lots of things are different. but one thing that is evident to the end 
+user is that the buffers were reduced by a factor of 5. Next -pre release will allow for the 
+buffers to be configurable).
+-Added basic multiple samplerate support!
+Supported rates:
+8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000.
+Any rate can be implemented, I just need to add it to the code, let me know if other rates are required.
+Note that the samplerate conversion is really linear and simplistic, and hence the produced sound will not
+be very good. Still, better than nothing.
+-UI now displays buffer percentage (instead of in/out number)
+0.35-pre2
+-sound buffers configurable in .cfg file. Post your results!
+-fixed bug where app would crash on exit if played a stream until end and then exited.
+-Now the Text user interface is configurable, look at TextUI.cfg, play and post results!
+-now multiple playlists are supported. The playlist configuration changed as well.. Now, you
+need to put your playlist files under the PlayLists directory, and don't need to do anything
+with the config file.
+-The current playlist is selectable by using UP/DOWN
+
+
 0.34
 -Corrected the mutex and semaphore implementations..
 (Now logging needs more resources because of this though, so it's probably a good idea to keep high).

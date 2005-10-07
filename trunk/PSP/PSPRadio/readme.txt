@@ -1,5 +1,12 @@
-PSPRadio 0.34 by Raf 10/04/05
-==============================
+PSPRadio by Raf 0.35-pre2 10/07/05
+====================================
+
+*****************************************************************
+THIS IS A PRE-RELEASE!!! 
+FOR THE LATEST STABLE OFFICIAL RELEASE, GO TO:
+https://developer.berlios.de/project/showfiles.php?group_id=4862
+*****************************************************************
+
 
 -Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php

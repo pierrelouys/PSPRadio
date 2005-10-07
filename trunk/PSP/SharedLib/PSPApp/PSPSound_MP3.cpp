@@ -119,16 +119,7 @@ void CPSPSound_MP3::Decode()
 				ReadSize = m_InputStream->Read(ReadStart,1,ReadSize);
 				if(ReadSize<=0)
 				{
-					//if(m_InputStream->GetError())
-					//{
-					//	ReportError("%s: read error on bit-stream (%s)\n",
-					//			pPSPApp->GetProgramName(),strerror(errno));
-					//	Status=1;
-					//}
-					//if(feof(InputFp))
-					//	ReportError("%s: end of input stream\n",pPSPApp->GetProgramName());
-					//else
-						ReportError("(End of stream)...");
+					ReportError("(End of stream)...");
 					break;
 				}
 				else if(pPSPSound_MP3->GetPlayState() == STOP)
@@ -160,11 +151,7 @@ void CPSPSound_MP3::Decode()
 					if(Stream.error!=MAD_ERROR_LOSTSYNC ||
 					   Stream.this_frame!=GuardPtr)
 					{
-						/** Don't log if recoverable. */
-						//ReportError("%s: recoverable frame level error. \n",
-						//		pPSPApp->GetProgramName());
 						Log(LOG_INFO,"Recoverable frame level error. (Garbage in the stream).");
-
 					}
 					continue;
 				}
@@ -193,8 +180,6 @@ void CPSPSound_MP3::Decode()
 					break;
 				}
 				pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
-				//iSampleRatio = PSP_SAMPLERATE / Frame.header.samplerate;
-				//Synth.pcm.samplerate = Frame.header.samplerate;
 			}
 	
 			/* Accounting. The computed frame duration is in the frame
@@ -243,26 +228,18 @@ void CPSPSound_MP3::Decode()
 					SampleR = SampleL;
 				}
 				
-				//for (int i = 0 ; i < iSampleRatio ; i++)
-				{
-					*(OutputPtr++)=((SampleL) & 0xff);
-					*(OutputPtr++)=((SampleL >> 8) & 0xff);
-					*(OutputPtr++)=((SampleR) & 0xff);
-					*(OutputPtr++)=((SampleR >> 8) & 0xff);
-				}
+				*(OutputPtr++)=((SampleL) & 0xff);
+				*(OutputPtr++)=((SampleL >> 8) & 0xff);
+				*(OutputPtr++)=((SampleR) & 0xff);
+				*(OutputPtr++)=((SampleR >> 8) & 0xff);
 				
-				/* Queue the output buffer if it is full. */
-				//if(OutputPtr==OutputBufferEnd)
-				{
-					oneframe = (::Frame*)pOutputBuffer;
-					pPSPSound_MP3->Buffer.PushFrame(*oneframe);
+				oneframe = (::Frame*)pOutputBuffer;
+				pPSPSound_MP3->Buffer.PushFrame(*oneframe);
 
-					OutputPtr=pOutputBuffer;
-				}
+				OutputPtr=pOutputBuffer;
 
 				if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
 				{
-//					ErrorReport("Decode: Exiting");
 					break;
 				}
 
