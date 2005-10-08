@@ -162,7 +162,7 @@
 		CPSPThread *m_thDecode,*m_thPlayAudio;
 		int m_audiohandle ;
 		pspsound_state m_CurrentState;
-	
+		
 	protected:
 		void SuspendDecodingThread(){m_thDecode->Suspend();};
 		
@@ -183,6 +183,9 @@
 
 		size_t GetBufferFillPercentage() { return Buffer.GetBufferFillPercentage(); };
 		void   ChangeBufferSize(size_t size) { Buffer.ChangeBufferSize(size); };
+		
+		void SetDecodeThreadPriority(int iNewPrio);
+		void SetPlayThreadPriority(int iNewPrio);
 		
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);

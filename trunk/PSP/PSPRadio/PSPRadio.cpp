@@ -54,7 +54,7 @@ class myPSPApp : public CPSPApp
 {
 private:
 	CIniParser *m_Config;
-	CPSPSound *MP3;
+	CPSPSound *m_Sound;
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
 	CPlayList::songmetadata *m_CurrentMetaData;
@@ -69,7 +69,7 @@ public:
 		m_iNetworkProfile = 1;
 		m_NetworkStarted  = false;
 		m_Config = NULL;
-		MP3 = NULL;
+		m_Sound = NULL;
 		m_CurrentPlayList = NULL;
 		m_CurrentPlayListDir = NULL;
 		UI = NULL;
@@ -137,6 +137,15 @@ public:
 			EnableUSB();
 		}
 		
+		if (0 != m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"))
+		{
+		
+			Log(LOG_INFO, "Setting MAIN_THREAD_PRIO to %d as specified in config file.", 
+				m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
+
+			sceKernelChangeThreadPriority(sceKernelGetThreadId(), m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
+		}
+		
 		m_iNetworkProfile = m_Config->GetInteger("WIFI:PROFILE", 1);
 		
 		if (m_iNetworkProfile < 1)
@@ -160,21 +169,41 @@ public:
 			DisplayCurrentNetworkSelection();
 		}
 		
-		MP3 = new CPSPSound();
+		m_Sound = new CPSPSound();
 
-		if (MP3)
+		if (m_Sound)
 		{
 			/** Set the sound buffer size */
-			size_t bufsize = m_Config->GetInteger("SOUND:BUFFERSIZE", 0);
+			size_t bufsize = m_Config->GetInteger("SYSTEM:SOUND_BUFFERSIZE", 0);
 			if (0 != bufsize)
 			{
-				Log(LOG_INFO, "SOUND BUFFERSIZE specified in m_Config file as %d.", bufsize);
-				MP3->ChangeBufferSize(bufsize);
+				Log(LOG_INFO, "Setting SOUND BUFFERSIZE specified in m_Config file as %d.", bufsize);
+				m_Sound->ChangeBufferSize(bufsize);
 			}
+			
+			/** Set the thread priorities */
+			if (0 != m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"))
+			{
+			
+				Log(LOG_INFO, "Setting DECODE_THREAD_PRIO to %d as specified in config file.", 
+					m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"));
+	
+				m_Sound->SetDecodeThreadPriority(m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"));
+			}
+			if (0 != m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"))
+			{
+			
+				Log(LOG_INFO, "Setting PLAY_THREAD_PRIO to %d as specified in config file.", 
+					m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"));
+	
+				m_Sound->SetPlayThreadPriority(m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"));
+			}
+			
+					
 		}
 		else
 		{
-			Log(LOG_ERROR, "Error creating MP3 object.");
+			Log(LOG_ERROR, "Error creating m_Sound object.");
 		}	
 			
 		m_CurrentPlayList = new CPlayList();
@@ -227,11 +256,11 @@ public:
 			delete(UI);
 			UI = NULL;
 		}
-		if (MP3)
+		if (m_Sound)
 		{
-			Log(LOG_LOWLEVEL, "Exiting. Destroying MP3 object");
-			delete(MP3);
-			MP3 = NULL;
+			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Sound object");
+			delete(m_Sound);
+			m_Sound = NULL;
 		}
 		if (m_Config)
 		{
@@ -256,9 +285,9 @@ public:
 	void OnButtonReleased(int iButtonMask)
 	{
 		Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
-		if (MP3)
+		if (m_Sound)
 		{
-			CPSPSound::pspsound_state playingstate = MP3->GetPlayState();
+			CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
 			
 			
 			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
@@ -312,20 +341,20 @@ public:
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
 						//eCurrentMetaData();
-						MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
 						UI->DisplayActiveCommand(CPSPSound::PLAY);
-						MP3->Play();
+						m_Sound->Play();
 						/** Populate m_CurrentMetaData */
 						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
 						UI->OnNewSongData(m_CurrentMetaData);
 						break;
 					case CPSPSound::PLAY:
 						/** No pausing for URLs, only for Files(local) */
-						if (MP3->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
+						if (m_Sound->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
 						{
-							MP3->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+							m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
 							UI->DisplayActiveCommand(CPSPSound::PAUSE);
-							MP3->Pause();
+							m_Sound->Pause();
 						}
 						break;
 				}
@@ -335,7 +364,7 @@ public:
 				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 				{
 					UI->DisplayActiveCommand(CPSPSound::STOP);
-					MP3->Stop();
+					m_Sound->Stop();
 				}
 			}
 			else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
@@ -345,7 +374,7 @@ public:
 					m_ExitSema->Up();
 
 					UI->DisplayActiveCommand(CPSPSound::STOP);
-					MP3->Stop();
+					m_Sound->Stop();
 					sceKernelDelayThread(50000);  
 					
 					if (m_NetworkStarted)
@@ -407,11 +436,11 @@ public:
 				//case MID_THPLAY_END:
 				//	break;
 				case MID_BUFF_PERCENT_UPDATE:
-					UI->DisplayBufferPercentage(MP3->GetBufferFillPercentage());
+					UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
 					UI->DisplayActiveCommand(CPSPSound::STOP);
-					MP3->Stop();
+					m_Sound->Stop();
 					break;
 					
 				case MID_THDECODE_AWOKEN:

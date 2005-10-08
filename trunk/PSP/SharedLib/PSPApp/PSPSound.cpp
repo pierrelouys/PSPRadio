@@ -45,6 +45,14 @@ int CPSPSound::GetAudioHandle()
 CPSPSound::CPSPSound()
 {
 	Log(LOG_VERYLOW, "PSPSound Constructor");
+	m_thDecode = NULL;
+	m_thPlayAudio  = NULL;
+	pPSPSound = this;
+	m_InputStream = NULL;
+	m_Decoder = NULL;
+	m_audiohandle = -1;
+	m_CurrentState = STOP;
+
 	Initialize();
 }
 
@@ -55,11 +63,9 @@ void CPSPSound::Initialize()
 	{
 		Log(LOG_ERROR, "Error!, only one instance of CPSPSound (including CPSPSound_*) permitted!");
 	}
-	pPSPSound = this;
 	
 	Buffer.Empty();
 	
-	m_InputStream = NULL;
 	m_InputStream = new CPSPSoundStream();
 	
 	if (!m_InputStream)
@@ -80,10 +86,11 @@ void CPSPSound::Initialize()
 	
 	m_Decoder = new CPSPSoundDecoder_MAD();
 	
-	m_CurrentState = STOP;
-	m_thDecode = NULL;
-	m_thPlayAudio  = NULL;
+	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
+	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
 	
+	m_thPlayAudio->Start();
+	m_thDecode->Start();
 }
 
 CPSPSound::~CPSPSound()
@@ -119,24 +126,22 @@ CPSPSound::~CPSPSound()
 
 }
 
+void CPSPSound::SetDecodeThreadPriority(int iNewPrio)
+{
+	m_thDecode->SetPriority(iNewPrio);
+}
+
+void CPSPSound::SetPlayThreadPriority(int iNewPrio)
+{
+	m_thPlayAudio->SetPriority(iNewPrio);
+}
+
 int CPSPSound::Play()
 {
 	switch(m_CurrentState)
 	{
 		case STOP:
 			m_CurrentState = PLAY;
-			if (!m_thDecode)
-			{
-				Log(LOG_LOWLEVEL, "Play(): Creating decode and play threads.");
-				m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
-				if (!m_thPlayAudio)
-				{
-					m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
-					m_thPlayAudio->Start();
-					m_thDecode->Start();
-					sceKernelDelayThread(100000);
-				}
-			}
 			/** Wake the decoding thread up*/
 			m_thDecode->WakeUp();
 			break;

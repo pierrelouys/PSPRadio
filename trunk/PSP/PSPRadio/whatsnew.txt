@@ -20,6 +20,12 @@ be very good. Still, better than nothing.
 need to put your playlist files under the PlayLists directory, and don't need to do anything
 with the config file.
 -The current playlist is selectable by using UP/DOWN
+0.35-pre3
+-cleaned up the display of playlist/stream, metadata. as 3 completely indipendent entities.
+-Can browse playlists/entries while playing current stream. (It doesn't stop anymore when changing tracks)
+-Refactoring of PSPSound/PSPSound_MP3 -> PSPSound/PSPSoundDecoder_MAD, internal OO changes.
+-Thread priorities are now configurable in the .cfg file.
+
 
 
 0.34
@@ -27,7 +33,7 @@ with the config file.
 (Now logging needs more resources because of this though, so it's probably a good idea to keep high).
 -Also found a bug that would cause the crash on exit (one at least).
 (PSPSound's destructor was accessing the m_ThDecode without checkin if it existed first.)
--Also added USB support. Needs to be enabled in the config file. ([USB]ENABLED=1Wink
+-Also added USB support. Needs to be enabled in the config file. ([USB]ENABLED=1;)
 -USB support is dangerous. Not recommended.
 -Disabled pause for URL streams.
 -Lots of internal refactoring.
