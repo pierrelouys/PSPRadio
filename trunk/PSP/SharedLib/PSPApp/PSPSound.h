@@ -23,6 +23,7 @@
 	#define NUM_CHANNELS			2	/** L and R */
 	#define BYTES_PER_SAMPLE		2	/** 16bit sound */
 	/** Useful macros */
+	/** Convert number of frames/samples/bytes to eachother */
 	#define FRAMES_TO_SAMPLES(f)	(f*NUM_CHANNELS)
 	#define SAMPLES_TO_BYTES(s)		(s*BYTES_PER_SAMPLE)
 	#define BYTES_TO_FRAMES(b)		(b/(NUM_CHANNELS*BYTES_PER_SAMPLE))
@@ -30,6 +31,13 @@
 	#define FRAMES_TO_BYTES(f)		(f*(NUM_CHANNELS*BYTES_PER_SAMPLE))
 	typedef u16 Sample;
 	typedef u32 Frame;
+	struct PCMFrameInHalfSamples
+	{
+		u8 RHalfSampleA;
+		u8 RHalfSampleB;
+		u8 LHalfSampleA;
+		u8 LHalfSampleB;
+	};
 	
 	/** Configurable */
 	/* (frames are 2ch, 16bits, so 4096frames =16384bytes =8192samples-l-r-combined.)*/

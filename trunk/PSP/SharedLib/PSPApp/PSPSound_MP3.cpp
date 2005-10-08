@@ -49,33 +49,24 @@ void CPSPSound_MP3::Decode()
 	struct mad_stream	Stream;
 	struct mad_synth	Synth;
 	mad_timer_t			Timer;
-	const unsigned char	*OutputBufferEnd = NULL;
 	int					Status=0,
 						i = 0;
 	unsigned long		FrameCount=0;
 
 	unsigned char		*pInputBuffer 	= NULL, /*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/
-						*pOutputBuffer	= NULL, 
-						*OutputPtr		= NULL,
 						*GuardPtr		= NULL;
-	//int count = 0;
-	::Frame *oneframe = NULL;
 	
 	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
-	/** The output buffer holds one BUFFER */
-	pOutputBuffer = (unsigned char*)malloc(FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
-
-	if (!(pInputBuffer && pOutputBuffer))
+	
+	PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
+	
+	if (!pInputBuffer)
 	{
 		ReportError("Memory allocation error!\n");
 		Log(LOG_ERROR, "Memory allocation error!\n");
 		return;
 	}
 
-	OutputPtr=pOutputBuffer;
-	GuardPtr = NULL;
-	OutputBufferEnd = pOutputBuffer+FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES);
-	
 	/* First the structures used by libmad must be initialized. */
 	mad_stream_init(&Stream);
 	mad_frame_init(&Frame);
@@ -228,26 +219,21 @@ void CPSPSound_MP3::Decode()
 					SampleR = SampleL;
 				}
 				
-				*(OutputPtr++)=((SampleL) & 0xff);
-				*(OutputPtr++)=((SampleL >> 8) & 0xff);
-				*(OutputPtr++)=((SampleR) & 0xff);
-				*(OutputPtr++)=((SampleR >> 8) & 0xff);
+				PCMOutputFrame.RHalfSampleA = (SampleR) & 0xff;
+				PCMOutputFrame.RHalfSampleB = (SampleR>>8) & 0xff;
+				PCMOutputFrame.LHalfSampleA = (SampleL) & 0xff;
+				PCMOutputFrame.LHalfSampleB = (SampleL>>8) & 0xff;
 				
-				oneframe = (::Frame*)pOutputBuffer;
-				pPSPSound_MP3->Buffer.PushFrame(*oneframe);
-
-				OutputPtr=pOutputBuffer;
-
-				if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
-				{
-					break;
-				}
-
+				
+				pPSPSound_MP3->Buffer.PushFrame(*((::Frame*)&PCMOutputFrame));
+			}
+			
+			if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
+			{
+				break;
 			}
 			sceKernelDelayThread(10); /** 100us */
-
 		};
-		//ReportError("Done.\n");
 		Log(LOG_INFO, "Done decoding stream.");
 		pPSPSound_MP3->SendMessage(MID_DECODE_DONE);
 		pPSPSound_MP3->Buffer.Done();
