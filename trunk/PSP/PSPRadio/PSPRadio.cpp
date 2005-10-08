@@ -454,6 +454,7 @@ public:
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
 					UI->OnStreamOpeningError();
+					m_Sound->Stop(); /** Stop on error!. patch by echto */
 					break;
 				case MID_DECODE_STREAM_OPEN:
 					UI->OnStreamOpeningSuccess();
