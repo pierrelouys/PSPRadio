@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include "PSPSound.h"
+#include "PSPSoundDecoder_MAD.h"
 
 using namespace std;
 
@@ -76,6 +77,8 @@ void CPSPSound::Initialize()
 		Log(LOG_ERROR, "Error getting a sound channel!");
 		ReportError("Unable to aquire sound channel");
 	}
+	
+	m_Decoder = new CPSPSoundDecoder_MAD();
 	
 	m_CurrentState = STOP;
 	m_thDecode = NULL;
@@ -248,7 +251,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 		{
 			Log(LOG_LOWLEVEL,"Awakening Decoding Thread; calling Decode().");
 			pPSPSound->SendMessage(MID_THDECODE_AWOKEN);
-			pPSPSound->Decode();
+			pPSPSound->m_Decoder->Decode(pPSPSound->m_InputStream, pPSPSound->Buffer);
 		}
 	}
 	pPSPSound->SendMessage(MID_THDECODE_END);
@@ -258,12 +261,6 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 	sceKernelExitThread(0);
 
 	return 0;
-}
-
-void CPSPSound::Decode()
-{
-	ReportError("Decode() Not Implemented!");
-	Log(LOG_ERROR, "Decode() Called, but not implemented.");
 }
 
 /** Sound buffer class implementation */

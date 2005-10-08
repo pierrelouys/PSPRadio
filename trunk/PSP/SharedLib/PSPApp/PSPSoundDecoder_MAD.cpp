@@ -26,24 +26,23 @@
 #include <mad.h>
 #include "bstdfile.h"
 #include <malloc.h>
-#include "PSPSound_MP3.h"
+#include "PSPSoundDecoder_MAD.h"
 using namespace std;
 
 int errno = 0;
 
 #define ReportError pPSPApp->ReportError
 
-CPSPSound_MP3 *pPSPSound_MP3 = NULL;
+//CPSPSoundDecoder_MAD *pPSPSound = NULL;
 
-CPSPSound_MP3::CPSPSound_MP3()
+CPSPSoundDecoder_MAD::CPSPSoundDecoder_MAD()
 {
-	Log(LOG_LOWLEVEL, "PSPSound_MP3 Constructor");
-	pPSPSound_MP3 = this;
+	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Constructor");
+	//pPSPSound = this;
 	
 }
 
-/** Threads */
-void CPSPSound_MP3::Decode()
+void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer)
 {
 	struct mad_frame	Frame;
 	struct mad_stream	Stream;
@@ -73,18 +72,18 @@ void CPSPSound_MP3::Decode()
 	mad_synth_init(&Synth);
 	mad_timer_reset(&Timer);
 
-	pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPENING);
-	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", m_InputStream->GetFile());
-	m_InputStream->Open();
-	if (m_InputStream->IsOpen() == TRUE)
+	pPSPSound->SendMessage(MID_DECODE_STREAM_OPENING);
+	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", InputStream->GetFile());
+	InputStream->Open();
+	if (InputStream->IsOpen() == TRUE)
 	{
 		Log(LOG_INFO, "MP3 Decode(): Stream Opened Successfully.");
 		
-		pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPEN);
+		pPSPSound->SendMessage(MID_DECODE_STREAM_OPEN);
 		
 		/** Main decoding loop */
-		/* pPSPSound_MP3 is the decoding loop. */
-		while (pPSPApp->m_Exit == FALSE && pPSPSound_MP3->GetPlayState() != STOP)
+		/* pPSPSound is the decoding loop. */
+		while (pPSPApp->IsExiting() == FALSE && pPSPSound->GetPlayState() != CPSPSound::STOP)
 		{
 			/* The input bucket must be filled if it becomes empty or if
 			 * it's the first execution of the loop.
@@ -107,20 +106,20 @@ void CPSPSound_MP3::Decode()
 						ReadStart=pInputBuffer,
 						Remaining=0;
 	
-				ReadSize = m_InputStream->Read(ReadStart,1,ReadSize);
+				ReadSize = InputStream->Read(ReadStart,1,ReadSize);
 				if(ReadSize<=0)
 				{
 					ReportError("(End of stream)...");
 					break;
 				}
-				else if(pPSPSound_MP3->GetPlayState() == STOP)
+				else if(pPSPSound->GetPlayState() == CPSPSound::STOP)
 				{
 					Log(LOG_LOWLEVEL, "Decode: Stop decoding, because user stopped.");
 					break;
 				}
 				
 	
-				if(m_InputStream->IsEOF())
+				if(InputStream->IsEOF())
 				{
 					GuardPtr=ReadStart+ReadSize;
 					memset(GuardPtr,0,MAD_BUFFER_GUARD);
@@ -170,7 +169,7 @@ void CPSPSound_MP3::Decode()
 					ReportError("Error in Frame info.");
 					break;
 				}
-				pPSPSound_MP3->Buffer.SetSampleRate(Frame.header.samplerate);
+				Buffer.SetSampleRate(Frame.header.samplerate);
 			}
 	
 			/* Accounting. The computed frame duration is in the frame
@@ -225,23 +224,23 @@ void CPSPSound_MP3::Decode()
 				PCMOutputFrame.LHalfSampleB = (SampleL>>8) & 0xff;
 				
 				
-				pPSPSound_MP3->Buffer.PushFrame(*((::Frame*)&PCMOutputFrame));
+				Buffer.PushFrame(*((::Frame*)&PCMOutputFrame));
 			}
 			
-			if (pPSPApp->m_Exit == TRUE || pPSPSound_MP3->GetPlayState() == STOP)
+			if (pPSPApp->IsExiting() == TRUE || pPSPSound->GetPlayState() == CPSPSound::STOP)
 			{
 				break;
 			}
 			sceKernelDelayThread(10); /** 100us */
 		};
 		Log(LOG_INFO, "Done decoding stream.");
-		pPSPSound_MP3->SendMessage(MID_DECODE_DONE);
-		pPSPSound_MP3->Buffer.Done();
+		pPSPSound->SendMessage(MID_DECODE_DONE);
+		Buffer.Done();
 		
 		/* The input file was completely read; 
 		 * Close The input stream.
 		 */
-		m_InputStream->Close();
+		InputStream->Close();
 	
 		/* Mad is no longer used, the structures that were initialized must
 	     * now be cleared.
@@ -253,13 +252,13 @@ void CPSPSound_MP3::Decode()
 	}
 	else
 	{
-		pPSPSound_MP3->SendMessage(MID_DECODE_STREAM_OPEN_ERROR);
-		Log(LOG_ERROR, "Unable to open stream '%s'.", m_InputStream->GetFile());
+		pPSPSound->SendMessage(MID_DECODE_STREAM_OPEN_ERROR);
+		Log(LOG_ERROR, "Unable to open stream '%s'.", InputStream->GetFile());
 	}
 
 }
 
-signed int CPSPSound_MP3::scale(mad_fixed_t &sample)
+signed int CPSPSoundDecoder_MAD::scale(mad_fixed_t &sample)
 {
   /* round */
   sample += (1L << (MAD_F_FRACBITS - 16));
@@ -278,7 +277,7 @@ signed int CPSPSound_MP3::scale(mad_fixed_t &sample)
 /****************************************************************************
  * Print human readable informations about an audio MPEG frame.				*
  ****************************************************************************/
-int CPSPSound_MP3::PrintFrameInfo(struct mad_header *Header)
+int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 {
 	const char	*Layer,
 				*Mode,
@@ -354,8 +353,8 @@ int CPSPSound_MP3::PrintFrameInfo(struct mad_header *Header)
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
-	pPSPSound_MP3->SendMessage(MID_DECODE_FRAME_INFO_HEADER, Header);
-	pPSPSound_MP3->SendMessage(MID_DECODE_FRAME_INFO_LAYER, (char*)Layer);
+	pPSPSound->SendMessage(MID_DECODE_FRAME_INFO_HEADER, Header);
+	pPSPSound->SendMessage(MID_DECODE_FRAME_INFO_LAYER, (char*)Layer);
 	return(0);
 }
 
@@ -363,7 +362,7 @@ int CPSPSound_MP3::PrintFrameInfo(struct mad_header *Header)
  * Converts a sample from libmad's fixed point number format to a signed	*
  * short (16 bits).															*
  ****************************************************************************/
-signed short CPSPSound_MP3::MadFixedToSshort(mad_fixed_t Fixed)
+signed short CPSPSoundDecoder_MAD::MadFixedToSshort(mad_fixed_t Fixed)
 {
 	/* Clipping */
 	if(Fixed>=MAD_F_ONE)

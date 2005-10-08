@@ -16,25 +16,24 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifndef PSPSOUND
-#define __PSPSOUND__
-	#include "PSPSound.h"
+#ifndef __PSPSOUNDDECODER_MAD__
+#define __PSPSOUNDDECODER_MAD__
 	#include <mad.h>
 	
-	//extern CPSPSound_MP3 *pPSPSound_MP3;
+	class CPSPSoundStream;
+	class CPSPSoundBuffer;
 	
-	class CPSPSound_MP3 : public CPSPSound
+	class CPSPSoundDecoder_MAD// : public virtual IPSPSoundDecoder
 	{
 	public:
-		CPSPSound_MP3();
+		CPSPSoundDecoder_MAD();
 		
 		
-		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND_MP3)
-			{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
+		//int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND_MP3)
+		//	{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
+		
 
-
-	protected:
-		virtual void Decode(); /** 'Thread' */
+		void Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer);
 
 	private:
 		static signed int scale(mad_fixed_t &sample);
@@ -42,4 +41,5 @@
 		static signed short MadFixedToSshort(mad_fixed_t Fixed);
 	};
 	
+	#include "PSPSound.h"
 #endif

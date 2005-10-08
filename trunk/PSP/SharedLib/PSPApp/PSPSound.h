@@ -16,8 +16,11 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifndef PSPSOUND
+#ifndef __PSPSOUND__
 #define __PSPSOUND__
+	#include "PSPSoundDecoder_MAD.h"
+
+
 	/** Not configurable */
 	#define PSP_SAMPLERATE			44100
 	#define NUM_CHANNELS			2	/** L and R */
@@ -149,6 +152,7 @@
 	protected:
 		CPSPSoundBuffer Buffer;
 		CPSPSoundStream *m_InputStream;
+		CPSPSoundDecoder_MAD *m_Decoder;
 		
 	private:
 		void Initialize();
@@ -160,7 +164,6 @@
 		pspsound_state m_CurrentState;
 	
 	protected:
-		virtual void Decode();
 		void SuspendDecodingThread(){m_thDecode->Suspend();};
 		
 	public:

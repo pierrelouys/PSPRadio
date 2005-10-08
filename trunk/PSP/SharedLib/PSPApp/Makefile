@@ -1,5 +1,5 @@
 TARGET_LIB = ../lib/libPSPApp.a
-OBJS = PSPApp.o PSPSound.o bstdfile.o PSPSound_MP3.o httpget.o
+OBJS = PSPApp.o PSPSound.o bstdfile.o PSPSoundDecoder_MAD.o httpget.o
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging -I../libsamplerate
