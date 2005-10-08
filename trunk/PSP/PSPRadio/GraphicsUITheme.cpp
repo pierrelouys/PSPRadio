@@ -17,7 +17,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <PSPApp.h>
-#include <PSPSound_MP3.h>
+#include <PSPSound.h>
 #include <stdio.h>
 #include <unistd.h> 
 #include <stdlib.h>

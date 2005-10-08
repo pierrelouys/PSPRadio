@@ -17,7 +17,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <PSPApp.h>
-#include <PSPSound_MP3.h>
+#include <PSPSound.h>
 #include <stdio.h>
 #include <unistd.h> 
 #include <stdlib.h>
@@ -54,7 +54,7 @@ class myPSPApp : public CPSPApp
 {
 private:
 	CIniParser *m_Config;
-	CPSPSound_MP3 *MP3;
+	CPSPSound *MP3;
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
 	CPlayList::songmetadata *m_CurrentMetaData;
@@ -160,7 +160,7 @@ public:
 			DisplayCurrentNetworkSelection();
 		}
 		
-		MP3 = new CPSPSound_MP3();
+		MP3 = new CPSPSound();
 
 		if (MP3)
 		{

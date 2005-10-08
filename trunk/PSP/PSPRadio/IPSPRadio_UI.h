@@ -1,6 +1,7 @@
 #ifndef _UI_I_
 #define _UI_I_
 
+#include "PSPSound.h"
 #include "PlayList.h"
 #include "DirList.h"
 
