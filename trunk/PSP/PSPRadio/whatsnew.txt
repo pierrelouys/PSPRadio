@@ -1,4 +1,4 @@
-What's New for PSPRadio 0.35-pre2 - Released 10/07/05
+What's New for PSPRadio 0.35-pre3 - Released 10/08/05
 ======================================================
 0.35
 0.35-pre1
