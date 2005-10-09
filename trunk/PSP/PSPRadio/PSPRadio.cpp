@@ -137,7 +137,7 @@ public:
 			EnableUSB();
 		}
 		
-		if (0 != m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"))
+		if (-1 != m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"))
 		{
 		
 			Log(LOG_INFO, "Setting MAIN_THREAD_PRIO to %d as specified in config file.", 
@@ -182,7 +182,7 @@ public:
 			}
 			
 			/** Set the thread priorities */
-			if (0 != m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"))
+			if (-1 != m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"))
 			{
 			
 				Log(LOG_INFO, "Setting DECODE_THREAD_PRIO to %d as specified in config file.", 
@@ -190,7 +190,7 @@ public:
 	
 				m_Sound->SetDecodeThreadPriority(m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"));
 			}
-			if (0 != m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"))
+			if (-1 != m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"))
 			{
 			
 				Log(LOG_INFO, "Setting PLAY_THREAD_PRIO to %d as specified in config file.", 
