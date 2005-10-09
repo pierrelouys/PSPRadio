@@ -52,17 +52,13 @@ CPSPSound::CPSPSound()
 	m_Decoder = NULL;
 	m_audiohandle = -1;
 	m_CurrentState = STOP;
-
+	m_MsgToDecTh = m_MsgToPlayTh = NULL;
 	Initialize();
 }
 
 void CPSPSound::Initialize()
 {
 	Log(LOG_VERYLOW, "PSPSound Initialize()");
-	if (pPSPSound != NULL)
-	{
-		Log(LOG_ERROR, "Error!, only one instance of CPSPSound (including CPSPSound_*) permitted!");
-	}
 	
 	Buffer.Empty();
 	
@@ -84,6 +80,9 @@ void CPSPSound::Initialize()
 		ReportError("Unable to aquire sound channel");
 	}
 	
+	m_MsgToDecTh  = new CPSPMessageQ("msg_to_dec_th");
+	m_MsgToPlayTh = new CPSPMessageQ("msg_to_play_th");
+	
 	m_Decoder = new CPSPSoundDecoder_MAD();
 	
 	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
@@ -91,6 +90,28 @@ void CPSPSound::Initialize()
 	
 	m_thPlayAudio->Start();
 	m_thDecode->Start();
+	
+	/** TEST */
+	sceKernelDelayThread(500000); 
+	CPSPMessageQ::QMessage msg = { 0, 't', NULL };
+	Log(LOG_VERYLOW, "Sending 3 msgs 't' to decode thread");
+	m_MsgToDecTh->Send(msg);
+	m_MsgToDecTh->Send(msg);
+	m_MsgToDecTh->Send(msg);
+	
+	Log(LOG_VERYLOW, "Sending 3 'a' msgs to decode thread (but evey 50msec now)");
+	msg.MessageId = 'a';
+	sceKernelDelayThread(50000); 
+	m_MsgToDecTh->Send(msg);
+	sceKernelDelayThread(50000); 
+	m_MsgToDecTh->Send(msg);
+	sceKernelDelayThread(50000); 
+	m_MsgToDecTh->Send(msg);
+	sceKernelDelayThread(50000); 
+	msg.MessageId = 'x';
+	Log(LOG_VERYLOW, "Sending msgs 'x' to decode thread");
+	m_MsgToDecTh->Send(msg);
+	/** TEST */
 }
 
 CPSPSound::~CPSPSound()
@@ -121,7 +142,18 @@ CPSPSound::~CPSPSound()
 		Log(LOG_VERYLOW, "~CSPSSound(): Destroying input stream object. ");
 		delete(m_InputStream); m_InputStream = NULL;
 	}
-
+	
+	if (m_MsgToDecTh)
+	{
+		delete(m_MsgToDecTh);
+	}
+	
+	if (m_MsgToPlayTh)
+	{
+		delete(m_MsgToPlayTh);
+	}
+	
+	
 	Log(LOG_VERYLOW, "~CSPSSound(): The End.");
 
 }
@@ -238,6 +270,36 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 	pPSPSound->SendMessage(MID_THDECODE_BEGIN);
 
 	pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
+	
+	
+	/** TEST */
+	CPSPMessageQ *m_MsgToDecTh = pPSPSound->m_MsgToDecTh;
+	CPSPMessageQ::QMessage msg = { 0, 0, NULL };
+	int rret = 0;
+	for(;;)
+	{
+		Log(LOG_VERYLOW, "Calling Receive");
+		rret = m_MsgToDecTh->Receive(msg);
+		Log(LOG_VERYLOW, "Receive Ret=%d. msg='%c'(0x%08x).", rret, msg.MessageId, msg.MessageId);
+		if (msg.MessageId == 't')
+		{
+			Log(LOG_VERYLOW, "MSG T RECEIVED!");
+			//m_MsgToDecTh->MsgHandled('t');
+		}
+		if (msg.MessageId == 'a')
+		{
+			Log(LOG_VERYLOW, "MSG A RECEIVED!");
+			//m_MsgToDecTh->MsgHandled('t');
+		}
+		if (msg.MessageId == 'x')
+		{
+			Log(LOG_VERYLOW, "MSG X RECEIVED!");
+			//m_MsgToDecTh->MsgHandled('x');
+			break;
+		}
+	}
+	
+	/** TEST */
 	
 	while (pPSPApp->m_Exit == FALSE)
 	{

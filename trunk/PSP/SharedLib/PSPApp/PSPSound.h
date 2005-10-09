@@ -19,7 +19,7 @@
 #ifndef __PSPSOUND__
 #define __PSPSOUND__
 	#include "PSPSoundDecoder_MAD.h"
-
+	#include "PSPMessageQ.h"
 
 	/** Not configurable */
 	#define PSP_SAMPLERATE			44100
@@ -162,6 +162,8 @@
 		CPSPThread *m_thDecode,*m_thPlayAudio;
 		int m_audiohandle ;
 		pspsound_state m_CurrentState;
+		
+		CPSPMessageQ *m_MsgToDecTh, *m_MsgToPlayTh;
 		
 	protected:
 		void SuspendDecodingThread(){m_thDecode->Suspend();};
