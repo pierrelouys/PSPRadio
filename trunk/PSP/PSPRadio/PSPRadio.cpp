@@ -32,6 +32,7 @@
 #include "PlayList.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
+#include "SandbergUI.h" 
 
 asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
@@ -123,6 +124,10 @@ public:
 		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
 		{
 			UI = new CGraphicsUI();
+		}
+		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
+		{
+			UI = new CSandbergUI();
 		}
 		else
 		{

@@ -2,7 +2,8 @@ TARGET = PSPRadio
 KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
-OBJS = PSPRadio.o  DirList.o PlayList.o TextUI.o GraphicsUITheme.o GraphicsUI.o
+OBJS = PSPRadio.o  DirList.o PlayList.o TextUI.o GraphicsUITheme.o GraphicsUI.o \
+		SandbergUI.o SandbergUIFX.o SandbergUIPL.o SandbergUILogo.o 
 
 INCDIR = ../
 
@@ -19,7 +20,9 @@ LDFLAGS =
 LIBS = -lPSPApp -lsupc++ -lstdc++ -lpspnet -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
-		-ljpeg -lSDL -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor
+		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
+		-lm 
+#		-ljpeg -lSDL -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor
 #		-lsamplerate -lm \
 
 EXTRA_TARGETS = EBOOT.PBP
