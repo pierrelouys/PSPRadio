@@ -23,8 +23,6 @@ LIBS = -lPSPApp -lsupc++ -lstdc++ -lpspnet -lmad \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
 		-lm 
-#		-ljpeg -lSDL -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor
-#		-lsamplerate -lm \
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio
@@ -32,6 +30,9 @@ PSP_EBOOT_TITLE = PSPRadio
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
 
+clean: 
+	rm -fv *.o *.PBP *.SFO ./SandbergUI/*.o
+	rm -Rf $(KXPLOIT_PRIMARY_DIR) $(KXPLOIT_SECONDARY_DIR)
 
 kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)
