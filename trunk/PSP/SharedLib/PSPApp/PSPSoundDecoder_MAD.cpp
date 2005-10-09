@@ -33,16 +33,12 @@ int errno = 0;
 
 #define ReportError pPSPApp->ReportError
 
-//CPSPSoundDecoder_MAD *pPSPSound = NULL;
-
 CPSPSoundDecoder_MAD::CPSPSoundDecoder_MAD()
 {
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Constructor");
-	//pPSPSound = this;
-	
 }
 
-void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer)
+void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPMessageQ *Notification)
 {
 	struct mad_frame	Frame;
 	struct mad_stream	Stream;
@@ -83,7 +79,7 @@ void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer 
 		
 		/** Main decoding loop */
 		/* pPSPSound is the decoding loop. */
-		while (pPSPApp->IsExiting() == FALSE && pPSPSound->GetPlayState() != CPSPSound::STOP)
+		while (Notification->Size() == 0)
 		{
 			/* The input bucket must be filled if it becomes empty or if
 			 * it's the first execution of the loop.
@@ -112,11 +108,11 @@ void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer 
 					ReportError("(End of stream)...");
 					break;
 				}
-				else if(pPSPSound->GetPlayState() == CPSPSound::STOP)
-				{
-					Log(LOG_LOWLEVEL, "Decode: Stop decoding, because user stopped.");
-					break;
-				}
+				//else if(Notification->Size() > 0)
+				//{
+				//	Log(LOG_LOWLEVEL, "Decode: Stop decoding, because there's messages awaiting...");
+				//	break;
+				//}
 				
 	
 				if(InputStream->IsEOF())
@@ -227,14 +223,13 @@ void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer 
 				Buffer.PushFrame(*((::Frame*)&PCMOutputFrame));
 			}
 			
-			if (pPSPApp->IsExiting() == TRUE || pPSPSound->GetPlayState() == CPSPSound::STOP)
-			{
-				break;
-			}
+			//if (pPSPApp->IsExiting() == TRUE || pPSPSound->GetPlayState() == CPSPSound::STOP)
+			//{
+			//	break;
+			//}
 			sceKernelDelayThread(10); /** 100us */
 		};
 		Log(LOG_INFO, "Done decoding stream.");
-		pPSPSound->SendMessage(MID_DECODE_DONE);
 		Buffer.Done();
 		
 		/* The input file was completely read; 

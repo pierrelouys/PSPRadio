@@ -59,27 +59,6 @@ private:
 	int m_mutex;
 };
 
-
-/** Can't get the kernel semaphore to work right, so for now implementing in user-space.
-	(This will only work for simple things like what m_ExitSema is doing, though, so
-	 be careful)
-*/
-/*
-class CSema
-{
-public:
-	CSema(char *strName){ m_count = 0; m_timeout = 20*10;}//10 secs
-	~CSema() { }
-	
-	void Wait() { while(m_count > 0 && m_timeout) { sceKernelDelayThread(50000); m_timeout--;}; m_timeout = 20*10;} //10 secs
-	void Up()   { m_count++;  }
-	void Down() { if (m_count > 0) m_count--; }
-private:
-	int m_count;
-	int m_timeout;
-};
-*/
-
 class CLogging
 {
 public:
@@ -103,7 +82,6 @@ private:
 	
 };
 
-//#define Log(level, format, args...) pPSPApp->m_Log.Log("PSPRadio", level, format, ## args)
 extern CLogging Logging;
 #define Log(level, format, args...) Logging.Log_(__FILE__, level, format, ## args)
 

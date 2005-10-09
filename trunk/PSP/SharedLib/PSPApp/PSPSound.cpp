@@ -91,55 +91,39 @@ void CPSPSound::Initialize()
 	m_thPlayAudio->Start();
 	m_thDecode->Start();
 	
-	/** TEST */
-	sceKernelDelayThread(500000); 
-	CPSPMessageQ::QMessage msg = { 0, 't', NULL };
-	Log(LOG_VERYLOW, "Sending 3 msgs 't' to decode thread");
-	m_MsgToDecTh->Send(msg);
-	m_MsgToDecTh->Send(msg);
-	m_MsgToDecTh->Send(msg);
-	
-	Log(LOG_VERYLOW, "Sending 3 'a' msgs to decode thread (but evey 50msec now)");
-	msg.MessageId = 'a';
-	sceKernelDelayThread(50000); 
-	m_MsgToDecTh->Send(msg);
-	sceKernelDelayThread(50000); 
-	m_MsgToDecTh->Send(msg);
-	sceKernelDelayThread(50000); 
-	m_MsgToDecTh->Send(msg);
-	sceKernelDelayThread(50000); 
-	msg.MessageId = 'x';
-	Log(LOG_VERYLOW, "Sending msgs 'x' to decode thread");
-	m_MsgToDecTh->Send(msg);
-	/** TEST */
 }
 
 CPSPSound::~CPSPSound()
 {
-	Log(LOG_VERYLOW, "~CSPSSound(): pPSPApp->m_Exit=%d", pPSPApp->m_Exit);
-	Stop();
+	CPSPMessageQ::QMessage msg = { 0, 0x0, NULL };
+	Log(LOG_VERYLOW, "~CPSPSound(): pPSPApp->m_Exit=%d", pPSPApp->m_Exit);
 	
-	Log(LOG_VERYLOW, "~CSPSSound(): After Stop, destroying threads...", pPSPApp->m_Exit);
 	if (m_thDecode) 
 	{ 
 		/** Wake the decoding thread up, so it can exit*/
-		Log(LOG_VERYLOW, "~CSPSSound(): Decode thread was asleep, waking up.");
-		m_thDecode->WakeUp();
+		Log(LOG_VERYLOW, "~CPSPSound(): Tell decode thread to exit.");
+		msg.MessageId = MID_DECODER_THREAD_EXIT;
+		m_MsgToDecTh->Send(msg);
 		sceKernelDelayThread(100000);
 		
-		Log(LOG_VERYLOW, "~CSPSSound(): Destroying decode thread. ");
+		Log(LOG_VERYLOW, "~CPSPSound(): Destroying decode thread. ");
 		delete(m_thDecode), m_thDecode = NULL;
 	}
 	
 	if (m_thPlayAudio) 
 	{
-		Log(LOG_VERYLOW, "~CSPSSound(): Destroying play thread. ");
+		Log(LOG_VERYLOW, "~CPSPSound(): Destroying play thread. ");
+		msg.MessageId = MID_PLAY_THREAD_EXIT;
+		m_MsgToPlayTh->Send(msg);
+		sceKernelDelayThread(100000);
+		
+		Log(LOG_VERYLOW, "~CPSPSound(): Destroying play thread. ");
 		delete(m_thPlayAudio), m_thPlayAudio = NULL;
 	}
 	
 	if (m_InputStream)
 	{
-		Log(LOG_VERYLOW, "~CSPSSound(): Destroying input stream object. ");
+		Log(LOG_VERYLOW, "~CPSPSound(): Destroying input stream object. ");
 		delete(m_InputStream); m_InputStream = NULL;
 	}
 	
@@ -154,7 +138,7 @@ CPSPSound::~CPSPSound()
 	}
 	
 	
-	Log(LOG_VERYLOW, "~CSPSSound(): The End.");
+	Log(LOG_VERYLOW, "~CPSPSound(): The End.");
 
 }
 
@@ -170,17 +154,22 @@ void CPSPSound::SetPlayThreadPriority(int iNewPrio)
 
 int CPSPSound::Play()
 {
+	CPSPMessageQ::QMessage msg = { 0, 0x0, NULL };
 	switch(m_CurrentState)
 	{
 		case STOP:
 			m_CurrentState = PLAY;
-			/** Wake the decoding thread up*/
-			m_thDecode->WakeUp();
+			msg.MessageId = MID_DECODER_START;
+			m_MsgToDecTh->Send(msg);
+			msg.MessageId = MID_PLAY_START;
+			m_MsgToPlayTh->Send(msg);
 			break;
 		case PAUSE:
 			m_CurrentState = PLAY;
-			m_thDecode->Resume();
-			m_thPlayAudio->Resume();
+			msg.MessageId = MID_DECODER_START;
+			m_MsgToDecTh->Send(msg);
+			msg.MessageId = MID_PLAY_START;
+			m_MsgToPlayTh->Send(msg);
 			break;
 			
 		case PLAY:
@@ -192,12 +181,15 @@ int CPSPSound::Play()
 
 int CPSPSound::Pause()
 {
+	CPSPMessageQ::QMessage msg = { 0, 0x0, NULL };
 	switch(m_CurrentState)
 	{
 		case PLAY:
 			m_CurrentState = PAUSE;
-			m_thDecode->Suspend();
-			m_thPlayAudio->Suspend();
+			msg.MessageId = MID_DECODER_STOP;
+			m_MsgToDecTh->Send(msg);
+			msg.MessageId = MID_PLAY_STOP;
+			m_MsgToPlayTh->Send(msg);
 			break;
 			
 		case STOP:
@@ -210,18 +202,23 @@ int CPSPSound::Pause()
 
 int CPSPSound::Stop()
 {
+	CPSPMessageQ::QMessage msg = { 0, 0x0, NULL };
 	switch(m_CurrentState)
 	{
 		case PAUSE:
 			/** if we were paused, restart threads first! */
 			m_CurrentState = STOP;
-			Buffer.Empty();
-			m_thDecode->Resume();
-			m_thPlayAudio->Resume();
+			msg.MessageId = MID_DECODER_STOP;
+			m_MsgToDecTh->Send(msg);
+			msg.MessageId = MID_PLAY_STOP;
+			m_MsgToPlayTh->Send(msg);
 			break;
 		case PLAY:
 			m_CurrentState = STOP;
-			Buffer.Empty();
+			msg.MessageId = MID_DECODER_STOP;
+			m_MsgToDecTh->Send(msg);
+			msg.MessageId = MID_PLAY_STOP;
+			m_MsgToPlayTh->Send(msg);
 			break;
 			
 		case STOP:
@@ -237,30 +234,50 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		Frame *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
 		int count = 0;
+		CPSPMessageQ *m_MsgToPlayTh = pPSPSound->m_MsgToPlayTh;
+		CPSPMessageQ::QMessage msg = { 0, 0, NULL };
+		int rret = 0;
 
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendMessage(MID_THPLAY_BEGIN);
 		
 		pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
+		///
 		for(;;)
 		{
-			mybuf = pPSPSound->Buffer.PopBuffer();
-			if (pPSPApp->m_Exit == true)
+			Log(LOG_VERYLOW, "ThPlay::Calling Receive. %d Messages in Queue", m_MsgToPlayTh->Size());
+			rret = m_MsgToPlayTh->Receive(msg);
+			Log(LOG_VERYLOW, "ThPlay::Receive Ret=%d. msg=0x%08x.", rret, msg.MessageId);
+			switch (msg.MessageId)
 			{
+			case MID_PLAY_THREAD_EXIT:
+				Log(LOG_VERYLOW, "ThPlay:: Thread Exit message received.");
+				pPSPSound->SendMessage(MID_THPLAY_END);
+				pPSPApp->CanExit(); /** OK, App can exit now. */
+				sceKernelExitThread(0);
+				break;
+			
+			case MID_PLAY_START:
+				Log(LOG_VERYLOW, "ThPlay:: Thread Play message received.");
+				while (m_MsgToPlayTh->Size() == 0)
+				{
+					mybuf = pPSPSound->Buffer.PopBuffer();
+					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
+					
+					if (count++ % 2)
+					{
+						pPSPSound->SendMessage(MID_BUFF_PERCENT_UPDATE);
+					}
+				}
+				Log(LOG_VERYLOW, "ThPlay:: Thread Play exiting play area - message waiting.");
+				break;
+				
+			case MID_PLAY_STOP:
+				Log(LOG_VERYLOW, "ThPlay:: Stop message received.");
+				pPSPSound->Buffer.Empty();
 				break;
 			}
-			sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
-			
-			if (count++ % 2)
-			{
-				pPSPSound->SendMessage(MID_BUFF_PERCENT_UPDATE);
-			}
 		}
-		
-		pPSPSound->SendMessage(MID_THPLAY_END);
-		pPSPApp->CanExit(); /** OK, App can exit now. */
-
-		sceKernelExitThread(0);
 		return 0;
 }
 
@@ -271,61 +288,33 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 
 	pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
 	
-	
-	/** TEST */
 	CPSPMessageQ *m_MsgToDecTh = pPSPSound->m_MsgToDecTh;
 	CPSPMessageQ::QMessage msg = { 0, 0, NULL };
 	int rret = 0;
 	for(;;)
 	{
-		Log(LOG_VERYLOW, "Calling Receive");
+		Log(LOG_VERYLOW, "ThDecode::Calling Receive");
 		rret = m_MsgToDecTh->Receive(msg);
-		Log(LOG_VERYLOW, "Receive Ret=%d. msg='%c'(0x%08x).", rret, msg.MessageId, msg.MessageId);
-		if (msg.MessageId == 't')
+		Log(LOG_VERYLOW, "ThDecode::Receive Ret=%d. msg=0x%08x.", rret, msg.MessageId);
+		switch (msg.MessageId)
 		{
-			Log(LOG_VERYLOW, "MSG T RECEIVED!");
-			//m_MsgToDecTh->MsgHandled('t');
-		}
-		if (msg.MessageId == 'a')
-		{
-			Log(LOG_VERYLOW, "MSG A RECEIVED!");
-			//m_MsgToDecTh->MsgHandled('t');
-		}
-		if (msg.MessageId == 'x')
-		{
-			Log(LOG_VERYLOW, "MSG X RECEIVED!");
-			//m_MsgToDecTh->MsgHandled('x');
-			break;
-		}
-	}
-	
-	/** TEST */
-	
-	while (pPSPApp->m_Exit == FALSE)
-	{
-		/** Wait for the go-ahead: 
-		 *  We put ourselves to sleep
-		 *  When Play() is called, we are awaken
-		 */
-		pPSPSound->SendMessage(MID_THDECODE_ASLEEP);
-		Sleep();
-		if (pPSPApp->m_Exit == true)
-		{
-			Log(LOG_LOWLEVEL,"Awakening Decoding Thread; Application Exiting.");
-			break;
-		}
-		else
-		{
-			Log(LOG_LOWLEVEL,"Awakening Decoding Thread; calling Decode().");
-			pPSPSound->SendMessage(MID_THDECODE_AWOKEN);
-			pPSPSound->m_Decoder->Decode(pPSPSound->m_InputStream, pPSPSound->Buffer);
+			case MID_DECODER_START:
+				Log(LOG_VERYLOW, "ThDecode:: Start Decoder message received.");
+				pPSPSound->SendMessage(MID_THDECODE_DECODING);
+				pPSPSound->m_Decoder->Decode(pPSPSound->m_InputStream, pPSPSound->Buffer, m_MsgToDecTh);
+				pPSPSound->SendMessage(MID_THDECODE_DECODING_DONE);
+				break;
+			case MID_DECODER_STOP:
+				Log(LOG_VERYLOW, "ThDecode:: Stop Decoder message received.");
+				break;
+			case MID_DECODER_THREAD_EXIT:
+				Log(LOG_VERYLOW, "ThDecode:: Thread Exit message received.");
+				pPSPSound->SendMessage(MID_THDECODE_END);
+				pPSPApp->CanExit(); /** OK, App can exit now. */
+				sceKernelExitThread(0);
+				break;
 		}
 	}
-	pPSPSound->SendMessage(MID_THDECODE_END);
-	
-	pPSPApp->CanExit(); /** OK, App can exit now. */
-	
-	sceKernelExitThread(0);
 
 	return 0;
 }
@@ -504,6 +493,7 @@ Frame CPSPSoundBuffer::PopFrame()
 	if (true == IsDone())
 	{
 		pPSPSound->SendMessage(MID_THPLAY_DONE);
+		return (Frame)0; /** Don't pop more frames */
 	}
 	if (true == m_buffering)
 	{
@@ -517,7 +507,7 @@ Frame CPSPSoundBuffer::PopFrame()
 	}
 	else
 	{
-		while (GetBufferFillPercentage() == 0)
+		while (GetBufferFillPercentage() <= 0)
 		{	/** Buffer Empty!! */
 			sceKernelDelayThread(50); /** 500us */
 			if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )

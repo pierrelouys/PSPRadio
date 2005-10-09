@@ -248,6 +248,12 @@ public:
 	void OnExit()
 	{
 		Log(LOG_LOWLEVEL, "PSPRadio::OnExit()");
+		if (m_Sound)
+		{
+			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Sound object");
+			delete(m_Sound);
+			m_Sound = NULL;
+		}
 		if (UI)
 		{
 			Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
@@ -255,12 +261,6 @@ public:
 			Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
 			delete(UI);
 			UI = NULL;
-		}
-		if (m_Sound)
-		{
-			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Sound object");
-			delete(m_Sound);
-			m_Sound = NULL;
 		}
 		if (m_Config)
 		{
@@ -429,6 +429,7 @@ public:
 			//	case ERROR
 			//case SID_PSPSOUND:
 			default:
+				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", iMessageId, iSenderId);
 				switch(iMessageId)
 				{
 				//case MID_THPLAY_BEGIN:
@@ -443,7 +444,7 @@ public:
 					m_Sound->Stop();
 					break;
 					
-				case MID_THDECODE_AWOKEN:
+				case MID_THDECODE_DECODING:
 					UI->OnNewStreamStarted();
 					break;
 				//case MID_THDECODE_ASLEEP:

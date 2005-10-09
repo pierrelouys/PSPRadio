@@ -51,10 +51,16 @@ CTextUI::CTextUI()
 
 CTextUI::~CTextUI()
 {
-	delete(m_lockprint);
-	m_lockprint = NULL;
-	delete(m_lockclear);
-	m_lockclear = NULL;
+	if (m_lockprint)
+	{
+		delete(m_lockprint);
+		m_lockprint = NULL;
+	}
+	if (m_lockclear)
+	{
+		delete(m_lockclear);
+		m_lockclear = NULL;
+	}
 }
 
 int CTextUI::Initialize(char *strCWD)

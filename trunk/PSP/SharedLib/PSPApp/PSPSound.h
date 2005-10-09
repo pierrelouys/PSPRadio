@@ -59,6 +59,22 @@
 	#include "bstdfile.h"
 
 	
+	/** Message IDs */
+	/** Messages from PSPSound to decode thread */
+	enum MessageIDsFromPSPSoundToDecodeThread
+	{
+		MID_DECODER_START,
+		MID_DECODER_STOP,
+		MID_DECODER_THREAD_EXIT
+	};
+	
+	enum MessageIDsFromPSPSoundToPlayThread
+	{
+		MID_PLAY_START,
+		MID_PLAY_STOP,
+		MID_PLAY_THREAD_EXIT
+	};
+	
 	/* ------ Declarations from "httpget.c" (From mpg123) ------ */
 	extern int http_open (char *url, size_t &iMetadataInterval);
 	

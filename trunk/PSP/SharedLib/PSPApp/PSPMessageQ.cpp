@@ -35,12 +35,26 @@ int sceKernelClearEventFlag(u32, int);
 CPSPMessageQ::CPSPMessageQ(char *strName)
 {
 	char *strNameForResources = (char*)malloc(strlen(strName)+10);
+	
 	m_strName = strdup(strName);
-	sprintf(strNameForResources, "%s_lock", m_strName);
-	m_lock = new CLock(strNameForResources);
-	sprintf(strNameForResources, "%s_event", m_strName);
-	m_EventId = sceKernelCreateEventFlag(strNameForResources, 0, 0x0, 0);
-	Log (LOG_VERYLOW, "CPSPMessageQ(): sceKernelCreateEventFlag() returns 0x%x", m_EventId);
+	
+	if (strNameForResources && m_strName)
+	{
+		
+		sprintf(strNameForResources, "%s_lock", m_strName);
+		m_lock = new CLock(strNameForResources);
+		
+		sprintf(strNameForResources, "%s_event", m_strName);
+		m_EventId = sceKernelCreateEventFlag(strNameForResources, 0, 0x0, 0);
+		
+		Log (LOG_VERYLOW, "CPSPMessageQ(): sceKernelCreateEventFlag() returns 0x%x", m_EventId);
+		
+		free(strNameForResources), strNameForResources = NULL;
+	}
+	else
+	{
+		Log (LOG_ERROR, "CPSPMessageQ():Memory allocation error!");
+	}
 }
 
 CPSPMessageQ::~CPSPMessageQ()
@@ -72,16 +86,24 @@ int CPSPMessageQ::Send(QMessage &Message)
 int CPSPMessageQ::Receive(QMessage &Message)
 {
 	//block until notified
-	u32 flag;
+	u32 flag = 0;
 	/*int iRet = */sceKernelWaitEventFlag(m_EventId, 0x1, 0/*wait0-and,1-OR*/, &flag, NULL);
 
-	Message = m_msglist.front();
-	m_msglist.pop_front();
+	if (Size() > 0)
+	{
+		Message = m_msglist.front();
+		m_msglist.pop_front();
+	}
+	else
+	{
+		Log(LOG_ERROR, "Receive() Error. Receieve unblocked, but no messages in the queue?! size=%d. flag=0x%x", Size(), flag);
+	}
 	
 	/** Clear event flag, so Receive blocks when until the next message arrives */
 	if (Size() == 0) /** Clear only if last message */
 	{
-		sceKernelClearEventFlag(m_EventId, 0x1);
+		sceKernelClearEventFlag(m_EventId, 10);//0x1);
+		Log(LOG_ERROR, "Receive() Size() is 0, clearing event flag.");
 	}
 	return 0;
 }
