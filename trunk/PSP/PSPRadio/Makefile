@@ -2,7 +2,9 @@ TARGET = PSPRadio
 KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
-OBJS = PSPRadio.o  DirList.o PlayList.o TextUI.o GraphicsUITheme.o GraphicsUI.o \
+OBJS = PSPRadio.o  DirList.o PlayList.o \
+		./TextUI/TextUI.o \
+		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
 		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o 
 
 INCDIR = ../
@@ -10,6 +12,8 @@ INCDIR = ../
 CFLAGS = -O2 -G2 -Wall -I../SharedLib/PSPApp -L../SharedLib/lib \
 		 -I../SharedLib/libpspnet -I../SharedLib/libiniparser \
 		 -I../SharedLib/Tools -I../SharedLib/Logging \
+		 -I./TextUI \
+		 -I./GraphicsUI \
 		 -I./SandbergUI
 		 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
@@ -31,7 +35,7 @@ PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
 
 clean: 
-	rm -fv *.o *.PBP *.SFO ./SandbergUI/*.o
+	rm -fv *.o *.PBP *.SFO ./TextUI/*.o ./GraphicsUI/*.o ./SandbergUI/*.o
 	rm -Rf $(KXPLOIT_PRIMARY_DIR) $(KXPLOIT_SECONDARY_DIR)
 
 kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
@@ -42,6 +46,7 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 		$(PSP_EBOOT_ICON1) $(PSP_EBOOT_UNKPNG) $(PSP_EBOOT_PIC1)  \
 		$(PSP_EBOOT_SND0) NULL $(PSP_EBOOT_PSAR)
 	cp -vf *.cfg $(KXPLOIT_PRIMARY_DIR)
+	cp -vf ./TextUI/*.cfg $(KXPLOIT_PRIMARY_DIR)
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/THEME
 	cp -vf THEME/* $(KXPLOIT_PRIMARY_DIR)/THEME
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/PlayLists
