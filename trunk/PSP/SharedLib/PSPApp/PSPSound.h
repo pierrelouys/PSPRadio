@@ -197,7 +197,10 @@
 		pspsound_state GetPlayState() { return m_CurrentState; };
 		
 		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND)
-			{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
+		{ 
+			CPSPMessageQ::QMessage msg = { iSenderId, iMessageId, pMessage };
+			return pPSPApp->m_MsgToPSPApp->Send(msg);
+		};
 
 		size_t GetBufferFillPercentage() { return Buffer.GetBufferFillPercentage(); };
 		void   ChangeBufferSize(size_t size) { Buffer.ChangeBufferSize(size); };

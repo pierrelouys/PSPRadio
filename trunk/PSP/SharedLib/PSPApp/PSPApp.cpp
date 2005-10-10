@@ -30,18 +30,21 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 0xFA0, THREAD_ATTR_USER);
 	
+	m_thRun = new CPSPThread("run_thread", runThread, 80, 80000);
+
 	memset(&m_pad, 0, sizeof (m_pad));
 	pPSPApp = this;
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
 	m_NetworkEnabled = FALSE;
 	m_USBEnabled = FALSE;
+	m_MsgToPSPApp = new CPSPMessageQ("msg_to_pspapp_q");
 	m_ExitSema = new CSema("PSPApp_Exit_Sema");
 	
 	m_strProgramName = strdup(strProgramName);
 	m_strVersionNumber = strdup(strVersionNumber);
 	
-	if (m_thCallbackSetup)
+	if (m_thCallbackSetup && m_thRun)
 	{
 		m_thCallbackSetup->Start();
 		
@@ -55,7 +58,6 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 		m_Exit = TRUE;
 	}
 
-	
 	//printf("CPSPApp Constructor.\n");
 	
 }
@@ -84,11 +86,22 @@ CPSPApp::~CPSPApp()
 
 	Log(LOG_LOWLEVEL, "Bye!.");
 	
+	if (m_MsgToPSPApp)
+	{
+		delete(m_MsgToPSPApp), m_MsgToPSPApp = NULL;
+	}
 	sceKernelExitGame();
 
 	return;
 }
 
+/** Start Polling for Vblank and buttons */
+void CPSPApp::Start()
+{ 
+	m_thRun->Start(); 
+};
+
+/** This is a thread */
 int CPSPApp::Run()
 {
 	short oldAnalogue = 0;
@@ -132,14 +145,13 @@ int CPSPApp::Run()
 		}
 	}
 	
-	//Log(LOG_VERYLOW, "OnAppExit:: Setting m_Exit to TRUE.");
-	//m_Exit = TRUE; //called from exit callback thread.
-	Log(LOG_VERYLOW, "OnAppExit:: Wait()");
+	Log(LOG_VERYLOW, "Run:: Wait()");
 	m_ExitSema->Wait();
-	Log(LOG_VERYLOW, "OnAppExit:: Calling OnExit().");
+	Log(LOG_VERYLOW, "Run:: Calling OnExit().");
 	OnExit();
-	//sceKernelDelayThread(150000); // 150ms 
+	SendMessage(MID_PSPAPP_EXITING);
 	
+	sceKernelExitThread(0);
 	return 0;
 }
 
@@ -154,12 +166,12 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 	return 0;
 }
 
-/** OnAppExit is executed from the exit callback thread, which is running in USER MODE */
+/** Note: OnAppExit is executed from the exit callback thread, which is running in USER MODE */
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
+
 	m_Exit = TRUE;
-/*	
-*/
+	
 	return 0;
 }
 
@@ -308,6 +320,11 @@ int CPSPApp::exitCallback(int arg1, int arg2, void *common)
 int CPSPApp::callbacksetupThread(SceSize args, void *argp) 
 {
 	return pPSPApp->CallbackSetupThread(args, argp);
+}
+
+int CPSPApp::runThread(SceSize args, void *argp) 
+{
+	return pPSPApp->Run();
 }
 
 void CPSPApp::audioCallback(void* buf, unsigned int length) 
@@ -482,10 +499,3 @@ int CPSPApp::DisableUSB()
 	
 	return retVal;
 }
-#if 0
-/** Overload new/delete */
-void operator delete(void *p) { free(p); };
-void operator delete[](void *p) { free(p); };
-void *operator new(size_t iSize) { return (void*)malloc(iSize); };
-void *operator new[](size_t iSize) { return (void *)malloc(iSize); };
-#endif

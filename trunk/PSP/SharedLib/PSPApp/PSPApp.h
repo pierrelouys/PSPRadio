@@ -31,6 +31,7 @@
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
+	#include "PSPMessageQ.h"
 
 	/** Sender IDs */
 	#define SID_PSPAPP			0x10000000
@@ -43,8 +44,6 @@
 	#define MID_THPLAY_END					0x00000020
 	#define MID_THPLAY_DONE					0x00000031
 	#define MID_THDECODE_DECODING			0x00000040
-	//#define MID_THDECODE_AWOKEN				0x00000040
-	//#define MID_THDECODE_ASLEEP				0x00000050
 	#define MID_THDECODE_BEGIN				0x00000051
 	#define MID_THDECODE_END				0x00000052
 	#define MID_DECODE_STREAM_OPENING		0x00000060
@@ -58,13 +57,9 @@
 	#define MID_TCP_CONNECTING_PROGRESS		0x000000C0
 	#define MID_TCP_CONNECTING_FAILED		0x000000C1
 	#define MID_TCP_CONNECTING_SUCCESS		0x000000C2
+	#define MID_PSPAPP_EXITING				0x01000000
 	
-	//enum true_or_false
-	//{
-	//	FALSE = 0,
-	//	TRUE  = 1
-	//};
-		
+	
 	/* Define printf, just to make typing easier */
 	#define printf	pspDebugScreenPrintf
 	
@@ -80,10 +75,11 @@
 
 		CPSPApp(char *strProgramName, char *strVersionNumber);
 		virtual ~CPSPApp();
-		//virtual int Run() = 0;
-		int Run();
+		virtual int ProcessMessages(){return 0;};
 		void ExitApp() { m_Exit = TRUE; };
 		BOOLEAN IsExiting() { return m_Exit; };
+		void Start();
+		
 		/** Accessors */
 		SceCtrlData GetPadData() { return m_pad; };
 		char *GetMyIP() { return m_strMyIP; };
@@ -91,7 +87,10 @@
 		char *GetProgramName() { return m_strProgramName; };
 		char *GetProgramVersion() { return m_strVersionNumber; };
 		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPAPP)
-			{ return OnMessage(iMessageId, pMessage, iSenderId); };
+		{ 
+			CPSPMessageQ::QMessage msg = { iSenderId, iMessageId, pMessage };
+			return m_MsgToPSPApp->Send(msg);
+		};
 		int ReportError(char *format, ...);
 		
 		void CantExit() { m_ExitSema->Up(); }
@@ -109,6 +108,7 @@
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual void OnExit(){};
+		int Run(); /** Thread */
 	
 		/** Event Handlers */
 		virtual void OnButtonPressed(int iButtonMask){};
@@ -116,13 +116,13 @@
 		virtual void OnVBlank(){};
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
 		virtual void OnAudioBufferEmpty(void* buf, unsigned int length){};
-		virtual int OnMessage(int iMessageId, void *pMessage, int iSenderId){return 0;};
 
 		/* System Callbacks */
 		static int  exitCallback(int arg1, int arg2, void *common);
 		static void audioCallback(void* buf, unsigned int length);
 		/* Callback thread */
 		static int callbacksetupThread(SceSize args, void *argp);
+		static int runThread(SceSize args, void *argp);
 		
 		friend class CPSPSound;
 		friend class CPSPSound_MP3;
@@ -130,11 +130,12 @@
 		BOOLEAN m_NetworkEnabled;
 		BOOLEAN m_USBEnabled;
 		CSema *m_ExitSema;
-		
+		CPSPMessageQ *m_MsgToPSPApp;
 	
 	private:
 		/** Data */
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
+		CPSPThread *m_thRun; /** Run Thread */
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
 		char m_ResolverBuffer[1024]; /** Could be smaller, no idea */

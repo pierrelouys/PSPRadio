@@ -64,7 +64,7 @@ private:
 	bool m_NetworkStarted;
 	
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre3")
+	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre4")
 	{
 		/** Initialize to some sensible defaults */
 		m_iNetworkProfile = 1;
@@ -243,6 +243,9 @@ public:
 			Log(LOG_ERROR, "Error creating CPlaylist object.");
 		}
 	
+		/** Start Polling for Vblank and buttons */
+		Start();
+		
 		Log(LOG_LOWLEVEL, "Exiting Setup()");
 
 		m_ExitSema->Down();
@@ -411,31 +414,53 @@ public:
 		}
 	};
 	
-	int OnMessage(int iMessageId, void *pMessage, int iSenderId)
+	int ProcessMessages()
 	{
 		char MData[MAX_METADATA_SIZE];
 		char *strURL = "";
 		char *strTitle = "";
-		
+		CPSPMessageQ::QMessage msg = { 0, 0, NULL };
+		int rret = 0;
+
 		m_ExitSema->Up();
-		
-		if (iMessageId == MID_ERROR)
+		for (;;)
 		{
-			UI->DisplayErrorMessage((char*)pMessage);
-			Log(LOG_ERROR, (char*)pMessage);
-		}
-		else
-		{
-			switch (iSenderId)
+			//Log(LOG_VERYLOW, "ProcessMessages()::Calling Receive. %d Messages in Queue", m_MsgToPSPApp->Size());
+			if ( m_MsgToPSPApp->Size() > 100 )
+			{
+				Log(LOG_ERROR, "ProcessMessages(): Too many messages backed-up!: %d. Exiting!", m_MsgToPSPApp->Size());
+				m_ExitSema->Down();
+				return 0;
+			}
+			rret = m_MsgToPSPApp->Receive(msg);
+			//Log(LOG_VERYLOW, "ProcessMessages()::Receive Ret=%d. msg=0x%08x.", rret, msg.MessageId);
+			switch (msg.MessageId)
+			{
+			case MID_PSPAPP_EXITING:
+				if ( (SID_PSPAPP == msg.SenderId) )
+				{
+					Log(LOG_INFO, "ProcessMessages(): MID_PSPAPP_EXITING received.");
+					m_ExitSema->Down();
+					return 0;
+				}
+				break;
+			
+			case MID_ERROR:
+				UI->DisplayErrorMessage((char*)msg.pData);
+				Log(LOG_ERROR, (char*)msg.pData);
+				break;
+			}
+			
+			switch (msg.SenderId)
 			{
 			//case PSPAPP_SENDER_ID:
-			//	switch(iMessageId)
-			//	{
+			//	switch(msg.MessageId)
+			//	[
 			//	case ERROR
 			//case SID_PSPSOUND:
 			default:
-				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", iMessageId, iSenderId);
-				switch(iMessageId)
+				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", msg.MessageId, msg.SenderId);
+				switch(msg.MessageId)
 				{
 				//case MID_THPLAY_BEGIN:
 				//	break;
@@ -466,7 +491,7 @@ public:
 					UI->OnStreamOpeningSuccess();
 					break;
 				case MID_DECODE_METADATA_INFO:
-					memcpy(MData, pMessage, MAX_METADATA_SIZE);
+					memcpy(MData, msg.pData, MAX_METADATA_SIZE);
 					
 					/** GetMetadataValue() modifies the metadata, so call it
 					with the last tag first */
@@ -482,7 +507,7 @@ public:
 				//	break;
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
-					Header = (struct mad_header *)pMessage;
+					Header = (struct mad_header *)msg.pData;
 					/** Update m_CurrentMetaData, and notify UI. */
 					m_CurrentMetaData->SampleRate = Header->samplerate;
 					m_CurrentMetaData->BitRate = Header->bitrate;
@@ -491,7 +516,7 @@ public:
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
 					/** Update m_CurrentMetaData, and notify UI. */
-					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)pMessage);
+					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)msg.pData);
 					UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				case MID_TCP_CONNECTING_PROGRESS:
@@ -499,17 +524,15 @@ public:
 					break;
 				
 				default:
-					Log(LOG_VERYLOW, "OnMessage: Unhandled message: MID=0x%x SID=0x%x", iMessageId, iSenderId);
+					Log(LOG_VERYLOW, "OnMessage: Unhandled message: MID=0x%x SID=0x%x", msg.MessageId, msg.SenderId);
 					break;
 				}
 			}
-			
 		}
-		
 		m_ExitSema->Down();
 		return 0;
 	}
-
+	
 	void OnVBlank()
 	{
 		UI->OnVBlank();
@@ -566,7 +589,7 @@ int main(int argc, char **argv)
 {
 	myPSPApp *PSPApp  = new myPSPApp();
 	PSPApp->Setup(argc, argv);
-	PSPApp->Run();
+	PSPApp->ProcessMessages();
 	
 	delete(PSPApp);
 	

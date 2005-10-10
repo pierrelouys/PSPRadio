@@ -103,7 +103,7 @@ int CPSPMessageQ::Receive(QMessage &Message)
 	if (Size() == 0) /** Clear only if last message */
 	{
 		sceKernelClearEventFlag(m_EventId, 10);//0x1);
-		Log(LOG_ERROR, "Receive() Size() is 0, clearing event flag.");
+		//Log(LOG_ERROR, "Receive() Size() is 0, clearing event flag.");
 	}
 	return 0;
 }

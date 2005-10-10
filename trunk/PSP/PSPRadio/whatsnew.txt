@@ -25,6 +25,8 @@ with the config file.
 -Can browse playlists/entries while playing current stream. (It doesn't stop anymore when changing tracks)
 -Refactoring of PSPSound/PSPSound_MP3 -> PSPSound/PSPSoundDecoder_MAD, internal OO changes.
 -Thread priorities are now configurable in the .cfg file.
+035-pre4
+-Added message queue class for inter thread communications and synchronization.
 
 
 
