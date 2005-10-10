@@ -57,9 +57,14 @@ private:
 	bool InitializeSDL();
 	bool InitializeImages();
 	
-	void DisplayWord(char *szWord, int nLineNumber, bool bCenter=true);
-	void ClearLine(int nLineNumber);
+	void DisplayWordInfoArea(char *szWord, int nLineNumber, bool bCenter=true);
+	void ClearLineInfoArea(int nLineNumber);
 
+	void DisplayWordPlaylistArea(char *szWord, int nLineNumber, bool bCenter=true);
+	void ClearLinePlaylistArea(int nLineNumber);
+	
+	void DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, bool bCenter=true);
+	void ClearLinePlaylistItemArea(int nLineNumber);
 	
 private:
 	const SDL_VideoInfo *m_pVideoInfo;
@@ -79,6 +84,8 @@ private:
 	CGraphicsUIThemeItem m_themeItemVolume;
 	CGraphicsUIThemeItem m_themeItemABC123;
 	CGraphicsUIThemeItem m_themeItemInfoArea;
+	CGraphicsUIThemeItem m_themeItemPlaylistArea;
+	CGraphicsUIThemeItem m_themeItemPlaylistItemArea;
 };
 
 

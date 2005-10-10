@@ -92,27 +92,40 @@ int CGraphicsUITheme::GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem)
 	/** Get the Source Points **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "src");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToPointMap(szTemp, &pItem->m_pointSrcMap);
+	if(0 < strlen(szTemp))
+	{
+		nCount = StringToPointMap(szTemp, &pItem->m_pointSrcMap);
+	}
 	
 	/** Get the Destination Point **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "dst");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToPoint(szTemp, &pItem->m_pointDst);
+	if(0 < strlen(szTemp))
+	{
+		nCount = StringToPoint(szTemp, &pItem->m_pointDst);
+	}
 	
 	/** Get the Size Point **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "size");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToPoint(szTemp, &pItem->m_pointSize);
+	if(0 < strlen(szTemp))
+	{
+		nCount = StringToPoint(szTemp, &pItem->m_pointSize);
+	}
 	
 	/** Get the Key Index Map **/
 	sprintf(szIniTagAndItem, "%s:%s", szIniTag, "keys");
 	szTemp = m_pIniTheme->GetStr(szIniTagAndItem);	
-	nCount = StringToKeyIndexMap(szTemp, &pItem->m_keyToIndexMap);	
+	if(0 < strlen(szTemp))
+	{
+		nCount = StringToKeyIndexMap(szTemp, &pItem->m_keyToIndexMap);	
+		Log(LOG_LOWLEVEL, "GetItem: Keys = %s", szTemp);
+	}
+	
 	
 	return 0;
 }
 
-// ABCDEFGHIJKLMNOPQRSTUVWXYZ"@ 
 int CGraphicsUITheme::GetLettersAndNumbers(char *szIniTagLetters, 
 											char *szIniTagNumbers,
 											CGraphicsUIThemeItem *pItem)

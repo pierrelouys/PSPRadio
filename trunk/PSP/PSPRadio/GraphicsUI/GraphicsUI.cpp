@@ -145,6 +145,9 @@ int CGraphicsUI::DisplayMessage_EnablingNetwork()
 
 int CGraphicsUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
+	char szTemp[50];
+	sprintf(szTemp, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
+	DisplayWordInfoArea(szTemp, 4, true);
 	return 0;
 }
 
@@ -155,6 +158,9 @@ int CGraphicsUI::DisplayMessage_DisablingNetwork()
 
 int CGraphicsUI::DisplayMessage_NetworkReady(char *strIP)
 {
+	char szTemp[50];
+	sprintf(szTemp, "Network Ready");
+	DisplayWordInfoArea(szTemp, 4, true);
 	return 0;
 }
 
@@ -191,15 +197,12 @@ int CGraphicsUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CGraphicsUI::DisplayErrorMessage(char *strMsg)
 {
+	DisplayWordInfoArea(strMsg, 5, true);
 	return 0;
 }
 
 int CGraphicsUI::DisplayBufferPercentage(int iPercentage)
 {
-	char szTemp[50];
-	sprintf(szTemp, "Buffer %03d%%", iPercentage);
-	DisplayWord(szTemp, 4, false);
-	
 	return 0;
 }
 
@@ -244,12 +247,12 @@ int CGraphicsUI::OnVBlank()
 
 int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
 {
-	DisplayWord(pData->strFileName, 1, true);
-	DisplayWord(pData->strFileTitle, 2, true);
+	DisplayWordInfoArea(pData->strFileName, 1, true);
+	DisplayWordInfoArea(pData->strFileTitle, 2, true);
 	
 	if (pData->strURL && strlen(pData->strURL))
 	{
-		DisplayWord(pData->strURL, 3, true);
+		DisplayWordInfoArea(pData->strURL, 3, true);
 	}
 	
 	return 0;
@@ -257,11 +260,28 @@ int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
 
 int CGraphicsUI::DisplayPLList(CDirList *plList)
 {
+	DisplayWordPlaylistArea(plList->GetCurrentURI(), 1, true);	
 	return 0;
 }
 
 int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 {
+	CPlayList::songmetadata Data;
+
+	int iRet = PlayList->GetCurrentSong(&Data);
+	
+	if (0 == iRet)
+	{
+		if (strlen(Data.strFileTitle))
+		{
+			DisplayWordPlaylistItemArea(Data.strFileTitle, 1, true);
+		}
+		else
+		{
+			DisplayWordPlaylistItemArea(Data.strFileName, 1, true);
+		}
+	}
+		
 	return 0;
 }
 
@@ -437,6 +457,20 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 		return FALSE;
 	}
 	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting playlist area");
+	if(0 != m_theme.GetItem("playlistarea", &m_themeItemPlaylistArea))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme playlist area");
+		return FALSE;
+	}
+	
+	Log(LOG_LOWLEVEL, "InitializeTheme: getting playlist item area");
+	if(0 != m_theme.GetItem("playlistitemarea", &m_themeItemPlaylistItemArea))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme playlist item area");
+		return FALSE;
+	}
+	
 	return TRUE;
 }
 
@@ -475,15 +509,38 @@ bool CGraphicsUI::InitializeSDL()
 	return TRUE;
 }
 
-void CGraphicsUI::DisplayWord(char *szWord, int nLineNumber, bool bCenter)
+bool CGraphicsUI::InitializeImages()
 {
+	Log(LOG_LOWLEVEL, "InitializeImages: Loading base image"); 		
+	if(NULL == (m_pImageBase = LoadImage(m_szThemeImagePath)))
+	{
+		Log(LOG_ERROR, "InitializeImages: error loading base image");
+		return FALSE;
+	}	
+	Log(LOG_LOWLEVEL, "InitializeImages: Loaded base image"); 		
+	
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency");
+	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency completed");	
+
+	return TRUE;
+}
+
+void CGraphicsUI::DisplayWordInfoArea(char *szWord, int nLineNumber, bool bCenter)
+{
+	int nStringLen = strlen(szWord);
 	int nFontWidth = m_themeItemABC123.m_pointSize.x;
 	int nFontHeight = m_themeItemABC123.m_pointSize.y;
 	
 	int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x; 
 	int nCurrentYPos = m_themeItemInfoArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
 		
-	ClearLine(nLineNumber);
+	ClearLineInfoArea(nLineNumber);
+	
+	if((strlen(szWord) * nFontWidth))
+	{
+		nStringLen = nFontWidth / nStringLen;
+	}
 	
 	if(true == bCenter)
 	{
@@ -492,7 +549,7 @@ void CGraphicsUI::DisplayWord(char *szWord, int nLineNumber, bool bCenter)
 		nCurrentXPos = m_themeItemInfoArea.m_pointDst.x + 
 						(m_themeItemInfoArea.m_pointSize.x / 2) - 
 						(nStringWidth / 2);
-	}
+	}	
 	
 	for(int x = 0; x != strlen(szWord); x++)
 	{
@@ -516,7 +573,7 @@ void CGraphicsUI::DisplayWord(char *szWord, int nLineNumber, bool bCenter)
 	}
 }
 
-void CGraphicsUI::ClearLine(int nLineNumber)
+void CGraphicsUI::ClearLineInfoArea(int nLineNumber)
 {
 	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
 	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
@@ -538,19 +595,140 @@ void CGraphicsUI::ClearLine(int nLineNumber)
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
 }
 
-bool CGraphicsUI::InitializeImages()
+void CGraphicsUI::DisplayWordPlaylistArea(char *szWord, int nLineNumber, bool bCenter)
 {
-	Log(LOG_LOWLEVEL, "InitializeImages: Loading base image"); 		
-	if(NULL == (m_pImageBase = LoadImage(m_szThemeImagePath)))
-	{
-		Log(LOG_ERROR, "InitializeImages: error loading base image");
-		return FALSE;
-	}	
-	Log(LOG_LOWLEVEL, "InitializeImages: Loaded base image"); 		
+	int nStringLen = strlen(szWord);
+	int nFontWidth = m_themeItemABC123.m_pointSize.x;
+	int nFontHeight = m_themeItemABC123.m_pointSize.y;
 	
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency");
-	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency completed");	
+	int nCurrentXPos = m_themeItemPlaylistArea.m_pointDst.x; 
+	int nCurrentYPos = m_themeItemPlaylistArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+		
+	ClearLinePlaylistArea(nLineNumber);
+	
+	if((strlen(szWord) * nFontWidth))
+	{
+		nStringLen = nFontWidth / nStringLen;
+	}
+	
+	if(true == bCenter)
+	{
+		int nStringWidth = strlen(szWord) * nFontWidth;
+		
+		nCurrentXPos = m_themeItemPlaylistArea.m_pointDst.x + 
+						(m_themeItemPlaylistArea.m_pointSize.x / 2) - 
+						(nStringWidth / 2);
+	}	
+	
+	for(int x = 0; x != strlen(szWord); x++)
+	{
+		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
+		
+		SDL_Rect src = 	{ 
+							m_themeItemABC123.GetSrc(index).x,
+							m_themeItemABC123.GetSrc(index).y,
+							m_themeItemABC123.m_pointSize.x,
+							m_themeItemABC123.m_pointSize.y
+						};
+						
+		SDL_Rect dst = 	{ 
+							nCurrentXPos,
+							nCurrentYPos,
+						};
+			
+		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+		
+		nCurrentXPos += nFontWidth;		
+	}
+}
 
-	return TRUE;
+void CGraphicsUI::ClearLinePlaylistArea(int nLineNumber)
+{
+	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
+	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
+	
+	int nCurrentYPos = m_themeItemPlaylistArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+	
+	SDL_Rect src = 	{ 
+						m_themeItemPlaylistArea.m_pointDst.x,
+						nCurrentYPos,
+						m_themeItemPlaylistArea.m_pointSize.x,
+						nFontHeight
+					};
+						
+	SDL_Rect dst = 	{ 
+						m_themeItemPlaylistArea.m_pointDst.x,
+						nCurrentYPos,
+					};
+			
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
+}
+
+void CGraphicsUI::DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, bool bCenter)
+{
+	int nStringLen = strlen(szWord);
+	int nFontWidth = m_themeItemABC123.m_pointSize.x;
+	int nFontHeight = m_themeItemABC123.m_pointSize.y;
+	
+	int nCurrentXPos = m_themeItemPlaylistItemArea.m_pointDst.x; 
+	int nCurrentYPos = m_themeItemPlaylistItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+		
+	ClearLinePlaylistItemArea(nLineNumber);
+	
+	if((strlen(szWord) * nFontWidth))
+	{
+		nStringLen = nFontWidth / nStringLen;
+	}
+	
+	if(true == bCenter)
+	{
+		int nStringWidth = strlen(szWord) * nFontWidth;
+		
+		nCurrentXPos = m_themeItemPlaylistItemArea.m_pointDst.x + 
+						(m_themeItemPlaylistItemArea.m_pointSize.x / 2) - 
+						(nStringWidth / 2);
+	}	
+	
+	for(int x = 0; x != strlen(szWord); x++)
+	{
+		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
+		
+		SDL_Rect src = 	{ 
+							m_themeItemABC123.GetSrc(index).x,
+							m_themeItemABC123.GetSrc(index).y,
+							m_themeItemABC123.m_pointSize.x,
+							m_themeItemABC123.m_pointSize.y
+						};
+						
+		SDL_Rect dst = 	{ 
+							nCurrentXPos,
+							nCurrentYPos,
+						};
+			
+		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+		
+		nCurrentXPos += nFontWidth;		
+	}
+}
+
+void CGraphicsUI::ClearLinePlaylistItemArea(int nLineNumber)
+{
+	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
+	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
+	
+	int nCurrentYPos = m_themeItemPlaylistItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+	
+	SDL_Rect src = 	{ 
+						m_themeItemPlaylistItemArea.m_pointDst.x,
+						nCurrentYPos,
+						m_themeItemPlaylistItemArea.m_pointSize.x,
+						nFontHeight
+					};
+						
+	SDL_Rect dst = 	{ 
+						m_themeItemPlaylistItemArea.m_pointDst.x,
+						nCurrentYPos,
+					};
+			
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
 }
