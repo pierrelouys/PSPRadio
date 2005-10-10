@@ -97,10 +97,22 @@ static struct Vertex __attribute__((aligned(16))) vertices[12*3] =
 	{0xffCC8866, 1,-1,-0.2}, // 5
 };
 
+static int __attribute__((aligned(16))) faketexture[16*16];
+
+void CSandbergUI::InitFX(void)
+	{
+	for (int y = 0 ; y < 16 ; y++)
+		for (int x = 0 ; x < 16 ; x++)
+			::faketexture[y*16+x] = 0xffCC8866;
+	sceKernelDcacheWritebackAll();
+	}
+
 void CSandbergUI::RenderFX(void)
 {	
 	static int val = 100;
 
+	sceGuTexImage(0,16,16,16,::faketexture);
+	sceGuAmbient(0x66666666);
 
 	// setup matrices for cube
 	for (int count = 0 ; count < CUBE_COUNT ; count++)
@@ -109,14 +121,14 @@ void CSandbergUI::RenderFX(void)
 		sceGumMatrixMode(GU_MODEL);
 		sceGumLoadIdentity();
 			{
-			ScePspFVector3 pos = { -1*CUBE_COUNT/2+count, 0, -3.5f };
+			ScePspFVector3 pos = { -1*CUBE_COUNT/2+count, 0, -4.5f };
 			ScePspFVector3 rot = { 	val * 0.59f * (M_PI/180.0f) / 2.0f,
 						val * 0.78f * (M_PI/180.0f) / 2.0f, 
 						val * 1.12f * (M_PI/180.0f) / 2.0f};
 			sceGumRotateXYZ(&rot);
 			sceGumTranslate(&pos);
 			}
-		sceGuColor(0xffffff);
+		sceGuColor(0x222222);
 		sceGumDrawArray(GU_TRIANGLES, GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 12*3, 0, ::vertices);
 		}
 

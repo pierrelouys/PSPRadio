@@ -55,6 +55,7 @@ public:
 	virtual	int DisplayPLEntries(CPlayList *PlayList);
 
 private:
+	void CSandbergUI::InitFX(void);
 	void CSandbergUI::RenderFX(void);
 	void CSandbergUI::RenderLogo(void);
 	void CSandbergUI::RenderPL(void);

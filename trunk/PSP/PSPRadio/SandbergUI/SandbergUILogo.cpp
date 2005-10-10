@@ -35,10 +35,125 @@
 #include <pspdebug.h>
 
 #include <pspgu.h>
+#include <pspgum.h>
 
 #include "SandbergUI.h"
 
+#include "SandbergUILogoBitmap.cpp"
+
+#define ROTSIZE		128
+
+static float __attribute__((aligned(16))) sintable[] = {
+
+0.000000f,0.004907f,0.009802f,0.014673f,0.019509f,0.024298f,0.029028f,0.033689f,
+0.038268f,0.042756f,0.047140f,0.051410f,0.055557f,0.059570f,0.063439f,0.067156f,
+0.070711f,0.074095f,0.077301f,0.080321f,0.083147f,0.085773f,0.088192f,0.090399f,
+0.092388f,0.094154f,0.095694f,0.097003f,0.098079f,0.098918f,0.099518f,0.099880f,
+0.100000f,0.099880f,0.099518f,0.098918f,0.098079f,0.097003f,0.095694f,0.094154f,
+0.092388f,0.090399f,0.088192f,0.085773f,0.083147f,0.080321f,0.077301f,0.074095f,
+0.070711f,0.067156f,0.063439f,0.059570f,0.055557f,0.051410f,0.047140f,0.042756f,
+0.038268f,0.033689f,0.029028f,0.024298f,0.019509f,0.014673f,0.009802f,0.004907f,
+-0.000000f,-0.004907f,-0.009802f,-0.014673f,-0.019509f,-0.024298f,-0.029028f,-0.033689f,
+-0.038268f,-0.042756f,-0.047140f,-0.051410f,-0.055557f,-0.059570f,-0.063439f,-0.067156f,
+-0.070711f,-0.074095f,-0.077301f,-0.080321f,-0.083147f,-0.085773f,-0.088192f,-0.090399f,
+-0.092388f,-0.094154f,-0.095694f,-0.097003f,-0.098079f,-0.098918f,-0.099518f,-0.099880f,
+-0.100000f,-0.099880f,-0.099518f,-0.098918f,-0.098079f,-0.097003f,-0.095694f,-0.094154f,
+-0.092388f,-0.090399f,-0.088192f,-0.085773f,-0.083147f,-0.080321f,-0.077301f,-0.074095f,
+-0.070711f,-0.067156f,-0.063439f,-0.059570f,-0.055557f,-0.051410f,-0.047140f,-0.042756f,
+-0.038268f,-0.033689f,-0.029028f,-0.024298f,-0.019509f,-0.014673f,-0.009802f,-0.004907f,
+};
+
+
+static float __attribute__((aligned(16))) costable[] = {
+
+0.100000f,0.099880f,0.099518f,0.098918f,0.098079f,0.097003f,0.095694f,0.094154f,
+0.092388f,0.090399f,0.088192f,0.085773f,0.083147f,0.080321f,0.077301f,0.074095f,
+0.070711f,0.067156f,0.063439f,0.059570f,0.055557f,0.051410f,0.047140f,0.042756f,
+0.038268f,0.033689f,0.029028f,0.024298f,0.019509f,0.014673f,0.009802f,0.004907f,
+-0.000000f,-0.004907f,-0.009802f,-0.014673f,-0.019509f,-0.024298f,-0.029028f,-0.033689f,
+-0.038268f,-0.042756f,-0.047140f,-0.051410f,-0.055557f,-0.059570f,-0.063439f,-0.067156f,
+-0.070711f,-0.074095f,-0.077301f,-0.080321f,-0.083147f,-0.085773f,-0.088192f,-0.090399f,
+-0.092388f,-0.094154f,-0.095694f,-0.097003f,-0.098079f,-0.098918f,-0.099518f,-0.099880f,
+-0.100000f,-0.099880f,-0.099518f,-0.098918f,-0.098079f,-0.097003f,-0.095694f,-0.094154f,
+-0.092388f,-0.090399f,-0.088192f,-0.085773f,-0.083147f,-0.080321f,-0.077301f,-0.074095f,
+-0.070711f,-0.067156f,-0.063439f,-0.059570f,-0.055557f,-0.051410f,-0.047140f,-0.042755f,
+-0.038268f,-0.033689f,-0.029028f,-0.024298f,-0.019509f,-0.014673f,-0.009802f,-0.004907f,
+0.000000f,0.004907f,0.009802f,0.014673f,0.019509f,0.024298f,0.029028f,0.033689f,
+0.038268f,0.042755f,0.047140f,0.051410f,0.055557f,0.059570f,0.063439f,0.067156f,
+0.070711f,0.074095f,0.077301f,0.080321f,0.083147f,0.085773f,0.088192f,0.090399f,
+0.092388f,0.094154f,0.095694f,0.097003f,0.098079f,0.098918f,0.099518f,0.099880f,
+};
+
+struct Vertex
+{
+	float u, v;
+	unsigned int color;
+	float x,y,z;
+};
+
+static struct Vertex __attribute__((aligned(16))) vertices[2*3] =
+{
+	{0.0f, 1.0f, 0xffffffff,-2,-0.5, 0}, // 0
+	{0.0f, 0.0f, 0xffffffff,-2, 0.5, 0}, // 4
+	{1.0f, 0.0f, 0xffffffff, 2, 0.5, 0}, // 5
+
+	{0.0f, 1.0f, 0xffffffff,-2,-0.5, 0}, // 0
+	{1.0f, 0.0f, 0xffffffff, 2, 0.5, 0}, // 5
+	{1.0f, 1.0f, 0xffffffff, 2,-0.5, 0}, // 1
+};
 
 void CSandbergUI::RenderLogo(void)
-{	
+{
+static int rot = 0;
+
+	sceGuEnable(GU_TEXTURE_2D);
+	sceGumMatrixMode(GU_MODEL);
+	sceGumLoadIdentity();
+	{
+		ScePspFVector3 pos = { 0, 1.3, -2.5f };
+		sceGumTranslate(&pos);
+	}
+
+	// setup texture
+	sceGuTexMode(GU_PSM_8888,0,0,0);
+	sceGuTexImage(0,256,64,256,::logo);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
+	sceGuTexScale(1.0f,1.0f);
+	sceGuTexOffset(0.0f,0.0f);
+	sceGuAmbientColor(0xffffffff);
+
+	sceGuColor(0xFFFFFFFF);
+
+	// Vertex 1
+	vertices[0].x = -2.0f + ::sintable[(rot+32)%ROTSIZE];
+	vertices[0].y = -0.5f + ::costable[(rot)%ROTSIZE];
+	vertices[0].z = ::costable[(rot+64)%ROTSIZE];
+	vertices[3].x = -2.0f + ::sintable[(rot+32)%ROTSIZE];
+	vertices[3].y = -0.5f + ::costable[(rot)%ROTSIZE];
+	vertices[3].z = ::costable[(rot+64)%ROTSIZE];
+
+	// Vertex 2
+	vertices[1].x = -2.0f + ::sintable[(rot)%ROTSIZE];
+	vertices[1].y =  0.5f + ::costable[(rot+32)%ROTSIZE];
+	vertices[1].z = ::costable[(rot+96)%ROTSIZE];
+
+	// Vertex 3
+	vertices[2].x =  2.0f + ::sintable[(rot+64)%ROTSIZE];
+	vertices[2].y =  0.5f + ::costable[(rot+96)%ROTSIZE];
+	vertices[2].z = ::costable[(rot)%ROTSIZE];
+	vertices[4].x =  2.0f + ::sintable[(rot+64)%ROTSIZE];
+	vertices[4].y =  0.5f + ::costable[(rot+96)%ROTSIZE];
+	vertices[4].z = ::costable[(rot)%ROTSIZE];
+
+	// Vertex 4
+	vertices[5].x =  2.0f + ::sintable[(rot+96)%ROTSIZE];
+	vertices[5].y = -0.5f + ::costable[(rot+64)%ROTSIZE];
+	vertices[5].z = ::costable[(rot+32)%ROTSIZE];
+
+	sceKernelDcacheWritebackAll();
+
+	// draw logo
+	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3,0,::vertices);
+	rot++;
 }
