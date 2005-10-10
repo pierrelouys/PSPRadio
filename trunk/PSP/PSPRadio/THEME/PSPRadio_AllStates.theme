@@ -3,6 +3,11 @@
 [image]
 file=PSPRadio_AllStates.bmp
 
+[transparency]
+red=255;
+green=0;
+blue=255;
+
 [background]
 src=[0,0];
 dst=[0,0];
