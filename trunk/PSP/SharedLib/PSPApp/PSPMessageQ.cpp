@@ -30,6 +30,7 @@ using namespace std;
 
 extern "C" {
 int sceKernelClearEventFlag(u32, int);
+int sceKernelWaitEventFlag(int evid, u32 bits, u32 wait, u32 *outBits, void *arg);
 };
 
 CPSPMessageQ::CPSPMessageQ(char *strName)
