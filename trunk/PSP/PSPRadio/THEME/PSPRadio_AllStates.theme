@@ -9,9 +9,16 @@ dst=[0,0];
 size=[480,272];
 
 [infoarea]
-src=[0,0];
-dst=[28,28];
-size=[420,45];
+dst=[31,23];
+size=[420,59];
+
+[playlistarea]
+dst=[0,114];
+size=[154,130];
+
+[playlistitemarea]
+dst=[162,114];
+size=[318,130];
 
 [play]
 src=[485,4] [485,23];
@@ -44,15 +51,13 @@ dst=[429,254];
 size=[42,10];
 
 [letters]
-keys=ABCDEFGHIJKLMNOPQRSTUVWXYZ "@ 
+keys=~ABCDEFGHIJKLMNOPQRSTUVWXYZ"@;
 src=[540,97];
-dst=[-1,-1];
 size=[5,6];
 
 [numbers]
-keys=0123456789=()-+*[]&^%$.,\/#
+keys=0123456789=()-+*[]&^%$.,\/:#;
 src=[540,103];
-dst=[-1,-1];
 size=[5,6];
 
 
