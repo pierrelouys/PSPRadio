@@ -51,7 +51,9 @@ private:
 	void SetBaseImage(void);
 	void SetPlayButton(uibuttonstate_enum state);
 	void SetPauseButton(uibuttonstate_enum state);
-	void SetStopButton(uibuttonstate_enum state);
+	void SetStopButton(uibuttonstate_enum state);	
+	void SetSoundButton(uibuttonstate_enum state);
+	void SetButton(CGraphicsUIThemeItem themeItem, uibuttonstate_enum state);	
 	
 	bool InitializeTheme(char *szFilename, char *szThemePath);
 	bool InitializeSDL();
@@ -65,6 +67,10 @@ private:
 	
 	void DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, bool bCenter=true);
 	void ClearLinePlaylistItemArea(int nLineNumber);
+	
+	void DisplayWord(CGraphicsUIThemeItem themeItemArea, char *szWord,  int nLineNumber, bool bCenter=true);
+	void ClearLine(CGraphicsUIThemeItem themeItemArea, int nLineNumber);
+	
 	
 private:
 	const SDL_VideoInfo *m_pVideoInfo;

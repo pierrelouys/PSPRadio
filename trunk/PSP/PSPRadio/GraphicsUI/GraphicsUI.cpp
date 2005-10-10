@@ -140,19 +140,21 @@ int CGraphicsUI::SetTitle(char *strTitle)
 
 int CGraphicsUI::DisplayMessage_EnablingNetwork()
 {
+	DisplayWordInfoArea("Enabling Network", 4, true);
 	return 0;
 }
 
 int CGraphicsUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
 	char szTemp[50];
-	sprintf(szTemp, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
+	sprintf(szTemp, "Press TRIANGLE for Network Profile: %d (%s)", iProfileID, strProfileName);
 	DisplayWordInfoArea(szTemp, 4, true);
 	return 0;
 }
 
 int CGraphicsUI::DisplayMessage_DisablingNetwork()
 {
+	DisplayWordInfoArea("Disabling Network", 4, true);
 	return 0;
 }
 
@@ -223,20 +225,7 @@ int CGraphicsUI::OnStreamOpeningError()
 
 int CGraphicsUI::OnStreamOpeningSuccess()
 {
-	SDL_Rect src = 	{ 
-						m_themeItemLoad.GetSrc(1).x,
-						m_themeItemLoad.GetSrc(1).y,
-						m_themeItemLoad.m_pointSize.x,
-						m_themeItemLoad.m_pointSize.y
-					};
-					
-	SDL_Rect dst = 	{ 
-						m_themeItemLoad.m_pointDst.x,
-						m_themeItemLoad.m_pointDst.y,
-					};
-		
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
-
+	SetButton(m_themeItemLoad, UIBUTTONSTATE_OFF);
 	return 0;
 }
 
@@ -287,86 +276,47 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 
 int CGraphicsUI::OnConnectionProgress()
 {
-	SDL_Rect src = 	{ 
-						m_themeItemLoad.GetSrc(0).x,
-						m_themeItemLoad.GetSrc(0).y,
-						m_themeItemLoad.m_pointSize.x,
-						m_themeItemLoad.m_pointSize.y
-					};
-					
-	SDL_Rect dst = 	{ 
-						m_themeItemLoad.m_pointDst.x,
-						m_themeItemLoad.m_pointDst.y,
-					};
-		
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
-
+	SetButton(m_themeItemLoad, UIBUTTONSTATE_ON);
 	return 0;
 }
 
 void CGraphicsUI::SetBaseImage(void)
 {
-	SDL_Rect src = 	{ 
-						m_themeItemBackground.GetSrc(0).x,
-						m_themeItemBackground.GetSrc(0).y,
-						m_themeItemBackground.m_pointSize.x,
-						m_themeItemBackground.m_pointSize.y
-					};
-					
-	SDL_Rect dst = 	{ 
-						m_themeItemBackground.m_pointDst.x,
-						m_themeItemBackground.m_pointDst.y,
-					};
-		
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+	SetButton(m_themeItemBackground, UIBUTTONSTATE_ON);
 }
 
 void CGraphicsUI::SetPlayButton(uibuttonstate_enum state)
 {
-	SDL_Rect src = 	{ 
-						m_themeItemPlay.GetSrc(state).x,
-						m_themeItemPlay.GetSrc(state).y,
-						m_themeItemPlay.m_pointSize.x,
-						m_themeItemPlay.m_pointSize.y
-					};
-					
-	SDL_Rect dst = 	{ 
-						m_themeItemPlay.m_pointDst.x,
-						m_themeItemPlay.m_pointDst.y,
-					};
-		
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+	SetButton(m_themeItemPlay, state);
 }
 
 void CGraphicsUI::SetPauseButton(uibuttonstate_enum state)
 {
-	SDL_Rect src = 	{ 
-						m_themeItemPause.GetSrc(state).x,
-						m_themeItemPause.GetSrc(state).y,
-						m_themeItemPause.m_pointSize.x,
-						m_themeItemPause.m_pointSize.y
-					};
-					
-	SDL_Rect dst = 	{ 
-						m_themeItemPause.m_pointDst.x,
-						m_themeItemPause.m_pointDst.y,
-					};
-		
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+	SetButton(m_themeItemPause, state);
 }
 
 void CGraphicsUI::SetStopButton(uibuttonstate_enum state)
 {
+	SetButton(m_themeItemStop, state);
+}
+
+void CGraphicsUI::SetSoundButton(uibuttonstate_enum state)
+{
+	SetButton(m_themeItemSound, state);
+}
+
+void CGraphicsUI::SetButton(CGraphicsUIThemeItem themeItem, uibuttonstate_enum state)
+{
 	SDL_Rect src = 	{ 
-						m_themeItemStop.GetSrc(state).x,
-						m_themeItemStop.GetSrc(state).y,
-						m_themeItemStop.m_pointSize.x,
-						m_themeItemStop.m_pointSize.y
+						themeItem.GetSrc(state).x,
+						themeItem.GetSrc(state).y,
+						themeItem.m_pointSize.x,
+						themeItem.m_pointSize.y
 					};
 					
 	SDL_Rect dst = 	{ 
-						m_themeItemStop.m_pointDst.x,
-						m_themeItemStop.m_pointDst.y,
+						themeItem.m_pointDst.x,
+						themeItem.m_pointDst.y,
 					};
 		
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
@@ -383,7 +333,6 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	
 	/** Get theme image */
 	Log(LOG_LOWLEVEL, "InitializeTheme: getting image path");
-	//if(0 != m_theme.GetImagePath(m_szThemeImagePath, sizeof(m_szThemeImagePath)))
 	if(0 != m_theme.GetImagePath(szBaseImage, sizeof(szBaseImage)))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme image path");
@@ -484,10 +433,13 @@ bool CGraphicsUI::InitializeSDL()
 	}	
 	Log(LOG_LOWLEVEL, "InitializeSDL: SDL Initialized with SDL_INIT_VIDEO");	
 	
+	Log(LOG_LOWLEVEL, "InitializeSDL: disabling cursor"); 	
+	SDL_ShowCursor(SDL_DISABLE);
+	Log(LOG_LOWLEVEL, "InitializeSDL: disabled cursor"); 	
+	
 	Log(LOG_LOWLEVEL, "InitializeSDL: Checking video mode"); 	
 	m_nDepth = SDL_VideoModeOK(PSP_RES_WIDTH, PSP_RES_HEIGHT, 32, m_nFlags);
 	Log(LOG_LOWLEVEL, "InitializeSDL: Checking video mode completed depth %d", m_nDepth); 	
-	
 		
 	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode"); 	
  	if(NULL == (m_pScreen = SDL_SetVideoMode(PSP_RES_WIDTH, 
@@ -499,12 +451,7 @@ bool CGraphicsUI::InitializeSDL()
 			PSP_RES_WIDTH, PSP_RES_HEIGHT, m_nDepth, SDL_GetError());
 		return FALSE;
  	}
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode completed");
-	
-	Log(LOG_LOWLEVEL, "InitializeSDL: disabling cursor"); 	
-	SDL_ShowCursor(SDL_DISABLE);
-	Log(LOG_LOWLEVEL, "InitializeSDL: disabled cursor"); 	
-	
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode completed");	
 			
 	return TRUE;
 }
@@ -521,159 +468,54 @@ bool CGraphicsUI::InitializeImages()
 	
 	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency");
 	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency completed");	
+	Log(LOG_LOWLEVEL, "InitializeSDL: Setting completed");	
 
 	return TRUE;
 }
 
 void CGraphicsUI::DisplayWordInfoArea(char *szWord, int nLineNumber, bool bCenter)
 {
-	int nStringLen = strlen(szWord);
-	int nFontWidth = m_themeItemABC123.m_pointSize.x;
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;
-	
-	int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x; 
-	int nCurrentYPos = m_themeItemInfoArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
-		
-	ClearLineInfoArea(nLineNumber);
-	
-	if((strlen(szWord) * nFontWidth))
-	{
-		nStringLen = nFontWidth / nStringLen;
-	}
-	
-	if(true == bCenter)
-	{
-		int nStringWidth = strlen(szWord) * nFontWidth;
-		
-		nCurrentXPos = m_themeItemInfoArea.m_pointDst.x + 
-						(m_themeItemInfoArea.m_pointSize.x / 2) - 
-						(nStringWidth / 2);
-	}	
-	
-	for(int x = 0; x != strlen(szWord); x++)
-	{
-		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
-		
-		SDL_Rect src = 	{ 
-							m_themeItemABC123.GetSrc(index).x,
-							m_themeItemABC123.GetSrc(index).y,
-							m_themeItemABC123.m_pointSize.x,
-							m_themeItemABC123.m_pointSize.y
-						};
-						
-		SDL_Rect dst = 	{ 
-							nCurrentXPos,
-							nCurrentYPos,
-						};
-			
-		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
-		
-		nCurrentXPos += nFontWidth;		
-	}
+	DisplayWord(m_themeItemInfoArea, szWord, nLineNumber, bCenter);
 }
 
 void CGraphicsUI::ClearLineInfoArea(int nLineNumber)
 {
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
-	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
-	
-	int nCurrentYPos = m_themeItemInfoArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
-	
-	SDL_Rect src = 	{ 
-						m_themeItemInfoArea.m_pointDst.x,
-						nCurrentYPos,
-						m_themeItemInfoArea.m_pointSize.x,
-						nFontHeight
-					};
-						
-	SDL_Rect dst = 	{ 
-						m_themeItemInfoArea.m_pointDst.x,
-						nCurrentYPos,
-					};
-			
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
+	ClearLine(m_themeItemInfoArea, nLineNumber);
 }
 
 void CGraphicsUI::DisplayWordPlaylistArea(char *szWord, int nLineNumber, bool bCenter)
 {
-	int nStringLen = strlen(szWord);
-	int nFontWidth = m_themeItemABC123.m_pointSize.x;
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;
-	
-	int nCurrentXPos = m_themeItemPlaylistArea.m_pointDst.x; 
-	int nCurrentYPos = m_themeItemPlaylistArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
-		
-	ClearLinePlaylistArea(nLineNumber);
-	
-	if((strlen(szWord) * nFontWidth))
-	{
-		nStringLen = nFontWidth / nStringLen;
-	}
-	
-	if(true == bCenter)
-	{
-		int nStringWidth = strlen(szWord) * nFontWidth;
-		
-		nCurrentXPos = m_themeItemPlaylistArea.m_pointDst.x + 
-						(m_themeItemPlaylistArea.m_pointSize.x / 2) - 
-						(nStringWidth / 2);
-	}	
-	
-	for(int x = 0; x != strlen(szWord); x++)
-	{
-		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
-		
-		SDL_Rect src = 	{ 
-							m_themeItemABC123.GetSrc(index).x,
-							m_themeItemABC123.GetSrc(index).y,
-							m_themeItemABC123.m_pointSize.x,
-							m_themeItemABC123.m_pointSize.y
-						};
-						
-		SDL_Rect dst = 	{ 
-							nCurrentXPos,
-							nCurrentYPos,
-						};
-			
-		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
-		
-		nCurrentXPos += nFontWidth;		
-	}
+	DisplayWord(m_themeItemPlaylistArea, szWord, nLineNumber, bCenter);
 }
 
 void CGraphicsUI::ClearLinePlaylistArea(int nLineNumber)
 {
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
-	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
-	
-	int nCurrentYPos = m_themeItemPlaylistArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
-	
-	SDL_Rect src = 	{ 
-						m_themeItemPlaylistArea.m_pointDst.x,
-						nCurrentYPos,
-						m_themeItemPlaylistArea.m_pointSize.x,
-						nFontHeight
-					};
-						
-	SDL_Rect dst = 	{ 
-						m_themeItemPlaylistArea.m_pointDst.x,
-						nCurrentYPos,
-					};
-			
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
+	ClearLine(m_themeItemPlaylistArea, nLineNumber);
 }
 
 void CGraphicsUI::DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, bool bCenter)
+{
+	DisplayWord(m_themeItemPlaylistItemArea, szWord, nLineNumber, bCenter);
+}
+
+void CGraphicsUI::ClearLinePlaylistItemArea(int nLineNumber)
+{
+	ClearLine(m_themeItemPlaylistItemArea, nLineNumber);
+}
+
+void CGraphicsUI::DisplayWord(CGraphicsUIThemeItem themeItemArea,
+								char *szWord, 
+								int nLineNumber, 
+								bool bCenter)
 {
 	int nStringLen = strlen(szWord);
 	int nFontWidth = m_themeItemABC123.m_pointSize.x;
 	int nFontHeight = m_themeItemABC123.m_pointSize.y;
 	
-	int nCurrentXPos = m_themeItemPlaylistItemArea.m_pointDst.x; 
-	int nCurrentYPos = m_themeItemPlaylistItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+	int nCurrentXPos = themeItemArea.m_pointDst.x; 
+	int nCurrentYPos = themeItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
 		
-	ClearLinePlaylistItemArea(nLineNumber);
+	ClearLine(themeItemArea, nLineNumber);
 	
 	if((strlen(szWord) * nFontWidth))
 	{
@@ -684,8 +526,8 @@ void CGraphicsUI::DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, boo
 	{
 		int nStringWidth = strlen(szWord) * nFontWidth;
 		
-		nCurrentXPos = m_themeItemPlaylistItemArea.m_pointDst.x + 
-						(m_themeItemPlaylistItemArea.m_pointSize.x / 2) - 
+		nCurrentXPos = themeItemArea.m_pointDst.x + 
+						(themeItemArea.m_pointSize.x / 2) - 
 						(nStringWidth / 2);
 	}	
 	
@@ -711,22 +553,21 @@ void CGraphicsUI::DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, boo
 	}
 }
 
-void CGraphicsUI::ClearLinePlaylistItemArea(int nLineNumber)
+void CGraphicsUI::ClearLine(CGraphicsUIThemeItem themeItemArea, int nLineNumber)
 {
 	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
-	//int nCurrentXPos = m_themeItemInfoArea.m_pointDst.x;
-	
-	int nCurrentYPos = m_themeItemPlaylistItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
+
+	int nCurrentYPos = themeItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
 	
 	SDL_Rect src = 	{ 
-						m_themeItemPlaylistItemArea.m_pointDst.x,
+						themeItemArea.m_pointDst.x,
 						nCurrentYPos,
-						m_themeItemPlaylistItemArea.m_pointSize.x,
+						themeItemArea.m_pointSize.x,
 						nFontHeight
 					};
 						
 	SDL_Rect dst = 	{ 
-						m_themeItemPlaylistItemArea.m_pointDst.x,
+						themeItemArea.m_pointDst.x,
 						nCurrentYPos,
 					};
 			
