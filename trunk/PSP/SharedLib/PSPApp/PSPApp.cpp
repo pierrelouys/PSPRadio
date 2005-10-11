@@ -127,7 +127,7 @@ int CPSPApp::Run()
 		sceKernelDelayThread(10);
 		//sceCtrlReadBufferPositive(&m_pad, 1); 
 		
-		//OnVBlank();
+		OnVBlank();
 		//SendMessage(MID_ONVBLANK);
  
 		sceCtrlReadLatch(&latch);

@@ -608,6 +608,11 @@ public:
 		return 0;
 	}
 	
+	void OnVBlank()
+	{
+		UI->OnVBlank();
+	};
+	
 	/** Raw metadata looks like this:
 	 *  "StreamTitle='title of the song';StreamUrl='url address';"
 	 */

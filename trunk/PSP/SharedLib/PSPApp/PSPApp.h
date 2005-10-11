@@ -36,7 +36,6 @@
 	/** Sender IDs */
 	#define SID_PSPAPP			0x10000000
 	#define SID_PSPSOUND		0x11000000
-	//#define SID_PSPSOUND_MP3	0x11000010
 	
 	/** Message IDs */
 	#define MID_ERROR						0x00000000
@@ -115,7 +114,7 @@
 		int Run(); /** Thread */
 	
 		/** Event Handlers */
-		//virtual void OnVBlank(){};
+		virtual void OnVBlank(){};
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
 
 		/* System Callbacks */
