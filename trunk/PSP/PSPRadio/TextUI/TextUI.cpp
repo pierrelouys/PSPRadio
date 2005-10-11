@@ -375,11 +375,13 @@ int CTextUI::OnConnectionProgress()
 int CTextUI::DisplayPLList(CDirList *plList)
 {
 	int x,y,c;
+	char strPL[60];
 	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &x, &y);
 	c = GetConfigColor("COLORS:PLAYLIST_DIRS");
 
 	ClearRows(y);
-	uiPrintf(x, y, c, "PlayList: %s", plList->GetCurrentURI());
+	strncpy(strPL, plList->GetCurrentURI(), 56);
+	uiPrintf(x, y, c, "PlayList: %s", strPL);
 	
 	return 0;
 }
@@ -397,10 +399,14 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	{
 		if (strlen(Data.strFileTitle))
 		{
+			if (strlen(Data.strFileTitle) >= 57)
+				Data.strFileTitle[57] = 0;
 			uiPrintf(x, y, c, "Stream  : %s", Data.strFileTitle);
 		}
 		else
 		{
+			if (strlen(Data.strFileName) >= 57)
+				Data.strFileName[57] = 0;
 			uiPrintf(x, y, c, "Stream  : %s", Data.strFileName);
 		}
 	}
