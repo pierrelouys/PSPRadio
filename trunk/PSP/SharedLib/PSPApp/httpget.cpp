@@ -41,7 +41,7 @@ void writestring (int fd, char *string)
 {
 	int result, bytes = strlen(string);
 
-	while (bytes && (FALSE == pPSPApp->IsExiting())) 
+	while (bytes) 
 	{
 		if ((result = send(fd, string, bytes, 0)) < 0 && sceNetInetGetErrno() != EINTR) 
 		{
@@ -53,6 +53,9 @@ void writestring (int fd, char *string)
 		}
 		string += result;
 		bytes -= result;
+		
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+			break;
 	}
 }
 
@@ -449,6 +452,13 @@ int http_open (char *url, size_t &iMetadataInterval)
 		Log(LOG_LOWLEVEL, "Using port '%s'\n", myport);
         sin.sin_port = htons(atoi( (char *) myport));
         
+		/** Bail out if app exiting */		
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		{
+			sock = -1;
+			return sock;
+		}
+		
         Log(LOG_LOWLEVEL, "http_connect(): Calling Connect... with port='%s', sock=%d, addr='0x%x'", myport, sock, addr);
         int iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in), 5/*5 sec timeout */ );
 		if (iCon != 0) 
@@ -463,8 +473,8 @@ int http_open (char *url, size_t &iMetadataInterval)
 fail:
 #endif
 
-		if (sock < 0) {
-			perror("socket");
+		if (sock < 0) 
+		{
 			return -1;
 		}
 
@@ -480,7 +490,13 @@ fail:
 			strcat (request,"\r\n");
 		}
 		strcat (request, "\r\n");
-
+		
+		/** Bail out if app exiting */
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		{
+			sock = -1;
+			return sock;
+		}
 		Log(LOG_LOWLEVEL, "http_connect(): Sending '%s'", request);
 		writestring (sock, request);
 		
@@ -491,6 +507,12 @@ fail:
 		relocate = FALSE;
 		purl[0] = '\0';
 		request[0] = 0;
+		/** Bail out if app exiting */
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		{
+			sock = -1;
+			return sock;
+		}
 		readstring (request, linelength-1, sock);
 		if (strlen(request) == 0)
 		{
@@ -514,7 +536,14 @@ fail:
 					return -1;
 			}
 		}
-		do {
+		do 
+		{
+			/** Bail out if app exiting */
+			if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+			{
+				sock = -1;
+				return sock;
+			}
 			memset(request, 0, linelength);
 			readstring (request, linelength-1, sock);
 			
