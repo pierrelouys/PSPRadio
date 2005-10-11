@@ -275,6 +275,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				
 			case MID_PLAY_STOP:
 				Log(LOG_VERYLOW, "ThPlay:: Stop message received.");
+				pPSPSound->SendEvent(MID_THPLAY_DONE);
 				pPSPSound->Buffer.Empty();
 				break;
 			}
