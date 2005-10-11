@@ -24,6 +24,7 @@
 #include <string.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <time.h>
 #include "Logging.h"
 
 CLogging Logging;
@@ -34,7 +35,8 @@ CLogging::CLogging()
 	m_LogLevel = LOG_INFO;
 	m_fp = NULL;
 	m_lock = new CLock("LogLock");
-	m_msg = (char *) malloc(4096);
+	m_msg = (char *) malloc(2500); /** A message this big would fill up the whole screen of the psp if sent to the screen. */
+	m_timeInitial = clock();
 }
 
 CLogging::~CLogging()
@@ -113,8 +115,8 @@ void CLogging::SetLevel(loglevel_enum iNewLevel)
 	m_LogLevel = iNewLevel;
 }
 
-//int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...)
-int CLogging::Log_(char *strModuleName,loglevel_enum LogLevel, char *strFormat, ...)
+int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...)
+//int CLogging::Log_(char *strModuleName,loglevel_enum LogLevel, char *strFormat, ...)
 {
 	va_list args;
 	//char msg[4096];
@@ -123,12 +125,18 @@ int CLogging::Log_(char *strModuleName,loglevel_enum LogLevel, char *strFormat, 
 	if (m_strFilename && LogLevel >= m_LogLevel) /** Log only if Set() was called and loglevel is correct */
 	{
 		va_start (args, strFormat);         /* Initialize the argument list. */
+		int timeDelta = (int)(clock() - m_timeInitial)/1000; /** Clock is in microseconds! */
 		
 		Open();
 		if (m_fp)
 		{
-			//fprintf(m_fp, "%s@%d<%d>: ", strModuleName, iLineNo, LogLevel);
-			fprintf(m_fp, "%s<%d>: ", strModuleName, LogLevel);
+			fprintf(m_fp, "%02d:%02d.%03d:",
+				((timeDelta / 1000) / 60) % 60,
+				(timeDelta / 1000) % 60,
+				timeDelta % 1000);
+
+			fprintf(m_fp, "%s@%d<%d>: ", strModuleName, iLineNo, LogLevel);
+
 			vsprintf(m_msg, strFormat, args);
 			if (m_msg[strlen(m_msg)-1] == 0x0A)
 				m_msg[strlen(m_msg)-1] = 0; /** Remove LF 0D*/

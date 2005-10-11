@@ -69,8 +69,8 @@ public:
 	int Set(char *strLogFilename, loglevel_enum iLogLevel);
 	void SetLevel(loglevel_enum iNewLevel);
 	
-	//int Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...);
-	int Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat, ...);
+	int Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...);
+	//int Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat, ...);
 	
 private:
 	char *m_strFilename;
@@ -78,6 +78,7 @@ private:
 	FILE *m_fp;
 	CLock *m_lock;
 	char *m_msg;
+	clock_t m_timeInitial;
 	
 	/** fflush() doesn't work, so reopen for now */
 	void Open();
@@ -86,7 +87,7 @@ private:
 };
 
 extern CLogging Logging;
-//#define Log(level, format, args...) Logging.Log_(__FILE__, __LINE__, level, format, ## args)
-#define Log(level, format, args...) Logging.Log_(__FILE__, level, format, ## args)
+#define Log(level, format, args...) Logging.Log_(__FILE__, __LINE__, level, format, ## args)
+//#define Log(level, format, args...) Logging.Log_(__FILE__, level, format, ## args)
 
 #endif
