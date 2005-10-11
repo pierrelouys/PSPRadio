@@ -29,7 +29,7 @@
 #define ProgName    pPSPApp->GetProgramName()
 #define ProgVersion pPSPApp->GetProgramVersion()
 #define ReportError pPSPApp->ReportError
-#define SendMessage pPSPSound->SendMessage
+#define SendEvent pPSPSound->SendEvent
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -556,7 +556,7 @@ int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t time
 	if (err == 0)
 	{
 		sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
-		SendMessage(MID_TCP_CONNECTING_SUCCESS);
+		SendEvent(MID_TCP_CONNECTING_SUCCESS);
 		return 0;
 	}
 	
@@ -570,17 +570,17 @@ int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t time
 			if (err == 0 || (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x7F)) 
 			{
 				sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
-				SendMessage(MID_TCP_CONNECTING_SUCCESS);
+				SendEvent(MID_TCP_CONNECTING_SUCCESS);
 				return 0;
 			}
 			sceKernelDelayThread(1000000); /* 1 s */
-			SendMessage(MID_TCP_CONNECTING_PROGRESS);
+			SendEvent(MID_TCP_CONNECTING_PROGRESS);
 		}
 	}
 	
 	//Log(LOG_LOWLEVEL, "Could not connect (Timeout?) geterrno = 0x%x", sceNetInetGetErrno());
 	
 	sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
-	SendMessage(MID_TCP_CONNECTING_FAILED);
+	SendEvent(MID_TCP_CONNECTING_FAILED);
 	return err;
 }

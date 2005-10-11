@@ -32,7 +32,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_NetworkEnabled = false;
 	m_USBEnabled = false;
 	m_ExitSema = NULL;
-	m_MsgToPSPApp = NULL;
+	m_EventToPSPApp = NULL;
 	m_thCallbackSetup = NULL; /** Callback thread */
 	m_thRun = NULL; /** Run Thread */
 	memset(&m_pad, 0, sizeof (SceCtrlData));
@@ -59,7 +59,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 		m_Exit = true;
 	}
 	
-	m_MsgToPSPApp = new CPSPMessageQ("msg_to_pspapp_q");
+	m_EventToPSPApp = new CPSPEventQ("msg_to_pspapp_q");
 
 	
 }
@@ -99,9 +99,9 @@ CPSPApp::~CPSPApp()
 		delete m_ExitSema;
 	}
 
-	if (m_MsgToPSPApp)
+	if (m_EventToPSPApp)
 	{
-		delete(m_MsgToPSPApp), m_MsgToPSPApp = NULL;
+		delete(m_EventToPSPApp), m_EventToPSPApp = NULL;
 	}
 	
 	Log(LOG_LOWLEVEL, "Bye!.");
@@ -128,7 +128,7 @@ int CPSPApp::Run()
 		//sceCtrlReadBufferPositive(&m_pad, 1); 
 		
 		OnVBlank();
-		//SendMessage(MID_ONVBLANK);
+		//SendEvent(MID_ONVBLANK);
  
 		sceCtrlReadLatch(&latch);
 		//printf("latch: uiMake=%d; uiBreak=%d; uiPress=%d; uiRelease=%d;\n",
@@ -139,13 +139,13 @@ int CPSPApp::Run()
 			/** Button Pressed */
 			oldButtonMask = latch.uiPress;
 			//OnButtonPressed(oldButtonMask);
-			SendMessage(MID_ONBUTTON_PRESSED, &oldButtonMask);
+			SendEvent(MID_ONBUTTON_PRESSED, &oldButtonMask);
 		}
 		else if (latch.uiBreak)
 		{
 			/** Button Released */
 			//OnButtonReleased(oldButtonMask);
-			SendMessage(MID_ONBUTTON_RELEASED, &oldButtonMask);
+			SendEvent(MID_ONBUTTON_RELEASED, &oldButtonMask);
 		}
 		
 		if (oldAnalogue != (short)m_pad.Lx)
@@ -162,7 +162,7 @@ int CPSPApp::Run()
 	m_ExitSema->Wait();
 	Log(LOG_VERYLOW, "Run:: Calling OnExit().");
 	OnExit();
-	SendMessage(MID_PSPAPP_EXITING);
+	SendEvent(MID_PSPAPP_EXITING);
 	
 	sceKernelExitThread(0);
 	return 0;
@@ -319,7 +319,7 @@ int CPSPApp::ReportError(char *format, ...)
 	
 	va_end (args);      
 	
-	return SendMessage(MID_ERROR, strMessage);
+	return SendEvent(MID_ERROR, strMessage);
 }
 
 /* ---statics--- */

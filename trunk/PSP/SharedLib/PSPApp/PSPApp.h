@@ -31,7 +31,7 @@
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
-	#include "PSPMessageQ.h"
+	#include "PSPEventQ.h"
 
 	/** Sender IDs */
 	#define SID_PSPAPP			0x10000000
@@ -88,10 +88,10 @@
 		int GetResolverId() { return m_ResolverId; };
 		char *GetProgramName() { return m_strProgramName; };
 		char *GetProgramVersion() { return m_strVersionNumber; };
-		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPAPP)
+		int SendEvent(int iEventId, void *pData = NULL, int iSenderId = SID_PSPAPP)
 		{ 
-			CPSPMessageQ::QMessage msg = { iSenderId, iMessageId, pMessage };
-			return m_MsgToPSPApp?m_MsgToPSPApp->Send(msg):-1;
+			CPSPEventQ::QEvent event = { iSenderId, iEventId, pData };
+			return m_EventToPSPApp?m_EventToPSPApp->Send(event):-1;
 		};
 		int ReportError(char *format, ...);
 		
@@ -127,7 +127,7 @@
 		bool m_NetworkEnabled;
 		bool m_USBEnabled;
 		CSema *m_ExitSema;
-		CPSPMessageQ *m_MsgToPSPApp;
+		CPSPEventQ *m_EventToPSPApp;
 		
 	private:
 		/** Data */

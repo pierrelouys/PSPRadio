@@ -1,5 +1,5 @@
 /* 
-	PSPMessageQ Message Queue implementation for the PSP. (Initial Release: Sept. 2005)
+	PSPEventQ Event Queue implementation for the PSP. (Initial Release: Sept. 2005)
 	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
 	
 	This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 #include <malloc.h>
 #include <PSPApp.h>
 #include <Logging.h>
-#include "PSPMessageQ.h"
+#include "PSPEventQ.h"
 #include <list>
 using namespace std;
 
@@ -33,7 +33,7 @@ int sceKernelClearEventFlag(u32, int);
 int sceKernelWaitEventFlag(int evid, u32 bits, u32 wait, u32 *outBits, void *arg);
 };
 
-CPSPMessageQ::CPSPMessageQ(char *strName)
+CPSPEventQ::CPSPEventQ(char *strName)
 {
 	char *strNameForResources = (char*)malloc(strlen(strName)+30);
 	
@@ -44,30 +44,30 @@ CPSPMessageQ::CPSPMessageQ(char *strName)
 		
 		sprintf(strNameForResources, "%sLock", m_strName);
 		m_lock = new CLock(strNameForResources);
-		Log(LOG_VERYLOW, "CPSPMessageQ(%s): Created lock '%s' = %d", 
+		Log(LOG_VERYLOW, "CPSPEventQ(%s): Created lock '%s' = %d", 
 			strName, strNameForResources, m_lock->GetMutex());
 		
 		sprintf(strNameForResources, "%sRcvblk", m_strName);
 		m_RcvBlockerEventId = sceKernelCreateEventFlag(strNameForResources, 0, 0x0, 0);
 		
-		Log (LOG_VERYLOW, "CPSPMessageQ(%s): sceKernelCreateEventFlag(%s) returns 0x%x", strName, strNameForResources, m_RcvBlockerEventId);
+		Log (LOG_VERYLOW, "CPSPEventQ(%s): sceKernelCreateEventFlag(%s) returns 0x%x", strName, strNameForResources, m_RcvBlockerEventId);
 		
 		sprintf(strNameForResources, "%sRcvack", m_strName);
 		m_RcvOKEventId = sceKernelCreateEventFlag(strNameForResources, 0, 0x0, 0);
 		
-		Log (LOG_VERYLOW, "CPSPMessageQ(%s): sceKernelCreateEventFlag(%s) returns 0x%x", strName, strNameForResources, m_RcvOKEventId);
+		Log (LOG_VERYLOW, "CPSPEventQ(%s): sceKernelCreateEventFlag(%s) returns 0x%x", strName, strNameForResources, m_RcvOKEventId);
 		
 		free(strNameForResources), strNameForResources = NULL;
 	}
 	else
 	{
-		Log (LOG_ERROR, "CPSPMessageQ(%s):Memory allocation error!", strName);
+		Log (LOG_ERROR, "CPSPEventQ(%s):Memory allocation error!", strName);
 	}
 }
 
-CPSPMessageQ::~CPSPMessageQ()
+CPSPEventQ::~CPSPEventQ()
 {
-	Log (LOG_VERYLOW, "~CPSPMessageQ(): Calling sceKernelDeleteEventFlag()");
+	Log (LOG_VERYLOW, "~CPSPEventQ(): Calling sceKernelDeleteEventFlag()");
 	int iRet = sceKernelDeleteEventFlag(m_RcvBlockerEventId);
 	iRet = sceKernelDeleteEventFlag(m_RcvOKEventId);
 	if(m_lock)
@@ -75,23 +75,23 @@ CPSPMessageQ::~CPSPMessageQ()
 		delete m_lock;
 	}
 	free(m_strName), m_strName = NULL;
-	Log (LOG_VERYLOW, "~CPSPMessageQ(): Done.");
+	Log (LOG_VERYLOW, "~CPSPEventQ(): Done.");
 }
 
-int CPSPMessageQ::Send(QMessage &Message)
+int CPSPEventQ::Send(QEvent &Event)
 {
-	//Log(LOG_VERYLOW, "Send(): Calling Lock(mid=%x)", Message.MessageId);
+	//Log(LOG_VERYLOW, "Send(): Calling Lock(mid=%x)", Event.EventId);
 	m_lock->Lock();
 
-	//Log(LOG_VERYLOW, "Send(): Calling Push_Back(mid=%x)", Message.MessageId);
-	m_msglist.push_back(Message);
+	//Log(LOG_VERYLOW, "Send(): Calling Push_Back(mid=%x)", Event.EventId);
+	m_EventList.push_back(Event);
 	//notify receive
 	//Log(LOG_VERYLOW, "Send(): Calling SetEvFlag(%x)", m_RcvBlockerEventId);
 	int iRet = sceKernelSetEventFlag(m_RcvBlockerEventId, 0x1);
 	
 	if (iRet < 0)
 	{
-		Log(LOG_ERROR, "Send('%s'):Error On Send (msgid=0x%x) Error=0x%x", m_strName, Message.MessageId, iRet);
+		Log(LOG_ERROR, "Send('%s'):Error On Send (msgid=0x%x) Error=0x%x", m_strName, Event.EventId, iRet);
 	}
 	
 	m_lock->Unlock();
@@ -100,11 +100,11 @@ int CPSPMessageQ::Send(QMessage &Message)
 	return 0;
 }
 
-int CPSPMessageQ::SendAndWaitForOK(QMessage &Message)
+int CPSPEventQ::SendAndWaitForOK(QEvent &Event)
 {
 	m_lock->Lock();
 	
-	m_msglist.push_back(Message);
+	m_EventList.push_back(Event);
 	//notify receive
 	sceKernelSetEventFlag(m_RcvBlockerEventId, 0x1);
 	
@@ -118,7 +118,7 @@ int CPSPMessageQ::SendAndWaitForOK(QMessage &Message)
 	return 0;
 }
 
-int CPSPMessageQ::Receive(QMessage &Message)
+int CPSPEventQ::Receive(QEvent &Event)
 {
 	//block until notified
 	u32 flag = 0;
@@ -126,8 +126,8 @@ int CPSPMessageQ::Receive(QMessage &Message)
 
 	if (Size() > 0)
 	{
-		Message = m_msglist.front();
-		m_msglist.pop_front();
+		Event = m_EventList.front();
+		m_EventList.pop_front();
 	}
 	else
 	{
@@ -144,23 +144,23 @@ int CPSPMessageQ::Receive(QMessage &Message)
 	return 0;
 }
 
-int CPSPMessageQ::SendReceiveOK()
+int CPSPEventQ::SendReceiveOK()
 {
 	return sceKernelSetEventFlag(m_RcvOKEventId, 0x1);
 }
 
-int CPSPMessageQ::Size()
+int CPSPEventQ::Size()
 {
-	return m_msglist.size();
+	return m_EventList.size();
 }
 
-void CPSPMessageQ::Clear()
+void CPSPEventQ::Clear()
 {
 	m_lock->Lock();
 
-	while(m_msglist.size())
+	while(m_EventList.size())
 	{
-		m_msglist.pop_front();
+		m_EventList.pop_front();
 	}
 	
 	m_lock->Unlock();

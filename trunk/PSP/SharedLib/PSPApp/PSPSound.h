@@ -19,7 +19,7 @@
 #ifndef __PSPSOUND__
 #define __PSPSOUND__
 	#include "PSPSoundDecoder_MAD.h"
-	#include "PSPMessageQ.h"
+	#include "PSPEventQ.h"
 
 	/** Not configurable */
 	#define PSP_SAMPLERATE			44100
@@ -179,7 +179,7 @@
 		int m_audiohandle ;
 		pspsound_state m_CurrentState;
 		
-		CPSPMessageQ *m_MsgToDecTh, *m_MsgToPlayTh;
+		CPSPEventQ *m_EventToDecTh, *m_EventToPlayTh;
 		
 	protected:
 		void SuspendDecodingThread(){m_thDecode->Suspend();};
@@ -196,10 +196,10 @@
 		int Stop();
 		pspsound_state GetPlayState() { return m_CurrentState; };
 		
-		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND)
+		int SendEvent(int iEventId, void *pData = NULL, int iSenderId = SID_PSPSOUND)
 		{ 
-			CPSPMessageQ::QMessage msg = { iSenderId, iMessageId, pMessage };
-			return (pPSPApp && pPSPApp->m_MsgToPSPApp)?pPSPApp->m_MsgToPSPApp->Send(msg):-1;
+			CPSPEventQ::QEvent event = { iSenderId, iEventId, pData };
+			return (pPSPApp && pPSPApp->m_EventToPSPApp)?pPSPApp->m_EventToPSPApp->Send(event):-1;
 		};
 
 		size_t GetBufferFillPercentage() { return Buffer.GetBufferFillPercentage(); };

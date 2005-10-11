@@ -20,7 +20,7 @@
 #define __PSPSOUNDDECODER_MAD__
 	#include <mad.h>
 	
-	class CPSPMessageQ;
+	class CPSPEventQ;
 	class CPSPSoundStream;
 	class CPSPSoundBuffer;
 	
@@ -29,12 +29,7 @@
 	public:
 		CPSPSoundDecoder_MAD();
 		
-		
-		//int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND_MP3)
-		//	{ return pPSPApp->OnMessage(iMessageId, pMessage, iSenderId); };
-		
-
-		void Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPMessageQ *Notification);
+		void Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPEventQ *Notification);
 
 	private:
 		static signed int scale(mad_fixed_t &sample);

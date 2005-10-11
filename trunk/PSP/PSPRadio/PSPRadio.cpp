@@ -476,55 +476,55 @@ public:
 		}
 	};
 	
-	int ProcessMessages()
+	int ProcessEvents()
 	{
 		char MData[MAX_METADATA_SIZE];
 		char *strURL = "";
 		char *strTitle = "";
-		CPSPMessageQ::QMessage msg = { 0, 0, NULL };
+		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
 
 		m_ExitSema->Up();
 		for (;;)
 		{
-			//Log(LOG_VERYLOW, "ProcessMessages()::Calling Receive. %d Messages in Queue", m_MsgToPSPApp->Size());
-			if ( m_MsgToPSPApp->Size() > 100 )
+			//Log(LOG_VERYLOW, "ProcessMessages()::Calling Receive. %d Messages in Queue", m_EventToPSPApp->Size());
+			if ( m_EventToPSPApp->Size() > 100 )
 			{
-				Log(LOG_ERROR, "ProcessMessages(): Too many messages backed-up!: %d. Exiting!", m_MsgToPSPApp->Size());
-				UI->DisplayErrorMessage("Message Queue Backed-up, Exiting!");
+				Log(LOG_ERROR, "ProcessEvents(): Too many events backed-up!: %d. Exiting!", m_EventToPSPApp->Size());
+				UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
 				m_ExitSema->Down();
 				return 0;
 			}
-			rret = m_MsgToPSPApp->Receive(msg);
-			//Log(LOG_VERYLOW, "ProcessMessages()::Receive Ret=%d. msg=0x%08x.", rret, msg.MessageId);
-			switch (msg.MessageId)
+			rret = m_EventToPSPApp->Receive(event);
+			//Log(LOG_VERYLOW, "ProcessMessages()::Receive Ret=%d. eventid=0x%08x.", rret, event.EventId);
+			switch (event.EventId)
 			{
 			case MID_PSPAPP_EXITING:
-				if ( (SID_PSPAPP == msg.SenderId) )
+				if ( (SID_PSPAPP == event.SenderId) )
 				{
-					Log(LOG_INFO, "ProcessMessages(): MID_PSPAPP_EXITING received.");
+					Log(LOG_INFO, "ProcessEvents(): MID_PSPAPP_EXITING received.");
 					m_ExitSema->Down();
 					return 0;
 				}
 				break;
 			
 			case MID_ERROR:
-				UI->DisplayErrorMessage((char*)msg.pData);
-				Log(LOG_ERROR, (char*)msg.pData);
+				UI->DisplayErrorMessage((char*)event.pData);
+				Log(LOG_ERROR, (char*)event.pData);
 				continue;
 				break;
 			}
 			
-			switch (msg.SenderId)
+			switch (event.SenderId)
 			{
 			//case PSPAPP_SENDER_ID:
-			//	switch(msg.MessageId)
+			//	switch(event.EventId)
 			//	[
 			//	case ERROR
 			//case SID_PSPSOUND:
 			default:
-				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", msg.MessageId, msg.SenderId);
-				switch(msg.MessageId)
+				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", event.EventId, event.SenderId);
+				switch(event.EventId)
 				{
 				//case MID_THPLAY_BEGIN:
 				//	break;
@@ -555,7 +555,7 @@ public:
 					UI->OnStreamOpeningSuccess();
 					break;
 				case MID_DECODE_METADATA_INFO:
-					memcpy(MData, msg.pData, MAX_METADATA_SIZE);
+					memcpy(MData, event.pData, MAX_METADATA_SIZE);
 					
 					/** GetMetadataValue() modifies the metadata, so call it
 					with the last tag first */
@@ -571,7 +571,7 @@ public:
 				//	break;
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
-					Header = (struct mad_header *)msg.pData;
+					Header = (struct mad_header *)event.pData;
 					/** Update m_CurrentMetaData, and notify UI. */
 					m_CurrentMetaData->SampleRate = Header->samplerate;
 					m_CurrentMetaData->BitRate = Header->bitrate;
@@ -580,7 +580,7 @@ public:
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
 					/** Update m_CurrentMetaData, and notify UI. */
-					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)msg.pData);
+					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)event.pData);
 					UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				case MID_TCP_CONNECTING_PROGRESS:
@@ -591,7 +591,7 @@ public:
 					break;
 					
 				case MID_ONBUTTON_RELEASED:
-					OnButtonReleased(*((int*)msg.pData));
+					OnButtonReleased(*((int*)event.pData));
 					break;
 					
 				case MID_ONVBLANK:
@@ -599,7 +599,7 @@ public:
 					break;
 				
 				default:
-					Log(LOG_VERYLOW, "OnMessage: Unhandled message: MID=0x%x SID=0x%x", msg.MessageId, msg.SenderId);
+					Log(LOG_VERYLOW, "ProcessEvents: Unhandled event: MID=0x%x SID=0x%x", event.EventId, event.SenderId);
 					break;
 				}
 			}
@@ -666,7 +666,7 @@ int main(int argc, char **argv)
 	if (PSPApp)
 	{
 		PSPApp->Setup(argc, argv);
-		PSPApp->ProcessMessages();
+		PSPApp->ProcessEvents();
 		
 		delete(PSPApp);
 	}

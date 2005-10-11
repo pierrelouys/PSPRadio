@@ -38,7 +38,7 @@ CPSPSoundDecoder_MAD::CPSPSoundDecoder_MAD()
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Constructor");
 }
 
-void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPMessageQ *Notification)
+void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPEventQ *Notification)
 {
 	struct mad_frame	Frame;
 	struct mad_stream	Stream;
@@ -68,14 +68,14 @@ void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer 
 	mad_synth_init(&Synth);
 	mad_timer_reset(&Timer);
 
-	pPSPSound->SendMessage(MID_DECODE_STREAM_OPENING);
+	pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
 	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", InputStream->GetFile());
 	InputStream->Open();
 	if (InputStream->IsOpen() == TRUE)
 	{
 		Log(LOG_INFO, "MP3 Decode(): Stream Opened Successfully.");
 		
-		pPSPSound->SendMessage(MID_DECODE_STREAM_OPEN);
+		pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
 		
 		/** Main decoding loop */
 		/* pPSPSound is the decoding loop. */
@@ -247,7 +247,7 @@ void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer 
 	}
 	else
 	{
-		pPSPSound->SendMessage(MID_DECODE_STREAM_OPEN_ERROR);
+		pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 		Log(LOG_ERROR, "Unable to open stream '%s'.", InputStream->GetFile());
 	}
 
@@ -348,8 +348,8 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
-	pPSPSound->SendMessage(MID_DECODE_FRAME_INFO_HEADER, Header);
-	pPSPSound->SendMessage(MID_DECODE_FRAME_INFO_LAYER, (char*)Layer);
+	pPSPSound->SendEvent(MID_DECODE_FRAME_INFO_HEADER, Header);
+	pPSPSound->SendEvent(MID_DECODE_FRAME_INFO_LAYER, (char*)Layer);
 	return(0);
 }
 
