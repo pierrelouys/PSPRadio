@@ -226,8 +226,16 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	switch(playingstate)
 	{
 	case CPSPSound::STOP:
-		uiPrintf(x, y, c, "STOP");
-		break;
+		{
+			uiPrintf(x, y, c, "STOP");
+			int r1,r2;
+			GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+			ClearRows(r1, r2);
+			int px,py;
+			GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &px, &py);
+			ClearRows(py);
+			break;
+		}
 	case CPSPSound::PLAY:
 		uiPrintf(x, y, c, "PLAY");
 		break;
@@ -282,10 +290,6 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 
 int CTextUI::OnNewStreamStarted()
 {
-	int x,y;
-	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &x, &y);
-	ClearRows(x, y);
-
 	return 0;
 }
 
