@@ -3,7 +3,7 @@ OBJS = PSPApp.o PSPSound.o bstdfile.o PSPSoundDecoder_MAD.o httpget.o PSPEventQ.
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging -I../libsamplerate
-CFLAGS = -Wall -D__PSP__ $(INCLUDES)
+CFLAGS = -O2 -Wall -D__PSP__ $(INCLUDES)
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
