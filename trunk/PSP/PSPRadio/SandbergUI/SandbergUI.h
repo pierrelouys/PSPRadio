@@ -23,7 +23,7 @@
 
 #include "IPSPRadio_UI.h"
 
-class CSandbergUI : public virtual IPSPRadio_UI
+class CSandbergUI : public IPSPRadio_UI
 {
 public:
 	CSandbergUI();

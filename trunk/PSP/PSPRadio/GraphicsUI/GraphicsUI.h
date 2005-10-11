@@ -13,7 +13,7 @@ enum uibuttonstate_enum
 	UIBUTTONSTATE_OFF = 1
 };
 
-class CGraphicsUI : public virtual IPSPRadio_UI
+class CGraphicsUI : public IPSPRadio_UI
 {
 public:
 	CGraphicsUI();

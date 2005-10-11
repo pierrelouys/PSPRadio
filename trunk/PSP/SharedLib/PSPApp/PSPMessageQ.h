@@ -18,14 +18,16 @@
 		CPSPMessageQ(char *strName);
 		~CPSPMessageQ();
 		int Send(QMessage &Message);
+		int SendAndWaitForOK(QMessage &Message);
 		int Receive(QMessage &Message);
+		int SendReceiveOK();
 		int Size();
 		void Clear();
 		
 	private:
 		char *m_strName;
 		list<QMessage> m_msglist; 
-		u32 m_EventId;
+		u32 m_RcvBlockerEventId, m_RcvOKEventId;
 		CLock *m_lock;
 
 };

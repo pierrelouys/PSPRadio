@@ -36,7 +36,7 @@
 	/** Sender IDs */
 	#define SID_PSPAPP			0x10000000
 	#define SID_PSPSOUND		0x11000000
-	#define SID_PSPSOUND_MP3	0x11000010
+	//#define SID_PSPSOUND_MP3	0x11000010
 	
 	/** Message IDs */
 	#define MID_ERROR						0x00000000
@@ -58,6 +58,9 @@
 	#define MID_TCP_CONNECTING_FAILED		0x000000C1
 	#define MID_TCP_CONNECTING_SUCCESS		0x000000C2
 	#define MID_PSPAPP_EXITING				0x01000000
+	#define MID_ONBUTTON_PRESSED			0x01000010
+	#define MID_ONBUTTON_RELEASED			0x01000011
+	#define MID_ONVBLANK					0x01000020
 	
 	
 	/* Define printf, just to make typing easier */
@@ -74,11 +77,11 @@
 		CLogging m_Log;
 
 		CPSPApp(char *strProgramName, char *strVersionNumber);
+
 		virtual ~CPSPApp();
 		virtual int ProcessMessages(){return 0;};
 		void ExitApp() { m_Exit = TRUE; };
-		BOOLEAN IsExiting() { return m_Exit; };
-		void Start();
+		bool IsExiting() { return m_Exit; };
 		
 		/** Accessors */
 		SceCtrlData GetPadData() { return m_pad; };
@@ -89,7 +92,7 @@
 		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPAPP)
 		{ 
 			CPSPMessageQ::QMessage msg = { iSenderId, iMessageId, pMessage };
-			return m_MsgToPSPApp->Send(msg);
+			return m_MsgToPSPApp?m_MsgToPSPApp->Send(msg):-1;
 		};
 		int ReportError(char *format, ...);
 		
@@ -98,40 +101,35 @@
 	
 	protected:
 		/** Helpers */
+		int StartPolling(); /** Start polling buttons/vblank */
 		int EnableNetwork(int profile);
 		void DisableNetwork();
-		BOOLEAN IsNetworkEnabled() { return m_NetworkEnabled; };
+		bool IsNetworkEnabled() { return m_NetworkEnabled; };
 		
 		int  EnableUSB();
 		int  DisableUSB();
-		BOOLEAN IsUSBEnabled() { return m_USBEnabled; }
+		bool IsUSBEnabled() { return m_USBEnabled; }
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual void OnExit(){};
 		int Run(); /** Thread */
 	
 		/** Event Handlers */
-		virtual void OnButtonPressed(int iButtonMask){};
-		virtual void OnButtonReleased(int iButtonMask){};
-		virtual void OnVBlank(){};
+		//virtual void OnVBlank(){};
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
-		virtual void OnAudioBufferEmpty(void* buf, unsigned int length){};
 
 		/* System Callbacks */
 		static int  exitCallback(int arg1, int arg2, void *common);
-		static void audioCallback(void* buf, unsigned int length);
 		/* Callback thread */
 		static int callbacksetupThread(SceSize args, void *argp);
 		static int runThread(SceSize args, void *argp);
 		
-		friend class CPSPSound;
-		friend class CPSPSound_MP3;
-		BOOLEAN m_Exit;
-		BOOLEAN m_NetworkEnabled;
-		BOOLEAN m_USBEnabled;
+		bool m_Exit;
+		bool m_NetworkEnabled;
+		bool m_USBEnabled;
 		CSema *m_ExitSema;
 		CPSPMessageQ *m_MsgToPSPApp;
-	
+		
 	private:
 		/** Data */
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
@@ -142,10 +140,11 @@
 		int  m_ResolverId;
 		char *m_strProgramName, *m_strVersionNumber;
 		
-		virtual int OnAppExit(int arg1, int arg2, void *common); /** We call OnExit here */
+		virtual int OnAppExit(int arg1, int arg2, void *common);
 		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();
 		
+	friend class CPSPSound;
 	friend class CPSPSoundBuffer;
 	friend class CPSPSoundStream;
 
@@ -183,24 +182,5 @@
 	private:
 		int m_thid;
 	};
-	
 
-	
-
-	/** Attribute for threads. 
-	enum PspThreadAttributes
-	{
-		// Enable VFPU access for the thread./
-		PSP_THREAD_ATTR_VFPU = 0x00004000,
-		// Start the thread in user mode (done automatically 
-		//  if the thread creating it is in user mode). /
-		PSP_THREAD_ATTR_USER = 0x80000000,
-		// Thread is part of the USB/WLAN API./
-		PSP_THREAD_ATTR_USBWLAN = 0xa0000000,
-		// Thread is part of the VSH API./
-		PSP_THREAD_ATTR_VSH = 0xc0000000,
-	};
-	*/
- 
-	
 #endif

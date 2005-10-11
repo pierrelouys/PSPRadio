@@ -21,13 +21,15 @@ need to put your playlist files under the PlayLists directory, and don't need to
 with the config file.
 -The current playlist is selectable by using UP/DOWN
 0.35-pre3
--cleaned up the display of playlist/stream, metadata. as 3 completely indipendent entities.
+-cleaned up the display of playlist/stream, metadata. as 3 completely independent entities.
 -Can browse playlists/entries while playing current stream. (It doesn't stop anymore when changing tracks)
 -Refactoring of PSPSound/PSPSound_MP3 -> PSPSound/PSPSoundDecoder_MAD, internal OO changes.
 -Thread priorities are now configurable in the .cfg file.
 035-pre4
 -Added message queue class for inter thread communications and synchronization.
-
+-Revamped comm system for PSPApp (PSPRadio) using message q. This solves the problem with callback messaging 
+(thread prio boosting/inheritance from caller, overhead on caller thread, etc. -- Also, now polling of buttons/vblank 
+is done in a separate thread. -- still work in progress --.
 
 
 0.34

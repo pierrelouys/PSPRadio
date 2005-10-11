@@ -3,7 +3,7 @@
 
 #include "IPSPRadio_UI.h"
 
-class CTextUI : public virtual IPSPRadio_UI
+class CTextUI : public IPSPRadio_UI
 {
 public:
 	CTextUI();

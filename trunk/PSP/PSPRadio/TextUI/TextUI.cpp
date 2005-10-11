@@ -65,11 +65,14 @@ CTextUI::~CTextUI()
 
 int CTextUI::Initialize(char *strCWD)
 {
-	char strCfgFile[256];
+	char *strCfgFile = NULL;
 
+	strCfgFile = (char *)malloc(strlen(strCWD) + strlen(TEXT_UI_CFG_FILENAME) + 10);
 	sprintf(strCfgFile, "%s/%s", strCWD, TEXT_UI_CFG_FILENAME);
 
 	m_Config = new CIniParser(strCfgFile);
+	
+	free (strCfgFile), strCfgFile = NULL;
 	
 	pspDebugScreenInit();
 	pspDebugScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));

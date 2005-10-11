@@ -28,50 +28,65 @@ class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
 CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 {
-	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 0xFA0, THREAD_ATTR_USER);
-	
-	m_thRun = new CPSPThread("run_thread", runThread, 80, 80000);
-
-	memset(&m_pad, 0, sizeof (m_pad));
-	pPSPApp = this;
+	m_Exit = false;
+	m_NetworkEnabled = false;
+	m_USBEnabled = false;
+	m_ExitSema = NULL;
+	m_MsgToPSPApp = NULL;
+	m_thCallbackSetup = NULL; /** Callback thread */
+	m_thRun = NULL; /** Run Thread */
+	memset(&m_pad, 0, sizeof (SceCtrlData));
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
-	m_NetworkEnabled = FALSE;
-	m_USBEnabled = FALSE;
-	m_MsgToPSPApp = new CPSPMessageQ("msg_to_pspapp_q");
-	m_ExitSema = new CSema("PSPApp_Exit_Sema");
-	
 	m_strProgramName = strdup(strProgramName);
 	m_strVersionNumber = strdup(strVersionNumber);
+	pPSPApp = this;
 	
-	if (m_thCallbackSetup && m_thRun)
+	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 1024, THREAD_ATTR_USER);
+	m_ExitSema = new CSema("PSPApp_Exit_Sema");
+
+	if (m_thCallbackSetup)
 	{
 		m_thCallbackSetup->Start();
 		
 		sceCtrlSetSamplingCycle(0);
 		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 		
-		m_Exit = FALSE;
+		m_Exit = false;
 	}
 	else /** Oops, error, let's exit the app */
 	{
-		m_Exit = TRUE;
+		m_Exit = true;
 	}
-
-	//printf("CPSPApp Constructor.\n");
 	
+	m_MsgToPSPApp = new CPSPMessageQ("msg_to_pspapp_q");
+
+	
+}
+
+int CPSPApp::StartPolling()
+{
+	if (NULL == m_thRun)
+	{
+		m_thRun = new CPSPThread("run_thread", runThread, 80, 80000);
+	}
+	
+	/** Start Polling for Vblank and buttons */
+	m_thRun->Start();
+	
+	return 0;
 }
 
 CPSPApp::~CPSPApp()
 {
 	Log(LOG_LOWLEVEL, "Destructor Called.");
 	
-	if (m_USBEnabled == TRUE)
+	if (m_USBEnabled == true)
 	{
 		DisableUSB();
 	}
 	
-	if (IsNetworkEnabled() == TRUE)
+	if (IsNetworkEnabled() == true)
 	{
 		DisableNetwork();
 	}
@@ -84,22 +99,17 @@ CPSPApp::~CPSPApp()
 		delete m_ExitSema;
 	}
 
-	Log(LOG_LOWLEVEL, "Bye!.");
-	
 	if (m_MsgToPSPApp)
 	{
 		delete(m_MsgToPSPApp), m_MsgToPSPApp = NULL;
 	}
+	
+	Log(LOG_LOWLEVEL, "Bye!.");
+	
 	sceKernelExitGame();
 
 	return;
 }
-
-/** Start Polling for Vblank and buttons */
-void CPSPApp::Start()
-{ 
-	m_thRun->Start(); 
-};
 
 /** This is a thread */
 int CPSPApp::Run()
@@ -111,13 +121,14 @@ int CPSPApp::Run()
 	Log(LOG_INFO, "Run(): Going into main loop.");
 	
 	sceCtrlSetSamplingCycle(10); 
-	while (m_Exit == FALSE)
+	while (false == m_Exit)
 	{
 		sceDisplayWaitVblankStart();
 		sceKernelDelayThread(10);
 		//sceCtrlReadBufferPositive(&m_pad, 1); 
 		
-		OnVBlank();
+		//OnVBlank();
+		//SendMessage(MID_ONVBLANK);
  
 		sceCtrlReadLatch(&latch);
 		//printf("latch: uiMake=%d; uiBreak=%d; uiPress=%d; uiRelease=%d;\n",
@@ -127,12 +138,14 @@ int CPSPApp::Run()
 		{
 			/** Button Pressed */
 			oldButtonMask = latch.uiPress;
-			OnButtonPressed(oldButtonMask);
+			//OnButtonPressed(oldButtonMask);
+			SendMessage(MID_ONBUTTON_PRESSED, &oldButtonMask);
 		}
 		else if (latch.uiBreak)
 		{
 			/** Button Released */
-			OnButtonReleased(oldButtonMask);
+			//OnButtonReleased(oldButtonMask);
+			SendMessage(MID_ONBUTTON_RELEASED, &oldButtonMask);
 		}
 		
 		if (oldAnalogue != (short)m_pad.Lx)
@@ -170,7 +183,7 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
 
-	m_Exit = TRUE;
+	m_Exit = true;
 	
 	return 0;
 }
@@ -180,17 +193,17 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
-	static BOOLEAN fDriversLoaded = FALSE;
+	static bool fDriversLoaded = false;
 	
-	if (fDriversLoaded == FALSE)
+	if (false == fDriversLoaded)
 	{
-		if (nlhLoadDrivers() == 0)
+		if (0 == nlhLoadDrivers())
 		{
-			fDriversLoaded = TRUE;
+			fDriversLoaded = true;
 		}
 	}
 	
-	if (fDriversLoaded == TRUE)
+	if (true == fDriversLoaded)
 	{
 		if (WLANConnectionHandler(profile) == 0)
 		{
@@ -207,7 +220,7 @@ int CPSPApp::EnableNetwork(int profile)
 			{
 				iRet = 0;
 				
-				m_NetworkEnabled = TRUE;
+				m_NetworkEnabled = true;
 				/** Test! */
 				//printf ("Getting google.com's address...");
 				//in_addr addr;
@@ -233,7 +246,7 @@ void CPSPApp::DisableNetwork()
 {
 	u32 err;
 	
-	if (IsNetworkEnabled() == TRUE)
+	if (IsNetworkEnabled() == true)
 	{
 		if (m_ResolverId)
 		{
@@ -327,10 +340,10 @@ int CPSPApp::runThread(SceSize args, void *argp)
 	return pPSPApp->Run();
 }
 
-void CPSPApp::audioCallback(void* buf, unsigned int length) 
-{
-	pPSPApp->OnAudioBufferEmpty(buf, length);
-}
+//void CPSPApp::audioCallback(void* buf, unsigned int length) 
+//{
+//	pPSPApp->OnAudioBufferEmpty(buf, length);
+//}
 
 int CPSPApp::NetApctlHandler() 
 {
@@ -346,7 +359,7 @@ int CPSPApp::NetApctlHandler()
 	u32 statechange=0;
 	u32 ostate=0xffffffff;
 
-	while ((m_Exit == FALSE) && iRet == 0)
+	while ((false == m_Exit) && iRet == 0)
 	{
 		u32 state;
 		
@@ -381,7 +394,7 @@ int CPSPApp::NetApctlHandler()
 		}
 	}
 
-	if((m_Exit == FALSE) && (iRet == 0)) 
+	if((false == m_Exit) && (iRet == 0)) 
 	{
 		// get IP address
 		if (sceNetApctlGetInfo(SCE_NET_APCTL_INFO_IP_ADDRESS, m_strMyIP) != 0)
@@ -464,7 +477,7 @@ int  CPSPApp::EnableUSB()
 		return retVal;
 	}
 	
-	m_USBEnabled = TRUE;
+	m_USBEnabled = true;
 	
 	return retVal;
 }

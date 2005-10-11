@@ -34,6 +34,7 @@ CLogging::CLogging()
 	m_LogLevel = LOG_INFO;
 	m_fp = NULL;
 	m_lock = new CLock("LogLock");
+	m_msg = (char *) malloc(4096);
 }
 
 CLogging::~CLogging()
@@ -50,13 +51,16 @@ CLogging::~CLogging()
 	{
 		delete m_lock;
 	}
-	
+	if (m_msg)
+	{
+		free (m_msg), m_msg = NULL;
+	}
 }
 
 int CLogging::Set(char *strLogFilename, loglevel_enum iLogLevel)
 {
 	int iRes = 0;
-	if (strLogFilename && m_fp == NULL)
+	if (strLogFilename && (NULL == m_strFilename) ) //m_fp == NULL)
 	{
 		m_strFilename = strdup(strLogFilename);
 		m_LogLevel = iLogLevel;
@@ -109,26 +113,28 @@ void CLogging::SetLevel(loglevel_enum iNewLevel)
 	m_LogLevel = iNewLevel;
 }
 
-int CLogging::Log_(char *strModuleName, loglevel_enum LogLevel, char *strFormat, ...)
+//int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...)
+int CLogging::Log_(char *strModuleName,loglevel_enum LogLevel, char *strFormat, ...)
 {
 	va_list args;
-	char msg[4096];
+	//char msg[4096];
 	
 	m_lock->Lock();
-	if (LogLevel >= m_LogLevel)
+	if (m_strFilename && LogLevel >= m_LogLevel) /** Log only if Set() was called and loglevel is correct */
 	{
 		va_start (args, strFormat);         /* Initialize the argument list. */
 		
 		Open();
 		if (m_fp)
 		{
+			//fprintf(m_fp, "%s@%d<%d>: ", strModuleName, iLineNo, LogLevel);
 			fprintf(m_fp, "%s<%d>: ", strModuleName, LogLevel);
-			vsprintf(msg, strFormat, args);
-			if (msg[strlen(msg)-1] == 0x0A)
-				msg[strlen(msg)-1] = 0; /** Remove LF 0D*/
-			if (msg[strlen(msg)-1] == 0x0D) 
-				msg[strlen(msg)-1] = 0; /** Remove CR 0A*/
-			fprintf(m_fp, "%s\r\n", msg);
+			vsprintf(m_msg, strFormat, args);
+			if (m_msg[strlen(m_msg)-1] == 0x0A)
+				m_msg[strlen(m_msg)-1] = 0; /** Remove LF 0D*/
+			if (m_msg[strlen(m_msg)-1] == 0x0D) 
+				m_msg[strlen(m_msg)-1] = 0; /** Remove CR 0A*/
+			fprintf(m_fp, "%s\r\n", m_msg);
 		}
 		Close();
 		

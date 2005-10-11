@@ -65,14 +65,14 @@
 	{
 		MID_DECODER_START,
 		MID_DECODER_STOP,
-		MID_DECODER_THREAD_EXIT
+		MID_DECODER_THREAD_EXIT_NEEDOK
 	};
 	
 	enum MessageIDsFromPSPSoundToPlayThread
 	{
 		MID_PLAY_START,
 		MID_PLAY_STOP,
-		MID_PLAY_THREAD_EXIT
+		MID_PLAY_THREAD_EXIT_NEEDOK
 	};
 	
 	/* ------ Declarations from "httpget.c" (From mpg123) ------ */
@@ -199,7 +199,7 @@
 		int SendMessage(int iMessageId, void *pMessage = NULL, int iSenderId = SID_PSPSOUND)
 		{ 
 			CPSPMessageQ::QMessage msg = { iSenderId, iMessageId, pMessage };
-			return pPSPApp->m_MsgToPSPApp->Send(msg);
+			return (pPSPApp && pPSPApp->m_MsgToPSPApp)?pPSPApp->m_MsgToPSPApp->Send(msg):-1;
 		};
 
 		size_t GetBufferFillPercentage() { return Buffer.GetBufferFillPercentage(); };

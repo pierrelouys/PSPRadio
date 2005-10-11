@@ -81,33 +81,24 @@ public:
 	int Setup(int argc, char **argv)
 	{
 		/** open config file */
-		char strCfgFile[256], strLogFile[256];
-		char strDir[256];
+		char *strDir = NULL;
 		char strAppTitle[140];
 		
 		m_ExitSema->Up(); /** This to prevent the app from exiting while in this area */
-		
 		
 		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) Version %s\n",
 			GetProgramName(),
 			GetProgramVersion());
 		
-		strcpy(strDir, argv[0]);
-		dirname(strDir); /** Retrieve the directory name */
-		sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
+		strDir = strdup(argv[0]);
+		if (!strDir)
+			return -1;
 			
-		m_Config = new CIniParser(strCfgFile);
-
-		if (1 == m_Config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0))
-		{
-			int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
-			sprintf(strLogFile, "%s/%s", strDir, m_Config->GetStr("DEBUGGING:LOGFILE"));
-			/** Set Logging Global Object to use the configured logfile and loglevels */
-			Logging.Set(strLogFile, (loglevel_enum)iLoglevel);
-			Log(LOG_ALWAYS, "--------------------------------------------------------");
-			Log(LOG_ALWAYS, "%s Version %s Starting - Using Loglevel %d", GetProgramName(), GetProgramVersion(),
-				iLoglevel);
-		}
+		dirname(strDir); /** Retrieve the directory name */
+		
+		Setup_OpenConfigFile(strDir);
+		
+		Setup_Logging(strDir);
 		
 		m_CurrentMetaData  = new CPlayList::songmetadata;
 		if (m_CurrentMetaData)
@@ -119,22 +110,8 @@ public:
 			Log(LOG_ERROR, "Memory allocation error during Metadata allocation.");
 		}
 		
-		Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
-		
-		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
-		{
-			UI = new CGraphicsUI();
-		}
-		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
-		{
-			UI = new CSandbergUI();
-		}
-		else
-		{
-			UI = new CTextUI();
-		}
-		
-		UI->Initialize(strDir); /* Initialize takes cwd */
+		Setup_UI(strDir);
+	
 		UI->SetTitle(strAppTitle);
 		
 		if (1 == m_Config->GetInteger("USB:ENABLED", 0))
@@ -151,6 +128,88 @@ public:
 			sceKernelChangeThreadPriority(sceKernelGetThreadId(), m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
 		}
 		
+		Setup_PlayLists();
+	
+		Setup_Sound();
+		
+		Setup_Network();
+		
+		Log(LOG_VERYLOW, "Freeing strDir");
+		free(strDir);
+		
+		Log(LOG_VERYLOW, "StartPolling()");
+		StartPolling();
+		
+		Log(LOG_LOWLEVEL, "Exiting Setup()");
+
+		m_ExitSema->Down();
+
+		return 0;
+	}
+	
+	int Setup_OpenConfigFile(char *strCurrentDir)
+	{
+		char *strFilename = NULL;
+		
+		strFilename = (char*)malloc(strlen(strCurrentDir) + 1 + strlen(CFG_FILENAME) + 10);
+		
+		if (!strFilename)
+			return -1;
+		
+		sprintf(strFilename, "%s/%s", strCurrentDir, CFG_FILENAME);
+		
+		m_Config = new CIniParser(strFilename);
+		
+		free(strFilename), strFilename = NULL;
+		
+		return 0;
+	}
+	
+	int Setup_Logging(char *strCurrentDir)
+	{
+		char *strFilename = NULL;
+		if ( m_Config && (1 == m_Config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0)) )
+		{
+			int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
+			
+			strFilename = (char*)malloc(strlen(strCurrentDir) + 1 + strlen(m_Config->GetStr("DEBUGGING:LOGFILE")) + 10);
+			sprintf(strFilename, "%s/%s", strCurrentDir, m_Config->GetStr("DEBUGGING:LOGFILE"));
+			/** Set Logging Global Object to use the configured logfile and loglevels */
+			Logging.Set(strFilename, (loglevel_enum)iLoglevel);
+			free(strFilename), strFilename = NULL;
+			
+			Log(LOG_ALWAYS, "--------------------------------------------------------");
+			Log(LOG_ALWAYS, "%s Version %s Starting - Using Loglevel %d", GetProgramName(), GetProgramVersion(),
+				iLoglevel);
+		}
+		
+		return 0;
+	}
+	
+	int Setup_UI(char *strCurrentDir)
+	{
+		Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
+		
+		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
+		{
+			UI = new CGraphicsUI();
+		}
+		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
+		{
+			UI = new CSandbergUI();
+		}
+		else
+		{
+			UI = new CTextUI();
+		}
+		
+		UI->Initialize(strCurrentDir); /* Initialize takes cwd */
+		
+		return 0;
+	}
+	
+	int Setup_Network()
+	{
 		m_iNetworkProfile = m_Config->GetInteger("WIFI:PROFILE", 1);
 		
 		if (m_iNetworkProfile < 1)
@@ -159,7 +218,7 @@ public:
 			Log(LOG_ERROR, "Network Profile in m_Config file is invalid. Network profiles start from 1.");
 		}
 		
-		if (m_Config->GetInteger("WIFI:AUTOSTART", 0) == 1)
+		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
 		{
 			UI->DisplayMessage_EnablingNetwork();
 			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", m_iNetworkProfile);
@@ -174,6 +233,11 @@ public:
 			DisplayCurrentNetworkSelection();
 		}
 		
+		return 0;
+	}	
+	
+	int Setup_Sound()
+	{
 		m_Sound = new CPSPSound();
 
 		if (m_Sound)
@@ -187,7 +251,7 @@ public:
 			}
 			
 			/** Set the thread priorities */
-			if (-1 != m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"))
+			if (-1 != m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO", -1))
 			{
 			
 				Log(LOG_INFO, "Setting DECODE_THREAD_PRIO to %d as specified in config file.", 
@@ -195,7 +259,7 @@ public:
 	
 				m_Sound->SetDecodeThreadPriority(m_Config->GetInteger("SYSTEM:DECODE_THREAD_PRIO"));
 			}
-			if (-1 != m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"))
+			if (-1 != m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO", -1))
 			{
 			
 				Log(LOG_INFO, "Setting PLAY_THREAD_PRIO to %d as specified in config file.", 
@@ -203,36 +267,41 @@ public:
 	
 				m_Sound->SetPlayThreadPriority(m_Config->GetInteger("SYSTEM:PLAY_THREAD_PRIO"));
 			}
-			
-					
 		}
 		else
 		{
 			Log(LOG_ERROR, "Error creating m_Sound object.");
 		}	
-			
+		
+		return 0;
+	}
+	
+	int Setup_PlayLists()
+	{
 		m_CurrentPlayList = new CPlayList();
 		
 		if (m_CurrentPlayList)
 		{
-		
 			m_CurrentPlayListDir = new CDirList();
 			
 			if (m_CurrentPlayListDir)
 			{
-				m_CurrentPlayListDir->LoadDirectory("PlayLists");
+				m_CurrentPlayListDir->LoadDirectory("PlayLists"); //**//
+
 				if (m_CurrentPlayListDir->Size() > 0)
 				{
 					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
 					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+					Log(LOG_LOWLEVEL, "Displaying current playlist");
 					UI->DisplayPLList(m_CurrentPlayListDir);
 					
 					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
 					{
 						UI->DisplayPLEntries(m_CurrentPlayList);
 						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						UI->OnNewSongData(m_CurrentMetaData);
+						//don't until user starts it!
+						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						//UI->OnNewSongData(m_CurrentMetaData);
 					}
 				}
 			}
@@ -242,14 +311,7 @@ public:
 		{
 			Log(LOG_ERROR, "Error creating CPlaylist object.");
 		}
-	
-		/** Start Polling for Vblank and buttons */
-		Start();
 		
-		Log(LOG_LOWLEVEL, "Exiting Setup()");
-
-		m_ExitSema->Down();
-
 		return 0;
 	}
 	
@@ -429,6 +491,7 @@ public:
 			if ( m_MsgToPSPApp->Size() > 100 )
 			{
 				Log(LOG_ERROR, "ProcessMessages(): Too many messages backed-up!: %d. Exiting!", m_MsgToPSPApp->Size());
+				UI->DisplayErrorMessage("Message Queue Backed-up, Exiting!");
 				m_ExitSema->Down();
 				return 0;
 			}
@@ -448,6 +511,7 @@ public:
 			case MID_ERROR:
 				UI->DisplayErrorMessage((char*)msg.pData);
 				Log(LOG_ERROR, (char*)msg.pData);
+				continue;
 				break;
 			}
 			
@@ -522,6 +586,17 @@ public:
 				case MID_TCP_CONNECTING_PROGRESS:
 					UI->OnConnectionProgress();
 					break;
+					
+				case MID_ONBUTTON_PRESSED:
+					break;
+					
+				case MID_ONBUTTON_RELEASED:
+					OnButtonReleased(*((int*)msg.pData));
+					break;
+					
+				case MID_ONVBLANK:
+					UI->OnVBlank();
+					break;
 				
 				default:
 					Log(LOG_VERYLOW, "OnMessage: Unhandled message: MID=0x%x SID=0x%x", msg.MessageId, msg.SenderId);
@@ -531,11 +606,6 @@ public:
 		}
 		m_ExitSema->Down();
 		return 0;
-	}
-	
-	void OnVBlank()
-	{
-		UI->OnVBlank();
 	}
 	
 	/** Raw metadata looks like this:
@@ -588,10 +658,13 @@ public:
 int main(int argc, char **argv) 
 {
 	myPSPApp *PSPApp  = new myPSPApp();
-	PSPApp->Setup(argc, argv);
-	PSPApp->ProcessMessages();
-	
-	delete(PSPApp);
+	if (PSPApp)
+	{
+		PSPApp->Setup(argc, argv);
+		PSPApp->ProcessMessages();
+		
+		delete(PSPApp);
+	}
 	
 	return 0;
 }

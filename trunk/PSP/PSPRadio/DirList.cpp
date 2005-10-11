@@ -77,7 +77,8 @@ void CDirList::InsertURI(char *strFileName)
 
 void CDirList::LoadDirectory(char *strDirName)
 {
-	directorydata *mydata;
+//#if 0
+	directorydata *mydata = NULL;
 	int dfd;
 	SceIoDirent direntry;
 	
@@ -87,6 +88,9 @@ void CDirList::LoadDirectory(char *strDirName)
 
 	if (dfd > 0)
 	{
+		//Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Calling sceIoDread(%d,0x%x).",dfd, &direntry);
+		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
+		memset(&direntry, 0, sizeof(SceIoDirent));
 		while(sceIoDread(dfd, &direntry) > 0)
 		{
 			memset(mydata, 0, sizeof(directorydata));
@@ -106,7 +110,11 @@ void CDirList::LoadDirectory(char *strDirName)
 	}
 	
 	delete (mydata);
-	//(*m_diriterator).i
+//#endif
+//	directorydata mydata;
+//	strcpy(mydata.strURI, "PlayLists/MIXED.PLS");
+//	m_dirlist.push_back(mydata);
+//	m_diriterator = m_dirlist.begin();
 }
 
 void CDirList::Clear()

@@ -3,13 +3,15 @@ KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
 OBJS = PSPRadio.o  DirList.o PlayList.o \
+		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
 		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
 		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o 
 
 INCDIR = ../
 
-CFLAGS = -O2 -G2 -Wall -I../SharedLib/PSPApp -L../SharedLib/lib \
+#-O2 -G2
+CFLAGS = -Wall -I../SharedLib/PSPApp -L../SharedLib/lib \
 		 -I../SharedLib/libpspnet -I../SharedLib/libiniparser \
 		 -I../SharedLib/Tools -I../SharedLib/Logging \
 		 -I./TextUI \
