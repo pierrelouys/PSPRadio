@@ -30,7 +30,10 @@ with the config file.
 -Revamped comm system for PSPApp (PSPRadio) using message q. This solves the problem with callback messaging 
 (thread prio boosting/inheritance from caller, overhead on caller thread, etc. -- Also, now polling of buttons/vblank 
 is done in a separate thread. -- still work in progress --.
-
+-Message queue system renamed to event queue.. Everything is now using this, except for vblank.
+-Changes to Logging to show time(in ms) and line numbers.
+-Buffer is updated at 6fps max now (this to not overtax main thread+event handler)
+-Now clear metadata on stream stop (including buffer)
 
 0.34
 -Corrected the mutex and semaphore implementations..

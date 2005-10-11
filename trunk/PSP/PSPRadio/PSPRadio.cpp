@@ -531,7 +531,10 @@ public:
 				//case MID_THPLAY_END:
 				//	break;
 				case MID_BUFF_PERCENT_UPDATE:
-					UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
+					if (CPSPSound::PLAY == m_Sound->GetPlayState())
+					{
+						UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
+					}
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
 					UI->DisplayActiveCommand(CPSPSound::STOP);
