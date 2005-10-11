@@ -233,11 +233,12 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
 		Frame *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
-		int count = 0;
+		//int count = 0;
 		CPSPEventQ *m_EventToPlayTh = pPSPSound->m_EventToPlayTh;
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
-
+		int timeLastPercentEvent = 500; /** Initialize to something so the percentage event is sent the first time */
+		
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendEvent(MID_THPLAY_BEGIN);
 		
@@ -265,9 +266,10 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 					mybuf = pPSPSound->Buffer.PopBuffer();
 					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
 					
-					if (count++ % 2)
+					if ((clock()/1000 - timeLastPercentEvent) > 333) /** 3 times per sec */
 					{
 						pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
+						timeLastPercentEvent = clock() / 1000;
 					}
 				}
 				Log(LOG_VERYLOW, "ThPlay:: Thread Play exiting play area - message waiting.");
@@ -455,7 +457,9 @@ void CPSPSoundBuffer::PushFrame(Frame frame) /** Push a frame at an arbitrary sa
 
 void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz stream */
 {
-	static int count = 0;
+	//static int count = 0;
+	static int timeLastPercentEvent = 500; /** Initialize to something so the percentage event is sent the first time */
+	
 	
 	while ( GetBufferFillPercentage() == 100 )
 	{ 
@@ -471,9 +475,10 @@ void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz s
 		
 	m_FrameCount++;
 	
-	if (count++ % (PSP_BUFFER_SIZE_IN_FRAMES)*2 == 0)
+	if ((clock()/1000 - timeLastPercentEvent) > 333) /** 3 times per sec */
 	{
 		pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
+		timeLastPercentEvent = clock() / 1000;
 	}
 }
 
