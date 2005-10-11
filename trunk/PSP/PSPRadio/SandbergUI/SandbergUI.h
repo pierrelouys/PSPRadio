@@ -59,9 +59,11 @@ private:
 	void CSandbergUI::RenderFX(void);
 	void CSandbergUI::RenderLogo(void);
 	void CSandbergUI::RenderPL(void);
+	void CSandbergUI::RenderState(void);
 
 private:
 	void* 	framebuffer;
+	int	rot_stop;
 };
 
 
