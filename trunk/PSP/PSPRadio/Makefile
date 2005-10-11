@@ -10,8 +10,7 @@ OBJS = PSPRadio.o  DirList.o PlayList.o \
 
 INCDIR = ../
 
-#-O2 -G2
-CFLAGS = -Wall -I../SharedLib/PSPApp -L../SharedLib/lib \
+CFLAGS = -O2 -Wall -I../SharedLib/PSPApp -L../SharedLib/lib \
 		 -I../SharedLib/libpspnet -I../SharedLib/libiniparser \
 		 -I../SharedLib/Tools -I../SharedLib/Logging \
 		 -I./TextUI \
