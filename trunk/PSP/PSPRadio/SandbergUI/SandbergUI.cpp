@@ -219,14 +219,27 @@ static struct Vertex __attribute__((aligned(16))) button[2*3] =
 
 static unsigned int __attribute__((aligned(16))) list[262144];
 
+
 CSandbergUI::CSandbergUI()
 {
 	framebuffer = 0;
 	rot_stop = 85;
+
+	pl_name = 0;
+	pl_entry = 0;
 }
 
 CSandbergUI::~CSandbergUI()
 {
+	if (pl_name != NULL)
+	{
+		free(pl_entry);
+	}
+
+	if (pl_entry != NULL)
+	{
+		free(pl_entry);
+	}
 }
 
 int CSandbergUI::Initialize(char *strCWD)
@@ -234,8 +247,8 @@ int CSandbergUI::Initialize(char *strCWD)
 	Log(LOG_LOWLEVEL, "Initialize:");
 
 	pspDebugScreenInit();
-	// setup GU
 
+	// setup GU
 	sceGuInit();
 
 	sceGuStart(GU_DIRECT,::list);
@@ -266,6 +279,7 @@ int CSandbergUI::Initialize(char *strCWD)
 	sceKernelDcacheWritebackAll();
 
 	InitFX();
+	InitPL();
 
 	Log(LOG_LOWLEVEL, "Initialize: completed");
 	return 0;
@@ -381,11 +395,8 @@ int CSandbergUI::OnVBlank()
 	sceGumLoadIdentity();
 
 	RenderLogo();
-	sceGuFinish();
-	sceGuSync(0,0);
-
-	sceGuStart(GU_DIRECT,::list);
 	RenderFX();
+	RenderPLName();
 //	RenderPL();
 	RenderState();
 
@@ -403,13 +414,59 @@ int CSandbergUI::OnNewSongData(CPlayList::songmetadata *pData)
 
 int CSandbergUI::DisplayPLList(CDirList *plList)
 {
+
+	if (pl_name != NULL)
+	{
+		free(pl_name);
+		pl_name = NULL;
+	}
+
+	pl_name = (char *) malloc(strlen(plList->GetCurrentURI()));
+
+	if(pl_name)
+	{
+		strcpy(pl_name, plList->GetCurrentURI());
+	}
+
 	return 0;
 }
 
 int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
 {
+	CPlayList::songmetadata Data;
+	int iRet;
+
+	if (pl_entry != NULL)
+	{
+		free(pl_entry);
+		pl_entry = NULL;
+	}
+
+	iRet = PlayList->GetCurrentSong(&Data);
+
+	if (0 == iRet)
+	{
+		if (strlen(Data.strFileTitle))
+		{
+			pl_entry = (char *) malloc(strlen(Data.strFileTitle));
+			if (pl_entry)
+			{	
+				strcpy(pl_entry, Data.strFileTitle);
+			}
+		}
+		else
+		{
+			pl_entry = (char *) malloc(strlen(Data.strFileName));
+			if (pl_entry)
+			{	
+				strcpy(pl_entry, Data.strFileName);
+			}
+		}
+	}
+
 	return 0;
 }
+
 
 int CSandbergUI::OnConnectionProgress()
 {

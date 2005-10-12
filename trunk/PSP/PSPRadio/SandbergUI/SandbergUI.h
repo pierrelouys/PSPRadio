@@ -23,6 +23,15 @@
 
 #include "IPSPRadio_UI.h"
 
+struct char_map
+{
+	char	char_index;
+	float	min_x;
+	float	min_y;
+	float	max_x;
+	float	max_y;
+};
+
 class CSandbergUI : public IPSPRadio_UI
 {
 public:
@@ -55,13 +64,22 @@ public:
 	virtual	int DisplayPLEntries(CPlayList *PlayList);
 
 private:
+
+	struct char_map	* CSandbergUI::FindCharMap(char index);
+
 	void CSandbergUI::InitFX(void);
+	void CSandbergUI::InitPL(void);
+
 	void CSandbergUI::RenderFX(void);
 	void CSandbergUI::RenderLogo(void);
 	void CSandbergUI::RenderPL(void);
 	void CSandbergUI::RenderState(void);
+	void CSandbergUI::RenderPLName(void);
+	void CSandbergUI::RenderPLEntry(void);
 
 private:
+	char*	pl_name;
+	char*	pl_entry;
 	void* 	framebuffer;
 	int	rot_stop;
 };
