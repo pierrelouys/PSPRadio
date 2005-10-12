@@ -1,4 +1,4 @@
-What's New for PSPRadio 0.35-pre3 - Released 10/08/05
+What's New for PSPRadio 0.35-pre4 - Released 10/11/05
 ======================================================
 0.35
 0.35-pre1
@@ -25,15 +25,19 @@ with the config file.
 -Can browse playlists/entries while playing current stream. (It doesn't stop anymore when changing tracks)
 -Refactoring of PSPSound/PSPSound_MP3 -> PSPSound/PSPSoundDecoder_MAD, internal OO changes.
 -Thread priorities are now configurable in the .cfg file.
-035-pre4
+0.35-pre4
 -Added message queue class for inter thread communications and synchronization.
 -Revamped comm system for PSPApp (PSPRadio) using message q. This solves the problem with callback messaging 
 (thread prio boosting/inheritance from caller, overhead on caller thread, etc. -- Also, now polling of buttons/vblank 
-is done in a separate thread. -- still work in progress --.
+is done in a separate thread. -- still work in progress --).
 -Message queue system renamed to event queue.. Everything is now using this, except for vblank.
 -Changes to Logging to show time(in ms) and line numbers.
--Buffer is updated at 6fps max now (this to not overtax main thread+event handler)
--Now clear metadata on stream stop (including buffer)
+-Buffer Percentage is updated at 6fps max now (this to not overtax main thread+event handler)
+-Now clear metadata on stream stop (including buffer %).
+-more internal refactoring...
+0.35-pre5
+
+
 
 0.34
 -Corrected the mutex and semaphore implementations..
