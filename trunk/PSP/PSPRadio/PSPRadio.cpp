@@ -28,6 +28,7 @@
 #include <Tools.h>
 #include <Logging.h>
 #include <pspwlan.h> 
+#include <psphprm.h>
 #include "DirList.h"
 #include "PlayList.h"
 #include "TextUI.h"
@@ -476,6 +477,47 @@ public:
 		}
 	};
 	
+	void OnHPRMReleased(u32 iHPRMMask)
+	{
+		Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
+		if (m_Sound)
+		{
+			CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
+
+			if (iHPRMMask & PSP_HPRM_BACK)
+			{
+				m_CurrentPlayList->Prev();
+				UI->DisplayPLEntries(m_CurrentPlayList);
+			}
+			else if (iHPRMMask & PSP_HPRM_FORWARD)
+			{
+				m_CurrentPlayList->Next();
+				UI->DisplayPLEntries(m_CurrentPlayList);
+			}
+
+			else if (iHPRMMask & PSP_HPRM_PLAYPAUSE) 
+			{
+				switch(playingstate)
+				{
+					case CPSPSound::STOP:
+					case CPSPSound::PAUSE:
+						//eCurrentMetaData();
+						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+						UI->DisplayActiveCommand(CPSPSound::PLAY);
+						m_Sound->Play();
+						/** Populate m_CurrentMetaData */
+						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						UI->OnNewSongData(m_CurrentMetaData);
+						break;
+					case CPSPSound::PLAY:
+						UI->DisplayActiveCommand(CPSPSound::STOP);
+						m_Sound->Stop();
+						break;
+				}
+			}
+		}
+	};
+
 	int ProcessEvents()
 	{
 		char MData[MAX_METADATA_SIZE];
@@ -597,6 +639,10 @@ public:
 					OnButtonReleased(*((int*)event.pData));
 					break;
 					
+				case MID_ONHPRM_RELEASED:
+					OnHPRMReleased(*((u32*)event.pData));
+					break;
+
 				case MID_ONVBLANK:
 					UI->OnVBlank();
 					break;

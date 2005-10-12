@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <pspnet.h>
+#include <psphprm.h>
 #include "PSPApp.h"
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
@@ -117,6 +118,7 @@ int CPSPApp::Run()
 	short oldAnalogue = 0;
 	int   oldButtonMask = 0;
 	SceCtrlLatch latch; 
+	u32 hprmlatch = 0;
 	
 	Log(LOG_INFO, "Run(): Going into main loop.");
 	
@@ -155,6 +157,16 @@ int CPSPApp::Run()
 			//pspDebugScreenSetXY(0,5);
 			oldAnalogue = (short)m_pad.Lx;
 			OnAnalogueStickChange(m_pad.Lx, m_pad.Ly);
+		}
+
+		if (sceHprmIsRemoteExist())
+		{
+			sceHprmReadLatch(&hprmlatch);
+			if (hprmlatch != 0x00)
+				{
+				SendEvent(MID_ONHPRM_RELEASED, &hprmlatch);
+				Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
+				}
 		}
 	}
 	
