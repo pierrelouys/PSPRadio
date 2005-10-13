@@ -133,7 +133,18 @@ public:
 		Setup_Sound();
 		
 		m_ScreenHandler->SetUp(m_UI, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir, m_CurrentMetaData);
-		m_ScreenHandler->Setup_Network();
+		
+		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
+		{
+			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
+				m_ScreenHandler->GetCurrentNetworkProfile());
+			m_ScreenHandler->Setup_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
+		}
+		else
+		{
+			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
+			m_ScreenHandler->DisplayCurrentNetworkSelection();
+		}
 		
 		Log(LOG_VERYLOW, "Freeing strDir");
 		free(strDir);
@@ -189,13 +200,13 @@ public:
 	
 	int Setup_UI(char *strCurrentDir)
 	{
-		Log(LOG_LOWLEVEL, "m_UI Mode = %s", m_Config->GetStr("m_UI:MODE"));
+		Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
 		
-		if (0 == strcmp(m_Config->GetStr("m_UI:MODE"), "Graphics"))
+		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
 		{
 			m_UI = new CGraphicsUI();
 		}
-		else if (0 == strcmp(m_Config->GetStr("m_UI:MODE"), "3D"))
+		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
 		{
 			m_UI = new CSandbergUI();
 		}
@@ -300,9 +311,9 @@ public:
 		}
 		if (m_UI)
 		{
-			Log(LOG_LOWLEVEL, "Exiting. Calling m_UI->Terminate");
+			Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
 			m_UI->Terminate();
-			Log(LOG_LOWLEVEL, "Exiting. Destroying m_UI object");
+			Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
 			delete(m_UI);
 			m_UI = NULL;
 		}
@@ -334,6 +345,7 @@ public:
 				m_ScreenHandler->PlayListScreenInputHandler(iButtonMask);
 				break;
 			case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+				m_ScreenHandler->OptionsScreenInputHandler(iButtonMask);
 				break;
 		}
 	}

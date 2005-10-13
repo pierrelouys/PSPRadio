@@ -1,8 +1,15 @@
 #ifndef __SCREEN_HANDLER__
 	#define __SCREEN_HANDLER__
 	
+	#include <PSPSound.h>
 	#include "IPSPRadio_UI.h"
 	#include <iniparser.h>
+	#include "PlayList.h"
+	#include "DirList.h"
+	#include <list>
+	using namespace std;
+
+	class IPSPRadio_UI;
 	
 	class CScreenHandler
 	{
@@ -13,12 +20,30 @@
 			PSPRADIO_SCREEN_OPTIONS
 		};
 		
+		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
+		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
+		
+		/** Options screen */
+		struct Options
+		{
+			int	 Id;
+			char strName[60];
+			char strStates[256];
+			int  iSelectedState;
+			int  iNumberOfStates;
+		};
+		list<Options> m_OptionsList;
+		list<Options>::iterator m_CurrentOptionIterator;
+		void OptionsScreenInputHandler(int iButtonMask);
+		/** Options screen */
+		
 		CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound);
 		
 		void SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound, 
 					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir, CPlayList::songmetadata *CurrentMetaData);
+		void StartScreen(Screen screen);
 
-		int  Setup_Network();
+		int  Setup_Network(int iNewProfile);
 		void DisplayCurrentNetworkSelection();
 		void PlayListScreenInputHandler(int iButtonMask);
 		void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)		;

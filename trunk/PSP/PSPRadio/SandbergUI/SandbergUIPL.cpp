@@ -148,7 +148,7 @@ static struct Vertex __attribute__((aligned(16))) vertices[2*3] =
 
 static struct Vertex __attribute__((aligned(16))) pl_name_vertices[2*3*PL_TEXT_LENGTH];
 
-static struct Vertex __attribute__((aligned(16))) pl_entry_vertices[2*3*PL_TEXT_LENGTH];
+//static struct Vertex __attribute__((aligned(16))) pl_entry_vertices[2*3*PL_TEXT_LENGTH];
 
 void CSandbergUI::InitPL(void)
 {

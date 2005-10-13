@@ -33,12 +33,18 @@ public:
 	int OnNewSongData(CPlayList::songmetadata *pData);
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
+	
+	/** Screen Handling */
+	void Initialize_Screen(CScreenHandler::Screen screen);
+	void CTextUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
+									list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
 
 	
 private:
 	CLock *m_lockprint;
 	CLock *m_lockclear;
 	CIniParser *m_Config;
+	char  *m_strTitle;
 	//helpers
 	enum uicolors
 	{
@@ -56,6 +62,8 @@ private:
 	int ClearErrorMessage();
 	int GetConfigColor(char *strKey);
 	void GetConfigPos(char *strKey, int *x, int *y);
+	
+	void PrintOption(int x, int y, int c, char *strName, char *strStates, int iSelectedState);
 
 };
 

@@ -40,6 +40,15 @@
 #define ReportError pPSPApp->ReportError
 
 
+CScreenHandler::Options OptionsData[] = 
+{
+	{	0,	"Select Network Profile",	"",								0,0		},
+	{	1,	"USB",						"Stopped|Started",				1,2		},
+	{	2,	"CPU Speed",				"222|266|333",					1,3		},
+	
+	{  -1,  "",							"",								0,0		}
+};
+
 CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound)
 {
 	m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
@@ -58,31 +67,50 @@ void CScreenHandler::SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Soun
 	m_CurrentPlayList = CurrentPlayList;
 	m_CurrentPlayListDir = CurrentPlayListDir;
 	m_CurrentMetaData = CurrentMetaData;
+	
+	StartScreen(m_CurrentScreen);
 }
 
-int CScreenHandler::Setup_Network()
+int CScreenHandler::Setup_Network(int iProfile)
 {
-	m_iNetworkProfile = m_Config->GetInteger("WIFI:PROFILE", 1);
-	
-	if (m_iNetworkProfile < 1)
+	m_iNetworkProfile = abs(iProfile);
+	if (0 == iProfile)
 	{
 		m_iNetworkProfile = 1;
-		Log(LOG_ERROR, "Network Profile in m_Config file is invalid. Network profiles start from 1.");
+		Log(LOG_ERROR, "Network Profile in is invalid. Network profiles start from 1.");
 	}
-	
-	if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
+	if (sceWlanGetSwitchState() != 0)
 	{
+		pPSPApp->CantExit();
+
+		m_UI->DisplayActiveCommand(CPSPSound::STOP);
+		m_Sound->Stop();
+		sceKernelDelayThread(50000);  
+		
+		if (m_NetworkStarted)
+		{
+			m_UI->DisplayMessage_DisablingNetwork();
+
+			Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+			pPSPApp->DisableNetwork();
+			sceKernelDelayThread(500000);  
+		}
+		
 		m_UI->DisplayMessage_EnablingNetwork();
-		Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", m_iNetworkProfile);
-		pPSPApp->EnableNetwork(m_iNetworkProfile);
+
+		pPSPApp->EnableNetwork(abs(m_iNetworkProfile));
+		
 		m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
+		
+		m_NetworkStarted = true;
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
-		m_NetworkStarted = 1;
+		
+		pPSPApp->CanExit();
 	}
 	else
 	{
-		Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
-		DisplayCurrentNetworkSelection();
+		ReportError("The Network Switch is OFF, Cannot Start Network.");
 	}
 	
 	return 0;
@@ -100,6 +128,90 @@ void CScreenHandler::DisplayCurrentNetworkSelection()
 	Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
 }
 	
+
+void CScreenHandler::StartScreen(Screen screen)
+{
+	Options Option;
+	
+	((CTextUI*)m_UI)->Initialize_Screen(m_CurrentScreen);
+	
+	switch(screen)
+	{
+		case PSPRADIO_SCREEN_PLAYLIST:
+			break;
+			
+		case PSPRADIO_SCREEN_OPTIONS:
+			while(m_OptionsList.size())
+			{
+				m_OptionsList.pop_front();
+			}
+			
+			
+			for (int iOptNo=0;; iOptNo++)
+			{
+				if (-1 == OptionsData[iOptNo].Id)
+					break;
+			
+				Option.Id = OptionsData[iOptNo].Id;
+				sprintf(Option.strName, 	OptionsData[iOptNo].strName);
+				sprintf(Option.strStates, 	OptionsData[iOptNo].strStates);
+				Option.iSelectedState = OptionsData[iOptNo].iSelectedState;
+				Option.iNumberOfStates = OptionsData[iOptNo].iNumberOfStates;
+				
+				m_OptionsList.push_back(Option);
+			}
+			
+			m_CurrentOptionIterator = m_OptionsList.begin();
+			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			break;
+	}
+	
+
+}
+
+void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
+{
+//	Options Option;
+	
+	if (iButtonMask & PSP_CTRL_TRIANGLE)
+	{
+		m_CurrentScreen = (Screen)(m_CurrentScreen+1);
+		if (m_CurrentScreen == PSPRADIO_SCREEN_LIST_END)
+		{
+			m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
+		}
+		StartScreen(m_CurrentScreen);
+	}
+	else if (iButtonMask & PSP_CTRL_UP)
+	{
+		if(m_CurrentOptionIterator == m_OptionsList.begin())
+			m_CurrentOptionIterator = m_OptionsList.end();
+		m_CurrentOptionIterator--;
+		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+	else if (iButtonMask & PSP_CTRL_DOWN)
+	{
+		m_CurrentOptionIterator++;
+		if(m_CurrentOptionIterator == m_OptionsList.end())
+			m_CurrentOptionIterator = m_OptionsList.begin();
+		
+		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+	else if (iButtonMask & PSP_CTRL_LEFT)
+	{
+		(*m_CurrentOptionIterator).iSelectedState--;
+		
+		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+	else if (iButtonMask & PSP_CTRL_RIGHT)
+	{
+		(*m_CurrentOptionIterator).iSelectedState++;
+		
+		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+}
+
+
 void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 {
 	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
@@ -188,41 +300,15 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 				m_Sound->Stop();
 			}
 		}
-		else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
+		else if (iButtonMask & PSP_CTRL_TRIANGLE)// && !m_NetworkStarted)
 		{
-			if (sceWlanGetSwitchState() != 0)
+			//Setup_Network(m_iNetworkProfile);
+			m_CurrentScreen = (Screen)(m_CurrentScreen+1);
+			if (m_CurrentScreen == PSPRADIO_SCREEN_LIST_END)
 			{
-				pPSPApp->CantExit();
-
-				m_UI->DisplayActiveCommand(CPSPSound::STOP);
-				m_Sound->Stop();
-				sceKernelDelayThread(50000);  
-				
-				if (m_NetworkStarted)
-				{
-					m_UI->DisplayMessage_DisablingNetwork();
-	
-					Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-					pPSPApp->DisableNetwork();
-					sceKernelDelayThread(500000);  
-				}
-				
-				m_UI->DisplayMessage_EnablingNetwork();
-
-				pPSPApp->EnableNetwork(abs(m_iNetworkProfile));
-				
-				m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
-				Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
-				
-				m_NetworkStarted = true;
-				
-				pPSPApp->CanExit();
+				m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
 			}
-			else
-			{
-				ReportError("The Network Switch is OFF, Cannot Start Network.");
-			}
-			
+			StartScreen(m_CurrentScreen);
 		}
 	}
 };
