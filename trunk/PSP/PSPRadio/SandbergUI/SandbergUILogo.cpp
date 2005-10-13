@@ -102,6 +102,17 @@ static struct Vertex __attribute__((aligned(16))) vertices[2*3] =
 	{1.0f, 1.0f, 0xffffffff, 2,-0.5, 0}, // 1
 };
 
+static struct Vertex __attribute__((aligned(16))) c_vertices[2*3] =
+{
+	{0.0f, 1.0f, 0xffffffff,-0.5,-0.5, 0}, // 0
+	{0.0f, 0.0f, 0xffffffff,-0.5, 0.5, 0}, // 4
+	{1.0f, 0.0f, 0xffffffff, 0.5, 0.5, 0}, // 5
+
+	{0.0f, 1.0f, 0xffffffff,-0.5,-0.5, 0}, // 0
+	{1.0f, 0.0f, 0xffffffff, 0.5, 0.5, 0}, // 5
+	{1.0f, 1.0f, 0xffffffff, 0.5,-0.5, 0}, // 1
+};
+
 void CSandbergUI::RenderLogo(void)
 {
 static int rot = 0;
@@ -126,34 +137,73 @@ static int rot = 0;
 	sceGuColor(0xFFFFFFFF);
 
 	// Vertex 1
-	vertices[0].x = -2.0f + ::sintable[(rot+32)%ROTSIZE];
-	vertices[0].y = -0.5f + ::costable[(rot)%ROTSIZE];
-	vertices[0].z = ::costable[(rot+64)%ROTSIZE];
-	vertices[3].x = -2.0f + ::sintable[(rot+32)%ROTSIZE];
-	vertices[3].y = -0.5f + ::costable[(rot)%ROTSIZE];
-	vertices[3].z = ::costable[(rot+64)%ROTSIZE];
+	::vertices[0].x = -2.0f + ::sintable[(rot+32)%ROTSIZE];
+	::vertices[0].y = -0.5f + ::costable[(rot)%ROTSIZE];
+	::vertices[0].z = ::costable[(rot+64)%ROTSIZE];
+	::vertices[3].x = -2.0f + ::sintable[(rot+32)%ROTSIZE];
+	::vertices[3].y = -0.5f + ::costable[(rot)%ROTSIZE];
+	::vertices[3].z = ::costable[(rot+64)%ROTSIZE];
 
 	// Vertex 2
-	vertices[1].x = -2.0f + ::sintable[(rot)%ROTSIZE];
-	vertices[1].y =  0.5f + ::costable[(rot+32)%ROTSIZE];
-	vertices[1].z = ::costable[(rot+96)%ROTSIZE];
+	::vertices[1].x = -2.0f + ::sintable[(rot)%ROTSIZE];
+	::vertices[1].y =  0.5f + ::costable[(rot+32)%ROTSIZE];
+	::vertices[1].z = ::costable[(rot+96)%ROTSIZE];
 
 	// Vertex 3
-	vertices[2].x =  2.0f + ::sintable[(rot+64)%ROTSIZE];
-	vertices[2].y =  0.5f + ::costable[(rot+96)%ROTSIZE];
-	vertices[2].z = ::costable[(rot)%ROTSIZE];
-	vertices[4].x =  2.0f + ::sintable[(rot+64)%ROTSIZE];
-	vertices[4].y =  0.5f + ::costable[(rot+96)%ROTSIZE];
-	vertices[4].z = ::costable[(rot)%ROTSIZE];
+	::vertices[2].x =  2.0f + ::sintable[(rot+64)%ROTSIZE];
+	::vertices[2].y =  0.5f + ::costable[(rot+96)%ROTSIZE];
+	::vertices[2].z = ::costable[(rot)%ROTSIZE];
+	::vertices[4].x =  2.0f + ::sintable[(rot+64)%ROTSIZE];
+	::vertices[4].y =  0.5f + ::costable[(rot+96)%ROTSIZE];
+	::vertices[4].z = ::costable[(rot)%ROTSIZE];
 
 	// Vertex 4
-	vertices[5].x =  2.0f + ::sintable[(rot+96)%ROTSIZE];
-	vertices[5].y = -0.5f + ::costable[(rot+64)%ROTSIZE];
-	vertices[5].z = ::costable[(rot+32)%ROTSIZE];
+	::vertices[5].x =  2.0f + ::sintable[(rot+96)%ROTSIZE];
+	::vertices[5].y = -0.5f + ::costable[(rot+64)%ROTSIZE];
+	::vertices[5].z = ::costable[(rot+32)%ROTSIZE];
 
 	sceKernelDcacheWritebackAll();
 
 	// draw logo
 	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3,0,::vertices);
 	rot++;
+}
+
+void CSandbergUI::RenderCommands(void)
+{
+	static int zoom = 0;
+
+	sceGuEnable(GU_TEXTURE_2D);
+
+	sceGumMatrixMode(GU_MODEL);
+	sceGumLoadIdentity();
+	{
+		ScePspFVector3 pos = { -3.5, 1.6, -3.0f };
+		ScePspFVector3 rot = { 0 * 0.79f * (M_PI/180.0f), 0 * 0.98f * (M_PI/180.0f), 0 * 1.32f * (M_PI/180.0f) };
+		sceGumRotateXYZ(&rot);
+		sceGumTranslate(&pos);
+	}
+
+	// setup texture
+	sceGuTexMode(GU_PSM_8888,0,0,0);
+	sceGuTexImage(0,64,64,64,::commands);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
+	sceGuTexScale(1.0f,1.0f);
+	sceGuTexOffset(0.0f,0.0f);
+	sceGuAmbientColor(0xffffffff);
+/*
+	::c_vertices[0].z = ::costable[zoom%ROTSIZE];
+	::c_vertices[1].z = ::c_vertices[0].z;
+	::c_vertices[2].z = ::c_vertices[0].z;
+	::c_vertices[3].z = ::c_vertices[0].z;
+	::c_vertices[4].z = ::c_vertices[0].z;;
+	::c_vertices[5].z = ::c_vertices[0].z;
+
+	sceKernelDcacheWritebackAll();
+*/
+	// draw commands
+	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3,0,::c_vertices);
+
+	zoom++;
 }

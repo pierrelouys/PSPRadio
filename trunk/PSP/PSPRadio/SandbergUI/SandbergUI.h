@@ -72,6 +72,7 @@ private:
 
 	void CSandbergUI::RenderFX(void);
 	void CSandbergUI::RenderLogo(void);
+	void CSandbergUI::RenderCommands(void);
 	void CSandbergUI::RenderPL(void);
 	void CSandbergUI::RenderState(void);
 	void CSandbergUI::RenderPLName(void);

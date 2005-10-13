@@ -395,6 +395,7 @@ int CSandbergUI::OnVBlank()
 	sceGumLoadIdentity();
 
 	RenderLogo();
+	RenderCommands();
 	RenderFX();
 	RenderPLName();
 //	RenderPL();

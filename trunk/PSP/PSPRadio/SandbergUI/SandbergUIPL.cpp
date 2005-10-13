@@ -46,7 +46,7 @@
 #define PL_TEXT_SCALE_Z		2.0f
 
 
-#define NUMBER_OF_CHARS		(2*26+1+10+8)
+#define NUMBER_OF_CHARS		(2*26+1+10+12)
 
 static struct char_map __attribute__((aligned(16))) char_mapping[NUMBER_OF_CHARS] =
 {
@@ -126,6 +126,10 @@ static struct char_map __attribute__((aligned(16))) char_mapping[NUMBER_OF_CHARS
 	{')', (float)( 9*16)/256, (float)( 2*16)/64, (float)(10*16)/256, (float)( 3*16)/64},
 	{'[', (float)(10*16)/256, (float)( 2*16)/64, (float)(11*16)/256, (float)( 3*16)/64},
 	{']', (float)(11*16)/256, (float)( 2*16)/64, (float)(12*16)/256, (float)( 3*16)/64},
+	{'*', (float)(12*16)/256, (float)( 2*16)/64, (float)(13*16)/256, (float)( 3*16)/64},
+	{'.', (float)(13*16)/256, (float)( 2*16)/64, (float)(14*16)/256, (float)( 3*16)/64},
+	{'^', (float)(14*16)/256, (float)( 2*16)/64, (float)(15*16)/256, (float)( 3*16)/64},
+	{'"', (float)(15*16)/256, (float)( 2*16)/64, (float)(16*16)/256, (float)( 3*16)/64},
 };
 
 struct Vertex
@@ -146,14 +150,14 @@ static struct Vertex __attribute__((aligned(16))) vertices[2*3] =
 	{1.0f, 1.0f, 0xffffffff, 1,-1, 1.5}, // 3
 };
 
-static struct Vertex __attribute__((aligned(16))) pl_name_vertices[2*3*PL_TEXT_LENGTH];
+static struct Vertex __attribute__((aligned(16))) pl_name_vertices[2*3*(PL_TEXT_LENGTH+2)];
 
 //static struct Vertex __attribute__((aligned(16))) pl_entry_vertices[2*3*PL_TEXT_LENGTH];
 
 void CSandbergUI::InitPL(void)
 {
 	// Generate the objects which is used for the PL name and the PL entry
-	for (int i = 0, index = 0 ; i < PL_TEXT_LENGTH; i++)
+	for (int i = 0, index = 0 ; i < PL_TEXT_LENGTH+2; i++)
 	{
 		index += 2 * 3;
 		//printf("%ff,", cosf((((float)i*360)/COUNT)*(M_PI/180))*SCALEY);
@@ -205,8 +209,9 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 5].x 	= ::pl_name_vertices[index + 2].x;
 		::pl_name_vertices[index + 5].y 	= -0.20f; /**/
 		::pl_name_vertices[index + 5].z 	= ::pl_name_vertices[index + 2].z;
-
 	}
+
+
 	// flush cache before we use the object
 	sceKernelDcacheWritebackAll();
 }
@@ -271,7 +276,7 @@ void CSandbergUI::RenderPLName(void)
 	{
 	int len = strlen(pl_entry);
 
-		for (int i = 0, index = 0 ; i < PL_TEXT_LENGTH; i++)
+		for (int i = 0, index = 0 ; i < PL_TEXT_LENGTH+2; i++)
 		{
 			struct char_map	*character;
 			index += 2 * 3;
@@ -279,12 +284,26 @@ void CSandbergUI::RenderPLName(void)
 			/* Make sure we don't read past the end of the text, pad with 'space' */
 			if (i < len)
 			{
-				character = FindCharMap(pl_entry[i]);
+				/* Insert start symbol */
+				if (i == 0)
+				{
+					character = FindCharMap('^');
+				}
+				else
+				{
+					character = FindCharMap(pl_entry[i-1]);
+				}
 			}
 			else
 			{
 				character = FindCharMap(' ');
 			}
+
+			/* Insert end symbol */
+			if (i == PL_TEXT_LENGTH-2)
+				{
+					character = FindCharMap('"');
+				}
 
 			// vertex 0
 			::pl_name_vertices[index + 0].u 	= character->min_x;
