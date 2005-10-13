@@ -35,6 +35,7 @@
 		list<Options> m_OptionsList;
 		list<Options>::iterator m_CurrentOptionIterator;
 		void OptionsScreenInputHandler(int iButtonMask);
+		void OnOptionChange();
 		/** Options screen */
 		
 		CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound);
@@ -43,7 +44,8 @@
 					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir, CPlayList::songmetadata *CurrentMetaData);
 		void StartScreen(Screen screen);
 
-		int  Setup_Network(int iNewProfile);
+		int  Start_Network(int iNewProfile = -1);
+		int  Stop_Network();
 		void DisplayCurrentNetworkSelection();
 		void PlayListScreenInputHandler(int iButtonMask);
 		void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)		;

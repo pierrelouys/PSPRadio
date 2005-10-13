@@ -39,12 +39,17 @@
 
 #define ReportError pPSPApp->ReportError
 
+enum OptionIDs
+{
+	OPTION_ID_NETWORK_ENABLE=1
+};
 
 CScreenHandler::Options OptionsData[] = 
 {
-	{	0,	"Select Network Profile",	"",								0,0		},
-	{	1,	"USB",						"Stopped|Started",				1,2		},
-	{	2,	"CPU Speed",				"222|266|333",					1,3		},
+	{	0,	"Select Network Profile",	"",								1,10	},
+	{	1,	"Start Network",			"OFF|ON",						1,2		},
+	{	2,	"USB",						"Stopped|Started",				1,2		},
+	{	3,	"CPU Speed",				"222|266|333",					1,3		},
 	
 	{  -1,  "",							"",								0,0		}
 };
@@ -71,9 +76,13 @@ void CScreenHandler::SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Soun
 	StartScreen(m_CurrentScreen);
 }
 
-int CScreenHandler::Setup_Network(int iProfile)
+int CScreenHandler::Start_Network(int iProfile)
 {
-	m_iNetworkProfile = abs(iProfile);
+	if (-1 != iProfile)
+	{
+		m_iNetworkProfile = abs(iProfile);
+	}
+
 	if (0 == iProfile)
 	{
 		m_iNetworkProfile = 1;
@@ -83,9 +92,9 @@ int CScreenHandler::Setup_Network(int iProfile)
 	{
 		pPSPApp->CantExit();
 
-		m_UI->DisplayActiveCommand(CPSPSound::STOP);
-		m_Sound->Stop();
-		sceKernelDelayThread(50000);  
+		//m_UI->DisplayActiveCommand(CPSPSound::STOP);
+		//m_Sound->Stop();
+		//sceKernelDelayThread(50000);  
 		
 		if (m_NetworkStarted)
 		{
@@ -101,7 +110,7 @@ int CScreenHandler::Setup_Network(int iProfile)
 		pPSPApp->EnableNetwork(abs(m_iNetworkProfile));
 		
 		m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
-		Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
+		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
 		
 		m_NetworkStarted = true;
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
@@ -115,6 +124,19 @@ int CScreenHandler::Setup_Network(int iProfile)
 	
 	return 0;
 }	
+
+int CScreenHandler::Stop_Network()
+{
+	if (m_NetworkStarted)
+	{
+		m_UI->DisplayMessage_DisablingNetwork();
+
+		Log(LOG_INFO, "Disabling network...");
+		pPSPApp->DisableNetwork();
+		sceKernelDelayThread(500000);  
+	}
+	return 0;
+}
 
 void CScreenHandler::DisplayCurrentNetworkSelection()
 {
@@ -138,6 +160,24 @@ void CScreenHandler::StartScreen(Screen screen)
 	switch(screen)
 	{
 		case PSPRADIO_SCREEN_PLAYLIST:
+			if (m_UI && m_CurrentPlayListDir && m_CurrentPlayList && m_Sound && m_CurrentMetaData)
+			{
+				Log(LOG_LOWLEVEL, "Displaying current playlist");
+				m_UI->DisplayPLList(m_CurrentPlayListDir);
+				
+				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+				{
+					m_UI->DisplayPLEntries(m_CurrentPlayList);
+					
+					if (CPSPSound::PLAY == m_Sound->GetPlayState())
+					{
+						/** Populate m_CurrentMetaData */
+						//don't until user starts it!
+						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						m_UI->OnNewSongData(m_CurrentMetaData);
+					}
+				}
+			}
 			break;
 			
 		case PSPRADIO_SCREEN_OPTIONS:
@@ -199,18 +239,42 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 	}
 	else if (iButtonMask & PSP_CTRL_LEFT)
 	{
-		(*m_CurrentOptionIterator).iSelectedState--;
+		if ((*m_CurrentOptionIterator).iSelectedState > 1)
+		{
+			(*m_CurrentOptionIterator).iSelectedState--;
 		
-		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			OnOptionChange();
+			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		}
 	}
 	else if (iButtonMask & PSP_CTRL_RIGHT)
 	{
-		(*m_CurrentOptionIterator).iSelectedState++;
-		
-		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		if ((*m_CurrentOptionIterator).iSelectedState < (*m_CurrentOptionIterator).iNumberOfStates)
+		{
+			(*m_CurrentOptionIterator).iSelectedState++;
+			
+			OnOptionChange();
+			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		}
 	}
 }
 
+void CScreenHandler::OnOptionChange()
+{
+	switch ((*m_CurrentOptionIterator).Id)
+	{
+		case OPTION_ID_NETWORK_ENABLE:
+			if ((*m_CurrentOptionIterator).iSelectedState == 2) /** Enable */
+			{
+				Start_Network();
+			}
+			else /** Disable */
+			{
+				Stop_Network();
+			}
+		break;
+	}
+}
 
 void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 {

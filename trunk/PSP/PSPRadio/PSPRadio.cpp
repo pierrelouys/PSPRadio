@@ -138,12 +138,12 @@ public:
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
 				m_ScreenHandler->GetCurrentNetworkProfile());
-			m_ScreenHandler->Setup_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
+			m_ScreenHandler->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
 		}
 		else
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
-			m_ScreenHandler->DisplayCurrentNetworkSelection();
+			//m_ScreenHandler->DisplayCurrentNetworkSelection();
 		}
 		
 		Log(LOG_VERYLOW, "Freeing strDir");
@@ -272,22 +272,10 @@ public:
 			if (m_CurrentPlayListDir)
 			{
 				m_CurrentPlayListDir->LoadDirectory("PlayLists"); //**//
-
 				if (m_CurrentPlayListDir->Size() > 0)
 				{
 					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
 					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-					Log(LOG_LOWLEVEL, "Displaying current playlist");
-					m_UI->DisplayPLList(m_CurrentPlayListDir);
-					
-					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
-					{
-						m_UI->DisplayPLEntries(m_CurrentPlayList);
-						/** Populate m_CurrentMetaData */
-						//don't until user starts it!
-						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						//m_UI->OnNewSongData(m_CurrentMetaData);
-					}
 				}
 			}
 			m_UI->DisplayMainCommands();
@@ -450,9 +438,12 @@ public:
 				//case MID_THPLAY_END:
 				//	break;
 				case MID_BUFF_PERCENT_UPDATE:
-					if (CPSPSound::PLAY == m_Sound->GetPlayState())
+					if (CScreenHandler::PSPRADIO_SCREEN_PLAYLIST == m_ScreenHandler->GetCurrentScreen())
 					{
-						m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
+						if (CPSPSound::PLAY == m_Sound->GetPlayState())
+						{
+							m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
+						}
 					}
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
