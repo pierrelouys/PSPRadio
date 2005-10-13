@@ -99,16 +99,25 @@
 		void CantExit() { m_ExitSema->Up(); }
 		void CanExit() { m_ExitSema->Down(); }
 	
-	protected:
-		/** Helpers */
-		int StartPolling(); /** Start polling buttons/vblank */
 		int EnableNetwork(int profile);
 		void DisableNetwork();
 		bool IsNetworkEnabled() { return m_NetworkEnabled; };
-		
+		int GetNumberOfNetworkProfiles()
+		{
+			int numNetConfigs = 1;
+			while (sceUtilityCheckNetParam(numNetConfigs++) == 0)
+			{};
+
+			return numNetConfigs-1;
+		}
+			
 		int  EnableUSB();
 		int  DisableUSB();
 		bool IsUSBEnabled() { return m_USBEnabled; }
+		
+	protected:
+		/** Helpers */
+		int StartPolling(); /** Start polling buttons/vblank */
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual void OnExit(){};
