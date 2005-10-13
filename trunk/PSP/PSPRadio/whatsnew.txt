@@ -39,7 +39,8 @@ is done in a separate thread. -- still work in progress --).
 (sandberg)-Added button support to the 3D UI so it shows play/stop/pause.
 (sandberg)-Added hprm (headphone remote control) support to PSPRadio. The keys are mapped to that forward/back
 maps to Rtrigger/LTrigger. The Play/Pause button will start playing when stopped and stop when playing.
-
+(jpfouch48)-Text items in GraphicsUI are now configurable thru the theme file.
+(jpfouch48)-Cleaned up warning messages in GraphicsUI.
 
 
 0.34
