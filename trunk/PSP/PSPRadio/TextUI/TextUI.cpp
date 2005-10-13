@@ -138,7 +138,7 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
 		pspDebugScreenSetXY(0,iRow);
-		printf("% 67c", ' ');
+		printf("%67c", ' ');
 	}
 	m_lockclear->Unlock();
 }
