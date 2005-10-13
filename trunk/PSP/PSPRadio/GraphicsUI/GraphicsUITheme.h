@@ -11,6 +11,22 @@ struct Point
 	int y;
 };
 
+class CGraphicsUIPosItem
+{
+public:
+	CGraphicsUIPosItem() 
+	{
+		m_bEnabled = true;
+	};
+	
+	~CGraphicsUIPosItem() {};
+	
+	Point m_pointDst;
+	Point m_pointSize;
+	
+	bool m_bEnabled;
+};
+
 class CGraphicsUIThemeItem
 {
 public:
@@ -45,6 +61,8 @@ public:
 								CGraphicsUIThemeItem *pItem);
 	int GetImagePath(char *szImagePath, int nLength);
 	
+	int GetPosItem(char *szIniTag, CGraphicsUIPosItem *pItem);
+	
 public:
 	int Initialize(char *szFilename);
 	void Terminate();
@@ -52,6 +70,8 @@ public:
 	int StringToPoint(char *szPoint, Point *pPoint);
 	int StringToPointMap(char *szPoint, map<int, Point> *pPointMap);
 	int StringToKeyIndexMap(char *szKey, map<char, int> *pKeyMap);
+	
+	int StringToPosItem(char *szPos, CGraphicsUIPosItem *pPosItem);
 
 private:
 	CIniParser *m_pIniTheme;

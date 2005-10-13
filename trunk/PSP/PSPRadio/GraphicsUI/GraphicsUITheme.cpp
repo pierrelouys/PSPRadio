@@ -122,9 +122,46 @@ int CGraphicsUITheme::GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem)
 		Log(LOG_LOWLEVEL, "GetItem: Keys = %s", szTemp);
 	}
 	
-	
 	return 0;
 }
+
+int CGraphicsUITheme::GetPosItem(char *szIniTag, CGraphicsUIPosItem *pItem)
+{
+	char *szTemp = NULL;
+	int nCount = 0;
+	
+	/** Make sure INI Parser is initialized **/
+	if(NULL == m_pIniTheme)
+	{
+		Log(LOG_ERROR, "GetItem: error m_pIniThem is NULL!");	
+		return -1;
+	}
+	
+	/** Make sure pItem is valid **/
+	if(NULL == pItem)
+	{
+		Log(LOG_ERROR, "GetItem: error pItem is NULL!");	
+		return -1;
+	}
+	
+	/** Get the Source Points **/
+	szTemp = m_pIniTheme->GetStr(szIniTag);	
+	if(0 < strlen(szTemp))
+	{
+		nCount = StringToPosItem(szTemp, pItem);
+	}
+	
+	/** Make sure we read 2 Points from string */
+	if(nCount == 2)
+	{
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 
 int CGraphicsUITheme::GetLettersAndNumbers(char *szIniTagLetters, 
 											char *szIniTagNumbers,
@@ -159,7 +196,7 @@ int CGraphicsUITheme::GetLettersAndNumbers(char *szIniTagLetters,
 	Point baseSrc = pItem->GetSrc(0);
 	Point baseSize = pItem->m_pointSize;
 	
-	for(int x = 0; x != pItem->m_keyToIndexMap.size(); x++)
+	for(size_t x = 0; x != pItem->m_keyToIndexMap.size(); x++)
 	{
 		Point newSrc;
 		newSrc.x = baseSrc.x + (baseSize.x * x);
@@ -172,7 +209,7 @@ int CGraphicsUITheme::GetLettersAndNumbers(char *szIniTagLetters,
 	/** Greate the remaining number items */
 	baseSrc = itemNumbers.GetSrc(0);
 	
-	for(int x = 0; x != itemNumbers.m_keyToIndexMap.size(); x++)
+	for(size_t x = 0; x != itemNumbers.m_keyToIndexMap.size(); x++)
 	{
 		Point newSrc;
 		newSrc.x = baseSrc.x + (baseSize.x * x);
@@ -209,7 +246,7 @@ int CGraphicsUITheme::GetImagePath(char *szImagePath, int nLength)
 	
 	char *szTemp = m_pIniTheme->GetStr("image:file");
 	
-	if(strlen(szTemp) > nLength)
+	if(strlen(szTemp) > (size_t)nLength)
 	{
 		Log(LOG_ERROR, "GetImagePath: input string not long enough!");	
 		return -1;
@@ -293,5 +330,37 @@ int CGraphicsUITheme::StringToKeyIndexMap(char *szKey, map<char, int> *pKeyMap)
 	return nCount;
 }
 
-
-
+int CGraphicsUITheme::StringToPosItem(char *szPos, CGraphicsUIPosItem *pPosItem)
+{
+	char *token = strtok(szPos, " ");
+	int nCount = 0;
+	
+	if(NULL == pPosItem)
+	{
+		Log(LOG_ERROR, "StringToPosItem: error pPosItem is NULL");
+		return -1;
+	}
+	
+	if(NULL != token)
+	{
+		Point pointTemp;
+		if(1 == StringToPoint(token, &pointTemp))
+		{
+			memcpy(&pPosItem->m_pointDst, &pointTemp, sizeof(Point));
+			nCount++;			
+		}	
+		
+		token = strtok(NULL, "");
+		
+		if(NULL != token)
+		{
+			if(1 == StringToPoint(token, &pointTemp))
+			{
+				memcpy(&pPosItem->m_pointSize, &pointTemp, sizeof(Point));
+				nCount++;			
+			}	
+		}		
+	}
+	
+	return nCount;
+}

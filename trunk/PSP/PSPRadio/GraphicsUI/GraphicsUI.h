@@ -71,6 +71,9 @@ private:
 	void DisplayWord(CGraphicsUIThemeItem themeItemArea, char *szWord,  int nLineNumber, bool bCenter=true);
 	void ClearLine(CGraphicsUIThemeItem themeItemArea, int nLineNumber);
 	
+	void DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool bCenter=true);
+	void ClearLine(CGraphicsUIPosItem *pPosItem);
+	
 	
 private:
 	const SDL_VideoInfo *m_pVideoInfo;
@@ -81,6 +84,8 @@ private:
 	
 	CGraphicsUITheme m_theme;	
 	char m_szThemeImagePath[100];
+	
+	/** Image and Button Items */
 	CGraphicsUIThemeItem m_themeItemBackground;
 	CGraphicsUIThemeItem m_themeItemPlay;
 	CGraphicsUIThemeItem m_themeItemPause;
@@ -89,9 +94,26 @@ private:
 	CGraphicsUIThemeItem m_themeItemSound;
 	CGraphicsUIThemeItem m_themeItemVolume;
 	CGraphicsUIThemeItem m_themeItemABC123;
-	CGraphicsUIThemeItem m_themeItemInfoArea;
+	
+	/** Output Locations */
+	/** TODO: Update to use PosItem instead of ThemeItem */
 	CGraphicsUIThemeItem m_themeItemPlaylistArea;
 	CGraphicsUIThemeItem m_themeItemPlaylistItemArea;
+	
+	/** String Locations */
+	CGraphicsUIPosItem m_posItemFileNameString;
+	CGraphicsUIPosItem m_posItemFileTitleString;
+	CGraphicsUIPosItem m_posItemURLString;
+	CGraphicsUIPosItem m_posItemSongTitleString;
+	CGraphicsUIPosItem m_posItemSongAuthorString;
+	CGraphicsUIPosItem m_posItemLengthString;
+	CGraphicsUIPosItem m_posItemSampleRateString;
+	CGraphicsUIPosItem m_posItemBitRateString;
+	CGraphicsUIPosItem m_posItemMPEGLayerString;
+	CGraphicsUIPosItem m_posItemErrorString;
+	CGraphicsUIPosItem m_posItemStreamString;
+	CGraphicsUIPosItem m_posItemNetworkString;
+	CGraphicsUIPosItem m_posItemBufferString;
 };
 
 
