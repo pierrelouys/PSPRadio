@@ -3,6 +3,7 @@ KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
 OBJS = PSPRadio.o  DirList.o PlayList.o \
+		./ScreenHandler.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
 		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \

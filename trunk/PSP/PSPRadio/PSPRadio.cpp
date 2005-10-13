@@ -29,6 +29,7 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
+#include "ScreenHandler.h"
 #include "DirList.h"
 #include "PlayList.h"
 #include "TextUI.h"
@@ -60,22 +61,20 @@ private:
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
 	CPlayList::songmetadata *m_CurrentMetaData;
-	IPSPRadio_UI *UI;
-	int m_iNetworkProfile;
-	bool m_NetworkStarted;
-	
+	IPSPRadio_UI *m_UI;
+	CScreenHandler *m_ScreenHandler;
+		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre4")
+	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre5")
 	{
 		/** Initialize to some sensible defaults */
-		m_iNetworkProfile = 1;
-		m_NetworkStarted  = false;
 		m_Config = NULL;
 		m_Sound = NULL;
 		m_CurrentPlayList = NULL;
 		m_CurrentPlayListDir = NULL;
-		UI = NULL;
+		m_UI = NULL;
 		m_CurrentMetaData = NULL;
+		m_ScreenHandler = NULL;
 	};
 
 	/** Setup */
@@ -113,7 +112,7 @@ public:
 		
 		Setup_UI(strDir);
 	
-		UI->SetTitle(strAppTitle);
+		m_UI->SetTitle(strAppTitle);
 		
 		if (1 == m_Config->GetInteger("USB:ENABLED", 0))
 		{
@@ -133,7 +132,8 @@ public:
 	
 		Setup_Sound();
 		
-		Setup_Network();
+		m_ScreenHandler->SetUp(m_UI, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir, m_CurrentMetaData);
+		m_ScreenHandler->Setup_Network();
 		
 		Log(LOG_VERYLOW, "Freeing strDir");
 		free(strDir);
@@ -189,53 +189,26 @@ public:
 	
 	int Setup_UI(char *strCurrentDir)
 	{
-		Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
+		Log(LOG_LOWLEVEL, "m_UI Mode = %s", m_Config->GetStr("m_UI:MODE"));
 		
-		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
+		if (0 == strcmp(m_Config->GetStr("m_UI:MODE"), "Graphics"))
 		{
-			UI = new CGraphicsUI();
+			m_UI = new CGraphicsUI();
 		}
-		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
+		else if (0 == strcmp(m_Config->GetStr("m_UI:MODE"), "3D"))
 		{
-			UI = new CSandbergUI();
+			m_UI = new CSandbergUI();
 		}
 		else
 		{
-			UI = new CTextUI();
+			m_UI = new CTextUI();
 		}
 		
-		UI->Initialize(strCurrentDir); /* Initialize takes cwd */
+		m_UI->Initialize(strCurrentDir); /* Initialize takes cwd */
+		m_ScreenHandler = new CScreenHandler(m_UI, m_Config, m_Sound);
 		
 		return 0;
 	}
-	
-	int Setup_Network()
-	{
-		m_iNetworkProfile = m_Config->GetInteger("WIFI:PROFILE", 1);
-		
-		if (m_iNetworkProfile < 1)
-		{
-			m_iNetworkProfile = 1;
-			Log(LOG_ERROR, "Network Profile in m_Config file is invalid. Network profiles start from 1.");
-		}
-		
-		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
-		{
-			UI->DisplayMessage_EnablingNetwork();
-			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", m_iNetworkProfile);
-			EnableNetwork(m_iNetworkProfile);
-			UI->DisplayMessage_NetworkReady(GetMyIP());
-			Log(LOG_INFO, "Enabling Network: Done. IP='%s'", GetMyIP());
-			m_NetworkStarted = 1;
-		}
-		else
-		{
-			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
-			DisplayCurrentNetworkSelection();
-		}
-		
-		return 0;
-	}	
 	
 	int Setup_Sound()
 	{
@@ -294,19 +267,19 @@ public:
 					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
 					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
 					Log(LOG_LOWLEVEL, "Displaying current playlist");
-					UI->DisplayPLList(m_CurrentPlayListDir);
+					m_UI->DisplayPLList(m_CurrentPlayListDir);
 					
 					if(m_CurrentPlayList->GetNumberOfSongs() > 0)
 					{
-						UI->DisplayPLEntries(m_CurrentPlayList);
+						m_UI->DisplayPLEntries(m_CurrentPlayList);
 						/** Populate m_CurrentMetaData */
 						//don't until user starts it!
 						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						//UI->OnNewSongData(m_CurrentMetaData);
+						//m_UI->OnNewSongData(m_CurrentMetaData);
 					}
 				}
 			}
-			UI->DisplayMainCommands();
+			m_UI->DisplayMainCommands();
 		}
 		else
 		{
@@ -325,13 +298,13 @@ public:
 			delete(m_Sound);
 			m_Sound = NULL;
 		}
-		if (UI)
+		if (m_UI)
 		{
-			Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
-			UI->Terminate();
-			Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
-			delete(UI);
-			UI = NULL;
+			Log(LOG_LOWLEVEL, "Exiting. Calling m_UI->Terminate");
+			m_UI->Terminate();
+			Log(LOG_LOWLEVEL, "Exiting. Destroying m_UI object");
+			delete(m_UI);
+			m_UI = NULL;
 		}
 		if (m_Config)
 		{
@@ -355,127 +328,15 @@ public:
 
 	void OnButtonReleased(int iButtonMask)
 	{
-		Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
-		if (m_Sound)
+		switch (m_ScreenHandler->GetCurrentScreen())
 		{
-			CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
-			
-			
-			if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
-			{
-				m_iNetworkProfile --;
-				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
-				if (m_iNetworkProfile < 1)
-					m_iNetworkProfile = 1;
-				
-				DisplayCurrentNetworkSelection();
-			}
-			else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
-			{
-				m_iNetworkProfile ++;
-				m_iNetworkProfile %= (GetNumberOfNetworkProfiles());
-				if (m_iNetworkProfile < 1)
-					m_iNetworkProfile = 1;
-				
-				DisplayCurrentNetworkSelection();
-			}
-			else if (iButtonMask & PSP_CTRL_LTRIGGER)
-			{
-				m_CurrentPlayList->Prev();
-				UI->DisplayPLEntries(m_CurrentPlayList);
-			}
-			else if (iButtonMask & PSP_CTRL_RTRIGGER)
-			{
-				m_CurrentPlayList->Next();
-				UI->DisplayPLEntries(m_CurrentPlayList);
-			}
-			else if (iButtonMask & PSP_CTRL_UP)
-			{
-				m_CurrentPlayListDir->Prev();
-				UI->DisplayPLList(m_CurrentPlayListDir);
-				m_CurrentPlayList->Clear();
-				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				UI->DisplayPLEntries(m_CurrentPlayList);
-			}
-			else if (iButtonMask & PSP_CTRL_DOWN)
-			{
-				m_CurrentPlayListDir->Next();
-				UI->DisplayPLList(m_CurrentPlayListDir);
-				m_CurrentPlayList->Clear();
-				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				UI->DisplayPLEntries(m_CurrentPlayList);
-			}
-			else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
-			{
-				switch(playingstate)
-				{
-					case CPSPSound::STOP:
-					case CPSPSound::PAUSE:
-						//eCurrentMetaData();
-						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-						UI->DisplayActiveCommand(CPSPSound::PLAY);
-						m_Sound->Play();
-						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						UI->OnNewSongData(m_CurrentMetaData);
-						break;
-					case CPSPSound::PLAY:
-						/** No pausing for URLs, only for Files(local) */
-						if (m_Sound->GetStream()->GetType() == CPSPSoundStream::STREAM_TYPE_FILE)
-						{
-							m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-							UI->DisplayActiveCommand(CPSPSound::PAUSE);
-							m_Sound->Pause();
-						}
-						break;
-				}
-			}
-			else if (iButtonMask & PSP_CTRL_SQUARE)
-			{
-				if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
-				{
-					UI->DisplayActiveCommand(CPSPSound::STOP);
-					m_Sound->Stop();
-				}
-			}
-			else if (iButtonMask & PSP_CTRL_TRIANGLE && !m_NetworkStarted)
-			{
-				if (sceWlanGetSwitchState() != 0)
-				{
-					m_ExitSema->Up();
-
-					UI->DisplayActiveCommand(CPSPSound::STOP);
-					m_Sound->Stop();
-					sceKernelDelayThread(50000);  
-					
-					if (m_NetworkStarted)
-					{
-						UI->DisplayMessage_DisablingNetwork();
-		
-						Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
-						DisableNetwork();
-						sceKernelDelayThread(500000);  
-					}
-					
-					UI->DisplayMessage_EnablingNetwork();
-	
-					EnableNetwork(m_iNetworkProfile);
-					
-					UI->DisplayMessage_NetworkReady(GetMyIP());
-					Log(LOG_INFO, "Triangle Pressed. Networking Enabled, IP='%s'...", GetMyIP());
-					
-					m_NetworkStarted = 1;
-					
-					m_ExitSema->Down();
-				}
-				else
-				{
-					ReportError("The Network Switch is OFF, Cannot Start Network.");
-				}
-				
-			}
+			case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+				m_ScreenHandler->PlayListScreenInputHandler(iButtonMask);
+				break;
+			case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+				break;
 		}
-	};
+	}
 	
 	void OnHPRMReleased(u32 iHPRMMask)
 	{
@@ -487,12 +348,12 @@ public:
 			if (iHPRMMask & PSP_HPRM_BACK)
 			{
 				m_CurrentPlayList->Prev();
-				UI->DisplayPLEntries(m_CurrentPlayList);
+				m_UI->DisplayPLEntries(m_CurrentPlayList);
 			}
 			else if (iHPRMMask & PSP_HPRM_FORWARD)
 			{
 				m_CurrentPlayList->Next();
-				UI->DisplayPLEntries(m_CurrentPlayList);
+				m_UI->DisplayPLEntries(m_CurrentPlayList);
 			}
 
 			else if (iHPRMMask & PSP_HPRM_PLAYPAUSE) 
@@ -503,14 +364,14 @@ public:
 					case CPSPSound::PAUSE:
 						//eCurrentMetaData();
 						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-						UI->DisplayActiveCommand(CPSPSound::PLAY);
+						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						m_Sound->Play();
 						/** Populate m_CurrentMetaData */
 						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						UI->OnNewSongData(m_CurrentMetaData);
+						m_UI->OnNewSongData(m_CurrentMetaData);
 						break;
 					case CPSPSound::PLAY:
-						UI->DisplayActiveCommand(CPSPSound::STOP);
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
 						m_Sound->Stop();
 						break;
 				}
@@ -533,8 +394,12 @@ public:
 			if ( m_EventToPSPApp->Size() > 100 )
 			{
 				Log(LOG_ERROR, "ProcessEvents(): Too many events backed-up!: %d. Exiting!", m_EventToPSPApp->Size());
-				UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
+				m_UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
 				m_ExitSema->Down();
+				while(m_EventToPSPApp->Size())
+				{
+					
+				}
 				return 0;
 			}
 			rret = m_EventToPSPApp->Receive(event);
@@ -551,7 +416,7 @@ public:
 				break;
 			
 			case MID_ERROR:
-				UI->DisplayErrorMessage((char*)event.pData);
+				m_UI->DisplayErrorMessage((char*)event.pData);
 				Log(LOG_ERROR, (char*)event.pData);
 				continue;
 				break;
@@ -575,29 +440,29 @@ public:
 				case MID_BUFF_PERCENT_UPDATE:
 					if (CPSPSound::PLAY == m_Sound->GetPlayState())
 					{
-						UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
+						m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
 					}
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
-					UI->DisplayActiveCommand(CPSPSound::STOP);
-					m_Sound->Stop();
+					m_ScreenHandler->OnPlayStateChange(CPSPSound::STOP);
 					break;
 					
 				case MID_THDECODE_DECODING:
-					UI->OnNewStreamStarted();
+					m_UI->OnNewStreamStarted();
 					break;
 				//case MID_THDECODE_ASLEEP:
 				//	break;
 					
 				case MID_DECODE_STREAM_OPENING:
-					UI->OnStreamOpening();
+					m_UI->OnStreamOpening();
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
-					UI->OnStreamOpeningError();
-					m_Sound->Stop(); /** Stop on error!. patch by echto */
+					m_UI->OnStreamOpeningError();
+					m_ScreenHandler->OnPlayStateChange(CPSPSound::STOP);
 					break;
 				case MID_DECODE_STREAM_OPEN:
-					UI->OnStreamOpeningSuccess();
+					m_UI->OnStreamOpeningSuccess();
+					m_ScreenHandler->OnPlayStateChange(CPSPSound::PLAY);
 					break;
 				case MID_DECODE_METADATA_INFO:
 					memcpy(MData, event.pData, MAX_METADATA_SIZE);
@@ -607,29 +472,29 @@ public:
 					strURL   = GetMetadataValue(MData, METADATA_STREAMURL_TAG);
 					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
 					
-					/** Update m_CurrentMetaData, and notify UI. */
+					/** Update m_CurrentMetaData, and notify m_UI. */
 					strcpy(m_CurrentMetaData->strFileTitle, strTitle);
 					strcpy(m_CurrentMetaData->strURL, strURL);
-					UI->OnNewSongData(m_CurrentMetaData);
+					m_UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				//case MID_DECODE_DONE:
 				//	break;
 				case MID_DECODE_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)event.pData;
-					/** Update m_CurrentMetaData, and notify UI. */
+					/** Update m_CurrentMetaData, and notify m_UI. */
 					m_CurrentMetaData->SampleRate = Header->samplerate;
 					m_CurrentMetaData->BitRate = Header->bitrate;
-					UI->OnNewSongData(m_CurrentMetaData);
+					m_UI->OnNewSongData(m_CurrentMetaData);
 					
 					break;
 				case MID_DECODE_FRAME_INFO_LAYER:
-					/** Update m_CurrentMetaData, and notify UI. */
+					/** Update m_CurrentMetaData, and notify m_UI. */
 					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)event.pData);
-					UI->OnNewSongData(m_CurrentMetaData);
+					m_UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				case MID_TCP_CONNECTING_PROGRESS:
-					UI->OnConnectionProgress();
+					m_UI->OnConnectionProgress();
 					break;
 					
 				case MID_ONBUTTON_PRESSED:
@@ -644,7 +509,7 @@ public:
 					break;
 
 				case MID_ONVBLANK:
-					UI->OnVBlank();
+					m_UI->OnVBlank();
 					break;
 				
 				default:
@@ -659,7 +524,7 @@ public:
 	
 	void OnVBlank()
 	{
-		UI->OnVBlank();
+		m_UI->OnVBlank();
 	};
 	
 	/** Raw metadata looks like this:
@@ -683,29 +548,6 @@ public:
 		
 		return ret;
 	}
-	
-	int GetNumberOfNetworkProfiles()
-	{
-		int numNetConfigs = 1;
-		while (sceUtilityCheckNetParam(numNetConfigs++) == 0)
-		{};
-		
-	
-		return numNetConfigs-1;
-	}
-	
-	void DisplayCurrentNetworkSelection()
-	{
-		netData data;
-		memset(&data, 0, sizeof(netData));
-		data.asUint = 0xBADF00D;
-		memset(&data.asString[4], 0, 124);
-		sceUtilityGetNetParam(m_iNetworkProfile, 0/**Profile Name*/, &data);
-		
-		UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
-		Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
-	}
-	
 };
 
 /** main */
