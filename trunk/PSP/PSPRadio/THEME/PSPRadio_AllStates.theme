@@ -13,9 +13,24 @@ src=[0,0];
 dst=[0,0];
 size=[480,272];
 
-[infoarea]
-dst=[31,23];
-size=[420,59];
+[stringpos]
+filename=[31,25] [420,10];
+filetitle=[31,35] [420,10];
+uri=[31,45] [420,10];
+
+buffer=[31,55] [140,10];
+mpeglayer=[171,55] [140,10];
+samplerate=[311,55] [140,10];
+
+stream=[31,65] [420,10];
+error=[31,65] [420,10];
+network=[31,65] [420,10];
+
+;songtitle=[31,55] [210,10];
+;songauthor=[241,55] [210,10];
+;length=[241,35] [210,10];
+;samplerate=[241,45] [210,10];
+;bitrate=[241,55] [210,10];
 
 [playlistarea]
 dst=[0,114];
