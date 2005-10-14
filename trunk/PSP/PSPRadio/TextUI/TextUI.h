@@ -36,8 +36,8 @@ public:
 	
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);
-	void CTextUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
-									list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
+	void UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
+							list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
 
 	
 private:

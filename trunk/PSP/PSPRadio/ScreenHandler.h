@@ -2,7 +2,6 @@
 	#define __SCREEN_HANDLER__
 	
 	#include <PSPSound.h>
-	#include "IPSPRadio_UI.h"
 	#include <iniparser.h>
 	#include "PlayList.h"
 	#include "DirList.h"
@@ -23,13 +22,16 @@
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 		
+		
+		#define MAX_OPTION_LENGTH 60
+		#define MAX_NUM_OF_OPTIONS 20
+		
 		/** Options screen */
 		struct Options
 		{
 			int	 Id;
-			char strName[60];
-			//char strStates[256];
-			char *strStates[20];
+			char strName[MAX_OPTION_LENGTH];
+			char *strStates[MAX_NUM_OF_OPTIONS];
 			int  iSelectedState;
 			int  iNumberOfStates;
 		};

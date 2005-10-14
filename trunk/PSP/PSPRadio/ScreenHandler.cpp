@@ -154,7 +154,7 @@ void CScreenHandler::DisplayCurrentNetworkSelection()
 
 void CScreenHandler::StartScreen(Screen screen)
 {
-	((CTextUI*)m_UI)->Initialize_Screen(m_CurrentScreen);
+	m_UI->Initialize_Screen(m_CurrentScreen);
 	
 	switch(screen)
 	{
@@ -180,7 +180,7 @@ void CScreenHandler::StartScreen(Screen screen)
 			break;
 			
 		case PSPRADIO_SCREEN_OPTIONS:
-			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 			break;
 	}
 }
@@ -231,7 +231,7 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 		if(m_CurrentOptionIterator == m_OptionsList.begin())
 			m_CurrentOptionIterator = m_OptionsList.end();
 		m_CurrentOptionIterator--;
-		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 	else if (iButtonMask & PSP_CTRL_DOWN)
 	{
@@ -239,7 +239,7 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 		if(m_CurrentOptionIterator == m_OptionsList.end())
 			m_CurrentOptionIterator = m_OptionsList.begin();
 		
-		((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 	else if (iButtonMask & PSP_CTRL_LEFT)
 	{
@@ -248,7 +248,7 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 			(*m_CurrentOptionIterator).iSelectedState--;
 		
 			OnOptionChange();
-			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
 	else if (iButtonMask & PSP_CTRL_RIGHT)
@@ -258,7 +258,7 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 			(*m_CurrentOptionIterator).iSelectedState++;
 			
 			OnOptionChange();
-			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
 }
