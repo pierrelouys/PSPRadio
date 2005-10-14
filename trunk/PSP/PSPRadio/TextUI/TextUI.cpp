@@ -154,47 +154,28 @@ void CTextUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList,
 	}
 }
 
-void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates, int iNumberOfStates, int iSelectedState)
+void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState)
 {
-	/** Work with my own copy */
-	char *strMyStates = (char*)malloc(strlen(strStates)+5);
-	char *States[50];
-	int iStateCnt = 0;
-	int iTextPos = 10;
-	States[iStateCnt++] = strMyStates;
-	
-	strcpy(strMyStates, strStates);
-	
-	for (size_t iPos = 0; iPos < strlen(strStates); iPos++)
-	{
-		if('|' == strStates[iPos])
-		{
-			States[iStateCnt++] = &strMyStates[iPos+1];
-			strMyStates[iPos] = 0;
-			Log(LOG_VERYLOW, "iPos=%d strStates='%s' strMyStates='%s' States[i]='%s",
-					iPos, strStates, strMyStates, States[iStateCnt-1]);
-		}
-	}
+	int iTextPos = 5;
 	
 	//uiPrintf(x,y,c, "%s(%d): %s", strName, iSelectedState, strStates);
 	uiPrintf(iTextPos,y,c, "%s: ", strName);
-	if (strlen(strStates))
+	if (iNumberOfStates > 0)
 	{
 		iTextPos += strlen(strName)+2;
 		for (int iStates = 0; iStates < iNumberOfStates ; iStates++)
 		{
 			if (iStates+1 == iSelectedState) /** 1-based */
 			{
-				uiPrintf(iTextPos,y,0xFFFFFF, "%s ", States[iStates]);
+				uiPrintf(iTextPos,y,0xFFFFFF, "%s ", strStates[iStates]);
 			}
 			else
 			{
-				uiPrintf(iTextPos,y,0x888888, "%s ", States[iStates]);
+				uiPrintf(iTextPos,y,0x888888, "%s ", strStates[iStates]);
 			}
-			iTextPos += strlen(States[iStates])+1;
+			iTextPos += strlen(strStates[iStates])+1;
 		}
 	}	
-	free(strMyStates);
 }
 
 void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)

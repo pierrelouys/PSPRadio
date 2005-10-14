@@ -28,7 +28,8 @@
 		{
 			int	 Id;
 			char strName[60];
-			char strStates[256];
+			//char strStates[256];
+			char *strStates[20];
 			int  iSelectedState;
 			int  iNumberOfStates;
 		};

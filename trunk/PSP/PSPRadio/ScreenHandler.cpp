@@ -46,12 +46,12 @@ enum OptionIDs
 
 CScreenHandler::Options OptionsData[] = 
 {
-	{	0,	"Select Network Profile",	"1,2,3,4,5,6,7,8,9,10",			1,10	},
-	{	1,	"Start Network",			"OFF|ON",						1,2		},
-	{	2,	"USB",						"Stopped|Started",				1,2		},
-	{	3,	"CPU Speed",				"222|266|333",					1,3		},
+	{	0,	"Select Network Profile",	{"1","2","3","4","5"},		1,5		},
+	{	1,	"Start Network",			{"OFF","ON"},					1,2		},
+	{	2,	"USB",						{"Stopped","Started"},			1,2		},
+	{	3,	"CPU Speed",				{"222","266","333"},			1,3		},
 	
-	{  -1,  "",							"",								0,0		}
+	{  -1,  "",							{""},							0,0		}
 };
 
 CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound)
@@ -203,7 +203,7 @@ void CScreenHandler::PopulateOptionsData()
 	
 		Option.Id = OptionsData[iOptNo].Id;
 		sprintf(Option.strName, 	OptionsData[iOptNo].strName);
-		sprintf(Option.strStates, 	OptionsData[iOptNo].strStates);
+		memcpy(Option.strStates, OptionsData[iOptNo].strStates, sizeof(char*)*OptionsData[iOptNo].iNumberOfStates);
 		Option.iSelectedState = OptionsData[iOptNo].iSelectedState;
 		Option.iNumberOfStates = OptionsData[iOptNo].iNumberOfStates;
 		
