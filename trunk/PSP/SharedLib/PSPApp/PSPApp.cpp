@@ -205,7 +205,7 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
-	static bool fDriversLoaded = false;
+	static bool fDriversLoaded = false, fnlhInit = false;
 	
 	if (false == fDriversLoaded)
 	{
@@ -214,24 +214,40 @@ int CPSPApp::EnableNetwork(int profile)
 			fDriversLoaded = true;
 		}
 	}
-	
-	if (true == fDriversLoaded)
+	if (false == fnlhInit)
+	{
+		int err = nlhInit();
+		if (err != 0) 
+		{
+			ReportError("ERROR - WLANConnectionHandler : nlhInit returned '0x%x'.\n", err);
+			DisableNetwork();
+			iRet = -1;
+		}
+		else
+		{
+			fnlhInit = true;
+		}
+	}
+	if (fDriversLoaded && fnlhInit)
 	{
 		if (WLANConnectionHandler(profile) == 0)
 		{
 			//printf("PSP IP = %s\n", GetMyIP());
 			
 			//sceNetResolverInit();
-			int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
-			if (rc < 0)
+			iRet = 0;
+			if (0 == m_ResolverId)
 			{
-				Log(LOG_LOWLEVEL, "EnableNetwork, Resolvercreate = %d rid = %d\n", rc, m_ResolverId);
-				iRet = -1;
+				int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
+				if (rc < 0)
+				{
+					Log(LOG_LOWLEVEL, "EnableNetwork, Resolvercreate = 0x%0x rid = %d\n", rc, m_ResolverId);
+					iRet = -1;
+				}
 			}
-			else
+			
+			if (0 == iRet)
 			{
-				iRet = 0;
-				
 				m_NetworkEnabled = true;
 				/** Test! */
 				//printf ("Getting google.com's address...");
@@ -260,7 +276,7 @@ void CPSPApp::DisableNetwork()
 	
 	if (IsNetworkEnabled() == true)
 	{
-		if (m_ResolverId)
+		if (0)//m_ResolverId)
 		{
 			err = sceNetResolverStop(m_ResolverId);
 			err = sceNetResolverDelete(m_ResolverId);
@@ -271,14 +287,16 @@ void CPSPApp::DisableNetwork()
 		err = sceNetApctlDisconnect();
 		if (err != 0) 
 		{
-			ReportError("ERROR - DisableNetwork: sceNetApctlDisconnect returned '%d'.\n", err);
+			ReportError("ERROR - DisableNetwork: sceNetApctlDisconnect returned '0x%x'.\n", err);
 	    }
 	
+		/*
 	    err = nlhTerm();
 		if (err != 0) 
 		{
-			ReportError("ERROR - DisableNetwork: nlhTerm returned '%d'.\n", err);
+			ReportError("ERROR - DisableNetwork: nlhTerm returned '0x%x'.\n", err);
 	    }
+		*/
     }
     else
     {
@@ -292,31 +310,28 @@ int CPSPApp::WLANConnectionHandler(int profile)
     u32 err;
     int iRet = 0;
 
-    err = nlhInit();
-    if (err != 0) {
-		ReportError("ERROR - WLANConnectionHandler : nlhInit returned '0x%x'.\n", err);
-        DisableNetwork();
-        iRet = -1;
-    }
-
 	err = sceNetApctlConnect(profile);
-    if (err != 0) {
+    if (err != 0) 
+	{
 		ReportError("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '0x%x'.\n", err);
-        DisableNetwork();
+        //DisableNetwork();
         iRet =-1;
     }
     
 	sceKernelDelayThread(500000);  
-	  
-    if (NetApctlHandler() == 0)
-    {
-		iRet = 0;
-	}
-	else
-	{
-		iRet = -1;
-	}
 	
+	if (0 == iRet)  
+	{
+		if (NetApctlHandler() == 0)
+		{
+			iRet = 0;
+		}
+		else
+		{
+			iRet = -1;
+		}
+	}
+		
 	return iRet;
 }
 
