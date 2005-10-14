@@ -51,6 +51,10 @@
 		void LoadPlayListURI(char *strFileName);
 		void Clear();
 		
+		/** Accessors */
+		list<songmetadata> *GetList() { return &m_playlist; }
+		list<songmetadata>::iterator *GetCurrentElementIterator() { return &m_songiterator; }
+		
 	private:
 		list<songmetadata> m_playlist; 
 		list<songmetadata>::iterator m_songiterator;

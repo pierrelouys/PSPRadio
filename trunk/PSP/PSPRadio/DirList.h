@@ -43,11 +43,14 @@
 		void InsertURI(char *strURI);
 		void Clear();
 		
+		/** Accessors */
+		list<directorydata> *GetList() { return &m_dirlist; }
+		list<directorydata>::iterator *GetCurrentElementIterator() { return &m_diriterator; }
+		
 	private:
 		list<directorydata> m_dirlist; 
 		list<directorydata>::iterator m_diriterator;
 		
-		//char m_strDirectory[MAXPATHLEN];
 	};
 
 #endif

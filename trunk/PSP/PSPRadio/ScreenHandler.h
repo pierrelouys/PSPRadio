@@ -52,7 +52,6 @@
 		int  Stop_Network();
 		void DisplayCurrentNetworkSelection();
 		void PlayListScreenInputHandler(int iButtonMask);
-		void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)		;
 		
 		Screen GetCurrentScreen(){return m_CurrentScreen;}
 		int GetCurrentNetworkProfile() { return m_iNetworkProfile; }
