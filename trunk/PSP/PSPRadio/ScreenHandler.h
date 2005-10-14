@@ -36,6 +36,7 @@
 		list<Options>::iterator m_CurrentOptionIterator;
 		void OptionsScreenInputHandler(int iButtonMask);
 		void OnOptionChange();
+		void PopulateOptionsData();
 		/** Options screen */
 		
 		CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound);

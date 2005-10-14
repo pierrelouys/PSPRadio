@@ -46,7 +46,7 @@ enum OptionIDs
 
 CScreenHandler::Options OptionsData[] = 
 {
-	{	0,	"Select Network Profile",	"",								1,10	},
+	{	0,	"Select Network Profile",	"1,2,3,4,5,6,7,8,9,10",			1,10	},
 	{	1,	"Start Network",			"OFF|ON",						1,2		},
 	{	2,	"USB",						"Stopped|Started",				1,2		},
 	{	3,	"CPU Speed",				"222|266|333",					1,3		},
@@ -73,6 +73,7 @@ void CScreenHandler::SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Soun
 	m_CurrentPlayListDir = CurrentPlayListDir;
 	m_CurrentMetaData = CurrentMetaData;
 	
+	PopulateOptionsData();
 	StartScreen(m_CurrentScreen);
 }
 
@@ -153,8 +154,6 @@ void CScreenHandler::DisplayCurrentNetworkSelection()
 
 void CScreenHandler::StartScreen(Screen screen)
 {
-	Options Option;
-	
 	((CTextUI*)m_UI)->Initialize_Screen(m_CurrentScreen);
 	
 	switch(screen)
@@ -181,32 +180,37 @@ void CScreenHandler::StartScreen(Screen screen)
 			break;
 			
 		case PSPRADIO_SCREEN_OPTIONS:
-			while(m_OptionsList.size())
-			{
-				m_OptionsList.pop_front();
-			}
-			
-			
-			for (int iOptNo=0;; iOptNo++)
-			{
-				if (-1 == OptionsData[iOptNo].Id)
-					break;
-			
-				Option.Id = OptionsData[iOptNo].Id;
-				sprintf(Option.strName, 	OptionsData[iOptNo].strName);
-				sprintf(Option.strStates, 	OptionsData[iOptNo].strStates);
-				Option.iSelectedState = OptionsData[iOptNo].iSelectedState;
-				Option.iNumberOfStates = OptionsData[iOptNo].iNumberOfStates;
-				
-				m_OptionsList.push_back(Option);
-			}
-			
-			m_CurrentOptionIterator = m_OptionsList.begin();
 			((CTextUI*)m_UI)->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 			break;
 	}
-	
+}
 
+
+void CScreenHandler::PopulateOptionsData()
+{
+	Options Option;
+	
+	while(m_OptionsList.size())
+	{
+		m_OptionsList.pop_front();
+	}
+	
+	
+	for (int iOptNo=0;; iOptNo++)
+	{
+		if (-1 == OptionsData[iOptNo].Id)
+			break;
+	
+		Option.Id = OptionsData[iOptNo].Id;
+		sprintf(Option.strName, 	OptionsData[iOptNo].strName);
+		sprintf(Option.strStates, 	OptionsData[iOptNo].strStates);
+		Option.iSelectedState = OptionsData[iOptNo].iSelectedState;
+		Option.iNumberOfStates = OptionsData[iOptNo].iNumberOfStates;
+		
+		m_OptionsList.push_back(Option);
+	}
+	
+	m_CurrentOptionIterator = m_OptionsList.begin();
 }
 
 void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
