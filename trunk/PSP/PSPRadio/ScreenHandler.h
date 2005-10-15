@@ -19,6 +19,13 @@
 			PSPRADIO_SCREEN_OPTIONS
 		};
 		
+		enum request_on_play_stop
+		{
+			NOTHING,
+			PLAY,
+			STOP
+		};
+		
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 		
@@ -56,6 +63,9 @@
 		
 		Screen GetCurrentScreen(){return m_CurrentScreen;}
 		int 	GetCurrentNetworkProfile() { return m_iNetworkProfile; }
+		
+		
+		request_on_play_stop m_RequestOnPlayOrStop;
 		
 	private:
 		Screen m_CurrentScreen;

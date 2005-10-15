@@ -63,6 +63,7 @@ CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *
 	m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
 	m_iNetworkProfile = 1;
 	m_NetworkStarted  = false;
+	m_RequestOnPlayOrStop = NOTHING;
 
 	SetUp(UI, Config, Sound, NULL, NULL, NULL);
 }
@@ -411,9 +412,13 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 				{
 					/** If currently playing a stream, and the user presses play, then start the 
 					currently selected stream! */
+					/** We do this by stopping the stream, and asking the handler to start playing
+					when the stream stops. */
 					if (CPSPSoundStream::STREAM_STATE_OPEN == m_Sound->GetStream()->GetState())
 					{
+						Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
 						m_Sound->Stop();
+						m_RequestOnPlayOrStop = PLAY;
 					}
 				}
 				break;
@@ -423,6 +428,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 	{
 		if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 		{
+			Log(LOG_VERYLOW, "Calling Stop() at InputHandler, [] pressed.");
 			m_Sound->Stop();
 		}
 	}
