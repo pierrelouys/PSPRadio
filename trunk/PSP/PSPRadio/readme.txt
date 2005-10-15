@@ -1,4 +1,4 @@
-PSPRadio by Raf 0.35-pre5 10/11/05
+PSPRadio by Raf 0.35-pre5 10/14/05
 ====================================
 
 *****************************************************************
@@ -54,6 +54,7 @@ The author would also like to thank (In no particular order):
 -harbringer
 -jpfouch48
 -Mr Pochi
+-PSPDEV Team for their incredible work on the PSPSDK, toolchain, libraries, etc!
 -everybody I'm missing!!
 
 Also thanks for mirroring and posting news to:

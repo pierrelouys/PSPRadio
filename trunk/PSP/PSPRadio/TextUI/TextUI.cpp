@@ -112,6 +112,11 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 				c = GetConfigColor("COLORS:TITLE");
 				uiPrintf(x,y, c, m_strTitle);
 			}
+			GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+			c = GetConfigColor("COLORS:MAIN_COMMANDS");
+				
+			ClearRows(y);
+			uiPrintf(x, y, c, "X Play/Pause | [] Stop | L / R Songs | UP/DOWN PlayLists");
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			pspDebugScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
@@ -237,11 +242,11 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 
 int CTextUI::SetTitle(char *strTitle)
 {
-	int x,y;
-	int c;
-	GetConfigPos("TEXT_POS:TITLE", &x, &y);
-	c = GetConfigColor("COLORS:TITLE");
-	uiPrintf(x,y, c, strTitle);
+//	int x,y;
+//	int c;
+//	GetConfigPos("TEXT_POS:TITLE", &x, &y);
+//	c = GetConfigColor("COLORS:TITLE");
+//	uiPrintf(x,y, c, strTitle);
 	
 	if (m_strTitle)
 	{
@@ -263,19 +268,6 @@ int CTextUI::DisplayMessage_EnablingNetwork()
 	ClearRows(y);
 	uiPrintf(x, y, c, "Enabling Network");
 	
-	return 0;
-}
-
-int CTextUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
-{
-	int x,y,c;
-	GetConfigPos("TEXT_POS:NETWORK_SELECTION", &x, &y);
-	c = GetConfigColor("COLORS:NETWORK_SELECTION");
-	
-	ClearErrorMessage();
-	ClearRows(y);
-	uiPrintf(x, y, c, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
-
 	return 0;
 }
 
@@ -305,12 +297,12 @@ int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 
 int CTextUI::DisplayMainCommands()
 {
-	int x,y,c;
-	GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
-	c = GetConfigColor("COLORS:MAIN_COMMANDS");
+//	int x,y,c;
+//	GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+//	c = GetConfigColor("COLORS:MAIN_COMMANDS");
 	
-	ClearRows(y);
-	uiPrintf(x, y, c, "X Play/Pause | [] Stop | L / R To Browse");
+//	ClearRows(y);
+//	uiPrintf(x, y, c, "X Play/Pause | [] Stop | L / R To Browse");
 		
 	return 0;
 }
@@ -423,11 +415,6 @@ int CTextUI::OnStreamOpeningSuccess()
 	
 	ClearRows(y);
 	uiPrintf(x, y, c, "Stream Opened");
-	return 0;
-}
-
-int CTextUI::OnVBlank()
-{
 	return 0;
 }
 
