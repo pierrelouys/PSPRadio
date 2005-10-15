@@ -416,9 +416,17 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 					when the stream stops. */
 					if (CPSPSoundStream::STREAM_STATE_OPEN == m_Sound->GetStream()->GetState())
 					{
-						Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
-						m_Sound->Stop();
-						m_RequestOnPlayOrStop = PLAY;
+						/** If the new stream is different than the current, only then stop-"restart" */
+						if (0 != strcmp(m_CurrentMetaData->strFileName, m_CurrentPlayList->GetCurrentFileName()))
+						{
+							Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
+							m_Sound->Stop();
+							m_RequestOnPlayOrStop = PLAY;
+						}
+						else
+						{
+							Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
+						}
 					}
 				}
 				break;

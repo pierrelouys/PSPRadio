@@ -49,6 +49,8 @@ screen. Only supported by text ui right now.
 the config file if using PSPRaio with another UI.
 (raf)-Currently network and usb can be started from options screen. Will add CPU speed here also.
 0.35-pre5-2 BUG FIX RELEASE
+(raf)-Only restart stream on stop if different than the current stream
+(raf)-(hopefully)Fixed bug where event queue was filling up causing PSPRadio to quit with event 0x31 (decoder done).
 
 
 0.34

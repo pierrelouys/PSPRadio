@@ -492,6 +492,10 @@ Frame *CPSPSoundBuffer::PopBuffer()
 	for (int i = 0 ; (i < PSP_BUFFER_SIZE_IN_FRAMES); i++)
 	{
 		pspbuf[i] = PopFrame();
+		if (true == IsDone() || ( pPSPSound->GetEventToPlayThSize() > 0) ) /** Done or Message Waiting */
+		{
+			break;
+		}
 	}
 	return pspbuf;
 }
