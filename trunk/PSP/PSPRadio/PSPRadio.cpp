@@ -53,6 +53,7 @@ PSP_MAIN_THREAD_PRIORITY(80);
 #define METADATA_STREAMURL_TAG "StreamUrl='"
 #define METADATA_STREAMTITLE_TAG "StreamTitle='"
 
+
 class myPSPApp : public CPSPApp
 {
 private:
@@ -372,6 +373,7 @@ public:
 						break;
 					case CPSPSound::PLAY:
 						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+						Log(LOG_VERYLOW, "Calling Stop() on HPRM PLAY/PAUSE pressed; currently Playing.");
 						m_Sound->Stop();
 						break;
 				}
@@ -396,10 +398,6 @@ public:
 				Log(LOG_ERROR, "ProcessEvents(): Too many events backed-up!: %d. Exiting!", m_EventToPSPApp->Size());
 				m_UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
 				m_ExitSema->Down();
-				while(m_EventToPSPApp->Size())
-				{
-					
-				}
 				return 0;
 			}
 			rret = m_EventToPSPApp->Receive(event);
@@ -447,6 +445,7 @@ public:
 					}
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
+					Log(LOG_VERYLOW, "MID_THPLAY_DONE received, calling OnPlayStateChange(STOP)");
 					OnPlayStateChange(CPSPSound::STOP);
 					break;
 					
@@ -460,12 +459,14 @@ public:
 					m_UI->OnStreamOpening();
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
-					m_UI->OnStreamOpeningError();
+					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
 					OnPlayStateChange(CPSPSound::STOP);
+					m_UI->OnStreamOpeningError();
 					break;
 				case MID_DECODE_STREAM_OPEN:
-					m_UI->OnStreamOpeningSuccess();
+					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN received, calling OnPlayStateChange(PLAY)");
 					OnPlayStateChange(CPSPSound::PLAY);
+					m_UI->OnStreamOpeningSuccess();
 					break;
 				case MID_DECODE_METADATA_INFO:
 					memcpy(MData, event.pData, MAX_METADATA_SIZE);
@@ -569,6 +570,10 @@ public:
 						break;
 					
 					case CPSPSound::STOP:
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+						Log(LOG_VERYLOW, "Calling Stop() on OnPlayStateChange Old=STOP, New=STOP.");
+						m_Sound->Stop();
+						break;
 					case CPSPSound::PAUSE:
 					default:
 						break;
@@ -581,10 +586,16 @@ public:
 					case CPSPSound::STOP:
 						m_UI->DisplayActiveCommand(CPSPSound::STOP);
 						//m_Sound->Stop();
-						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						m_Sound->Play();
+						
+						if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
+						{
+							m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+							
+							/** Populate m_CurrentMetaData */
+							m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+							
+							m_Sound->Play();
+						}
 						break;
 						
 					case CPSPSound::PLAY:
@@ -598,6 +609,8 @@ public:
 			default:
 				break;
 		}
+		
+		m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
 		
 		OldPlayState = NewPlayState;
 	}
