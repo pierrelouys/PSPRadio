@@ -265,8 +265,6 @@ int CSandbergUI::Initialize(char *strCWD)
 	sceGuFrontFace(GU_CW);
 	sceGuShadeModel(GU_SMOOTH);
 	sceGuEnable(GU_CULL_FACE);
-	sceGuEnable(GU_CLIP_PLANES);
-
 	sceGuEnable(GU_LIGHTING);
 	sceGuEnable(GU_LIGHT0);
 	sceGuFinish();
@@ -482,6 +480,7 @@ static int rot = 0;
 		rot = 0;
 
 	// setup Play texture
+	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 	sceGuTexImage(0,16,16,16,::bplay);
 	sceGuAmbientColor(0xffffffff);
 	sceGuColor(0xffffffff);

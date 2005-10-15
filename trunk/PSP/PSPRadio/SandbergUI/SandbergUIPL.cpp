@@ -160,7 +160,6 @@ void CSandbergUI::InitPL(void)
 	for (int i = 0, index = 0 ; i < PL_TEXT_LENGTH+2; i++)
 	{
 		index += 2 * 3;
-		//printf("%ff,", cosf((((float)i*360)/COUNT)*(M_PI/180))*SCALEY);
 
 		// vertex 0
 		::pl_name_vertices[index + 0].u 	= 0.0f;
@@ -265,7 +264,7 @@ void CSandbergUI::RenderPLName(void)
 	// setup texture
 	sceGuTexMode(GU_PSM_8888,0,0,0);
 	sceGuTexImage(0,256,64,256,::font_01);
-	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
 	sceGuTexScale(1.0f,1.0f);
 	sceGuTexOffset(0.0f,0.0f);

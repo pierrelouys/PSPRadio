@@ -97,21 +97,25 @@ static struct Vertex __attribute__((aligned(16))) vertices[12*3] =
 	{0xffCC8866, 1,-1,-0.2}, // 5
 };
 
-static int __attribute__((aligned(16))) faketexture[16*16];
-
 void CSandbergUI::InitFX(void)
 	{
-	for (int y = 0 ; y < 16 ; y++)
-		for (int x = 0 ; x < 16 ; x++)
-			::faketexture[y*16+x] = 0xffCC8866;
-	sceKernelDcacheWritebackAll();
 	}
 
 void CSandbergUI::RenderFX(void)
 {	
 	static int val = 100;
 
-	sceGuTexImage(0,16,16,16,::faketexture);
+	int *f_texture = (int *)sceGuGetMemory(16 * 16 * sizeof(int));
+
+	for (int y = 0 ; y < 16*16 ; y += 16)
+	{
+		for (int x = 0 ; x < 16 ; x++)
+		{
+			f_texture[y+x] = 0xffCC8866;
+		}
+	}
+
+	sceGuTexImage(0,16,16,16,f_texture);
 	sceGuAmbient(0x66666666);
 
 	// setup matrices for cube

@@ -41,7 +41,7 @@ is done in a separate thread. -- still work in progress --).
 maps to Rtrigger/LTrigger. The Play/Pause button will start playing when stopped and stop when playing.
 (jpfouch48)-Text items in GraphicsUI are now configurable thru the theme file.
 (jpfouch48)-Cleaned up warning messages in GraphicsUI.
-
+(sandberg) Added graphics for the button commands.
 
 0.34
 -Corrected the mutex and semaphore implementations..
