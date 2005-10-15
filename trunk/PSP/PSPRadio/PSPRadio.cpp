@@ -552,55 +552,55 @@ public:
 		return ret;
 	}
 	
-void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
-{
-	static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
-	
-	switch(OldPlayState)
+	void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 	{
-		case CPSPSound::STOP:
-			switch(NewPlayState)
-			{
-				case CPSPSound::PLAY:
-					m_UI->DisplayActiveCommand(CPSPSound::PLAY);
-					/** Populate m_CurrentMetaData */
-					m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-					m_UI->OnNewSongData(m_CurrentMetaData);
-					break;
-				
-				case CPSPSound::STOP:
-				case CPSPSound::PAUSE:
-				default:
-					break;
-			}
-			break;
+		static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
 		
-		case CPSPSound::PLAY:
-			switch(NewPlayState)
-			{
-				case CPSPSound::STOP:
-					m_UI->DisplayActiveCommand(CPSPSound::STOP);
-					//m_Sound->Stop();
-					m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-					/** Populate m_CurrentMetaData */
-					m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-					m_Sound->Play();
-					break;
+		switch(OldPlayState)
+		{
+			case CPSPSound::STOP:
+				switch(NewPlayState)
+				{
+					case CPSPSound::PLAY:
+						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
+						/** Populate m_CurrentMetaData */
+						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						m_UI->OnNewSongData(m_CurrentMetaData);
+						break;
 					
-				case CPSPSound::PLAY:
-				case CPSPSound::PAUSE:
-				default:
-					break;
-			}
-			break;
+					case CPSPSound::STOP:
+					case CPSPSound::PAUSE:
+					default:
+						break;
+				}
+				break;
+			
+			case CPSPSound::PLAY:
+				switch(NewPlayState)
+				{
+					case CPSPSound::STOP:
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+						//m_Sound->Stop();
+						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+						/** Populate m_CurrentMetaData */
+						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						m_Sound->Play();
+						break;
+						
+					case CPSPSound::PLAY:
+					case CPSPSound::PAUSE:
+					default:
+						break;
+				}
+				break;
+			
+			case CPSPSound::PAUSE:
+			default:
+				break;
+		}
 		
-		case CPSPSound::PAUSE:
-		default:
-			break;
+		OldPlayState = NewPlayState;
 	}
-	
-	OldPlayState = NewPlayState;
-}
 
 };
 
