@@ -27,7 +27,7 @@
 	private:
 		char *m_strName;
 		list<QEvent> m_EventList; 
-		u32 m_RcvBlockerEventId, m_RcvOKEventId;
+		CBlocker *m_RcvBlocker, *m_RcvOKBlocker;
 		CLock *m_lock;
 
 };

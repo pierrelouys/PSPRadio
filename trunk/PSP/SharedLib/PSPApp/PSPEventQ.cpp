@@ -28,11 +28,6 @@
 #include <list>
 using namespace std;
 
-extern "C" {
-int sceKernelClearEventFlag(u32, int);
-int sceKernelWaitEventFlag(int evid, u32 bits, u32 wait, u32 *outBits, void *arg);
-};
-
 CPSPEventQ::CPSPEventQ(char *strName)
 {
 	char *strNameForResources = (char*)malloc(strlen(strName)+30);
@@ -48,14 +43,11 @@ CPSPEventQ::CPSPEventQ(char *strName)
 			strName, strNameForResources, m_lock->GetMutex());
 		
 		sprintf(strNameForResources, "%sRcvblk", m_strName);
-		m_RcvBlockerEventId = sceKernelCreateEventFlag(strNameForResources, 0, 0x0, 0);
-		
-		Log (LOG_VERYLOW, "CPSPEventQ(%s): sceKernelCreateEventFlag(%s) returns 0x%x", strName, strNameForResources, m_RcvBlockerEventId);
+		m_RcvBlocker = new CBlocker(strNameForResources);
 		
 		sprintf(strNameForResources, "%sRcvack", m_strName);
-		m_RcvOKEventId = sceKernelCreateEventFlag(strNameForResources, 0, 0x0, 0);
+		m_RcvOKBlocker = new CBlocker(strNameForResources);
 		
-		Log (LOG_VERYLOW, "CPSPEventQ(%s): sceKernelCreateEventFlag(%s) returns 0x%x", strName, strNameForResources, m_RcvOKEventId);
 		
 		free(strNameForResources), strNameForResources = NULL;
 	}
@@ -67,12 +59,18 @@ CPSPEventQ::CPSPEventQ(char *strName)
 
 CPSPEventQ::~CPSPEventQ()
 {
-	Log (LOG_VERYLOW, "~CPSPEventQ(): Calling sceKernelDeleteEventFlag()");
-	int iRet = sceKernelDeleteEventFlag(m_RcvBlockerEventId);
-	iRet = sceKernelDeleteEventFlag(m_RcvOKEventId);
+	Log (LOG_VERYLOW, "~CPSPEventQ(): Start");
+	if (m_RcvBlocker)
+	{
+		delete m_RcvBlocker; m_RcvBlocker = NULL;
+	}
+	if (m_RcvOKBlocker)
+	{
+		delete m_RcvOKBlocker; m_RcvOKBlocker = NULL;
+	}
 	if(m_lock)
 	{
-		delete m_lock;
+		delete m_lock; m_lock = NULL;
 	}
 	free(m_strName), m_strName = NULL;
 	Log (LOG_VERYLOW, "~CPSPEventQ(): Done.");
@@ -83,16 +81,16 @@ int CPSPEventQ::Send(QEvent &Event)
 	//Log(LOG_VERYLOW, "Send(): Calling Lock(mid=%x)", Event.EventId);
 	m_lock->Lock();
 
+	if (Size() > 512)
+	{
+		Log(LOG_ERROR,"Send.. queue filling up... EventId=0x%x", Event.EventId);
+	}
+	
 	//Log(LOG_VERYLOW, "Send(): Calling Push_Back(mid=%x)", Event.EventId);
 	m_EventList.push_back(Event);
-	//notify receive
-	//Log(LOG_VERYLOW, "Send(): Calling SetEvFlag(%x)", m_RcvBlockerEventId);
-	int iRet = sceKernelSetEventFlag(m_RcvBlockerEventId, 0x1);
 	
-	if (iRet < 0)
-	{
-		Log(LOG_ERROR, "Send('%s'):Error On Send (msgid=0x%x) Error=0x%x", m_strName, Event.EventId, iRet);
-	}
+	//notify receive by unblocking it
+	m_RcvBlocker->UnBlock();
 	
 	m_lock->Unlock();
 
@@ -105,13 +103,12 @@ int CPSPEventQ::SendAndWaitForOK(QEvent &Event)
 	m_lock->Lock();
 	
 	m_EventList.push_back(Event);
+	
 	//notify receive
-	sceKernelSetEventFlag(m_RcvBlockerEventId, 0x1);
+	m_RcvBlocker->UnBlock();
 	
 	//now, wait for OK.
-	u32 flag = 0;
-	sceKernelWaitEventFlag(m_RcvOKEventId, 0x1, 0, &flag, NULL);
-	sceKernelClearEventFlag(m_RcvOKEventId, 10);
+	m_RcvOKBlocker->Block();
 	
 	m_lock->Unlock();
 	
@@ -121,8 +118,7 @@ int CPSPEventQ::SendAndWaitForOK(QEvent &Event)
 int CPSPEventQ::Receive(QEvent &Event)
 {
 	//block until notified
-	u32 flag = 0;
-	int iRet = sceKernelWaitEventFlag(m_RcvBlockerEventId, 0x1, 0/*wait0-and,1-OR*/, &flag, NULL);
+	m_RcvBlocker->Block();
 
 	if (Size() > 0)
 	{
@@ -131,22 +127,23 @@ int CPSPEventQ::Receive(QEvent &Event)
 	}
 	else
 	{
-		Log(LOG_ERROR, "Receive('%s') Error. Receieve unblocked, but no messages in the queue?! size=%d. flag=0x%x iRet=0x%x",
-			m_strName, Size(), flag, iRet);
+		Log(LOG_ERROR, "Receive('%s') Error. Receieve unblocked, but no messages in the queue?! size=%d.",
+			m_strName, Size());
 	}
 	
-	/** Clear event flag, so Receive blocks when until the next message arrives */
-	if (Size() == 0) /** Clear only if last message */
+	/** The blocker is ready to block again as soon as it unblocks, so if there's more messages waiting, we need to 
+	tell it to unblock now...*/	
+	if (Size() > 0) /** Clear only if last message */
 	{
-		sceKernelClearEventFlag(m_RcvBlockerEventId, 10);//0x1);
-		//Log(LOG_ERROR, "Receive() Size() is 0, clearing event flag.");
+		m_RcvBlocker->UnBlock();
 	}
 	return 0;
 }
 
 int CPSPEventQ::SendReceiveOK()
 {
-	return sceKernelSetEventFlag(m_RcvOKEventId, 0x1);
+	m_RcvOKBlocker->UnBlock();
+	return 0;
 }
 
 int CPSPEventQ::Size()
