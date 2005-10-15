@@ -111,9 +111,9 @@ CPSPSound::~CPSPSound()
 	
 	if (m_thPlayAudio) 
 	{
-		Log(LOG_VERYLOW, "~CPSPSound(): Destroying play thread. ");
+		Log(LOG_VERYLOW, "~CPSPSound(): Tell play thread to exit. ");
 		event.EventId = MID_PLAY_THREAD_EXIT_NEEDOK;
-		m_EventToPlayTh->Send(event);
+		m_EventToPlayTh->SendAndWaitForOK(event);
 		
 		Log(LOG_VERYLOW, "~CPSPSound(): Destroying play thread. ");
 		delete(m_thPlayAudio), m_thPlayAudio = NULL;
@@ -182,6 +182,8 @@ int CPSPSound::Play()
 int CPSPSound::Pause()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
+	Log(LOG_LOWLEVEL, "Pause(): Called. m_CurrentState=%s", 
+		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
 		case PLAY:
@@ -203,6 +205,8 @@ int CPSPSound::Pause()
 int CPSPSound::Stop()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
+	Log(LOG_LOWLEVEL, "Stop(): Called. m_CurrentState=%s", 
+		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
 		case PAUSE:
@@ -508,7 +512,8 @@ Frame CPSPSoundBuffer::PopFrame()
 		while (GetBufferFillPercentage() != 100)
 		{	/** Buffering!! */
 			sceKernelDelayThread(50); /** 500us */
-			if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )
+			//if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) ||
+			if ( pPSPSound->GetEventToPlayThSize() > 0) /** Message Waiting */
 				break;
 		}
 		m_buffering = false;
@@ -518,7 +523,8 @@ Frame CPSPSoundBuffer::PopFrame()
 		while (GetBufferFillPercentage() <= 0)
 		{	/** Buffer Empty!! */
 			sceKernelDelayThread(50); /** 500us */
-			if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )
+			//if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )
+			if ( pPSPSound->GetEventToPlayThSize() > 0) /** Message Waiting */
 				break;
 		}
 	}

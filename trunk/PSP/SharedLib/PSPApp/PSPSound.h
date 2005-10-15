@@ -139,10 +139,10 @@
 		size_t GetBufferFillPercentage();
 		void  Empty();
 		void  Done();
-		bool   IsDone();
+		bool  IsDone();
 		
 		void  SetSampleRate(size_t samplerate);
-	
+		
 	private:
 		Frame 	*ringbuf_start, *pspbuf; /** Buffers */
 		Frame 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
@@ -207,6 +207,9 @@
 		
 		void SetDecodeThreadPriority(int iNewPrio);
 		void SetPlayThreadPriority(int iNewPrio);
+		
+		int GetEventToDecThSize() { return m_EventToDecTh->Size(); }
+		int GetEventToPlayThSize() { return m_EventToPlayTh->Size(); }
 		
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);
