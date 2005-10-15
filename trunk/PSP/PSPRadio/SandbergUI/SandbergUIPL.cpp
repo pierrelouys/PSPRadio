@@ -252,6 +252,8 @@ void CSandbergUI::RenderPLName(void)
 {
 	static int val = 0;
 
+	sceGuEnable(GU_TEXTURE_2D);
+
 	sceGumMatrixMode(GU_MODEL);
 	sceGumLoadIdentity();
 	{

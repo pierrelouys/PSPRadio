@@ -105,18 +105,9 @@ void CSandbergUI::RenderFX(void)
 {	
 	static int val = 100;
 
-	int *f_texture = (int *)sceGuGetMemory(16 * 16 * sizeof(int));
-
-	for (int y = 0 ; y < 16*16 ; y += 16)
-	{
-		for (int x = 0 ; x < 16 ; x++)
-		{
-			f_texture[y+x] = 0xffCC8866;
-		}
-	}
-
-	sceGuTexImage(0,16,16,16,f_texture);
 	sceGuAmbient(0x66666666);
+
+	sceGuDisable(GU_TEXTURE_2D);
 
 	// setup matrices for cube
 	for (int count = 0 ; count < CUBE_COUNT ; count++)
