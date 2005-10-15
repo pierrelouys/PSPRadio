@@ -147,16 +147,19 @@ void CTextUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList,
 			Option = (*OptionIterator);
 			
 			ClearRows(y);
-			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState);
+			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
+						Option.iActiveState);
 			
 			y+=2;
 		}
 	}
 }
 
-void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState)
+void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
+						  int iActiveState)
 {
 	int iTextPos = 5;
+	int color = 0xFFFFFF;
 	
 	//uiPrintf(x,y,c, "%s(%d): %s", strName, iSelectedState, strStates);
 	uiPrintf(iTextPos,y,c, "%s: ", strName);
@@ -165,14 +168,25 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 		iTextPos += strlen(strName)+2;
 		for (int iStates = 0; iStates < iNumberOfStates ; iStates++)
 		{
-			if (iStates+1 == iSelectedState) /** 1-based */
+			if (iStates+1 == iActiveState)
 			{
-				uiPrintf(iTextPos,y,0xFFFFFF, "%s ", strStates[iStates]);
+				color = 0x0000FF;
+			}
+			else if (iStates+1 == iSelectedState) /** 1-based */
+			{
+				color = 0xFFFFFF;
 			}
 			else
 			{
-				uiPrintf(iTextPos,y,0x888888, "%s ", strStates[iStates]);
+				color = 0x888888;
 			}
+			
+			if ((iStates+1 == iActiveState) && (iStates+1 == iSelectedState))
+			{
+				color = 0x9090E3;
+			}
+			
+			uiPrintf(iTextPos,y,color, "%s ", strStates[iStates]);
 			iTextPos += strlen(strStates[iStates])+1;
 		}
 	}	

@@ -41,17 +41,21 @@
 
 enum OptionIDs
 {
-	OPTION_ID_NETWORK_ENABLE=1
+	OPTION_ID_NETWORK_PROFILES,
+	OPTION_ID_NETWORK_ENABLE,
+	OPTION_ID_USB_ENABLE,
+	OPTION_ID_CPU_SPEED
 };
 
 CScreenHandler::Options OptionsData[] = 
 {
-	{	0,	"Select Network Profile",	{"1","2","3","4","5"},			1,5		},
-	{	1,	"Start Network",			{"OFF","ON"},					1,2		},
-	{	2,	"USB",						{"Stopped","Started"},			1,2		},
-	{	3,	"CPU Speed",				{"222","266","333"},			1,3		},
+		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
+	{	OPTION_ID_NETWORK_PROFILES,	"Select Network Profile",	{"1","2","3","4","5"},			1,1,5		},
+	{	OPTION_ID_NETWORK_ENABLE,	"Start Network",			{"OFF","ON"},					1,1,2		},
+	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
+	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"222","266","333"},			1,1,3		},
 	
-	{  -1,  "",							{""},							0,0		}
+	{  -1,  						"",							{""},							0,0,0		}
 };
 
 CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound)
@@ -139,16 +143,17 @@ int CScreenHandler::Stop_Network()
 	return 0;
 }
 
-void CScreenHandler::DisplayCurrentNetworkSelection()
+void CScreenHandler::GetNetworkProfileName(int iProfile, char *buf, size_t size)
 {
 	netData data;
 	memset(&data, 0, sizeof(netData));
 	data.asUint = 0xBADF00D;
 	memset(&data.asString[4], 0, 124);
-	sceUtilityGetNetParam(m_iNetworkProfile, 0/**Profile Name*/, &data);
+	sceUtilityGetNetParam(iProfile, 0/**Profile Name*/, &data);
 	
-	m_UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
-	Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
+	strncpy(buf, data.asString, size);
+	//m_UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
+	//Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
 }
 	
 
@@ -204,8 +209,41 @@ void CScreenHandler::PopulateOptionsData()
 		Option.Id = OptionsData[iOptNo].Id;
 		sprintf(Option.strName, 	OptionsData[iOptNo].strName);
 		memcpy(Option.strStates, OptionsData[iOptNo].strStates, sizeof(char*)*OptionsData[iOptNo].iNumberOfStates);
-		Option.iSelectedState = OptionsData[iOptNo].iSelectedState;
-		Option.iNumberOfStates = OptionsData[iOptNo].iNumberOfStates;
+		Option.iActiveState		= OptionsData[iOptNo].iActiveState;
+		Option.iSelectedState	= OptionsData[iOptNo].iSelectedState;
+		Option.iNumberOfStates	= OptionsData[iOptNo].iNumberOfStates;
+		
+		/** Modify from data table */
+		switch(iOptNo)
+		{
+			case OPTION_ID_NETWORK_PROFILES:
+			{
+				Option.iNumberOfStates = pPSPApp->GetNumberOfNetworkProfiles() - 1;
+				/** allocate memory and lose it forever.. */
+				char *NetworkName = NULL;
+				for (int i = 0; i < Option.iNumberOfStates; i++)
+				{
+					NetworkName = (char*)malloc(128);
+					GetNetworkProfileName(i+1, NetworkName, 128);
+					Option.strStates[i] = NetworkName;
+				}
+				break;
+			}
+				
+			case OPTION_ID_NETWORK_ENABLE:
+				Option.iActiveState = (pPSPApp->IsNetworkEnabled()==true)?2:1;
+				break;
+			
+			case OPTION_ID_USB_ENABLE:
+				Option.iActiveState = (pPSPApp->IsUSBEnabled()==true)?2:1;
+				break;
+				
+			case OPTION_ID_CPU_SPEED:
+			default:
+				break;
+		
+		}
+		
 		
 		m_OptionsList.push_back(Option);
 	}
@@ -247,7 +285,7 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 		{
 			(*m_CurrentOptionIterator).iSelectedState--;
 		
-			OnOptionChange();
+			//OnOptionChange();
 			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
@@ -257,126 +295,144 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 		{
 			(*m_CurrentOptionIterator).iSelectedState++;
 			
-			OnOptionChange();
+			//OnOptionChange();
 			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
+	else if ( (iButtonMask & PSP_CTRL_CROSS) || (iButtonMask & PSP_CTRL_CIRCLE) )
+	{
+		OnOptionActivation();
+	}
 }
 
-void CScreenHandler::OnOptionChange()
+//	OPTION_ID_NETWORK_PROFILES,
+//	OPTION_ID_NETWORK_ENABLE,
+//	OPTION_ID_USB_ENABLE,
+//	OPTION_ID_CPU_SPEED
+void CScreenHandler::OnOptionActivation()
 {
+	bool fOptionActivated = false;
+	
 	switch ((*m_CurrentOptionIterator).Id)
 	{
+		case OPTION_ID_NETWORK_PROFILES:
+			m_iNetworkProfile = (*m_CurrentOptionIterator).iSelectedState;
+			fOptionActivated = true;
+			break;
 		case OPTION_ID_NETWORK_ENABLE:
 			if ((*m_CurrentOptionIterator).iSelectedState == 2) /** Enable */
 			{
 				Start_Network();
+				if (true == pPSPApp->IsNetworkEnabled())
+				{
+					fOptionActivated = true;
+				}
 			}
 			else /** Disable */
 			{
 				Stop_Network();
+				fOptionActivated = true;
 			}
-		break;
+			break;
+		case OPTION_ID_USB_ENABLE:
+			if ((*m_CurrentOptionIterator).iSelectedState == 2) /** Enable */
+			{
+				pPSPApp->EnableUSB();
+				if (true == pPSPApp->IsUSBEnabled())
+				{
+					fOptionActivated = true;
+				}
+			}
+			else /** Disable */
+			{
+				pPSPApp->DisableUSB();
+				fOptionActivated = true;
+			}
+			break;
+	}
+	
+	if (true == fOptionActivated)	
+	{
+		(*m_CurrentOptionIterator).iActiveState = (*m_CurrentOptionIterator).iSelectedState;
+		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 }
 
 void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 {
+	CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
 	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
-	if (m_Sound)
+	
+		
+	if (iButtonMask & PSP_CTRL_LTRIGGER)
 	{
-		CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
-		
-		
-		if (iButtonMask & PSP_CTRL_LEFT && !m_NetworkStarted)
+		m_CurrentPlayList->Prev();
+		m_UI->DisplayPLEntries(m_CurrentPlayList);
+	}
+	else if (iButtonMask & PSP_CTRL_RTRIGGER)
+	{
+		m_CurrentPlayList->Next();
+		m_UI->DisplayPLEntries(m_CurrentPlayList);
+	}
+	else if (iButtonMask & PSP_CTRL_UP)
+	{
+		m_CurrentPlayListDir->Prev();
+		m_UI->DisplayPLList(m_CurrentPlayListDir);
+		m_CurrentPlayList->Clear();
+		m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+		m_UI->DisplayPLEntries(m_CurrentPlayList);
+	}
+	else if (iButtonMask & PSP_CTRL_DOWN)
+	{
+		m_CurrentPlayListDir->Next();
+		m_UI->DisplayPLList(m_CurrentPlayListDir);
+		m_CurrentPlayList->Clear();
+		m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+		m_UI->DisplayPLEntries(m_CurrentPlayList);
+	}
+	else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+	{
+		switch(playingstate)
 		{
-			m_iNetworkProfile --;
-			m_iNetworkProfile %= (pPSPApp->GetNumberOfNetworkProfiles());
-			if (m_iNetworkProfile < 1)
-				m_iNetworkProfile = 1;
-			
-			DisplayCurrentNetworkSelection();
-		}
-		else if (iButtonMask & PSP_CTRL_RIGHT && !m_NetworkStarted)
-		{
-			m_iNetworkProfile ++;
-			m_iNetworkProfile %= (pPSPApp->GetNumberOfNetworkProfiles());
-			//if (m_iNetworkProfile < 1)
-			//	m_iNetworkProfile = 1;
-			
-			DisplayCurrentNetworkSelection();
-		}
-		else if (iButtonMask & PSP_CTRL_LTRIGGER)
-		{
-			m_CurrentPlayList->Prev();
-			m_UI->DisplayPLEntries(m_CurrentPlayList);
-		}
-		else if (iButtonMask & PSP_CTRL_RTRIGGER)
-		{
-			m_CurrentPlayList->Next();
-			m_UI->DisplayPLEntries(m_CurrentPlayList);
-		}
-		else if (iButtonMask & PSP_CTRL_UP)
-		{
-			m_CurrentPlayListDir->Prev();
-			m_UI->DisplayPLList(m_CurrentPlayListDir);
-			m_CurrentPlayList->Clear();
-			m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-			m_UI->DisplayPLEntries(m_CurrentPlayList);
-		}
-		else if (iButtonMask & PSP_CTRL_DOWN)
-		{
-			m_CurrentPlayListDir->Next();
-			m_UI->DisplayPLList(m_CurrentPlayListDir);
-			m_CurrentPlayList->Clear();
-			m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-			m_UI->DisplayPLEntries(m_CurrentPlayList);
-		}
-		else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
-		{
-			switch(playingstate)
-			{
-				case CPSPSound::STOP:
-				case CPSPSound::PAUSE:
+			case CPSPSound::STOP:
+			case CPSPSound::PAUSE:
+				m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+				m_Sound->Play();
+				break;
+			case CPSPSound::PLAY:
+				/** No pausing for URLs, only for Files(local) */
+				if (CPSPSoundStream::STREAM_TYPE_FILE == m_Sound->GetStream()->GetType())
+				{
 					m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-					m_Sound->Play();
-					break;
-				case CPSPSound::PLAY:
-					/** No pausing for URLs, only for Files(local) */
-					if (CPSPSoundStream::STREAM_TYPE_FILE == m_Sound->GetStream()->GetType())
+					m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+					m_Sound->Pause();
+				}
+				else
+				{
+					/** If currently playing a stream, and the user presses play, then start the 
+					currently selected stream! */
+					if (CPSPSoundStream::STREAM_STATE_OPEN == m_Sound->GetStream()->GetState())
 					{
-						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
-						m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
-						m_Sound->Pause();
+						m_Sound->Stop();
 					}
-					else
-					{
-						/** If currently playing a stream, and the user presses play, then start the 
-						currently selected stream! */
-						if (CPSPSoundStream::STREAM_STATE_OPEN == m_Sound->GetStream()->GetState())
-						{
-							m_Sound->Stop();
-						}
-					}
-					break;
-			}
+				}
+				break;
 		}
-		else if (iButtonMask & PSP_CTRL_SQUARE)
+	}
+	else if (iButtonMask & PSP_CTRL_SQUARE)
+	{
+		if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 		{
-			if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
-			{
-				m_Sound->Stop();
-			}
+			m_Sound->Stop();
 		}
-		else if (iButtonMask & PSP_CTRL_TRIANGLE)// && !m_NetworkStarted)
+	}
+	else if (iButtonMask & PSP_CTRL_TRIANGLE)
+	{
+		m_CurrentScreen = (Screen)(m_CurrentScreen+1);
+		if (m_CurrentScreen == PSPRADIO_SCREEN_LIST_END)
 		{
-			//Setup_Network(m_iNetworkProfile);
-			m_CurrentScreen = (Screen)(m_CurrentScreen+1);
-			if (m_CurrentScreen == PSPRADIO_SCREEN_LIST_END)
-			{
-				m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
-			}
-			StartScreen(m_CurrentScreen);
+			m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
 		}
+		StartScreen(m_CurrentScreen);
 	}
 };

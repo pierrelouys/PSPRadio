@@ -32,13 +32,14 @@
 			int	 Id;
 			char strName[MAX_OPTION_LENGTH];
 			char *strStates[MAX_NUM_OF_OPTIONS];
-			int  iSelectedState;
+			int  iActiveState;		/** indicates the currently active state -- user pressed X on this state */
+			int  iSelectedState;	/** selection 'box' around option; not active until user presses X */
 			int  iNumberOfStates;
 		};
 		list<Options> m_OptionsList;
 		list<Options>::iterator m_CurrentOptionIterator;
 		void OptionsScreenInputHandler(int iButtonMask);
-		void OnOptionChange();
+		void OnOptionActivation();
 		void PopulateOptionsData();
 		/** Options screen */
 		
@@ -50,11 +51,11 @@
 
 		int  Start_Network(int iNewProfile = -1);
 		int  Stop_Network();
-		void DisplayCurrentNetworkSelection();
+		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
 		void PlayListScreenInputHandler(int iButtonMask);
 		
 		Screen GetCurrentScreen(){return m_CurrentScreen;}
-		int GetCurrentNetworkProfile() { return m_iNetworkProfile; }
+		int 	GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 		
 	private:
 		Screen m_CurrentScreen;
