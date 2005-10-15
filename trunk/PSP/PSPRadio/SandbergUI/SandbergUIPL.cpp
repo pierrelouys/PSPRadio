@@ -219,8 +219,6 @@ void CSandbergUI::RenderPL(void)
 {
 	static int val = 0;
 
-	sceGuEnable(GU_TEXTURE_2D);
-
 	sceGumMatrixMode(GU_MODEL);
 	sceGumLoadIdentity();
 	{
@@ -266,7 +264,7 @@ void CSandbergUI::RenderPLName(void)
 	// setup texture
 	sceGuTexMode(GU_PSM_8888,0,0,0);
 	sceGuTexImage(0,256,64,256,::font_01);
-	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
 	sceGuTexScale(1.0f,1.0f);
 	sceGuTexOffset(0.0f,0.0f);
@@ -336,6 +334,7 @@ void CSandbergUI::RenderPLName(void)
 
 	// draw text-rotator
 	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3*PL_TEXT_LENGTH,0,::pl_name_vertices);
+	sceGuDisable(GU_TEXTURE_2D);
 
 	val++;
 }

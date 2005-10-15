@@ -2,7 +2,8 @@
 	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
 	PSPRadio Copyright (C) 2005 Rafael Cabezas a.k.a. Raf
 	SandbergUI Copyright (C) 2005 Jesper Sandberg
-	
+
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
@@ -39,6 +40,8 @@
 #include "SandbergUI.h"
 
 #define		CUBE_COUNT	7
+#define		COLOR_LIGHT	0xFF70E89C
+#define		COLOR_DARK	0xFF507860
 
 struct Vertex
 {
@@ -48,66 +51,61 @@ struct Vertex
 
 static struct Vertex __attribute__((aligned(16))) vertices[12*3] =
 {
-	{0xffCC8866,-1,-1, 0.2}, // 0
-	{0xffCC8866,-1, 1, 0.2}, // 4
-	{0xffCC8866, 1, 1, 0.2}, // 5
+	{COLOR_LIGHT,-1,-1, 0.2}, // 0
+	{COLOR_LIGHT,-1, 1, 0.2}, // 4
+	{COLOR_LIGHT, 1, 1, 0.2}, // 5
 
-	{0xffCC8866,-1,-1, 0.2}, // 0
-	{0xffCC8866, 1, 1, 0.2}, // 5
-	{0xffCC8866, 1,-1, 0.2}, // 1
+	{COLOR_LIGHT,-1,-1, 0.2}, // 0
+	{COLOR_LIGHT, 1, 1, 0.2}, // 5
+	{COLOR_LIGHT, 1,-1, 0.2}, // 1
 
-	{0xffCC8866,-1,-1,-0.2}, // 3
-	{0xffCC8866, 1,-1,-0.2}, // 2
-	{0xffCC8866, 1, 1,-0.2}, // 6
+	{COLOR_LIGHT,-1,-1,-0.2}, // 3
+	{COLOR_LIGHT, 1,-1,-0.2}, // 2
+	{COLOR_LIGHT, 1, 1,-0.2}, // 6
 
-	{0xffCC8866,-1,-1,-0.2}, // 3
-	{0xffCC8866, 1, 1,-0.2}, // 6
-	{0xffCC8866,-1, 1,-0.2}, // 7
+	{COLOR_LIGHT,-1,-1,-0.2}, // 3
+	{COLOR_LIGHT, 1, 1,-0.2}, // 6
+	{COLOR_LIGHT,-1, 1,-0.2}, // 7
 
-	{0xffCC8866, 1,-1,-0.2}, // 0
-	{0xffCC8866, 1,-1, 0.2}, // 3
-	{0xffCC8866, 1, 1, 0.2}, // 7
+	{COLOR_DARK, 1,-1,-0.2}, // 0
+	{COLOR_DARK, 1,-1, 0.2}, // 3
+	{COLOR_DARK, 1, 1, 0.2}, // 7
 
-	{0xffCC8866, 1,-1,-0.2}, // 0
-	{0xffCC8866, 1, 1, 0.2}, // 7
-	{0xffCC8866, 1, 1,-0.2}, // 4
+	{COLOR_DARK, 1,-1,-0.2}, // 0
+	{COLOR_DARK, 1, 1, 0.2}, // 7
+	{COLOR_DARK, 1, 1,-0.2}, // 4
 
-	{0xffCC8866,-1,-1,-0.2}, // 0
-	{0xffCC8866,-1, 1,-0.2}, // 3
-	{0xffCC8866,-1, 1, 0.2}, // 7
+	{COLOR_DARK,-1,-1,-0.2}, // 0
+	{COLOR_DARK,-1, 1,-0.2}, // 3
+	{COLOR_DARK,-1, 1, 0.2}, // 7
 
-	{0xffCC8866,-1,-1,-0.2}, // 0
-	{0xffCC8866,-1, 1, 0.2}, // 7
-	{0xffCC8866,-1,-1, 0.2}, // 4
+	{COLOR_DARK,-1,-1,-0.2}, // 0
+	{COLOR_DARK,-1, 1, 0.2}, // 7
+	{COLOR_DARK,-1,-1, 0.2}, // 4
 
-	{0xffCC8866,-1, 1,-0.2}, // 0
-	{0xffCC8866, 1, 1,-0.2}, // 1
-	{0xffCC8866, 1, 1, 0.2}, // 2
+	{COLOR_DARK,-1, 1,-0.2}, // 0
+	{COLOR_DARK, 1, 1,-0.2}, // 1
+	{COLOR_DARK, 1, 1, 0.2}, // 2
 
-	{0xffCC8866,-1, 1,-0.2}, // 0
-	{0xffCC8866, 1, 1, 0.2}, // 2
-	{0xffCC8866,-1, 1, 0.2}, // 3
+	{COLOR_DARK,-1, 1,-0.2}, // 0
+	{COLOR_DARK, 1, 1, 0.2}, // 2
+	{COLOR_DARK,-1, 1, 0.2}, // 3
 
-	{0xffCC8866,-1,-1,-0.2}, // 4
-	{0xffCC8866,-1,-1, 0.2}, // 7
-	{0xffCC8866, 1,-1, 0.2}, // 6
+	{COLOR_DARK,-1,-1,-0.2}, // 4
+	{COLOR_DARK,-1,-1, 0.2}, // 7
+	{COLOR_DARK, 1,-1, 0.2}, // 6
 
-	{0xffCC8866,-1,-1,-0.2}, // 4
-	{0xffCC8866, 1,-1, 0.2}, // 6
-	{0xffCC8866, 1,-1,-0.2}, // 5
+	{COLOR_DARK,-1,-1,-0.2}, // 4
+	{COLOR_DARK, 1,-1, 0.2}, // 6
+	{COLOR_DARK, 1,-1,-0.2}, // 5
 };
-
-void CSandbergUI::InitFX(void)
-	{
-	}
 
 void CSandbergUI::RenderFX(void)
 {	
 	static int val = 100;
 
 	sceGuAmbient(0x66666666);
-
-	sceGuDisable(GU_TEXTURE_2D);
+	sceGuColor(0x222222);
 
 	// setup matrices for cube
 	for (int count = 0 ; count < CUBE_COUNT ; count++)
@@ -123,7 +121,6 @@ void CSandbergUI::RenderFX(void)
 			sceGumRotateXYZ(&rot);
 			sceGumTranslate(&pos);
 			}
-		sceGuColor(0x222222);
 		sceGumDrawArray(GU_TRIANGLES, GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 12*3, 0, ::vertices);
 		}
 

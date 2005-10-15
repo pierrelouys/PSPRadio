@@ -67,7 +67,6 @@ private:
 
 	struct char_map	* CSandbergUI::FindCharMap(char index);
 
-	void CSandbergUI::InitFX(void);
 	void CSandbergUI::InitPL(void);
 
 	void CSandbergUI::RenderFX(void);
