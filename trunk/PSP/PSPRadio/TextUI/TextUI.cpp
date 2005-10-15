@@ -137,11 +137,11 @@ void CTextUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList,
 		{
 			if (OptionIterator == CurrentOptionIterator)
 			{
-				c = 0xFFFFFF;
+				c = GetConfigColor("COLORS:OPTIONS_SCREEN_OPTION_NAME_TEXT");//0xFFFFFF;
 			}
 			else
 			{
-				c = 0x888888;
+				c = GetConfigColor("COLORS:OPTIONS_SCREEN_OPTION_SELECTED_NAME_TEXT");//0x888888;
 			}
 			
 			Option = (*OptionIterator);
@@ -170,20 +170,20 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 		{
 			if (iStates+1 == iActiveState)
 			{
-				color = 0x0000FF;
+				color = GetConfigColor("COLORS:OPTIONS_SCREEN_ACTIVE_STATE");//0x0000FF;
 			}
 			else if (iStates+1 == iSelectedState) /** 1-based */
 			{
-				color = 0xFFFFFF;
+				color = GetConfigColor("COLORS:OPTIONS_SCREEN_SELECTED_STATE");//0xFFFFFF;
 			}
 			else
 			{
-				color = 0x888888;
+				color = GetConfigColor("COLORS:OPTIONS_SCREEN_NOT_SELECTED_STATE");//0x888888;
 			}
 			
 			if ((iStates+1 == iActiveState) && (iStates+1 == iSelectedState))
 			{
-				color = 0x9090E3;
+				color =  GetConfigColor("COLORS:OPTIONS_SCREEN_ACTIVE_AND_SELECTED_STATE");//0x9090E3;
 			}
 			
 			uiPrintf(iTextPos,y,color, "%s ", strStates[iStates]);
