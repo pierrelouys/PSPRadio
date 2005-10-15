@@ -35,7 +35,7 @@ is done in a separate thread. -- still work in progress --).
 -Buffer Percentage is updated at 6fps max now (this to not overtax main thread+event handler)
 -Now clear metadata on stream stop (including buffer %).
 -more internal refactoring...
-0.35-pre5 (r) 0.35-pre5 - Released 10/14/05
+0.35-pre5 (r295) 0.35-pre5 - Released 10/14/05
 (sandberg)-Added button support to the 3D UI so it shows play/stop/pause.
 (sandberg)-Added hprm (headphone remote control) support to PSPRadio. The keys are mapped to that forward/back
 maps to Rtrigger/LTrigger. The Play/Pause button will start playing when stopped and stop when playing.
@@ -48,6 +48,7 @@ screen. Only supported by text ui right now.
 (raf)-The options menu is the only way for now to select a profile and start the network; so use network autostart in
 the config file if using PSPRaio with another UI.
 (raf)-Currently network and usb can be started from options screen. Will add CPU speed here also.
+0.35-pre5-2 BUG FIX RELEASE
 
 
 0.34
