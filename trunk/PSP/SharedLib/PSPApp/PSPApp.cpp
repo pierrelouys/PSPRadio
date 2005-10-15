@@ -367,11 +367,6 @@ int CPSPApp::runThread(SceSize args, void *argp)
 	return pPSPApp->Run();
 }
 
-//void CPSPApp::audioCallback(void* buf, unsigned int length) 
-//{
-//	pPSPApp->OnAudioBufferEmpty(buf, length);
-//}
-
 int CPSPApp::NetApctlHandler() 
 {
 	int iRet = 0;
@@ -516,8 +511,10 @@ int CPSPApp::DisableUSB()
 	
 	if (m_USBEnabled)
 	{
+		Log(LOG_INFO, "Stopping USB...");
+		
 		state = sceUsbGetState();
-		if (state & PSP_USB_ACTIVATED)
+		//if (state & PSP_USB_ACTIVATED)
 		{
 			retVal = sceUsbDeactivate();
 			if (retVal != 0)
