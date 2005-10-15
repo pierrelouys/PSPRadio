@@ -47,9 +47,9 @@ int CGraphicsUITheme::Initialize(char *szFilename)
 		return -1;
 	}
 	
-	Log(LOG_LOWLEVEL, "Initialize: creating ini parser");
+	Log(LOG_VERYLOW, "Initialize: creating ini parser");
 	m_pIniTheme = new CIniParser(szFilename);
-	Log(LOG_LOWLEVEL, "Initialize: created ini parser");
+	Log(LOG_VERYLOW, "Initialize: created ini parser");
 		
 	if(NULL == m_pIniTheme)
 	{
@@ -119,7 +119,7 @@ int CGraphicsUITheme::GetItem(char *szIniTag, CGraphicsUIThemeItem *pItem)
 	if(0 < strlen(szTemp))
 	{
 		nCount = StringToKeyIndexMap(szTemp, &pItem->m_keyToIndexMap);	
-		Log(LOG_LOWLEVEL, "GetItem: Keys = %s", szTemp);
+		Log(LOG_VERYLOW, "GetItem: Keys = %s", szTemp);
 	}
 	
 	return 0;
@@ -323,7 +323,7 @@ int CGraphicsUITheme::StringToKeyIndexMap(char *szKey, map<char, int> *pKeyMap)
 	
 	for(int x = 0; x != nCount; x++)
 	{
-		Log(LOG_LOWLEVEL, "StringToKeyIndexMap: adding (%c) to %d", szKey[x], x);		
+		Log(LOG_VERYLOW, "StringToKeyIndexMap: adding (%c) to %d", szKey[x], x);		
 		(*pKeyMap)[szKey[x]] = x;
 	}
 	
