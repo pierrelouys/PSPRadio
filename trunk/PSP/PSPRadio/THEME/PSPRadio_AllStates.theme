@@ -17,28 +17,23 @@ size=[480,272];
 filename=[31,25] [420,10];
 filetitle=[31,35] [420,10];
 uri=[31,45] [420,10];
-
 buffer=[31,55] [140,10];
 mpeglayer=[171,55] [140,10];
 samplerate=[311,55] [140,10];
-
 stream=[31,65] [420,10];
 error=[31,65] [420,10];
 network=[31,65] [420,10];
-
 ;songtitle=[31,55] [210,10];
 ;songauthor=[241,55] [210,10];
 ;length=[241,35] [210,10];
 ;samplerate=[241,45] [210,10];
 ;bitrate=[241,55] [210,10];
 
-[playlistarea]
-dst=[0,114];
-size=[154,130];
-
-[playlistitemarea]
-dst=[162,114];
-size=[318,130];
+[itempos]
+playlistarea=[0,114] [154,133];
+playlistareasel=[485,42] [154,19];
+playlistitemarea=[162,114] [318,133];
+playlistitemareasel=[485,66] [318,19];
 
 [play]
 src=[485,4] [485,23];
