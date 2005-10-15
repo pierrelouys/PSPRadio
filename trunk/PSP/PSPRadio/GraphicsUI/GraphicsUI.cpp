@@ -58,30 +58,30 @@ int CGraphicsUI::Initialize(char *strCWD)
 	sprintf(szThemePath, "%s/THEME/", strCWD);
 	sprintf(szThemeFile, "%s%s", szThemePath, THEME_FILE);
 
-	Log(LOG_LOWLEVEL, "Initialize: Theme Initializing");
+	Log(LOG_VERYLOW, "Initialize: Theme Initializing");
 	if(FALSE == InitializeTheme(szThemeFile, szThemePath))
 	{
 		Log(LOG_ERROR, "Initialize: error initializing Theme");
 		return -1;
 	}		
-	Log(LOG_LOWLEVEL, "Initialize: Theme Initialized");
+	Log(LOG_VERYLOW, "Initialize: Theme Initialized");
 
 	
-	Log(LOG_LOWLEVEL, "Initialize: SDL Initializing");		
+	Log(LOG_VERYLOW, "Initialize: SDL Initializing");		
 	if(FALSE == InitializeSDL())
 	{
 		Log(LOG_ERROR, "Initialize: error initializing SDL");
 		return -1;
 	}	
-	Log(LOG_LOWLEVEL, "Initialize: SDL Initialized");	
+	Log(LOG_VERYLOW, "Initialize: SDL Initialized");	
 	
-	Log(LOG_LOWLEVEL, "Initialize: Images Initializing");
+	Log(LOG_VERYLOW, "Initialize: Images Initializing");
 	if(FALSE == InitializeImages())
 	{
 		Log(LOG_ERROR, "Initialize: error initializing images");
 		return -1;
 	}	
-	Log(LOG_LOWLEVEL, "Initialize: Images Initialied");
+	Log(LOG_VERYLOW, "Initialize: Images Initialied");
 	
 	SetBaseImage();
 		
@@ -265,28 +265,67 @@ int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
 
 int CGraphicsUI::DisplayPLList(CDirList *plList)
 {
-	DisplayWordPlaylistArea(plList->GetCurrentURI(), 1, true);	
+	if((false == m_posItemPlayListArea.m_bEnabled) ||
+		(false == m_posItemPlayListAreaSel.m_bEnabled))
+	{
+		return 0;
+	}
+	
+	ClearLine(&m_posItemPlayListArea);
+	
+	list<CDirList::directorydata> dataList = *(plList->GetList());
+	list<CDirList::directorydata>::iterator dataIter = *(plList->GetCurrentElementIterator());
+	
+	int nItemCount = m_posItemPlayListArea.m_pointSize.y / m_posItemPlayListAreaSel.m_pointSize.y;
+	int nItemMid = (nItemCount) / 2;
+
+	CGraphicsUIPosItem posTemp;	
+	
+	posTemp.m_pointDst.x = m_posItemPlayListArea.m_pointDst.x;
+	posTemp.m_pointDst.y = m_posItemPlayListArea.m_pointDst.y + (nItemMid * m_posItemPlayListAreaSel.m_pointSize.y);
+	posTemp.m_pointSize.x = m_posItemPlayListAreaSel.m_pointSize.x;
+	posTemp.m_pointSize.y = m_posItemPlayListAreaSel.m_pointSize.y;
+	
+	DisplayWord(&posTemp, dataIter->strURI, true);
+	SetButton(m_posItemPlayListAreaSel, posTemp);
+	
 	return 0;
 }
 
 int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 {
-	CPlayList::songmetadata Data;
-
-	int iRet = PlayList->GetCurrentSong(&Data);
-	
-	if (0 == iRet)
+	if((false == m_posItemPlayListItemArea.m_bEnabled) ||
+		(false == m_posItemPlayListItemAreaSel.m_bEnabled))
 	{
-		if (strlen(Data.strFileTitle))
-		{
-			DisplayWordPlaylistItemArea(Data.strFileTitle, 1, true);
-		}
-		else
-		{
-			DisplayWordPlaylistItemArea(Data.strFileName, 1, true);
-		}
+		return 0;
 	}
+
+	ClearLine(&m_posItemPlayListItemArea);
 		
+	list<CPlayList::songmetadata> dataList = *(PlayList->GetList());
+	list<CPlayList::songmetadata>::iterator dataIter = *(PlayList->GetCurrentElementIterator());
+	
+	int nItemCount = m_posItemPlayListItemArea.m_pointSize.y / m_posItemPlayListItemAreaSel.m_pointSize.y;
+	int nItemMid = (nItemCount) / 2;
+
+	CGraphicsUIPosItem posTemp;	
+	
+	posTemp.m_pointDst.x = m_posItemPlayListItemArea.m_pointDst.x;
+	posTemp.m_pointDst.y = m_posItemPlayListItemArea.m_pointDst.y + (nItemMid * m_posItemPlayListItemAreaSel.m_pointSize.y);
+	posTemp.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
+	posTemp.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
+		
+	if(strlen(dataIter->strFileTitle))
+	{
+		DisplayWord(&posTemp, dataIter->strFileTitle, true);
+	}
+	else
+	{
+		DisplayWord(&posTemp, dataIter->strFileName, true);
+	}	
+	
+	SetButton(m_posItemPlayListItemAreaSel, posTemp);
+	
 	return 0;
 }
 
@@ -338,6 +377,25 @@ void CGraphicsUI::SetButton(CGraphicsUIThemeItem themeItem, uibuttonstate_enum s
 	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
 }
 
+void CGraphicsUI::SetButton(CGraphicsUIPosItem posSrc, CGraphicsUIPosItem posDst)
+{
+	SDL_Rect src = 	{ 
+						posSrc.m_pointDst.x,
+						posSrc.m_pointDst.y,
+						posSrc.m_pointSize.x,
+						posSrc.m_pointSize.y
+					};
+					
+	SDL_Rect dst = 	{ 
+						posDst.m_pointDst.x,
+						posDst.m_pointDst.y,
+						posDst.m_pointSize.x,
+						posDst.m_pointSize.y
+					};
+		
+	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+}
+
 bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 {
 	char szBaseImage[256];
@@ -348,7 +406,7 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	}	
 	
 	/** Get theme image */
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting image path");
+	Log(LOG_VERYLOW, "InitializeTheme: getting image path");
 	if(0 != m_theme.GetImagePath(szBaseImage, sizeof(szBaseImage)))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme image path");
@@ -356,194 +414,208 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	}	
 	
 	sprintf(m_szThemeImagePath, "%s%s", szThemePath, szBaseImage);
-	Log(LOG_LOWLEVEL, "InitializeTheme: base image = %s", m_szThemeImagePath);
+	Log(LOG_VERYLOW, "InitializeTheme: base image = %s", m_szThemeImagePath);
 	
 	/** Get the theme items */
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting background");
+	Log(LOG_VERYLOW, "InitializeTheme: getting background");
 	if(0 != m_theme.GetItem("background", &m_themeItemBackground))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme background");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting play");
+	Log(LOG_VERYLOW, "InitializeTheme: getting play");
 	if(0 != m_theme.GetItem("play", &m_themeItemPlay))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme play");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting pause");
+	Log(LOG_VERYLOW, "InitializeTheme: getting pause");
 	if(0 != m_theme.GetItem("pause", &m_themeItemPause))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme pause");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting stop");
+	Log(LOG_VERYLOW, "InitializeTheme: getting stop");
 	if(0 != m_theme.GetItem("stop", &m_themeItemStop))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme stop");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting load");
+	Log(LOG_VERYLOW, "InitializeTheme: getting load");
 	if(0 != m_theme.GetItem("load", &m_themeItemLoad))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme load");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting sound");
+	Log(LOG_VERYLOW, "InitializeTheme: getting sound");
 	if(0 != m_theme.GetItem("sound", &m_themeItemSound))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme sound");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting volume");
+	Log(LOG_VERYLOW, "InitializeTheme: getting volume");
 	if(0 != m_theme.GetItem("volume", &m_themeItemVolume))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme volume");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting letters adn numbers");
+	Log(LOG_VERYLOW, "InitializeTheme: getting letters adn numbers");
 	if(0 != m_theme.GetLettersAndNumbers("letters", "numbers", &m_themeItemABC123))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme letters and numbers");
 		return FALSE;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting playlist area");
-	if(0 != m_theme.GetItem("playlistarea", &m_themeItemPlaylistArea))
-	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme playlist area");
-		return FALSE;
-	}
-	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting playlist item area");
-	if(0 != m_theme.GetItem("playlistitemarea", &m_themeItemPlaylistItemArea))
-	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme playlist item area");
-		return FALSE;
-	}
-	
 	/** Get the string positions from ini file. If the value is not found we */
 	/** will just disable that string item. */
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos filename");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:filename");
 	if(0 != m_theme.GetPosItem("stringpos:filename", &m_posItemFileNameString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filename");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filename disabling");
 		m_posItemFileNameString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos filetitle");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:filetitle");
 	if(0 != m_theme.GetPosItem("stringpos:filetitle", &m_posItemFileTitleString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filetitle");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filetitle disabling");
 		m_posItemFileTitleString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos uri");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:uri");
 	if(0 != m_theme.GetPosItem("stringpos:uri", &m_posItemURLString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos url");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos url disabling");
 		m_posItemURLString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos songtitle");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:songtitle");
 	if(0 != m_theme.GetPosItem("stringpos:songtitle", &m_posItemSongTitleString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songtitle");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songtitle disabling");
 		m_posItemSongTitleString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos songauthor");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:songauthor");
 	if(0 != m_theme.GetPosItem("stringpos:songauthor", &m_posItemSongAuthorString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songauthor");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songauthor disabling");
 		m_posItemSongAuthorString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos length");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:length");
 	if(0 != m_theme.GetPosItem("stringpos:length", &m_posItemLengthString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos length");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos length disabling");
 		m_posItemLengthString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos samplerate");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:samplerate");
 	if(0 != m_theme.GetPosItem("stringpos:samplerate", &m_posItemSampleRateString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos samplerate");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos samplerate disabling");
 		m_posItemSampleRateString.m_bEnabled = false;
 	}
 
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos bitrate");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:bitrate");
 	if(0 != m_theme.GetPosItem("stringpos:bitrate", &m_posItemBitRateString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos bitrate");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos bitrate disabling");
 		m_posItemBitRateString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos mpeglayer");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:mpeglayer");
 	if(0 != m_theme.GetPosItem("stringpos:mpeglayer", &m_posItemMPEGLayerString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos mpeglayer");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos mpeglayer disabling");
 		m_posItemMPEGLayerString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos error");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:error");
 	if(0 != m_theme.GetPosItem("stringpos:error", &m_posItemErrorString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos error");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos error disabling");
 		m_posItemErrorString.m_bEnabled = false;
 	}
 
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos stream");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:stream");
 	if(0 != m_theme.GetPosItem("stringpos:stream", &m_posItemStreamString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos stream");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos stream disabling");
 		m_posItemStreamString.m_bEnabled = false;
 	}
 
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos network");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:network");
 	if(0 != m_theme.GetPosItem("stringpos:network", &m_posItemNetworkString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos network");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos network disabling");
 		m_posItemNetworkString.m_bEnabled = false;
 	}
 	
-	Log(LOG_LOWLEVEL, "InitializeTheme: getting string pos buffer");
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:buffer");
 	if(0 != m_theme.GetPosItem("stringpos:buffer", &m_posItemBufferString))
 	{
-		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos buffer");
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos buffer disabling");
 		m_posItemBufferString.m_bEnabled = false;
 	}
 	
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistarea");
+	if(0 != m_theme.GetPosItem("itempos:playlistarea", &m_posItemPlayListArea))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistarea disabling");
+		m_posItemPlayListArea.m_bEnabled = false;
+	}
+	
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistareasel");
+	if(0 != m_theme.GetPosItem("itempos:playlistareasel", &m_posItemPlayListAreaSel))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistareasel disabling");
+		m_posItemPlayListAreaSel.m_bEnabled = false;
+	}
+	
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistitemarea");
+	if(0 != m_theme.GetPosItem("itempos:playlistitemarea", &m_posItemPlayListItemArea))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistitemarea disabling");
+		m_posItemPlayListItemArea.m_bEnabled = false;
+	}
+	
+	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistitemareasel");
+	if(0 != m_theme.GetPosItem("itempos:playlistitemareasel", &m_posItemPlayListItemAreaSel))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistitemareasel disabling");
+		m_posItemPlayListItemAreaSel.m_bEnabled = false;
+	}
+
 	return TRUE;
 }
 
 bool CGraphicsUI::InitializeSDL()
 {
-	Log(LOG_LOWLEVEL, "InitializeSDL: SDL Initializing with SDL_INIT_VIDEO");
+	Log(LOG_VERYLOW, "InitializeSDL: SDL Initializing with SDL_INIT_VIDEO");
 	if(SDL_Init(SDL_INIT_VIDEO) < 0) 
 	{	
 		Log(LOG_ERROR, "InitializeSDL: SDL_Init error : %s", SDL_GetError());
 		return FALSE;
 	}	
-	Log(LOG_LOWLEVEL, "InitializeSDL: SDL Initialized with SDL_INIT_VIDEO");	
+	Log(LOG_VERYLOW, "InitializeSDL: SDL Initialized with SDL_INIT_VIDEO");	
 	
-	Log(LOG_LOWLEVEL, "InitializeSDL: disabling cursor"); 	
+	Log(LOG_VERYLOW, "InitializeSDL: disabling cursor"); 	
 	SDL_ShowCursor(SDL_DISABLE);
-	Log(LOG_LOWLEVEL, "InitializeSDL: disabled cursor"); 	
+	Log(LOG_VERYLOW, "InitializeSDL: disabled cursor"); 	
 	
-	Log(LOG_LOWLEVEL, "InitializeSDL: Checking video mode"); 	
+	Log(LOG_VERYLOW, "InitializeSDL: Checking video mode"); 	
 	m_nDepth = SDL_VideoModeOK(PSP_RES_WIDTH, PSP_RES_HEIGHT, 32, m_nFlags);
-	Log(LOG_LOWLEVEL, "InitializeSDL: Checking video mode completed depth %d", m_nDepth); 	
+	Log(LOG_VERYLOW, "InitializeSDL: Checking video mode completed depth %d", m_nDepth); 	
 		
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode"); 	
+	Log(LOG_VERYLOW, "InitializeSDL: Setting video mode"); 	
  	if(NULL == (m_pScreen = SDL_SetVideoMode(PSP_RES_WIDTH, 
  												PSP_RES_HEIGHT, 
  												m_nDepth, 
@@ -553,120 +625,26 @@ bool CGraphicsUI::InitializeSDL()
 			PSP_RES_WIDTH, PSP_RES_HEIGHT, m_nDepth, SDL_GetError());
 		return FALSE;
  	}
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting video mode completed");	
+	Log(LOG_VERYLOW, "InitializeSDL: Setting video mode completed");	
 			
 	return TRUE;
 }
 
 bool CGraphicsUI::InitializeImages()
 {
-	Log(LOG_LOWLEVEL, "InitializeImages: Loading base image"); 		
+	Log(LOG_VERYLOW, "InitializeImages: Loading base image"); 		
 	if(NULL == (m_pImageBase = LoadImage(m_szThemeImagePath)))
 	{
 		Log(LOG_ERROR, "InitializeImages: error loading base image");
 		return FALSE;
 	}	
-	Log(LOG_LOWLEVEL, "InitializeImages: Loaded base image"); 		
+	Log(LOG_VERYLOW, "InitializeImages: Loaded base image"); 		
 	
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting transparency");
+	Log(LOG_VERYLOW, "InitializeSDL: Setting transparency");
 	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
-	Log(LOG_LOWLEVEL, "InitializeSDL: Setting completed");	
+	Log(LOG_VERYLOW, "InitializeSDL: Setting completed");
 
 	return TRUE;
-}
-
-void CGraphicsUI::DisplayWordPlaylistArea(char *szWord, int nLineNumber, bool bCenter)
-{
-	DisplayWord(m_themeItemPlaylistArea, szWord, nLineNumber, bCenter);
-}
-
-void CGraphicsUI::ClearLinePlaylistArea(int nLineNumber)
-{
-	ClearLine(m_themeItemPlaylistArea, nLineNumber);
-}
-
-void CGraphicsUI::DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, bool bCenter)
-{
-	DisplayWord(m_themeItemPlaylistItemArea, szWord, nLineNumber, bCenter);
-}
-
-void CGraphicsUI::ClearLinePlaylistItemArea(int nLineNumber)
-{
-	ClearLine(m_themeItemPlaylistItemArea, nLineNumber);
-}
-
-void CGraphicsUI::DisplayWord(CGraphicsUIThemeItem themeItemArea,
-								char *szWord, 
-								int nLineNumber, 
-								bool bCenter)
-{
-	int nStringLen = strlen(szWord);
-	int nFontWidth = m_themeItemABC123.m_pointSize.x;
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;
-	
-	int nCurrentXPos = themeItemArea.m_pointDst.x; 
-	int nCurrentYPos = themeItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
-		
-	ClearLine(themeItemArea, nLineNumber);
-	
-	/** If our word is longer than the position lets truncate it for now */
-	/** to prevent us from somping on other strings */
-	/** Eventually I want to implement a scrolling text option */	
-	if((nStringLen * nFontWidth) > themeItemArea.m_pointSize.x)
-	{
-		nStringLen = themeItemArea.m_pointSize.x / nFontWidth;
-	}
-	
-	if(true == bCenter)
-	{
-		int nStringWidth = nStringLen * nFontWidth;
-		
-		nCurrentXPos = themeItemArea.m_pointDst.x + 
-						(themeItemArea.m_pointSize.x / 2) - 
-						(nStringWidth / 2);
-	}	
-	
-	for(int x = 0; x != nStringLen; x++)
-	{
-		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
-		
-		SDL_Rect src = 	{ 
-							m_themeItemABC123.GetSrc(index).x,
-							m_themeItemABC123.GetSrc(index).y,
-							m_themeItemABC123.m_pointSize.x,
-							m_themeItemABC123.m_pointSize.y
-						};
-						
-		SDL_Rect dst = 	{ 
-							nCurrentXPos,
-							nCurrentYPos,
-						};
-			
-		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
-		
-		nCurrentXPos += nFontWidth;		
-	}
-}
-
-void CGraphicsUI::ClearLine(CGraphicsUIThemeItem themeItemArea, int nLineNumber)
-{
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;		
-
-	int nCurrentYPos = themeItemArea.m_pointDst.y + (nLineNumber * (nFontHeight + 3));
-	
-	SDL_Rect src = 	{ 
-						themeItemArea.m_pointDst.x,
-						nCurrentYPos,
-						themeItemArea.m_pointSize.x,
-						nFontHeight
-					};
-						
-	SDL_Rect dst = 	{ 
-						themeItemArea.m_pointDst.x,
-						nCurrentYPos,
-					};
-			
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
 }
 
 void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool bCenter)

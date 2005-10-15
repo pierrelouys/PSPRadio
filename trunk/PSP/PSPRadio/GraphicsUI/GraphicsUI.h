@@ -54,22 +54,11 @@ private:
 	void SetStopButton(uibuttonstate_enum state);	
 	void SetSoundButton(uibuttonstate_enum state);
 	void SetButton(CGraphicsUIThemeItem themeItem, uibuttonstate_enum state);	
+	void SetButton(CGraphicsUIPosItem posSrc, CGraphicsUIPosItem posDst);
 	
 	bool InitializeTheme(char *szFilename, char *szThemePath);
 	bool InitializeSDL();
 	bool InitializeImages();
-	
-	void DisplayWordInfoArea(char *szWord, int nLineNumber, bool bCenter=true);
-	void ClearLineInfoArea(int nLineNumber);
-
-	void DisplayWordPlaylistArea(char *szWord, int nLineNumber, bool bCenter=true);
-	void ClearLinePlaylistArea(int nLineNumber);
-	
-	void DisplayWordPlaylistItemArea(char *szWord, int nLineNumber, bool bCenter=true);
-	void ClearLinePlaylistItemArea(int nLineNumber);
-	
-	void DisplayWord(CGraphicsUIThemeItem themeItemArea, char *szWord,  int nLineNumber, bool bCenter=true);
-	void ClearLine(CGraphicsUIThemeItem themeItemArea, int nLineNumber);
 	
 	void DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool bCenter=true);
 	void ClearLine(CGraphicsUIPosItem *pPosItem);
@@ -96,10 +85,11 @@ private:
 	CGraphicsUIThemeItem m_themeItemABC123;
 	
 	/** Output Locations */
-	/** TODO: Update to use PosItem instead of ThemeItem */
-	CGraphicsUIThemeItem m_themeItemPlaylistArea;
-	CGraphicsUIThemeItem m_themeItemPlaylistItemArea;
-	
+	CGraphicsUIPosItem m_posItemPlayListArea;
+	CGraphicsUIPosItem m_posItemPlayListAreaSel;
+	CGraphicsUIPosItem m_posItemPlayListItemArea;
+	CGraphicsUIPosItem m_posItemPlayListItemAreaSel;
+		
 	/** String Locations */
 	CGraphicsUIPosItem m_posItemFileNameString;
 	CGraphicsUIPosItem m_posItemFileTitleString;
