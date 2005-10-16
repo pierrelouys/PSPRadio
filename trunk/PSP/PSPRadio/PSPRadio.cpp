@@ -66,7 +66,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre5.2")
+	myPSPApp(): CPSPApp("PSPRadio", "0.35-pre5.3")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -115,11 +115,6 @@ public:
 	
 		m_UI->SetTitle(strAppTitle);
 		
-		if (1 == m_Config->GetInteger("USB:ENABLED", 0))
-		{
-			EnableUSB();
-		}
-		
 		if (-1 != m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"))
 		{
 		
@@ -144,7 +139,6 @@ public:
 		else
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
-			//m_ScreenHandler->DisplayCurrentNetworkSelection();
 		}
 		
 		Log(LOG_VERYLOW, "Freeing strDir");
@@ -328,14 +322,34 @@ public:
 
 	void OnButtonReleased(int iButtonMask)
 	{
-		switch (m_ScreenHandler->GetCurrentScreen())
+		static bool fOnExitMenu = false;
+		
+		if (false == fOnExitMenu)
 		{
-			case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-				m_ScreenHandler->PlayListScreenInputHandler(iButtonMask);
-				break;
-			case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-				m_ScreenHandler->OptionsScreenInputHandler(iButtonMask);
-				break;
+			if (iButtonMask & PSP_CTRL_HOME)
+			{
+				fOnExitMenu = true;
+				return;
+			}
+			switch (m_ScreenHandler->GetCurrentScreen())
+			{
+				case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+					m_ScreenHandler->PlayListScreenInputHandler(iButtonMask);
+					break;
+				case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+					m_ScreenHandler->OptionsScreenInputHandler(iButtonMask);
+					break;
+			}
+		}
+		else
+		{
+			if ( (iButtonMask & PSP_CTRL_HOME)   ||
+				 (iButtonMask & PSP_CTRL_CROSS)  ||
+				 (iButtonMask & PSP_CTRL_CIRCLE)
+				)
+			{
+				fOnExitMenu = false;
+			}
 		}
 	}
 	
@@ -363,7 +377,6 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
-						//eCurrentMetaData();
 						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						m_Sound->Play();
