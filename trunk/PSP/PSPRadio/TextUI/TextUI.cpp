@@ -116,7 +116,7 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			c = GetConfigColor("COLORS:MAIN_COMMANDS");
 				
 			ClearRows(y);
-			uiPrintf(x, y, c, "X Play/Pause | [] Stop | L / R Songs | UP/DOWN PlayLists");
+			uiPrintf(x, y, c, "X Play | [] Stop | L / R Songs | UP/DN PlayLists | ^ Options");
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			pspDebugScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
@@ -466,7 +466,7 @@ int CTextUI::DisplayPLList(CDirList *plList)
 	c = GetConfigColor("COLORS:PLAYLIST_DIRS");
 
 	ClearRows(y);
-	strncpy(strPL, plList->GetCurrentURI(), 56);
+	strncpy(strPL, basename(plList->GetCurrentURI()), 56);
 	uiPrintf(x, y, c, "PlayList: %s", strPL);
 	
 	return 0;
