@@ -328,6 +328,7 @@ public:
 		{
 			if (iButtonMask & PSP_CTRL_HOME)
 			{
+				Log(LOG_VERYLOW, "Entering HOME menu, ignoring buttons..");
 				fOnExitMenu = true;
 				return;
 			}
@@ -349,6 +350,7 @@ public:
 				)
 			{
 				fOnExitMenu = false;
+				Log(LOG_VERYLOW, "Exiting HOME menu");
 			}
 		}
 	}
