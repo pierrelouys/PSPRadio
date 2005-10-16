@@ -1,12 +1,5 @@
-PSPRadio by Raf 0.35-pre5 10/14/05
+PSPRadio by Raf 0.35-final 10/16/05
 ====================================
-
-*****************************************************************
-THIS IS A PRE-RELEASE!!! 
-FOR THE LATEST STABLE OFFICIAL RELEASE, GO TO:
-https://developer.berlios.de/project/showfiles.php?group_id=4862
-*****************************************************************
-
 
 -Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php
@@ -27,19 +20,18 @@ Use at your own risk.
 
 Installation
 -------------
-1-Choose an iconset directory, you can choose from: 
+1-Download the correct package for your firmware: -f1.0 or -f1.5
+2-Choose an iconset directory, you can choose from: 
 halfast_iconset, handojin_iconset and mrpochi_iconset.
-2-From the iconset directory choose the directory corresponding to your
-PSP version. (v1.0 v1.5)
 3-Copy the contents of the version directory ("PSPRadio" for v1.0 or
 "PSPRadio                        1" and "PSPRAD~2%" for v1.5) to your PSP under 
 "PSP\GAME\".
 
 
-Notes
+Note:
 -----
-You can ignore the config directory in this zip file. Is there for reference 
-only.
+This application doesn't support DHCP (automatic IP) for the PSP. You will need to
+set up your PSP to use a static IP. (See the guides in the forum).
 
 
 Thanks

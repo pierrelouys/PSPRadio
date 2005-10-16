@@ -1,7 +1,6 @@
 What's New for PSPRadio 
-======================================================
-0.35
-0.35-pre1 (r188)
+========================
+0.35-final (r312)
 -Refactored PSPSound/PSPSound_MP3. (lots of things are different. but one thing that is evident to the end 
 user is that the buffers were reduced by a factor of 5. Next -pre release will allow for the 
 buffers to be configurable).
@@ -12,7 +11,6 @@ Any rate can be implemented, I just need to add it to the code, let me know if o
 Note that the samplerate conversion is really linear and simplistic, and hence the produced sound will not
 be very good. Still, better than nothing.
 -UI now displays buffer percentage (instead of in/out number)
-0.35-pre2 (r203)
 -sound buffers configurable in .cfg file. Post your results!
 -fixed bug where app would crash on exit if played a stream until end and then exited.
 -Now the Text user interface is configurable, look at TextUI.cfg, play and post results!
@@ -20,12 +18,10 @@ be very good. Still, better than nothing.
 need to put your playlist files under the PlayLists directory, and don't need to do anything
 with the config file.
 -The current playlist is selectable by using UP/DOWN
-0.35-pre3 (r221)
 -cleaned up the display of playlist/stream, metadata. as 3 completely independent entities.
 -Can browse playlists/entries while playing current stream. (It doesn't stop anymore when changing tracks)
 -Refactoring of PSPSound/PSPSound_MP3 -> PSPSound/PSPSoundDecoder_MAD, internal OO changes.
 -Thread priorities are now configurable in the .cfg file.
-0.35-pre4 (r254) 0.35-pre4 - Released 10/11/05
 -Added message queue class for inter thread communications and synchronization.
 -Revamped comm system for PSPApp (PSPRadio) using message q. This solves the problem with callback messaging 
 (thread prio boosting/inheritance from caller, overhead on caller thread, etc. -- Also, now polling of buttons/vblank 
@@ -35,7 +31,6 @@ is done in a separate thread. -- still work in progress --).
 -Buffer Percentage is updated at 6fps max now (this to not overtax main thread+event handler)
 -Now clear metadata on stream stop (including buffer %).
 -more internal refactoring...
-0.35-pre5 (r295) 0.35-pre5 - Released 10/14/05
 (sandberg)-Added button support to the 3D UI so it shows play/stop/pause.
 (sandberg)-Added hprm (headphone remote control) support to PSPRadio. The keys are mapped to that forward/back
 maps to Rtrigger/LTrigger. The Play/Pause button will start playing when stopped and stop when playing.
@@ -48,12 +43,12 @@ screen. Only supported by text ui right now.
 (raf)-The options menu is the only way for now to select a profile and start the network; so use network autostart in
 the config file if using PSPRaio with another UI.
 (raf)-Currently network and usb can be started from options screen. Will add CPU speed here also.
-0.35-pre5-2 BUG FIX RELEASE
 (raf)-Only restart stream on stop if different than the current stream
 (raf)-(hopefully)Fixed bug where event queue was filling up causing PSPRadio to quit with event 0x31 (decoder done).
+(raf)-Only display the filename for playlists now.
+(raf)-Ignore buttons while HOME menu is up.
 
-
-0.34
+0.34 (r181)
 -Corrected the mutex and semaphore implementations..
 (Now logging needs more resources because of this though, so it's probably a good idea to keep high).
 -Also found a bug that would cause the crash on exit (one at least).
@@ -72,7 +67,7 @@ the config file if using PSPRaio with another UI.
 -Tweaked the playlist v2 support so that it (hopefully, test) works with winamp .pls files. (Now I just
 ignore the "NumberOfEntries"/"numberofentries" tag.
 
-0.33b
+0.33b (r130)
 -Corrected logging, so that it won't double-line feed.
 -Added connection timeout so that if the server is not respoding, PSPRadio will timeout after 5 seconds.
 -The connection now sends a message (can and will be used for the gui) for now, a '.' is printed every second while trying to connect.
