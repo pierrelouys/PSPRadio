@@ -3,7 +3,7 @@ include ./Makefile
 KXPLOIT_PRIMARY_DIR = "Harbringer-iconset/PSPRadio"
 KXPLOIT_SECONDARY_DIR = "Harbringer-iconset/PSPRadio%"
 
-PSP_EBOOT_ICON = resources_harbringer/icon0.png
-PSP_EBOOT_PIC1 = resources_harbringer/pic1.png
+PSP_EBOOT_ICON = resources_harbringer/ICON0.png
+PSP_EBOOT_PIC1 = resources_harbringer/PIC1.png
 
 
