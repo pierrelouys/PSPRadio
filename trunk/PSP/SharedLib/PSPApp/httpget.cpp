@@ -234,7 +234,7 @@ unsigned char *proxyport;
 char *httpauth = NULL;
 char httpauth1[256];
 
-int http_open (char *url, size_t &iMetadataInterval)
+int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType)
 {
 	char *purl = NULL, 
 		 *host = NULL, 
@@ -279,12 +279,14 @@ int http_open (char *url, size_t &iMetadataInterval)
 	}
 
 
-       if (proxyip == INADDR_NONE)
-               if (strncasecmp(url, "ftp://", 6) == 0){
-                       ReportError ("Downloading from ftp servers without PROXY not allowed\n");
-                       return -1;
-               }
-
+	if (proxyip == INADDR_NONE)
+	{
+		if (strncasecmp(url, "ftp://", 6) == 0)
+		{
+			ReportError ("Downloading from ftp servers without PROXY not allowed\n");
+			return -1;
+		}
+	}
 	
 	if ((linelength = strlen(url)+256) < 4096)
 		linelength = 4096;
@@ -359,15 +361,17 @@ int http_open (char *url, size_t &iMetadataInterval)
 			Log(LOG_LOWLEVEL, "url2hostport returns: host='%s' ip='0x%x' port='%s' sptr='%s'", host, myip, myport, sptr);
 			strcat (request, sptr);
 		}
+		
+		/** RC: Request metadata */
 		sprintf (request + strlen(request),
 			" %s\r\n%s\r\nUser-Agent: %s/%s\r\n",
-			//" %s\r\nUser-Agent: %s/%s\r\n",
 			"HTTP/1.0",
 			"Icy-MetaData: 1",
 			ProgName, ProgVersion);
 
 		
-		if (host) {
+		if (host) 
+		{
 			sprintf(request + strlen(request),
 				"Host: %s:%s\r\n", host, myport);
 		}
@@ -403,7 +407,7 @@ int http_open (char *url, size_t &iMetadataInterval)
 		int rc = 0;
 		memset(&addr, 0, sizeof(in_addr));
 
-		/* Let's try aton first in case the address is in dotted numerical form */
+		/* RC Let's try aton first in case the address is in dotted numerical form */
 		Log(LOG_LOWLEVEL, "Calling aton.. (host='%s')",host);
 		memset(&addr, 0, sizeof(in_addr));
 		rc = inet_aton(host, &addr);
@@ -527,7 +531,7 @@ fail:
 			switch (sptr[1]) {
 				case '3':
 					relocate = TRUE;
-				case '2':
+				case '2': /** OK */
 					break;
 				default:
 					Log (LOG_ERROR, "HTTP request failed: %s",
@@ -536,6 +540,7 @@ fail:
 					return -1;
 			}
 		}
+		
 		do 
 		{
 			/** Bail out if app exiting */
@@ -552,10 +557,33 @@ fail:
 			{
 				strncpy (purl, request+10, 1023);
 			}
-			if (strncmp(request, "icy-metaint:", 12) == 0)
+			else if (strncmp(request, "icy-metaint:", 12) == 0)
 			{
 				sscanf(request, "icy-metaint: %d", &iMetadataInterval);
 				Log(LOG_INFO, "http_connect(): Metadata Interval received: %d", iMetadataInterval);
+			}
+			else if (0 == strncmp(request, "content-type:", strlen("content-type:")) ||
+					 0 == strncmp(request, "Content-Type:", strlen("content-type:")))
+			{
+				char *content = request+strlen("content-type:");
+				if (content[0] == ' ')
+					content++;
+				Log(LOG_VERYLOW, "Parsing content:%s",content);
+				if (0 == strncmp(content, "audio/mpeg", strlen("audio/mpeg")))
+				{
+					ContentType = CPSPSoundStream::STREAM_CONTENT_AUDIO_MPEG;
+					Log(LOG_INFO, "Content Type set to audio/mpeg");
+				}
+				else if (0 == strncmp(content, "application/ogg", strlen("application/ogg")))
+				{
+					ContentType = CPSPSoundStream::STREAM_CONTENT_AUDIO_OGG;
+					Log(LOG_INFO, "Content Type set to application/ogg");
+				}
+				else if (0 == strncmp(content, "audio/aac", strlen("audio/aac")))
+				{
+					ContentType = CPSPSoundStream::STREAM_CONTENT_AUDIO_AAC;
+					Log(LOG_INFO, "Content Type set to audio/aac");
+				}
 			}
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);

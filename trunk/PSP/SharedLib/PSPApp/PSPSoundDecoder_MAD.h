@@ -17,21 +17,36 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #ifndef __PSPSOUNDDECODER_MAD__
-#define __PSPSOUNDDECODER_MAD__
+	#define __PSPSOUNDDECODER_MAD__
+	
+	#include "PSPSound.h"
 	#include <mad.h>
 	
 	class CPSPEventQ;
 	class CPSPSoundStream;
 	class CPSPSoundBuffer;
 	
-	class CPSPSoundDecoder_MAD// : public virtual IPSPSoundDecoder
+	class CPSPSoundDecoder_MAD : public IPSPSoundDecoder
 	{
 	public:
-		CPSPSoundDecoder_MAD();
+		CPSPSoundDecoder_MAD(CPSPSoundStream *InputStream, CPSPSoundBuffer *OutputBuffer)
+			:IPSPSoundDecoder(InputStream, OutputBuffer){ Initialize();}
+		~CPSPSoundDecoder_MAD();
 		
-		void Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPEventQ *Notification);
+		void Initialize();
+			
+		bool Decode();
 
 	private:
+		struct mad_frame	m_Frame;
+		struct mad_stream	m_Stream;
+		struct mad_synth	m_Synth;
+		mad_timer_t			m_Timer;
+		unsigned char		*m_pInputBuffer;
+		unsigned char		*m_GuardPtr;
+		unsigned long	m_FrameCount;
+
+		
 		static signed int scale(mad_fixed_t &sample);
 		static int PrintFrameInfo(struct mad_header *Header);
 		static signed short MadFixedToSshort(mad_fixed_t Fixed);

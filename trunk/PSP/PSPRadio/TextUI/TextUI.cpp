@@ -17,6 +17,8 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <list>
+#include <pspdebug.h>
+#include <pspdisplay.h>
 #include <PSPApp.h>
 #include <PSPSound.h>
 #include <stdio.h>
@@ -31,6 +33,9 @@
 #include <Logging.h>
 #include "TextUI.h"
 
+	
+/* Define printf, just to make typing easier */
+#define printf	pspDebugScreenPrintf
 
 #define MAX_ROWS 34
 #define MAX_COL  68

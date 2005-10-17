@@ -26,8 +26,6 @@
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>
 	#include <pspnet.h>
-	#include <pspdebug.h>
-	#include <pspdisplay.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
@@ -62,9 +60,6 @@
 	#define MID_ONHPRM_RELEASED			0x01000012
 	#define MID_ONVBLANK					0x01000020
 	
-	
-	/* Define printf, just to make typing easier */
-	#define printf	pspDebugScreenPrintf
 	
 	class CPSPThread;
 	class CPSPApp;
@@ -158,6 +153,8 @@
 	friend class CPSPSoundStream;
 
 	};
+	
+	#define ReportError pPSPApp->ReportError	
 	
 	/** Wrapper class around the kernel system calls for thread management */
 	class CPSPThread

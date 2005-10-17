@@ -37,7 +37,6 @@ maps to Rtrigger/LTrigger. The Play/Pause button will start playing when stopped
 (jpfouch48)-Text items in GraphicsUI are now configurable thru the theme file.
 (jpfouch48)-Cleaned up warning messages in GraphicsUI.
 (sandberg) Added graphics for the button commands.
-(raf)-sandberg added HPRM support.
 (raf)-added handler to have "multiple screens" - currently using for an options screen. Use TRIANGLE to get to options
 screen. Only supported by text ui right now.
 (raf)-The options menu is the only way for now to select a profile and start the network; so use network autostart in

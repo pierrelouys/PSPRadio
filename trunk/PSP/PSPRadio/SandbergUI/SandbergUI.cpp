@@ -36,7 +36,6 @@
 
 #include <pspkernel.h>
 #include <pspdisplay.h>
-#include <pspdebug.h>
 
 #include <pspgu.h>
 #include <pspgum.h>
@@ -225,8 +224,6 @@ CSandbergUI::~CSandbergUI()
 int CSandbergUI::Initialize(char *strCWD)
 {	
 	Log(LOG_LOWLEVEL, "Initialize:");
-
-	pspDebugScreenInit();
 
 	// setup GU
 	sceGuInit();

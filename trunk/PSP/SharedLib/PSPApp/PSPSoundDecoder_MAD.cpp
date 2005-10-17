@@ -29,228 +29,197 @@
 #include "PSPSoundDecoder_MAD.h"
 using namespace std;
 
-int errno = 0;
-
-#define ReportError pPSPApp->ReportError
-
-CPSPSoundDecoder_MAD::CPSPSoundDecoder_MAD()
+void CPSPSoundDecoder_MAD::Initialize()
 {
-	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Constructor");
-}
-
-void CPSPSoundDecoder_MAD::Decode(CPSPSoundStream *InputStream, CPSPSoundBuffer &Buffer, CPSPEventQ *Notification)
-{
-	struct mad_frame	Frame;
-	struct mad_stream	Stream;
-	struct mad_synth	Synth;
-	mad_timer_t			Timer;
-	int					Status=0,
-						i = 0;
-	unsigned long		FrameCount=0;
-
-	unsigned char		*pInputBuffer 	= NULL, /*[INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD]*/
-						*GuardPtr		= NULL;
+	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize"); 
+	//IPSPSoundDecoder::IPSPSoundDecoder(InputStream, OutputBuffer);
 	
-	pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
+	/* First the structures used by libmad must be initialized. */
+	mad_stream_init(&m_Stream);
+	mad_frame_init(&m_Frame);
+	mad_synth_init(&m_Synth);
+	mad_timer_reset(&m_Timer);
 	
-	PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
-	
-	if (!pInputBuffer)
+	m_GuardPtr = NULL;
+	m_FrameCount=0;	
+	m_pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
+	if (!m_pInputBuffer)
 	{
 		ReportError("Memory allocation error!\n");
 		Log(LOG_ERROR, "Memory allocation error!\n");
 		return;
 	}
-
-	/* First the structures used by libmad must be initialized. */
-	mad_stream_init(&Stream);
-	mad_frame_init(&Frame);
-	mad_synth_init(&Synth);
-	mad_timer_reset(&Timer);
-
-	pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
-	Log(LOG_INFO, "MP3 Decode(): Calling Open For '%s'", InputStream->GetFile());
-	InputStream->Open();
-	if (InputStream->IsOpen() == TRUE)
+}
+			
+CPSPSoundDecoder_MAD::~CPSPSoundDecoder_MAD()
+{
+	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD start");
+	
+	mad_synth_finish(&m_Synth);
+	mad_frame_finish(&m_Frame);
+	mad_stream_finish(&m_Stream); 
+	
+	if (m_pInputBuffer)
 	{
-		Log(LOG_INFO, "MP3 Decode(): Stream Opened Successfully.");
-		
-		pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
-		
-		/** Main decoding loop */
-		/* pPSPSound is the decoding loop. */
-		while (Notification->Size() == 0)
+		free(m_pInputBuffer), m_pInputBuffer = NULL;
+	}
+	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD end");
+}
+
+bool CPSPSoundDecoder_MAD::Decode()
+{
+	int	i = 0;
+	bool bRet = false;
+	
+	PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
+	
+
+
+	/* The input bucket must be filled if it becomes empty or if
+	 * it's the first execution of the loop.
+	 */
+	if(m_Stream.buffer==NULL || m_Stream.error==MAD_ERROR_BUFLEN)
+	{
+		size_t			ReadSize,
+						Remaining;
+		unsigned char	*ReadStart;
+
+		if(m_Stream.next_frame!=NULL)
 		{
-			/* The input bucket must be filled if it becomes empty or if
-			 * it's the first execution of the loop.
-			 */
-			if(Stream.buffer==NULL || Stream.error==MAD_ERROR_BUFLEN)
+			Remaining=m_Stream.bufend-m_Stream.next_frame;
+			memmove(m_pInputBuffer,m_Stream.next_frame,Remaining);
+			ReadStart=m_pInputBuffer+Remaining;
+			ReadSize=INPUT_BUFFER_SIZE-Remaining;
+		}
+		else
+			ReadSize=INPUT_BUFFER_SIZE,
+				ReadStart=m_pInputBuffer,
+				Remaining=0;
+
+		ReadSize = m_InputStream->Read(ReadStart,1,ReadSize);
+		if(ReadSize<=0)
+		{
+			ReportError("(End of stream)...");
+			bRet = true;
+			m_FrameCount = 0;
+			return bRet;
+		}
+
+		if(m_InputStream->IsEOF())
+		{
+			m_GuardPtr=ReadStart+ReadSize;
+			memset(m_GuardPtr,0,MAD_BUFFER_GUARD);
+			ReadSize+=MAD_BUFFER_GUARD;
+		}
+
+		/* Pipe the new buffer content to libmad's stream decoder
+		 * facility.
+		 */
+		mad_stream_buffer(&m_Stream,m_pInputBuffer,ReadSize+Remaining);
+		m_Stream.error=(mad_error)0;
+	}
+
+	/* Decode the next MPEG frame. */
+	if(mad_frame_decode(&m_Frame,&m_Stream))
+	{
+		if(MAD_RECOVERABLE(m_Stream.error))
+		{
+			if(m_Stream.error!=MAD_ERROR_LOSTSYNC ||
+			   m_Stream.this_frame!=m_GuardPtr)
 			{
-				size_t			ReadSize,
-								Remaining;
-				unsigned char	*ReadStart;
-	
-				if(Stream.next_frame!=NULL)
-				{
-					Remaining=Stream.bufend-Stream.next_frame;
-					memmove(pInputBuffer,Stream.next_frame,Remaining);
-					ReadStart=pInputBuffer+Remaining;
-					ReadSize=INPUT_BUFFER_SIZE-Remaining;
-				}
-				else
-					ReadSize=INPUT_BUFFER_SIZE,
-						ReadStart=pInputBuffer,
-						Remaining=0;
-	
-				ReadSize = InputStream->Read(ReadStart,1,ReadSize);
-				if(ReadSize<=0)
-				{
-					ReportError("(End of stream)...");
-					break;
-				}
-				//else if(Notification->Size() > 0)
-				//{
-				//	Log(LOG_LOWLEVEL, "Decode: Stop decoding, because there's messages awaiting...");
-				//	break;
-				//}
-				
-	
-				if(InputStream->IsEOF())
-				{
-					GuardPtr=ReadStart+ReadSize;
-					memset(GuardPtr,0,MAD_BUFFER_GUARD);
-					ReadSize+=MAD_BUFFER_GUARD;
-				}
-	
-				/* Pipe the new buffer content to libmad's stream decoder
-	             * facility.
-				 */
-				mad_stream_buffer(&Stream,pInputBuffer,ReadSize+Remaining);
-				Stream.error=(mad_error)0;
+				Log(LOG_INFO,"Recoverable frame level error. (Garbage in the stream).");
 			}
-	
-			/* Decode the next MPEG frame. */
-			if(mad_frame_decode(&Frame,&Stream))
+			bRet = false;
+			return bRet;
+		}
+		else
+			if(m_Stream.error==MAD_ERROR_BUFLEN)
 			{
-				if(MAD_RECOVERABLE(Stream.error))
-				{
-					if(Stream.error!=MAD_ERROR_LOSTSYNC ||
-					   Stream.this_frame!=GuardPtr)
-					{
-						Log(LOG_INFO,"Recoverable frame level error. (Garbage in the stream).");
-					}
-					continue;
-				}
-				else
-					if(Stream.error==MAD_ERROR_BUFLEN)
-						continue;
-					else
-					{
-						ReportError("Unrecoverable frame level error.");
-						Status=1;
-						break;
-					}
+				bRet = false;
+				return bRet;
 			}
 			else
-	
-			/* The characteristics of the stream's first frame is printed
-			 * on stderr. The first frame is representative of the entire
-			 * stream.
-			 */
-			if(FrameCount==0)
 			{
-				if(PrintFrameInfo(&Frame.header))
-				{
-					Status=1;
-					ReportError("Error in Frame info.");
-					break;
-				}
-				Buffer.SetSampleRate(Frame.header.samplerate);
+				ReportError("Unrecoverable frame level error.");
+				bRet=true;
+				m_FrameCount = 0;
+				return bRet;
 			}
-	
-			/* Accounting. The computed frame duration is in the frame
-			 * header structure. It is expressed as a fixed point number
-			 * whole data type is mad_timer_t. It is different from the
-			 * samples fixed point format and unlike it, it can't directly
-			 * be added or subtracted. The timer module provides several
-			 * functions to operate on such numbers. Be careful there, as
-			 * some functions of libmad's timer module receive some of
-			 * their mad_timer_t arguments by value!
-			 */
-			FrameCount++;
-			mad_timer_add(&Timer,Frame.header.duration);
-	
-			//if(DoFilter)
-			//	ApplyFilter(&Frame);
-	
-			/* Once decoded the frame is synthesized to PCM samples. No errors
-			 * are reported by mad_synth_frame();
-			 */
-			mad_synth_frame(&Synth,&Frame);
-	
-			/* Synthesized samples must be converted from libmad's fixed
-			 * point number to the consumer format. Here we use unsigned
-			 * 16 bit little endian integers on two channels. Integer samples
-			 * are temporarily stored in a buffer that is flushed when
-			 * full.
-			 */
-			for(i=0;i<Synth.pcm.length;i++)
-			{
-				signed short	SampleL, SampleR;
-				
-				/* Left channel */
-				SampleL = scale(Synth.pcm.samples[0][i]); 
-				//Sample=MadFixedToSshort(Synth.pcm.samples[0][i]);
-				/* Right channel. If the decoded stream is monophonic then
-				 * the right output channel is the same as the left one.
-				 */
-				if(MAD_NCHANNELS(&Frame.header)==2)
-				{
-				//	Sample=MadFixedToSshort(Synth.pcm.samples[1][i]);
-					SampleR = scale(Synth.pcm.samples[1][i]); 
-				}
-				else
-				{
-					SampleR = SampleL;
-				}
-				
-				PCMOutputFrame.RHalfSampleA = (SampleR) & 0xff;
-				PCMOutputFrame.RHalfSampleB = (SampleR>>8) & 0xff;
-				PCMOutputFrame.LHalfSampleA = (SampleL) & 0xff;
-				PCMOutputFrame.LHalfSampleB = (SampleL>>8) & 0xff;
-				
-				
-				Buffer.PushFrame(*((::Frame*)&PCMOutputFrame));
-			}
-			
-			//if (pPSPApp->IsExiting() == TRUE || pPSPSound->GetPlayState() == CPSPSound::STOP)
-			//{
-			//	break;
-			//}
-			sceKernelDelayThread(10); /** 100us */
-		};
-		Log(LOG_INFO, "Done decoding stream.");
-		Buffer.Done();
-		
-		/* The input file was completely read; 
-		 * Close The input stream.
-		 */
-		InputStream->Close();
-	
-		/* Mad is no longer used, the structures that were initialized must
-	     * now be cleared.
-		 */
-		mad_synth_finish(&Synth);
-		mad_frame_finish(&Frame);
-		mad_stream_finish(&Stream); 
-
 	}
 	else
+
+	/* The characteristics of the stream's first frame is printed
+	 * on stderr. The first frame is representative of the entire
+	 * stream.
+	 */
+	if(m_FrameCount==0)
 	{
-		pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
-		Log(LOG_ERROR, "Unable to open stream '%s'.", InputStream->GetFile());
+		if(PrintFrameInfo(&m_Frame.header))
+		{
+			bRet=true;
+			m_FrameCount = 0;
+			ReportError("Error in m_Frame info.");
+			return bRet;
+		}
+		m_Buffer->SetSampleRate(m_Frame.header.samplerate);
 	}
 
+	/* Accounting. The computed frame duration is in the frame
+	 * header structure. It is expressed as a fixed point number
+	 * whole data type is mad_timer_t. It is different from the
+	 * samples fixed point format and unlike it, it can't directly
+	 * be added or subtracted. The timer module provides several
+	 * functions to operate on such numbers. Be careful there, as
+	 * some functions of libmad's timer module receive some of
+	 * their mad_timer_t arguments by value!
+	 */
+	m_FrameCount++;
+	mad_timer_add(&m_Timer,m_Frame.header.duration);
+
+	//if(DoFilter)
+	//	ApplyFilter(&m_Frame);
+
+	/* Once decoded the frame is synthesized to PCM samples. No errors
+	 * are reported by mad_synth_frame();
+	 */
+	mad_synth_frame(&m_Synth,&m_Frame);
+
+	/* Synthesized samples must be converted from libmad's fixed
+	 * point number to the consumer format. Here we use unsigned
+	 * 16 bit little endian integers on two channels. Integer samples
+	 * are temporarily stored in a buffer that is flushed when
+	 * full.
+	 */
+	for(i=0;i<m_Synth.pcm.length;i++)
+	{
+		signed short	SampleL, SampleR;
+		
+		/* Left channel */
+		SampleL = scale(m_Synth.pcm.samples[0][i]); 
+		//Sample=MadFixedToSshort(m_Synth.pcm.samples[0][i]);
+		/* Right channel. If the decoded stream is monophonic then
+		 * the right output channel is the same as the left one.
+		 */
+		if(MAD_NCHANNELS(&m_Frame.header)==2)
+		{
+		//	Sample=MadFixedToSshort(m_Synth.pcm.samples[1][i]);
+			SampleR = scale(m_Synth.pcm.samples[1][i]); 
+		}
+		else
+		{
+			SampleR = SampleL;
+		}
+		
+		PCMOutputFrame.RHalfSampleA = (SampleR) & 0xff;
+		PCMOutputFrame.RHalfSampleB = (SampleR>>8) & 0xff;
+		PCMOutputFrame.LHalfSampleA = (SampleL) & 0xff;
+		PCMOutputFrame.LHalfSampleB = (SampleL>>8) & 0xff;
+		
+		
+		m_Buffer->PushFrame(*((::Frame*)&PCMOutputFrame));
+	}
+	
+	return false;
 }
 
 signed int CPSPSoundDecoder_MAD::scale(mad_fixed_t &sample)

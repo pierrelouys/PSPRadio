@@ -17,6 +17,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <new>
+#include <pspdisplay.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -24,6 +25,8 @@
 #include <pspnet.h>
 #include <psphprm.h>
 #include "PSPApp.h"
+
+#undef ReportError
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 

@@ -18,7 +18,6 @@
 */
 #ifndef __PSPSOUND__
 #define __PSPSOUND__
-	#include "PSPSoundDecoder_MAD.h"
 	#include "PSPEventQ.h"
 
 	/** Not configurable */
@@ -75,9 +74,6 @@
 		MID_PLAY_THREAD_EXIT_NEEDOK
 	};
 	
-	/* ------ Declarations from "httpget.c" (From mpg123) ------ */
-	extern int http_open (char *url, size_t &iMetadataInterval);
-	
 	/** Other functions */
 	int SocketRead(char *pBuffer, size_t LengthInBytes, int sock);
 	
@@ -95,6 +91,14 @@
 			STREAM_STATE_CLOSED,
 			STREAM_STATE_OPEN
 		};
+		enum content_types
+		{
+			STREAM_CONTENT_NOT_DEFINED,
+			STREAM_CONTENT_AUDIO_MPEG,
+			STREAM_CONTENT_AUDIO_OGG,
+			STREAM_CONTENT_AUDIO_AAC
+		};
+		
 		CPSPSoundStream();
 		~CPSPSoundStream();
 		
@@ -108,10 +112,14 @@
 		stream_types GetType() { return m_Type; }
 		stream_states GetState() { return m_State; }
 		
+		content_types GetContentType() { return m_ContentType; }
+		void SetContentType(content_types Type) { m_ContentType = Type; }
+		
 		
 	private:
 		enum stream_types  m_Type;
 		enum stream_states m_State;
+		enum content_types m_ContentType;
 		char m_strFile[256];
 		FILE *m_pfd;
 		bstdfile_t *m_BstdFile;
@@ -155,6 +163,21 @@
 
 	};
 	
+	class IPSPSoundDecoder
+	{
+	public:
+		IPSPSoundDecoder(CPSPSoundStream *InputStream, CPSPSoundBuffer *OutputBuffer)
+			{m_InputStream = InputStream; m_Buffer = OutputBuffer;}
+		virtual ~IPSPSoundDecoder(){}
+		
+		virtual void Initialize(){}
+		virtual bool Decode(){return true;} /** Returns true on end-of-stream or unrecoverable error */
+
+	protected:
+		CPSPSoundStream *m_InputStream;
+		CPSPSoundBuffer *m_Buffer;
+	};
+	
 	class CPSPSound
 	{
 	public:
@@ -166,9 +189,8 @@
 		};
 		
 	protected:
-		CPSPSoundBuffer Buffer;
-		CPSPSoundStream *m_InputStream;
-		CPSPSoundDecoder_MAD *m_Decoder;
+		CPSPSoundBuffer   Buffer;
+		CPSPSoundStream  *m_InputStream;
 		
 	private:
 		void Initialize();

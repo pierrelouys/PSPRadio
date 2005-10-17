@@ -30,9 +30,10 @@
 #include "PSPSound.h"
 #include "PSPSoundDecoder_MAD.h"
 
-using namespace std;
+/* ------ Declarations from "httpget.c" (From mpg123) ------ */
+int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType);
 
-#define ReportError pPSPApp->ReportError
+using namespace std;
 
 CPSPSound *pPSPSound = NULL;
 
@@ -49,7 +50,7 @@ CPSPSound::CPSPSound()
 	m_thPlayAudio  = NULL;
 	pPSPSound = this;
 	m_InputStream = NULL;
-	m_Decoder = NULL;
+	//m_Decoder = NULL;
 	m_audiohandle = -1;
 	m_CurrentState = STOP;
 	m_EventToDecTh = m_EventToPlayTh = NULL;
@@ -83,7 +84,7 @@ void CPSPSound::Initialize()
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
 	
-	m_Decoder = new CPSPSoundDecoder_MAD();
+	//m_Decoder = new CPSPSoundDecoder_MAD();
 	
 	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
 	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
@@ -291,6 +292,8 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 
 int CPSPSound::ThDecode(SceSize args, void *argp) 
 {
+	IPSPSoundDecoder *Decoder = NULL;
+	
 	Log(LOG_INFO,"Starting Decoding Thread.");
 	pPSPSound->SendEvent(MID_THDECODE_BEGIN);
 
@@ -308,9 +311,75 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 		{
 			case MID_DECODER_START:
 				Log(LOG_VERYLOW, "ThDecode:: Start Decoder message received.");
-				pPSPSound->SendEvent(MID_THDECODE_DECODING);
-				pPSPSound->m_Decoder->Decode(pPSPSound->m_InputStream, pPSPSound->Buffer, m_EventToDecTh);
-				pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
+				
+				if (Decoder)
+				{
+					delete Decoder, Decoder = NULL;
+				}
+				
+				pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
+				Log(LOG_INFO, "ThDecode:: Calling Open For '%s'", 
+					pPSPSound->m_InputStream->GetFile());
+				pPSPSound->m_InputStream->Open();
+				
+				if (pPSPSound->m_InputStream->IsOpen() == TRUE)
+				{
+					bool bDecoderCreated = false;
+					switch (pPSPSound->m_InputStream->GetContentType())
+					{
+						case CPSPSoundStream::STREAM_CONTENT_NOT_DEFINED:
+							Log(LOG_INFO, "ThDecode:: Content type not defined. Defaulting to MPEG.");
+							//pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
+							//bDecoderCreated = false;
+							//break;
+							//fall through (some servers don't define stream type - asume MPEG)
+						case CPSPSoundStream::STREAM_CONTENT_AUDIO_MPEG:
+							Log(LOG_INFO, "ThDecode:: MPEG Stream Opened Successfully.");
+							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
+							Decoder = new CPSPSoundDecoder_MAD(pPSPSound->m_InputStream, &pPSPSound->Buffer);
+							bDecoderCreated = true;
+							break;
+						case CPSPSoundStream::STREAM_CONTENT_AUDIO_OGG:
+							Log(LOG_INFO, "ThDecode:: OGG Stream Not supported.");
+							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
+							bDecoderCreated = false;
+							break;
+						case CPSPSoundStream::STREAM_CONTENT_AUDIO_AAC:
+							Log(LOG_INFO, "ThDecode:: AAC Stream Not supported.");
+							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
+							bDecoderCreated = false;
+							break;
+					}
+
+					if (true == bDecoderCreated)
+					{
+						pPSPSound->SendEvent(MID_THDECODE_DECODING);
+						/** Main decoding loop */
+						/* pPSPSound is the decoding loop. */
+						while (m_EventToDecTh->Size() == 0)
+						{
+							if (true == Decoder->Decode())
+							{
+								break;
+							}
+							sceKernelDelayThread(10); /** 100us */
+						}
+						
+						pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
+						
+						delete Decoder, Decoder = NULL;
+					}
+					/* The input file was completely read; 
+					 * Close The input stream.
+					 */
+					pPSPSound->m_InputStream->Close();
+				}
+				else
+				{
+					pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
+					Log(LOG_ERROR, "Unable to open stream '%s'.", pPSPSound->m_InputStream->GetFile());
+				}
+				
 				break;
 			case MID_DECODER_STOP:
 				Log(LOG_VERYLOW, "ThDecode:: Stop Decoder message received.");
@@ -374,7 +443,8 @@ void CPSPSoundBuffer::AllocateBuffers()
 	Empty();
 }
 
-void CPSPSoundBuffer::ChangeBufferSize(size_t buffer_size) /*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
+/*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
+void CPSPSoundBuffer::ChangeBufferSize(size_t buffer_size) 
 {
 	m_NumBuffers = buffer_size;
 	AllocateBuffers();
@@ -502,10 +572,6 @@ Frame *CPSPSoundBuffer::PopBuffer()
 
 Frame CPSPSoundBuffer::PopFrame()
 {
-	//if (m_FrameCount < 420)
-	//	Log(LOG_VERYLOW, "PopFrame(): m_buffering=%s poppos=%x pushpos=%x lastpushpos=%x framecount=%d",
-	//		(m_buffering==true)?"true":"false",
-	//		poppos, pushpos, m_lastpushpos, m_FrameCount);
 	if (true == IsDone())
 	{
 		pPSPSound->SendEvent(MID_THPLAY_DONE);
@@ -516,7 +582,6 @@ Frame CPSPSoundBuffer::PopFrame()
 		while (GetBufferFillPercentage() != 100)
 		{	/** Buffering!! */
 			sceKernelDelayThread(50); /** 500us */
-			//if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) ||
 			if ( pPSPSound->GetEventToPlayThSize() > 0) /** Message Waiting */
 				break;
 		}
@@ -567,6 +632,7 @@ CPSPSoundStream::CPSPSoundStream()
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
  	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
  	m_strFile[0] = 0;
+	m_ContentType = STREAM_CONTENT_NOT_DEFINED;
 	
 }
 
@@ -640,17 +706,19 @@ void CPSPSoundStream::Close()
 	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
+	m_ContentType = STREAM_CONTENT_NOT_DEFINED;
 }
 
 int CPSPSoundStream::Open()
 {
+	enum content_types ContentType = STREAM_CONTENT_NOT_DEFINED;
 	if (STREAM_STATE_CLOSED == m_State)
 	{
 		switch(m_Type)
 		{
 			case STREAM_TYPE_URL:
 				//ReportError ("Opening URL '%s'\n", filename);
-				m_fd = http_open(m_strFile, m_iMetaDataInterval);
+				m_fd = http_open(m_strFile, m_iMetaDataInterval, ContentType);
 				if (m_fd < 0)
 				{
 					//Don't report again, because http_open will report.
@@ -663,6 +731,7 @@ int CPSPSoundStream::Open()
 					//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
 					m_State = STREAM_STATE_OPEN;
 					m_sock_eof = FALSE;
+					m_ContentType = ContentType;
 				}
 				break;
 			
@@ -674,6 +743,18 @@ int CPSPSoundStream::Open()
 					if(m_BstdFile != NULL)
 					{
 						m_State = STREAM_STATE_OPEN;
+						char *ext = strrchr(m_strFile, '.') + 1;
+						if (strlen(ext) >= 3)
+						{
+							if (0 == strncmp(ext, "mp", 2) || 0 == strncmp(ext, "MP", 2))
+							{
+								m_ContentType = STREAM_CONTENT_AUDIO_MPEG;
+							}
+							else if (0 == strncmp(ext, "ogg", 3) || 0 == strncmp(ext, "OGG", 3))
+							{
+								m_ContentType = STREAM_CONTENT_AUDIO_OGG;
+							}
+						}
 					}
 					else
 					{

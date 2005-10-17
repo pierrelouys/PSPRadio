@@ -22,10 +22,9 @@ Installation
 -------------
 1-Download the correct package for your firmware: -f1.0 or -f1.5
 2-Choose an iconset directory, you can choose from: 
-halfast_iconset, handojin_iconset and mrpochi_iconset.
+halfastII-iconset, handojin-iconset, harbringer-iconset and mrpochi-iconset.
 3-Copy the contents of the version directory ("PSPRadio" for v1.0 or
-"PSPRadio                        1" and "PSPRAD~2%" for v1.5) to your PSP under 
-"PSP\GAME\".
+"PSPRadio" and "PSPRadio%" for v1.5) to your PSP under "\PSP\GAME\".
 
 
 Note:
