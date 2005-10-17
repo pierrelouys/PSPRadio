@@ -373,7 +373,7 @@ int CSandbergUI::OnVBlank()
 		sceGuLightColor(0,GU_SPECULAR,0xffffffff);
 		sceGuLightAtt(0,1.0f,1.0f,0.0f);
 	}
-	sceGuSpecular(36.0f);
+	sceGuSpecular(1.0f);
 	sceGuAmbient(0x202020);
 
 	sceGumMatrixMode(GU_PROJECTION);
@@ -386,8 +386,7 @@ int CSandbergUI::OnVBlank()
 	RenderLogo();
 	RenderCommands();
 	RenderFX();
-	RenderPLName();
-//	RenderPL();
+	RenderPL();
 	RenderState();
 
 	sceGuFinish();
@@ -476,6 +475,7 @@ static int rot = 0;
 	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 	sceGuTexImage(0,16,16,16,::bplay);
 	sceGuAmbientColor(0xffffffff);
+	sceGuAmbient(0xffffffff);
 
 	/* Render Play button */
 	sceGumMatrixMode(GU_MODEL);

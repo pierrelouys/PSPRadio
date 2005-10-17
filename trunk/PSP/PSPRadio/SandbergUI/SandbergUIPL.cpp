@@ -132,27 +132,17 @@ static struct char_map __attribute__((aligned(16))) char_mapping[NUMBER_OF_CHARS
 	{'"', (float)(15*16)/256, (float)( 2*16)/64, (float)(16*16)/256, (float)( 3*16)/64},
 };
 
-struct Vertex
+struct NVertex
 {
 	float u, v;
 	unsigned int color;
+	float nx,ny,nz;
 	float x,y,z;
 };
 
-static struct Vertex __attribute__((aligned(16))) vertices[2*3] =
-{
-	{0.0f, 1.0f, 0xffffffff,-1,-1, 1.5}, // 0
-	{0.0f, 0.0f, 0xffffffff,-1, 1, 1.5}, // 1
-	{1.0f, 0.0f, 0xffffffff, 1, 1, 1.5}, // 2
+static struct NVertex __attribute__((aligned(16))) pl_name_vertices[2*3*(PL_TEXT_LENGTH+2)];
 
-	{0.0f, 1.0f, 0xffffffff,-1,-1, 1.5}, // 0
-	{1.0f, 0.0f, 0xffffffff, 1, 1, 1.5}, // 2
-	{1.0f, 1.0f, 0xffffffff, 1,-1, 1.5}, // 3
-};
-
-static struct Vertex __attribute__((aligned(16))) pl_name_vertices[2*3*(PL_TEXT_LENGTH+2)];
-
-//static struct Vertex __attribute__((aligned(16))) pl_entry_vertices[2*3*PL_TEXT_LENGTH];
+static struct NVertex __attribute__((aligned(16))) pl_entry_vertices[2*3*(PL_TEXT_LENGTH+2)];
 
 void CSandbergUI::InitPL(void)
 {
@@ -168,6 +158,9 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 0].x 	= sinf((((float)i*360)/PL_TEXT_LENGTH)*(M_PI/180))*PL_TEXT_SCALE_X; /**/
 		::pl_name_vertices[index + 0].y 	= -0.20f; /**/
 		::pl_name_vertices[index + 0].z 	= cosf((((float)i*360)/PL_TEXT_LENGTH)*(M_PI/180))*PL_TEXT_SCALE_Z; /**/
+		::pl_name_vertices[index + 0].nx 	= ::pl_name_vertices[index + 0].x;
+		::pl_name_vertices[index + 0].ny 	= ::pl_name_vertices[index + 0].y;
+		::pl_name_vertices[index + 0].nz 	= -::pl_name_vertices[index + 0].z;
 
 		// vertex 1
 		::pl_name_vertices[index + 1].u 	= 0.0f;
@@ -176,6 +169,9 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 1].x 	= ::pl_name_vertices[index + 0].x; /**/
 		::pl_name_vertices[index + 1].y	 	= 0.20f; /**/
 		::pl_name_vertices[index + 1].z 	= ::pl_name_vertices[index + 0].z; /**/
+		::pl_name_vertices[index + 1].nx 	= ::pl_name_vertices[index + 1].x;
+		::pl_name_vertices[index + 1].ny 	= ::pl_name_vertices[index + 1].y;
+		::pl_name_vertices[index + 1].nz 	= -::pl_name_vertices[index + 1].z;
 
 		// vertex 2
 		::pl_name_vertices[index + 2].u 	= 0.0625f; 
@@ -184,6 +180,9 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 2].x 	= sinf((((float)(i+1)*360)/PL_TEXT_LENGTH)*(M_PI/180))*PL_TEXT_SCALE_X; /**/
 		::pl_name_vertices[index + 2].y 	= 0.20f; /**/
 		::pl_name_vertices[index + 2].z 	= cosf((((float)(i+1)*360)/PL_TEXT_LENGTH)*(M_PI/180))*PL_TEXT_SCALE_Z; /**/
+		::pl_name_vertices[index + 2].nx 	= ::pl_name_vertices[index + 2].x;
+		::pl_name_vertices[index + 2].ny 	= ::pl_name_vertices[index + 2].y;
+		::pl_name_vertices[index + 2].nz 	= -::pl_name_vertices[index + 2].z;
 
 		// vertex 0
 		::pl_name_vertices[index + 3].u 	= ::pl_name_vertices[index + 0].u; 
@@ -192,6 +191,9 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 3].x 	= ::pl_name_vertices[index + 0].x;
 		::pl_name_vertices[index + 3].y 	= ::pl_name_vertices[index + 0].y; /**/
 		::pl_name_vertices[index + 3].z 	= ::pl_name_vertices[index + 0].z;
+		::pl_name_vertices[index + 3].nx 	= ::pl_name_vertices[index + 3].x;
+		::pl_name_vertices[index + 3].ny 	= ::pl_name_vertices[index + 3].y;
+		::pl_name_vertices[index + 3].nz 	= -::pl_name_vertices[index + 3].z;
 
 		// vertex 2
 		::pl_name_vertices[index + 4].u 	= ::pl_name_vertices[index + 2].u;
@@ -200,6 +202,9 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 4].x 	= ::pl_name_vertices[index + 2].x;
 		::pl_name_vertices[index + 4].y 	= ::pl_name_vertices[index + 2].y; /**/
 		::pl_name_vertices[index + 4].z 	= ::pl_name_vertices[index + 2].z;
+		::pl_name_vertices[index + 4].nx 	= ::pl_name_vertices[index + 4].x;
+		::pl_name_vertices[index + 4].ny 	= ::pl_name_vertices[index + 4].y;
+		::pl_name_vertices[index + 4].nz 	= -::pl_name_vertices[index + 4].z;
 
 		// vertex 3
 		::pl_name_vertices[index + 5].u 	= 0.0625f; 
@@ -208,8 +213,12 @@ void CSandbergUI::InitPL(void)
 		::pl_name_vertices[index + 5].x 	= ::pl_name_vertices[index + 2].x;
 		::pl_name_vertices[index + 5].y 	= -0.20f; /**/
 		::pl_name_vertices[index + 5].z 	= ::pl_name_vertices[index + 2].z;
+		::pl_name_vertices[index + 5].nx 	= ::pl_name_vertices[index + 5].x;
+		::pl_name_vertices[index + 5].ny 	= ::pl_name_vertices[index + 5].y;
+		::pl_name_vertices[index + 5].nz 	= -::pl_name_vertices[index + 5].z;
 	}
 
+	memcpy(::pl_entry_vertices, ::pl_name_vertices, sizeof(pl_name_vertices));
 
 	// flush cache before we use the object
 	sceKernelDcacheWritebackAll();
@@ -217,36 +226,11 @@ void CSandbergUI::InitPL(void)
 
 void CSandbergUI::RenderPL(void)
 {
-	static int val = 0;
-
-	sceGumMatrixMode(GU_MODEL);
-	sceGumLoadIdentity();
-	{
-		ScePspFVector3 pos = { -1, -1, -3.5f };
-		ScePspFVector3 rot = { 0 * 0.79f * (M_PI/180.0f), 0 * 0.98f * (M_PI/180.0f), 0 * 1.32f * (M_PI/180.0f) };
-		sceGumRotateXYZ(&rot);
-		sceGumTranslate(&pos);
-	}
-
-	// setup texture
-	sceGuTexMode(GU_PSM_8888,0,0,0);
-	sceGuTexImage(0,256,64,256,::font_01);
-	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
-	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
-	sceGuTexScale(1.0f,1.0f);
-	sceGuTexOffset(0.0f,0.0f);
-	sceGuAmbientColor(0xffffffff);
-
-	sceGuAlphaFunc(GU_ALWAYS, 0, 0xff);
-	sceGuEnable(GU_ALPHA_TEST);
-
-	// draw cube
-	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3,0,::vertices);
-
-	val++;
+	RenderPLName();
+	RenderPLEntry();
 }
 
-void CSandbergUI::RenderPLName(void)
+void CSandbergUI::RenderPLEntry(void)
 {
 	static int val = 0;
 
@@ -255,7 +239,7 @@ void CSandbergUI::RenderPLName(void)
 	sceGumMatrixMode(GU_MODEL);
 	sceGumLoadIdentity();
 	{
-		ScePspFVector3 pos = { 0, -1, -4.0f };
+		ScePspFVector3 pos = { 2, -1, -4.0f };
 		ScePspFVector3 rot = { 0, -val * 0.98f * (M_PI/180.0f), 0};
 		sceGumRotateXYZ(&rot);
 		sceGumTranslate(&pos);
@@ -268,7 +252,8 @@ void CSandbergUI::RenderPLName(void)
 	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
 	sceGuTexScale(1.0f,1.0f);
 	sceGuTexOffset(0.0f,0.0f);
-	sceGuAmbientColor(0xffffffff);
+	sceGuAmbient(0x66666666);
+	sceGuColor(0x222222);
 
 	// Update texture coordinates from text
 	if (pl_entry)
@@ -291,6 +276,100 @@ void CSandbergUI::RenderPLName(void)
 				else
 				{
 					character = FindCharMap(pl_entry[i-1]);
+				}
+			}
+			else
+			{
+				character = FindCharMap(' ');
+			}
+
+			/* Insert end symbol */
+			if (i == PL_TEXT_LENGTH-2)
+				{
+					character = FindCharMap('"');
+				}
+
+			// vertex 0
+			::pl_entry_vertices[index + 0].u 	= character->min_x;
+			::pl_entry_vertices[index + 0].v 	= character->max_y;
+
+			// vertex 1
+			::pl_entry_vertices[index + 1].u 	= character->min_x;
+			::pl_entry_vertices[index + 1].v 	= character->min_y;
+
+			// vertex 2
+			::pl_entry_vertices[index + 2].u 	= character->max_x; 
+			::pl_entry_vertices[index + 2].v 	= character->min_y; 
+
+			// vertex 0
+			::pl_entry_vertices[index + 3].u 	= ::pl_entry_vertices[index + 0].u; 
+			::pl_entry_vertices[index + 3].v 	= ::pl_entry_vertices[index + 0].v; 
+
+			// vertex 2
+			::pl_entry_vertices[index + 4].u 	= ::pl_entry_vertices[index + 2].u;
+			::pl_entry_vertices[index + 4].v 	= ::pl_entry_vertices[index + 2].v;
+
+			// vertex 3
+			::pl_entry_vertices[index + 5].u 	= character->max_x; 
+			::pl_entry_vertices[index + 5].v 	= character->max_y; 
+		}
+		// flush cache before we use the object
+		sceKernelDcacheWritebackAll();
+	}
+
+	// draw text-rotator
+	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_NORMAL_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3*PL_TEXT_LENGTH,0,::pl_entry_vertices);
+	sceGuDisable(GU_TEXTURE_2D);
+
+	val++;
+}
+
+void CSandbergUI::RenderPLName(void)
+{
+	static int val = 0;
+
+	sceGuEnable(GU_TEXTURE_2D);
+
+	sceGumMatrixMode(GU_MODEL);
+	sceGumLoadIdentity();
+	{
+		ScePspFVector3 pos = { -2, -1, -4.0f };
+		ScePspFVector3 rot = { 0, -val * 0.98f * (M_PI/180.0f), 0};
+		sceGumRotateXYZ(&rot);
+		sceGumTranslate(&pos);
+	}
+
+	// setup texture
+	sceGuTexMode(GU_PSM_8888,0,0,0);
+	sceGuTexImage(0,256,64,256,::font_01);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
+	sceGuTexScale(1.0f,1.0f);
+	sceGuTexOffset(0.0f,0.0f);
+	sceGuAmbient(0x66666666);
+	sceGuColor(0x222222);
+
+	// Update texture coordinates from text
+	if (pl_name)
+	{
+	int len = strlen(pl_name);
+
+		for (int i = 0, index = 0 ; i < PL_TEXT_LENGTH+2; i++)
+		{
+			struct char_map	*character;
+			index += 2 * 3;
+
+			/* Make sure we don't read past the end of the text, pad with 'space' */
+			if (i < len)
+			{
+				/* Insert start symbol */
+				if (i == 0)
+				{
+					character = FindCharMap('^');
+				}
+				else
+				{
+					character = FindCharMap(pl_name[i-1]);
 				}
 			}
 			else
@@ -333,14 +412,10 @@ void CSandbergUI::RenderPLName(void)
 	}
 
 	// draw text-rotator
-	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3*PL_TEXT_LENGTH,0,::pl_name_vertices);
+	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_NORMAL_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3*PL_TEXT_LENGTH,0,::pl_name_vertices);
 	sceGuDisable(GU_TEXTURE_2D);
 
 	val++;
-}
-
-void CSandbergUI::RenderPLEntry(void)
-{
 }
 
 struct char_map	* CSandbergUI::FindCharMap(char index)
