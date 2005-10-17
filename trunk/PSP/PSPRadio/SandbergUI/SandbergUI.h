@@ -85,6 +85,9 @@ private:
 	void CSandbergUI::RenderState(void);
 	void CSandbergUI::RenderPLName(void);
 	void CSandbergUI::RenderPLEntry(void);
+	void CSandbergUI::RenderNetwork(void);
+	void CSandbergUI::RenderLoad(void);
+	void CSandbergUI::RenderSound(void);
 
 private:
 	char*	pl_name;
@@ -94,6 +97,7 @@ private:
 	float 	start, curr;
 	struct	timeval tval;
 	int	current_fx;
+	unsigned int	load_color, network_color, sound_color;
 };
 
 
