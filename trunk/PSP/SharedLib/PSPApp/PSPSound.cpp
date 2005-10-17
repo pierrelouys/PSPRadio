@@ -29,6 +29,7 @@
 #include <sys/socket.h>
 #include "PSPSound.h"
 #include "PSPSoundDecoder_MAD.h"
+#include "PSPSoundDecoder_OGG.h"
 
 /* ------ Declarations from "httpget.c" (From mpg123) ------ */
 int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType);
@@ -83,8 +84,6 @@ void CPSPSound::Initialize()
 	
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
-	
-	//m_Decoder = new CPSPSoundDecoder_MAD();
 	
 	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
 	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
@@ -340,9 +339,10 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							bDecoderCreated = true;
 							break;
 						case CPSPSoundStream::STREAM_CONTENT_AUDIO_OGG:
-							Log(LOG_INFO, "ThDecode:: OGG Stream Not supported.");
-							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
-							bDecoderCreated = false;
+							Log(LOG_INFO, "ThDecode:: OGG Stream Opened Successfully.");
+							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
+							Decoder = new CPSPSoundDecoder_OGG(pPSPSound->m_InputStream, &pPSPSound->Buffer);
+							bDecoderCreated = true;
 							break;
 						case CPSPSoundStream::STREAM_CONTENT_AUDIO_AAC:
 							Log(LOG_INFO, "ThDecode:: AAC Stream Not supported.");
