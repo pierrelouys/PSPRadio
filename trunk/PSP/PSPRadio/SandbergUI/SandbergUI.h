@@ -38,6 +38,23 @@ enum fx_list_enum
 	FX_HEART
 };
 
+enum icon_list_enum
+{
+	ICON_NETWORK,
+	ICON_LOAD,
+	ICON_SOUND,
+	ICON_PLAY,
+	ICON_STOP
+};
+
+typedef struct IconStr
+{
+	float		x1, y1;
+	float		x2, y2;
+	unsigned int	color;
+	unsigned char	*texture;
+};
+
 class CSandbergUI : public IPSPRadio_UI
 {
 public:
@@ -88,16 +105,15 @@ private:
 	void CSandbergUI::RenderNetwork(void);
 	void CSandbergUI::RenderLoad(void);
 	void CSandbergUI::RenderSound(void);
+	void CSandbergUI::RenderIcon(IconStr *icon_info);
 
 private:
 	char*	pl_name;
 	char*	pl_entry;
 	void* 	framebuffer;
-	int	rot_stop;
 	float 	start, curr;
 	struct	timeval tval;
 	int	current_fx;
-	unsigned int	load_color, network_color, sound_color;
 };
 
 
