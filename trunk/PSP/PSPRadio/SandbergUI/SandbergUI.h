@@ -32,6 +32,12 @@ struct char_map
 	float	max_y;
 };
 
+enum fx_list_enum
+{
+	FX_CUBES,
+	FX_HEART
+};
+
 class CSandbergUI : public IPSPRadio_UI
 {
 public:
@@ -68,8 +74,11 @@ private:
 	struct char_map	* CSandbergUI::FindCharMap(char index);
 
 	void CSandbergUI::InitPL(void);
+	void CSandbergUI::InitFX(void);
 
 	void CSandbergUI::RenderFX(void);
+	void CSandbergUI::RenderFX_1(void);
+	void CSandbergUI::RenderFX_2(void);
 	void CSandbergUI::RenderLogo(void);
 	void CSandbergUI::RenderCommands(void);
 	void CSandbergUI::RenderPL(void);
@@ -82,6 +91,9 @@ private:
 	char*	pl_entry;
 	void* 	framebuffer;
 	int	rot_stop;
+	float 	start, curr;
+	struct	timeval tval;
+	int	current_fx;
 };
 
 

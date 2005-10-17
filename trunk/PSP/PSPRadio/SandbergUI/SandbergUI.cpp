@@ -253,6 +253,7 @@ int CSandbergUI::Initialize(char *strCWD)
 	sceKernelDcacheWritebackAll();
 
 	InitPL();
+	InitFX();
 
 	Log(LOG_LOWLEVEL, "Initialize: completed");
 	return 0;
@@ -366,14 +367,14 @@ int CSandbergUI::OnVBlank()
 	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 
 	{
-		ScePspFVector3 pos = { 0, 0, 0.0f };
-		sceGuLight(0,GU_POINTLIGHT,GU_DIFFUSE_AND_SPECULAR,&pos);
+		ScePspFVector3 pos = { 0, 0, 1.0f };
+		sceGuLight(0,GU_DIRECTIONAL,GU_DIFFUSE_AND_SPECULAR,&pos);
 		sceGuLightColor(0,GU_DIFFUSE,0xffffffff);
-		sceGuLightColor(0,GU_SPECULAR,0xff00ff00);
-		sceGuLightAtt(0,0.0f,1.0f,0.0f);
+		sceGuLightColor(0,GU_SPECULAR,0xffffffff);
+		sceGuLightAtt(0,1.0f,1.0f,0.0f);
 	}
 	sceGuSpecular(36.0f);
-	sceGuAmbient(0xFFFFFFFF);
+	sceGuAmbient(0x202020);
 
 	sceGumMatrixMode(GU_PROJECTION);
 	sceGumLoadIdentity();
