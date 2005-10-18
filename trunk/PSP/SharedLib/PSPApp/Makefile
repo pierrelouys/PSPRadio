@@ -1,5 +1,6 @@
 TARGET_LIB = ../lib/libPSPApp.a
 OBJS = PSPApp.o PSPEventQ.o PSPSound.o httpget.o  bstdfile.o \
+		PSPSoundDecoder.o \
 		PSPSoundDecoder_MAD.o \
 		PSPSoundDecoder_OGG.o
 

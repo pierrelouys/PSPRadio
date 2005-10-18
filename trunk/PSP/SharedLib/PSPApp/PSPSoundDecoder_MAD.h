@@ -20,17 +20,17 @@
 	#define __PSPSOUNDDECODER_MAD__
 	
 	#include "PSPSound.h"
+	#include "PSPSoundDecoder.h"
 	#include <mad.h>
 	
 	class CPSPEventQ;
-	class CPSPSoundStream;
 	class CPSPSoundBuffer;
 	
 	class CPSPSoundDecoder_MAD : public IPSPSoundDecoder
 	{
 	public:
-		CPSPSoundDecoder_MAD(CPSPSoundStream *InputStream, CPSPSoundBuffer *OutputBuffer)
-			:IPSPSoundDecoder(InputStream, OutputBuffer){ Initialize();}
+		CPSPSoundDecoder_MAD(CPSPSoundBuffer *OutputBuffer)
+			:IPSPSoundDecoder(OutputBuffer){ Initialize();}
 		~CPSPSoundDecoder_MAD();
 		
 		void Initialize();
@@ -44,7 +44,7 @@
 		mad_timer_t			m_Timer;
 		unsigned char		*m_pInputBuffer;
 		unsigned char		*m_GuardPtr;
-		unsigned long	m_FrameCount;
+		unsigned long		m_FrameCount;
 
 		
 		static signed int scale(mad_fixed_t &sample);

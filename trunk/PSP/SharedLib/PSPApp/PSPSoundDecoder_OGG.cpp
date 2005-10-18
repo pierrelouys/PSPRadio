@@ -23,26 +23,182 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include <mad.h>
+#include <ivorbisfile.h>
 #include "bstdfile.h"
 #include <malloc.h>
 #include "PSPSoundDecoder_OGG.h"
 using namespace std;
 
+size_t ogg_socket_read_wrapper(void *ptr, size_t size, size_t nmemb, void *datasource)
+{
+	return recv(*(int*)datasource, ptr, size*nmemb, 0);
+}
+
+int ogg_socket_seek_wrapper(void *datasource, ogg_int64_t offset, int whence)
+{
+	return -1;
+}
+
+int    ogg_socket_close_wrapper(void *datasource)
+{
+	return sceNetInetClose(*(int*)datasource);
+}
+
+long   ogg_socket_tell_wrapper(void *datasource)
+{
+	return -1;
+}
+
+
+
+
+COGGStreamReader::COGGStreamReader()
+{
+	//m_eof = true;
+	m_eof = false;
+	m_iMetaDataInterval = CurrentSoundStream.GetMetaDataInterval();
+	m_iRunningCountModMetadataInterval = 0;
+	memset(bMetaData, 0, MAX_METADATA_SIZE);
+ 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
+	m_pfd = CurrentSoundStream.GetFileDescriptor();
+	m_fdSocket = CurrentSoundStream.GetSocketDescriptor();
+	
+	int iRet  = -1;
+	switch (CurrentSoundStream.GetType())
+	{
+		case CPSPSoundStream::STREAM_TYPE_FILE:
+			iRet = ov_open(m_pfd, &m_vf, NULL /*char *initial*/, 0 /*long ibytes*/);
+			break;
+		
+		case CPSPSoundStream::STREAM_TYPE_URL:
+			ov_callbacks ogg_callbacks;
+			ogg_callbacks.read_func = ogg_socket_read_wrapper;
+			ogg_callbacks.seek_func = ogg_socket_seek_wrapper;
+			ogg_callbacks.close_func = ogg_socket_close_wrapper;
+			ogg_callbacks.tell_func = ogg_socket_tell_wrapper;
+			
+			iRet = ov_open_callbacks(&m_fdSocket, &m_vf, NULL /*char *initial*/, 0 /*long ibytes*/, ogg_callbacks);
+			break;
+		
+		default:
+			break;
+	}
+	if(m_pfd)
+	{
+		switch(iRet)
+		{
+			case 0: /** Success! */
+			{
+				char **ptr=ov_comment(&m_vf,-1)->user_comments;
+				vorbis_info *vi=ov_info(&m_vf,-1);
+				while(*ptr)
+				{
+					Log(LOG_INFO, "%s\n",*ptr);
+					++ptr;
+				}
+				Log(LOG_INFO, "\nBitstream is %d channel, %ldHz\n",vi->channels,vi->rate);
+				Log(LOG_INFO, "\nDecoded length: %ld samples\n",
+					(long)ov_pcm_total(&m_vf,-1));
+				Log(LOG_INFO, "Encoded by: %s\n\n",ov_comment(&m_vf,-1)->vendor);
+			}			
+			break;
+			case OV_EREAD:
+				ReportError("OGGError: A read from media returned an error.");
+				break;
+			case OV_ENOTVORBIS:
+				ReportError("OGGError: Bitstream is not Vorbis data.");
+				break;
+			case OV_EVERSION:
+				ReportError("OGGError: Vorbis version mismatch.");
+				break;
+			case OV_EBADHEADER:
+				ReportError("OGGError: Invalid Vorbis bitstream header.");
+				break;
+			case OV_EFAULT:
+				ReportError("Internal logic fault; indicates a bug or heap/stack corruption.");
+				break;
+		}
+		
+		if (iRet < 0)
+		{
+			CurrentSoundStream.Close();
+		}
+	}
+}
+
+COGGStreamReader::~COGGStreamReader()
+{
+}
+
+void COGGStreamReader::Close()
+{
+	//CurrentSoundStream.Close();
+	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
+	{
+		if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
+		{
+			ov_clear(&m_vf);
+		}
+	}	
+}
+
+size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
+{
+	int bitstream = 0;
+	size_t BytesRead = 0;
+	long lRet = 0;
+	
+	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
+	{
+		lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &bitstream);
+	
+		if (0 == lRet)
+		{
+			Close();
+			m_eof = true;
+		}
+		else if (lRet < 0)
+		{
+			switch(lRet)
+			{
+				case OV_HOLE:
+					//indicates there was an interruption in the data.
+					//(one of: garbage between pages, loss of sync followed by recapture, or a corrupt page)
+					Log(LOG_INFO, "OGG Stream Warning: OV_HOLE (Garbage/loss of sync/corrupt page)");
+					break;
+				case OV_EBADLINK:
+					//indicates that an invalid stream section was supplied to libvorbisidec, or 
+					//the requested link is corrupt.
+					Log(LOG_ERROR, "OGG Stream Error: OV_EBADLINK (Invalid stream section/corrupted link)");
+					Close();
+					m_eof = true;
+					break;
+			}
+		}
+		else
+		{
+			BytesRead += lRet;
+		}
+	}
+	
+	return BytesRead;
+}
+
+/** ---------------------------------------------------------------------------------- **/
 void CPSPSoundDecoder_OGG::Initialize()
 {
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_OGG Initialize"); 
-	//IPSPSoundDecoder::IPSPSoundDecoder(InputStream, OutputBuffer);
+
+	m_NumberOfChannels = 2;
+	m_InputStreamReader = new COGGStreamReader();
+
+	if (!m_InputStreamReader)
+	{
+		Log(LOG_ERROR, "CPSPSoundDecoder_OGG::Memory allocation error instantiating m_InputStream");
+		ReportError("CPSPSoundDecoder_OGG::Decoder Initialization Error");
+	}
 	
-	/* First the structures used by libmad must be initialized. */
-	mad_stream_init(&m_Stream);
-	mad_frame_init(&m_Frame);
-	mad_synth_init(&m_Synth);
-	mad_timer_reset(&m_Timer);
-	
-	m_GuardPtr = NULL;
-	m_FrameCount=0;	
-	m_pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
+	m_pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE);
 	if (!m_pInputBuffer)
 	{
 		ReportError("Memory allocation error!\n");
@@ -55,10 +211,6 @@ CPSPSoundDecoder_OGG::~CPSPSoundDecoder_OGG()
 {
 	Log(LOG_VERYLOW, "~CPSPSoundDecoder_OGG start");
 	
-	mad_synth_finish(&m_Synth);
-	mad_frame_finish(&m_Frame);
-	mad_stream_finish(&m_Stream); 
-	
 	if (m_pInputBuffer)
 	{
 		free(m_pInputBuffer), m_pInputBuffer = NULL;
@@ -68,273 +220,41 @@ CPSPSoundDecoder_OGG::~CPSPSoundDecoder_OGG()
 
 bool CPSPSoundDecoder_OGG::Decode()
 {
-	int	i = 0;
-	bool bRet = false;
+	long lFramesDecoded = 0;
+	Sample *pOutputSample = (Sample *)m_pInputBuffer;
+	Sample SampleL = 0, SampleR = 0;
 	
-	PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
+	PCMFrameInSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
 	
-
-
-	/* The input bucket must be filled if it becomes empty or if
-	 * it's the first execution of the loop.
-	 */
-	if(m_Stream.buffer==NULL || m_Stream.error==MAD_ERROR_BUFLEN)
+	long lRet = 0;
+	
+	lRet = m_InputStreamReader->Read(m_pInputBuffer, 4096);
+	
+	if (lRet > 0)
 	{
-		size_t			ReadSize,
-						Remaining;
-		unsigned char	*ReadStart;
-
-		if(m_Stream.next_frame!=NULL)
+		/** Push decoded buffers */
+		
+		lFramesDecoded = BYTES_TO_FRAMES(lRet);
+		pOutputSample = (Sample *)m_pInputBuffer;
+		
+		for (long Cnt = 0; Cnt < lFramesDecoded; Cnt++)
 		{
-			Remaining=m_Stream.bufend-m_Stream.next_frame;
-			memmove(m_pInputBuffer,m_Stream.next_frame,Remaining);
-			ReadStart=m_pInputBuffer+Remaining;
-			ReadSize=INPUT_BUFFER_SIZE-Remaining;
-		}
-		else
-			ReadSize=INPUT_BUFFER_SIZE,
-				ReadStart=m_pInputBuffer,
-				Remaining=0;
-
-		ReadSize = m_InputStream->Read(ReadStart,1,ReadSize);
-		if(ReadSize<=0)
-		{
-			ReportError("(End of stream)...");
-			bRet = true;
-			m_FrameCount = 0;
-			return bRet;
-		}
-
-		if(m_InputStream->IsEOF())
-		{
-			m_GuardPtr=ReadStart+ReadSize;
-			memset(m_GuardPtr,0,MAD_BUFFER_GUARD);
-			ReadSize+=MAD_BUFFER_GUARD;
-		}
-
-		/* Pipe the new buffer content to libmad's stream decoder
-		 * facility.
-		 */
-		mad_stream_buffer(&m_Stream,m_pInputBuffer,ReadSize+Remaining);
-		m_Stream.error=(mad_error)0;
-	}
-
-	/* Decode the next MPEG frame. */
-	if(mad_frame_decode(&m_Frame,&m_Stream))
-	{
-		if(MAD_RECOVERABLE(m_Stream.error))
-		{
-			if(m_Stream.error!=MAD_ERROR_LOSTSYNC ||
-			   m_Stream.this_frame!=m_GuardPtr)
+			SampleL = *pOutputSample++;
+			if(m_NumberOfChannels==2)
 			{
-				Log(LOG_INFO,"Recoverable frame level error. (Garbage in the stream).");
-			}
-			bRet = false;
-			return bRet;
-		}
-		else
-			if(m_Stream.error==MAD_ERROR_BUFLEN)
-			{
-				bRet = false;
-				return bRet;
+				SampleR = *pOutputSample++; 
 			}
 			else
 			{
-				ReportError("Unrecoverable frame level error.");
-				bRet=true;
-				m_FrameCount = 0;
-				return bRet;
+				SampleR = SampleL;
 			}
-	}
-	else
-
-	/* The characteristics of the stream's first frame is printed
-	 * on stderr. The first frame is representative of the entire
-	 * stream.
-	 */
-	if(m_FrameCount==0)
-	{
-		if(PrintFrameInfo(&m_Frame.header))
-		{
-			bRet=true;
-			m_FrameCount = 0;
-			ReportError("Error in m_Frame info.");
-			return bRet;
+		
+			PCMOutputFrame.RSample = SampleR;
+			PCMOutputFrame.LSample = SampleL;
+			
+			m_Buffer->PushFrame(*((::Frame*)&PCMOutputFrame));
 		}
-		m_Buffer->SetSampleRate(m_Frame.header.samplerate);
-	}
-
-	/* Accounting. The computed frame duration is in the frame
-	 * header structure. It is expressed as a fixed point number
-	 * whole data type is mad_timer_t. It is different from the
-	 * samples fixed point format and unlike it, it can't directly
-	 * be added or subtracted. The timer module provides several
-	 * functions to operate on such numbers. Be careful there, as
-	 * some functions of libmad's timer module receive some of
-	 * their mad_timer_t arguments by value!
-	 */
-	m_FrameCount++;
-	mad_timer_add(&m_Timer,m_Frame.header.duration);
-
-	//if(DoFilter)
-	//	ApplyFilter(&m_Frame);
-
-	/* Once decoded the frame is synthesized to PCM samples. No errors
-	 * are reported by mad_synth_frame();
-	 */
-	mad_synth_frame(&m_Synth,&m_Frame);
-
-	/* Synthesized samples must be converted from libmad's fixed
-	 * point number to the consumer format. Here we use unsigned
-	 * 16 bit little endian integers on two channels. Integer samples
-	 * are temporarily stored in a buffer that is flushed when
-	 * full.
-	 */
-	for(i=0;i<m_Synth.pcm.length;i++)
-	{
-		signed short	SampleL, SampleR;
-		
-		/* Left channel */
-		SampleL = scale(m_Synth.pcm.samples[0][i]); 
-		//Sample=MadFixedToSshort(m_Synth.pcm.samples[0][i]);
-		/* Right channel. If the decoded stream is monophonic then
-		 * the right output channel is the same as the left one.
-		 */
-		if(MAD_NCHANNELS(&m_Frame.header)==2)
-		{
-		//	Sample=MadFixedToSshort(m_Synth.pcm.samples[1][i]);
-			SampleR = scale(m_Synth.pcm.samples[1][i]); 
-		}
-		else
-		{
-			SampleR = SampleL;
-		}
-		
-		PCMOutputFrame.RHalfSampleA = (SampleR) & 0xff;
-		PCMOutputFrame.RHalfSampleB = (SampleR>>8) & 0xff;
-		PCMOutputFrame.LHalfSampleA = (SampleL) & 0xff;
-		PCMOutputFrame.LHalfSampleB = (SampleL>>8) & 0xff;
-		
-		
-		m_Buffer->PushFrame(*((::Frame*)&PCMOutputFrame));
 	}
 	
-	return false;
+	return m_InputStreamReader->IsEOF();
 }
-
-signed int CPSPSoundDecoder_OGG::scale(mad_fixed_t &sample)
-{
-  /* round */
-  sample += (1L << (MAD_F_FRACBITS - 16));
-
-  /* clip */
-  if (sample >= MAD_F_ONE)
-    sample = MAD_F_ONE - 1;
-  else if (sample < -MAD_F_ONE)
-    sample = -MAD_F_ONE;
-
-  /* quantize */
-  return sample >> (MAD_F_FRACBITS + 1 - 16);
-}
-
-
-/****************************************************************************
- * Print human readable informations about an audio MPEG frame.				*
- ****************************************************************************/
-int CPSPSoundDecoder_OGG::PrintFrameInfo(struct mad_header *Header)
-{
-	const char	*Layer,
-				*Mode,
-				*Emphasis;
-
-	/* Convert the layer number to it's printed representation. */
-	switch(Header->layer)
-	{
-		case MAD_LAYER_I:
-			Layer="I";
-			break;
-		case MAD_LAYER_II:
-			Layer="II";
-			break;
-		case MAD_LAYER_III:
-			Layer="III";
-			break;
-		default:
-			Layer="(unexpected layer value)";
-			break;
-	}
-
-	/* Convert the audio mode to it's printed representation. */
-	switch(Header->mode)
-	{
-		case MAD_MODE_SINGLE_CHANNEL:
-			Mode="single channel";
-			break;
-		case MAD_MODE_DUAL_CHANNEL:
-			Mode="dual channel";
-			break;
-		case MAD_MODE_JOINT_STEREO:
-			Mode="joint (MS/intensity) stereo";
-			break;
-		case MAD_MODE_STEREO:
-			Mode="normal LR stereo";
-			break;
-		default:
-			Mode="(unexpected mode value)";
-			break;
-	}
-
-	/* Convert the emphasis to it's printed representation. Note that
-	 * the MAD_EMPHASIS_RESERVED enumeration value appeared in libmad
-	 * version 0.15.0b.
-	 */
-	switch(Header->emphasis)
-	{
-		case MAD_EMPHASIS_NONE:
-			Emphasis="no";
-			break;
-		case MAD_EMPHASIS_50_15_US:
-			Emphasis="50/15 us";
-			break;
-		case MAD_EMPHASIS_CCITT_J_17:
-			Emphasis="CCITT J.17";
-			break;
-			#if (MAD_VERSION_MAJOR>=1) || \
-				((MAD_VERSION_MAJOR==0) && (MAD_VERSION_MINOR>=15))
-					case MAD_EMPHASIS_RESERVED:
-						Emphasis="reserved(!)";
-						break;
-			#endif
-			default:
-			Emphasis="(unexpected emphasis value)";
-			break;
-	}
-
-	/**
-	ReportError("%lu kb/s Audio MPEG layer %s stream %s CRC, "
-			"%s with %s emphasis at %d Hz sample rate\n",
-			Header->bitrate,Layer,
-			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
-			Mode,Emphasis,Header->samplerate);
-	*/
-	pPSPSound->SendEvent(MID_DECODE_FRAME_INFO_HEADER, Header);
-	pPSPSound->SendEvent(MID_DECODE_FRAME_INFO_LAYER, (char*)Layer);
-	return(0);
-}
-
-/****************************************************************************
- * Converts a sample from libmad's fixed point number format to a signed	*
- * short (16 bits).															*
- ****************************************************************************/
-signed short CPSPSoundDecoder_OGG::MadFixedToSshort(mad_fixed_t Fixed)
-{
-	/* Clipping */
-	if(Fixed>=MAD_F_ONE)
-		return(SHRT_MAX);
-	if(Fixed<=-MAD_F_ONE)
-		return(-SHRT_MAX);
-
-	/* Conversion. */
-	Fixed=Fixed>>(MAD_F_FRACBITS-15);
-	return((signed short)Fixed);
-} 

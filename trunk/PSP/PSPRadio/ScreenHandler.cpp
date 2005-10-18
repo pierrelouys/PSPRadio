@@ -397,14 +397,14 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 		{
 			case CPSPSound::STOP:
 			case CPSPSound::PAUSE:
-				m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+				CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
 				m_Sound->Play();
 				break;
 			case CPSPSound::PLAY:
 				/** No pausing for URLs, only for Files(local) */
-				if (CPSPSoundStream::STREAM_TYPE_FILE == m_Sound->GetStream()->GetType())
+				if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
 				{
-					m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+					CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
 					m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
 					m_Sound->Pause();
 				}
@@ -414,7 +414,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 					currently selected stream! */
 					/** We do this by stopping the stream, and asking the handler to start playing
 					when the stream stops. */
-					if (CPSPSoundStream::STREAM_STATE_OPEN == m_Sound->GetStream()->GetState())
+					if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
 					{
 						/** If the new stream is different than the current, only then stop-"restart" */
 						if (0 != strcmp(m_CurrentMetaData->strFileName, m_CurrentPlayList->GetCurrentFileName()))

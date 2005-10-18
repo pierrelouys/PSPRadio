@@ -31,8 +31,8 @@ using namespace std;
 
 void CPSPSoundDecoder_MAD::Initialize()
 {
-	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize"); 
-	//IPSPSoundDecoder::IPSPSoundDecoder(InputStream, OutputBuffer);
+	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize - Start"); 
+	IPSPSoundDecoder::Initialize(); /** For MAD we can use the default StreamReader */
 	
 	/* First the structures used by libmad must be initialized. */
 	mad_stream_init(&m_Stream);
@@ -49,6 +49,8 @@ void CPSPSoundDecoder_MAD::Initialize()
 		Log(LOG_ERROR, "Memory allocation error!\n");
 		return;
 	}
+	
+	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize - End");
 }
 			
 CPSPSoundDecoder_MAD::~CPSPSoundDecoder_MAD()
@@ -96,7 +98,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 				ReadStart=m_pInputBuffer,
 				Remaining=0;
 
-		ReadSize = m_InputStream->Read(ReadStart,1,ReadSize);
+		ReadSize = m_InputStreamReader->Read(ReadStart,ReadSize);
 		if(ReadSize<=0)
 		{
 			ReportError("(End of stream)...");
@@ -105,7 +107,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 			return bRet;
 		}
 
-		if(m_InputStream->IsEOF())
+		if(m_InputStreamReader->IsEOF())
 		{
 			m_GuardPtr=ReadStart+ReadSize;
 			memset(m_GuardPtr,0,MAD_BUFFER_GUARD);

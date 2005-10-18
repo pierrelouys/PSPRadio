@@ -17,9 +17,11 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #ifndef __PSPSOUND__
-#define __PSPSOUND__
+	#define __PSPSOUND__
+	
 	#include "PSPEventQ.h"
-
+	#include "PSPSoundDecoder.h"
+	
 	/** Not configurable */
 	#define PSP_SAMPLERATE			44100
 	#define NUM_CHANNELS			2	/** L and R */
@@ -31,7 +33,7 @@
 	#define BYTES_TO_FRAMES(b)		(b/(NUM_CHANNELS*BYTES_PER_SAMPLE))
 	#define BYTES_TO_SAMPLES(b)		(b/(BYTES_PER_SAMPLE))
 	#define FRAMES_TO_BYTES(f)		(f*(NUM_CHANNELS*BYTES_PER_SAMPLE))
-	typedef u16 Sample;
+	typedef s16 Sample;
 	typedef u32 Frame;
 	struct PCMFrameInHalfSamples
 	{
@@ -39,6 +41,11 @@
 		u8 RHalfSampleB;
 		u8 LHalfSampleA;
 		u8 LHalfSampleB;
+	};
+	struct PCMFrameInSamples
+	{
+		Sample RSample;
+		Sample LSample;
 	};
 	
 	/** Configurable */
@@ -50,14 +57,8 @@
 	
 	#define INPUT_BUFFER_SIZE		16302
 	
-	/** Fixed */
-	#define MAX_METADATA_SIZE		4080
-	
 	#include <list>
-	#include <mad.h>
-	#include "bstdfile.h"
 
-	
 	/** Message IDs */
 	/** Messages from PSPSound to decode thread */
 	enum MessageIDsFromPSPSoundToDecodeThread
@@ -73,64 +74,6 @@
 		MID_PLAY_STOP,
 		MID_PLAY_THREAD_EXIT_NEEDOK
 	};
-	
-	/** Other functions */
-	int SocketRead(char *pBuffer, size_t LengthInBytes, int sock);
-	
-	class CPSPSoundStream
-	{
-	public:
-		enum stream_types
-		{
-			STREAM_TYPE_NONE,
-			STREAM_TYPE_FILE,
-			STREAM_TYPE_URL
-		};
-		enum stream_states
-		{
-			STREAM_STATE_CLOSED,
-			STREAM_STATE_OPEN
-		};
-		enum content_types
-		{
-			STREAM_CONTENT_NOT_DEFINED,
-			STREAM_CONTENT_AUDIO_MPEG,
-			STREAM_CONTENT_AUDIO_OGG,
-			STREAM_CONTENT_AUDIO_AAC
-		};
-		
-		CPSPSoundStream();
-		~CPSPSoundStream();
-		
-		void SetFile(char *strName);
-		char *GetFile() { return m_strFile; };
-		int Open();
-		void Close();
-		size_t Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount);
-		bool IsOpen();
-		bool IsEOF();
-		stream_types GetType() { return m_Type; }
-		stream_states GetState() { return m_State; }
-		
-		content_types GetContentType() { return m_ContentType; }
-		void SetContentType(content_types Type) { m_ContentType = Type; }
-		
-		
-	private:
-		enum stream_types  m_Type;
-		enum stream_states m_State;
-		enum content_types m_ContentType;
-		char m_strFile[256];
-		FILE *m_pfd;
-		bstdfile_t *m_BstdFile;
-		int   m_fd;
-		bool m_sock_eof;
-		size_t m_iMetaDataInterval;
-		size_t m_iRunningCountModMetadataInterval;
-		char bMetaData[MAX_METADATA_SIZE];
-		char bPrevMetaData[MAX_METADATA_SIZE];
-	};
-	
 	
 	/** Internal use */
 	class CPSPSoundBuffer
@@ -163,21 +106,6 @@
 
 	};
 	
-	class IPSPSoundDecoder
-	{
-	public:
-		IPSPSoundDecoder(CPSPSoundStream *InputStream, CPSPSoundBuffer *OutputBuffer)
-			{m_InputStream = InputStream; m_Buffer = OutputBuffer;}
-		virtual ~IPSPSoundDecoder(){}
-		
-		virtual void Initialize(){}
-		virtual bool Decode(){return true;} /** Returns true on end-of-stream or unrecoverable error */
-
-	protected:
-		CPSPSoundStream *m_InputStream;
-		CPSPSoundBuffer *m_Buffer;
-	};
-	
 	class CPSPSound
 	{
 	public:
@@ -190,7 +118,6 @@
 		
 	protected:
 		CPSPSoundBuffer   Buffer;
-		CPSPSoundStream  *m_InputStream;
 		
 	private:
 		void Initialize();
@@ -211,8 +138,6 @@
 		virtual ~CPSPSound();
 		
 		/** Accessors */
-		CPSPSoundStream *GetStream() { return m_InputStream; }
-		
 		int Play();
 		int Pause();
 		int Stop();

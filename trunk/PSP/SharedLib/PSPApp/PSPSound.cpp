@@ -26,13 +26,9 @@
 #include <mad.h>
 #include <malloc.h>
 #include <errno.h>
-#include <sys/socket.h>
 #include "PSPSound.h"
 #include "PSPSoundDecoder_MAD.h"
 #include "PSPSoundDecoder_OGG.h"
-
-/* ------ Declarations from "httpget.c" (From mpg123) ------ */
-int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType);
 
 using namespace std;
 
@@ -50,8 +46,6 @@ CPSPSound::CPSPSound()
 	m_thDecode = NULL;
 	m_thPlayAudio  = NULL;
 	pPSPSound = this;
-	m_InputStream = NULL;
-	//m_Decoder = NULL;
 	m_audiohandle = -1;
 	m_CurrentState = STOP;
 	m_EventToDecTh = m_EventToPlayTh = NULL;
@@ -64,14 +58,6 @@ void CPSPSound::Initialize()
 	
 	Buffer.Empty();
 	
-	m_InputStream = new CPSPSoundStream();
-	
-	if (!m_InputStream)
-	{
-		Log(LOG_ERROR, "Memory allocation error instantiating m_InputStream");
-		ReportError("Sound Initialization Error");
-	}
-
 	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, 
 									PSP_BUFFER_SIZE_IN_FRAMES, 
 									PSP_AUDIO_FORMAT_STEREO);
@@ -117,12 +103,6 @@ CPSPSound::~CPSPSound()
 		
 		Log(LOG_VERYLOW, "~CPSPSound(): Destroying play thread. ");
 		delete(m_thPlayAudio), m_thPlayAudio = NULL;
-	}
-	
-	if (m_InputStream)
-	{
-		Log(LOG_VERYLOW, "~CPSPSound(): Destroying input stream object. ");
-		delete(m_InputStream); m_InputStream = NULL;
 	}
 	
 	if (m_EventToDecTh)
@@ -318,13 +298,13 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				
 				pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
 				Log(LOG_INFO, "ThDecode:: Calling Open For '%s'", 
-					pPSPSound->m_InputStream->GetFile());
-				pPSPSound->m_InputStream->Open();
+					CurrentSoundStream.GetURI());
+				CurrentSoundStream.Open();
 				
-				if (pPSPSound->m_InputStream->IsOpen() == TRUE)
+				if (true == CurrentSoundStream.IsOpen())
 				{
 					bool bDecoderCreated = false;
-					switch (pPSPSound->m_InputStream->GetContentType())
+					switch (CurrentSoundStream.GetContentType())
 					{
 						case CPSPSoundStream::STREAM_CONTENT_NOT_DEFINED:
 							Log(LOG_INFO, "ThDecode:: Content type not defined. Defaulting to MPEG.");
@@ -335,13 +315,13 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						case CPSPSoundStream::STREAM_CONTENT_AUDIO_MPEG:
 							Log(LOG_INFO, "ThDecode:: MPEG Stream Opened Successfully.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
-							Decoder = new CPSPSoundDecoder_MAD(pPSPSound->m_InputStream, &pPSPSound->Buffer);
+							Decoder = new CPSPSoundDecoder_MAD(&pPSPSound->Buffer);
 							bDecoderCreated = true;
 							break;
 						case CPSPSoundStream::STREAM_CONTENT_AUDIO_OGG:
 							Log(LOG_INFO, "ThDecode:: OGG Stream Opened Successfully.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
-							Decoder = new CPSPSoundDecoder_OGG(pPSPSound->m_InputStream, &pPSPSound->Buffer);
+							Decoder = new CPSPSoundDecoder_OGG(&pPSPSound->Buffer);
 							bDecoderCreated = true;
 							break;
 						case CPSPSoundStream::STREAM_CONTENT_AUDIO_AAC:
@@ -369,15 +349,16 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						
 						delete Decoder, Decoder = NULL;
 					}
-					/* The input file was completely read; 
-					 * Close The input stream.
-					 */
-					pPSPSound->m_InputStream->Close();
+					else
+					{
+						/** Close if no decoder instantiated */
+						CurrentSoundStream.Close();
+					}
 				}
 				else
 				{
 					pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
-					Log(LOG_ERROR, "Unable to open stream '%s'.", pPSPSound->m_InputStream->GetFile());
+					Log(LOG_ERROR, "Unable to open stream '%s'.", CurrentSoundStream.GetURI());
 				}
 				
 				break;
@@ -616,311 +597,4 @@ void CPSPSoundBuffer::Done()
 bool CPSPSoundBuffer::IsDone()
 {
 	return (m_lastpushpos == poppos)?true:false;
-}
-
-/** class CPSPSoundStream */
-CPSPSoundStream::CPSPSoundStream()
-{
-	m_Type = STREAM_TYPE_NONE;
-	m_State = STREAM_STATE_CLOSED;
-	m_pfd = NULL;
-	m_BstdFile = NULL;
-	m_fd = -1;
-	m_sock_eof = true;
-	m_iMetaDataInterval = 0;
-	m_iRunningCountModMetadataInterval = 0;
-	memset(bMetaData, 0, MAX_METADATA_SIZE);
- 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
- 	m_strFile[0] = 0;
-	m_ContentType = STREAM_CONTENT_NOT_DEFINED;
-	
-}
-
-CPSPSoundStream::~CPSPSoundStream()
-{
-	Close();
-}
-
-
-/** Accessors */
-void CPSPSoundStream::SetFile(char *strFile)
-{
-	if (strFile)
-	{
-		if (strlen(strFile) > 4)
-		{
-			strncpy(m_strFile, strFile, 256);
-			if (memcmp(m_strFile, "http://", strlen("http://")) == 0)
-			{
-				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <URL> called", strFile);
-				m_Type = STREAM_TYPE_URL;
-			}
-			else // It's a file!
-			{
-				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <FILE> called", strFile);
-				m_Type = STREAM_TYPE_FILE;
-			}
-		}
-		else
-		{
-			Log(LOG_ERROR, "CPSPSoundStream::SetFile(%s) BAD.", strFile);
-			ReportError("CPSPSoundStream::OpenFile-Invalid filename '%s'", strFile);
-		}
-		
-	}
-}
-
-void CPSPSoundStream::Close()
-{
-	if (STREAM_STATE_OPEN == m_State)
-	{
-		switch(m_Type)
-		{
-			case STREAM_TYPE_FILE:
-				if (m_BstdFile)
-				{
-					BstdFileDestroy(m_BstdFile);
-				}
-				if (m_pfd)
-				{
-					fclose(m_pfd);
-				}
-				m_pfd = NULL;
-				m_BstdFile = NULL;
-				m_State = STREAM_STATE_CLOSED;
-				break;
-			case STREAM_TYPE_URL:
-				if (m_fd >= 0)
-				{
-					sceNetInetClose(m_fd);
-				}
-				m_fd = -1;
-				m_State = STREAM_STATE_CLOSED;
-				break;
-			case STREAM_TYPE_NONE:
-				Log(LOG_ERROR, "SoundStream::Close(): Invalid State.");
-				break;
-		}
-	}
-	m_iMetaDataInterval = 0;
-	m_iRunningCountModMetadataInterval = 0;
-	memset(bMetaData, 0, MAX_METADATA_SIZE);
-	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
-	m_ContentType = STREAM_CONTENT_NOT_DEFINED;
-}
-
-int CPSPSoundStream::Open()
-{
-	enum content_types ContentType = STREAM_CONTENT_NOT_DEFINED;
-	if (STREAM_STATE_CLOSED == m_State)
-	{
-		switch(m_Type)
-		{
-			case STREAM_TYPE_URL:
-				//ReportError ("Opening URL '%s'\n", filename);
-				m_fd = http_open(m_strFile, m_iMetaDataInterval, ContentType);
-				if (m_fd < 0)
-				{
-					//Don't report again, because http_open will report.
-					//ReportError("CPSPSoundStream::OpenFile-Error opening URL.\n");
-					m_State = STREAM_STATE_CLOSED;
-				}
-				else
-				{
-					//ReportError("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fd);
-					//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
-					m_State = STREAM_STATE_OPEN;
-					m_sock_eof = FALSE;
-					m_ContentType = ContentType;
-				}
-				break;
-			
-			case STREAM_TYPE_FILE:
-				m_pfd = fopen(m_strFile, "rb");
-				if(m_pfd)
-				{
-					m_BstdFile=NewBstdFile(m_pfd);
-					if(m_BstdFile != NULL)
-					{
-						m_State = STREAM_STATE_OPEN;
-						char *ext = strrchr(m_strFile, '.') + 1;
-						if (strlen(ext) >= 3)
-						{
-							if (0 == strncmp(ext, "mp", 2) || 0 == strncmp(ext, "MP", 2))
-							{
-								m_ContentType = STREAM_CONTENT_AUDIO_MPEG;
-							}
-							else if (0 == strncmp(ext, "ogg", 3) || 0 == strncmp(ext, "OGG", 3))
-							{
-								m_ContentType = STREAM_CONTENT_AUDIO_OGG;
-							}
-						}
-					}
-					else
-					{
-						ReportError("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).",
-								strerror(errno));
-						m_State = STREAM_STATE_CLOSED;
-					}
-				}
-				else
-				{
-					ReportError("Unable to open file");
-				}
-				break;
-			case STREAM_TYPE_NONE:
-				ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_strFile);
-				break;
-		}
-	}
-	else
-	{
-		ReportError("Calling OpenFile, but there is a file open already");
-	}
-	
-	return m_State!=STREAM_STATE_CLOSED?0:-1;
-}
-
-size_t CPSPSoundStream::Read(unsigned char *pBuffer, size_t ElementSize, size_t ElementCount)
-{
-	size_t size = 0;
-	size_t iBytesToRead = (ElementCount*ElementSize);
-	char bMetaDataSize = 0;
-	int iReadRet = -1;
-	
-	if (STREAM_STATE_OPEN == m_State)
-	{
-		switch(m_Type)
-		{
-			case STREAM_TYPE_FILE:
-				size = BstdRead(pBuffer, ElementSize, ElementCount, m_BstdFile);
-				break;
-			case STREAM_TYPE_URL:
-				if (m_iMetaDataInterval)
-				{
-					m_iRunningCountModMetadataInterval = (m_iRunningCountModMetadataInterval % m_iMetaDataInterval);
-				}
-				if (iBytesToRead + m_iRunningCountModMetadataInterval > m_iMetaDataInterval)
-				{
-					size = SocketRead((char*)pBuffer, m_iMetaDataInterval - m_iRunningCountModMetadataInterval, m_fd);
-					if (size != (m_iMetaDataInterval - m_iRunningCountModMetadataInterval))
-					{
-						Close();
-						m_sock_eof = true;
-					}
-					iReadRet = SocketRead(&bMetaDataSize, 1, m_fd);
-					if (iReadRet > 0)
-					{
-						iReadRet = SocketRead(bMetaData, bMetaDataSize * 16, m_fd);
-					}
-					if (iReadRet != bMetaDataSize * 16)
-					{
-						Close();
-						m_sock_eof = true;
-					}
-					else
-					{
-						/** If new data is received */
-						if (memcmp(bPrevMetaData, bMetaData, MAX_METADATA_SIZE) != 0)
-						{
-							Log(LOG_INFO, "MetaData='%s'", bMetaData);
-							pPSPSound->SendEvent(MID_DECODE_METADATA_INFO, bMetaData);
-							memcpy(bPrevMetaData, bMetaData, MAX_METADATA_SIZE);
-						}
-					}
-				}
-				else
-				{
-					size = SocketRead((char*)pBuffer, iBytesToRead, m_fd);
-					if (size != iBytesToRead)
-					{
-						Close();
-						m_sock_eof = true;
-					}
-				}
-				if (size > 0)
-				{
-					m_iRunningCountModMetadataInterval+=size;
-				}
-				break;
-			case STREAM_TYPE_NONE:
-				Log(LOG_ERROR, "Read() Called, but no stream set up.");
-				break;
-		}
-	}
-	else
-	{
-		Log(LOG_ERROR, "Read() Called but the stream is not open!");
-	}
-	
-	return size;
-}
-
-bool CPSPSoundStream::IsEOF()
-{
-	int iseof = 0;
-	
-	if (STREAM_STATE_OPEN == m_State)
-	{
-		switch(m_Type)
-		{
-			case STREAM_TYPE_FILE:
-				iseof = BstdFileEofP(m_BstdFile);
-				break;
-			case STREAM_TYPE_URL:
-				iseof = m_sock_eof;
-				break;
-			case STREAM_TYPE_NONE:
-				Log(LOG_ERROR, "IsEOF() Called but stream not setup");
-				iseof = 1; /** Make them stop! */
-				break;
-		}
-	}
-	else
-	{
-		Log(LOG_ERROR, "IsEOF() Called but stream not open");
-		iseof = 1; /** Make them stop! */
-	}
-	
-	return iseof?true:false;
-}
-
-bool CPSPSoundStream::IsOpen()
-{
-	return (m_State==STREAM_STATE_CLOSED)?false:true;
-}
-
-int SocketRead(char *pBuffer, size_t LengthInBytes, int sock)
-{
-	size_t bytesread = 0, bytestoread = 0;
-	size_t size = 0;
-	for(;;) 
-	{
-		bytestoread = LengthInBytes-size;
-		bytesread = recv(sock, pBuffer+size, bytestoread, 0);
-		if (bytesread > 0)
-			size += bytesread;
-		if(bytesread == bytestoread) 
-		{
-			//done
-			break;
-		}
-		else if (bytesread == 0)
-		{
-			ReportError("SocketRead(): Connection reset by peer!\n");
-			//Close();
-			//m_sock_eof = true;
-			break;
-		}
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == true)
-			break;
-		//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
-		//{
-		//	ReportMessage ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
-		//	m_sock_eof = true;
-		//	Close();
-		//	break;
-		//}
-	}
-	return size;
 }

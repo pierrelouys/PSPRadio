@@ -20,17 +20,32 @@
 	#define __PSPSOUNDDECODER_OGG__
 	
 	#include "PSPSound.h"
-	#include <mad.h>
+	#include "PSPSoundDecoder.h"
+	#include <ivorbisfile.h>
 	
 	class CPSPEventQ;
 	class CPSPSoundStream;
 	class CPSPSoundBuffer;
 	
+	class COGGStreamReader : public CPSPSoundStreamReader
+	{
+	public:
+		
+		COGGStreamReader();
+		~COGGStreamReader();
+		
+		void Close();
+		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
+	
+	private:
+		OggVorbis_File m_vf;
+	};
+	
 	class CPSPSoundDecoder_OGG : public IPSPSoundDecoder
 	{
 	public:
-		CPSPSoundDecoder_OGG(CPSPSoundStream *InputStream, CPSPSoundBuffer *OutputBuffer)
-			:IPSPSoundDecoder(InputStream, OutputBuffer){ Initialize();}
+		CPSPSoundDecoder_OGG(CPSPSoundBuffer *OutputBuffer) : IPSPSoundDecoder(OutputBuffer)
+			{ Initialize(); }
 		~CPSPSoundDecoder_OGG();
 		
 		void Initialize();
@@ -38,18 +53,10 @@
 		bool Decode();
 
 	private:
-		struct mad_frame	m_Frame;
-		struct mad_stream	m_Stream;
-		struct mad_synth	m_Synth;
-		mad_timer_t			m_Timer;
-		unsigned char		*m_pInputBuffer;
-		unsigned char		*m_GuardPtr;
+		int m_NumberOfChannels;
+		unsigned char	*m_pInputBuffer;
+		unsigned char	*m_GuardPtr;
 		unsigned long	m_FrameCount;
-
-		
-		static signed int scale(mad_fixed_t &sample);
-		static int PrintFrameInfo(struct mad_header *Header);
-		static signed short MadFixedToSshort(mad_fixed_t Fixed);
 	};
 	
 	#include "PSPSound.h"

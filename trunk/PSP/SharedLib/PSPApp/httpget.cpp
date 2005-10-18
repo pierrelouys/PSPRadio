@@ -22,9 +22,8 @@
 #include <ctype.h>
 #include <PSPApp.h>
 #include <PSPSound.h>
+#include <PSPSoundDecoder.h>
 #include <Logging.h>
-
-//extern int errno;
 
 #define ProgName    pPSPApp->GetProgramName()
 #define ProgVersion pPSPApp->GetProgramVersion()

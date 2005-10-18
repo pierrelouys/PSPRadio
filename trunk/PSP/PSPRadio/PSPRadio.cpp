@@ -379,7 +379,7 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
-						m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+						CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						m_Sound->Play();
 						/** Populate m_CurrentMetaData */
@@ -604,7 +604,7 @@ public:
 						
 						if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
 						{
-							m_Sound->GetStream()->SetFile(m_CurrentPlayList->GetCurrentFileName());
+							CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
 							
 							/** Populate m_CurrentMetaData */
 							m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
