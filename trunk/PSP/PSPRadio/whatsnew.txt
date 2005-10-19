@@ -1,56 +1,47 @@
 What's New for PSPRadio 
 ========================
 0.36
-0.36-pre1 (r328)
-------------------------------------------------------------------------
-r312 | rafpsp | 2005-10-16 01:48:32 -0400 (Sun, 16 Oct 2005) | 1 line
-
-Corrected case for resources. Created a script to build everything
-------------------------------------------------------------------------
-r313 | rafpsp | 2005-10-16 01:59:47 -0400 (Sun, 16 Oct 2005) | 1 line
-
-Updated whatsnew/readme for 0.35-final release
+0.36-pre1 (r336)
 ------------------------------------------------------------------------
 r320 | rafpsp | 2005-10-17 02:19:15 -0400 (Mon, 17 Oct 2005) | 38 lines
 
-svn merge -r305:319 http://rafpsp@svn.berlios.de/svnroot/repos/pspradio/branches/OGGSupportAddition
-----------------------------------------------------------------------
-r319 | rafpsp | 2005-10-17 01:52:33 -0400 (Mon, 17 Oct 2005) | 1 line
-
-Now if content type is not defined, it defaults to MPEG. Also added case for AAC (not supported yet)
-------------------------------------------------------------------------
-r318 | rafpsp | 2005-10-17 01:51:34 -0400 (Mon, 17 Oct 2005) | 1 line
-
-Added support for determining content types for ogg and aac.
-------------------------------------------------------------------------
-r317 | rafpsp | 2005-10-17 01:51:05 -0400 (Mon, 17 Oct 2005) | 1 line
-
-Added support for determining content types for ogg and aac.
-------------------------------------------------------------------------
-r316 | rafpsp | 2005-10-17 00:50:34 -0400 (Mon, 17 Oct 2005) | 2 lines
-
-Added support for different stream types in preparation for addition of new decoders. It detects the stream type (content type) from filename if local file, or
-from content-type: metadata from online stream response. (Some servers don't send the response.. so may want to default to MAD.
-------------------------------------------------------------------------
-r315 | rafpsp | 2005-10-16 04:07:39 -0400 (Sun, 16 Oct 2005) | 1 line
-
-More modularization in progress...
-------------------------------------------------------------------------
-r314 | rafpsp | 2005-10-16 03:23:21 -0400 (Sun, 16 Oct 2005) | 1 line
-
-More modularization in progress...
-------------------------------------------------------------------------
-r306 | rafpsp | 2005-10-16 00:17:10 -0400 (Sun, 16 Oct 2005) | 1 line
-
-Making decoder more modular..
-------------------------------------------------------------------------
-r305 | rafpsp | 2005-10-15 17:40:37 -0400 (Sat, 15 Oct 2005) | 1 line
-
-Redoing dir by using copy from branch
-------------------------------------------------------------------------
-Also fix to report stream info (like samplerate) everytime
-Also updated readme/whatsnew with what was actually released for 0.35.
-
+svn merge -r305:319 branches/OGGSupportAddition to trunk/
+	----------------------------------------------------------------------
+	r319 | rafpsp | 2005-10-17 01:52:33 -0400 (Mon, 17 Oct 2005) | 1 line
+	
+	Now if content type is not defined, it defaults to MPEG. Also added case for AAC (not supported yet)
+	------------------------------------------------------------------------
+	r318 | rafpsp | 2005-10-17 01:51:34 -0400 (Mon, 17 Oct 2005) | 1 line
+	
+	Added support for determining content types for ogg and aac.
+	------------------------------------------------------------------------
+	r317 | rafpsp | 2005-10-17 01:51:05 -0400 (Mon, 17 Oct 2005) | 1 line
+	
+	Added support for determining content types for ogg and aac.
+	------------------------------------------------------------------------
+	r316 | rafpsp | 2005-10-17 00:50:34 -0400 (Mon, 17 Oct 2005) | 2 lines
+	
+	Added support for different stream types in preparation for addition of new decoders. It detects the stream type (content type) from filename if local file, or
+	from content-type: metadata from online stream response. (Some servers don't send the response.. so may want to default to MAD.
+	------------------------------------------------------------------------
+	r315 | rafpsp | 2005-10-16 04:07:39 -0400 (Sun, 16 Oct 2005) | 1 line
+	
+	More modularization in progress...
+	------------------------------------------------------------------------
+	r314 | rafpsp | 2005-10-16 03:23:21 -0400 (Sun, 16 Oct 2005) | 1 line
+	
+	More modularization in progress...
+	------------------------------------------------------------------------
+	r306 | rafpsp | 2005-10-16 00:17:10 -0400 (Sun, 16 Oct 2005) | 1 line
+	
+	Making decoder more modular..
+	------------------------------------------------------------------------
+	r305 | rafpsp | 2005-10-15 17:40:37 -0400 (Sat, 15 Oct 2005) | 1 line
+	
+	Redoing dir by using copy from branch
+	------------------------------------------------------------------------
+	Also fix to report stream info (like samplerate) everytime
+	Also updated readme/whatsnew with what was actually released for 0.35.
 ------------------------------------------------------------------------
 r322 | sandberg | 2005-10-17 04:22:14 -0400 (Mon, 17 Oct 2005) | 1 line
 
@@ -81,6 +72,40 @@ r328 | rafpsp | 2005-10-18 16:50:39 -0400 (Tue, 18 Oct 2005) | 1 line
 
 Added support for ogg vorbis streams (files/online streams)
 ------------------------------------------------------------------------
+r329 | rafpsp | 2005-10-19 00:08:12 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Moved metadata structure from CPlayList to CPSPSoundStream. Get current metadata from CurrentSoundStream using accessors (ie CurrentSoundStream.GetURI() or GetTitle(), etc)
+------------------------------------------------------------------------
+r330 | rafpsp | 2005-10-19 01:16:22 -0400 (Wed, 19 Oct 2005) | 2 lines
+
+Moved currentmetadata copy from pspradio to CurrentSoundStream. Also metadata processing from pspradio to pspsounddecoder
+Simplified metadata notification
+------------------------------------------------------------------------
+r331 | rafpsp | 2005-10-19 01:27:11 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Renamed Author to Artist
+------------------------------------------------------------------------
+r332 | rafpsp | 2005-10-19 01:27:44 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Populating more metadata fields for ogg: bitrate, title, artist
+------------------------------------------------------------------------
+r333 | rafpsp | 2005-10-19 01:36:56 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Display Artist
+------------------------------------------------------------------------
+r334 | rafpsp | 2005-10-19 02:25:35 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Refactoring to allow for oggs to set samplerate. SoundBuffer now gets samplerate from CurrentSoundStream instead of keeping its own copy
+------------------------------------------------------------------------
+r335 | rafpsp | 2005-10-19 02:28:32 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Show artist only if available
+------------------------------------------------------------------------
+r336 | rafpsp | 2005-10-19 02:38:54 -0400 (Wed, 19 Oct 2005) | 1 line
+
+Updates to readme and whatsnew for 0.36-pre1
+------------------------------------------------------------------------
+
 
 
 0.35-final (r312)
