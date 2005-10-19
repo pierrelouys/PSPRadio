@@ -450,9 +450,12 @@ int CTextUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 	uiPrintf(0 , r1,	COLOR_WHITE,	"Title : ");
 	uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
 	r1++;
-	uiPrintf(0 , r1,	COLOR_WHITE,	"Artist: ");
-	uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
-	r1++;
+	if (pData->strArtist && strlen(pData->strArtist))
+	{
+		uiPrintf(0 , r1,	COLOR_WHITE,	"Artist: ");
+		uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
+		r1++;
+	}
 	if (pData->strURL && strlen(pData->strURL))
 	{
 		uiPrintf(0, r1, COLOR_WHITE,	"URL   : ");
