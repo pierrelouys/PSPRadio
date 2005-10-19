@@ -720,10 +720,10 @@ static unsigned char sound[] __attribute__((aligned(16))) = {
 static CSandbergUI::IconStr __attribute__((aligned(16))) icon_list[] =
 	{
 	{440,   8, 472,  40, NETWORK_INACTIVE_COLOR, ::network},
-	{440,  48, 472,  80, LOAD_INACTIVE_COLOR, ::load},
-	{440,  88, 472, 120, SOUND_ACTIVE_COLOR, ::sound},
-	{204, 232, 236, 264, INACTIVE_COLOR, ::play},
-	{244, 232, 280, 264, ACTIVE_COLOR, ::stop},
+	{440,  48, 472,  80, LOAD_INACTIVE_COLOR,    ::load},
+	{440,  88, 472, 120, SOUND_ACTIVE_COLOR,     ::sound},
+	{204, 232, 236, 264, INACTIVE_COLOR,         ::play},
+	{244, 232, 280, 264, ACTIVE_COLOR,           ::stop},
 	};
 
 

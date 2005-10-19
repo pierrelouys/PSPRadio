@@ -125,12 +125,12 @@ private:
 	void RenderCommands(void);
 	void RenderPL(void);
 	void RenderState(void);
-	void RenderPLName(void);
-	void RenderPLEntry(void);
+	void RenderScroller(char *text, struct NCVertex *vertices, int rotate, float x_offset);
 	void RenderNetwork(void);
 	void RenderLoad(void);
 	void RenderSound(void);
 	void RenderIcon(IconStr *icon_info);
+	void RenderMetaData(void);
 
 	void RenderPlayScreen(void);
 	void RenderOptionScreen(void);
