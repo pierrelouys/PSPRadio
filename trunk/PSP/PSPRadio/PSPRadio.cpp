@@ -51,10 +51,6 @@ PSP_MAIN_THREAD_PRIORITY(80);
 #define CFG_FILENAME "PSPRadio.cfg"
 #define ReportError pPSPApp->ReportError
 
-#define METADATA_STREAMURL_TAG "StreamUrl='"
-#define METADATA_STREAMTITLE_TAG "StreamTitle='"
-
-
 class myPSPApp : public CPSPApp
 {
 private:
@@ -62,7 +58,7 @@ private:
 	CPSPSound *m_Sound;
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
-	CPSPSoundStream::MetaData *m_CurrentMetaData;
+//	CPSPSoundStream::MetaData *m_CurrentMetaData;
 	IPSPRadio_UI *m_UI;
 	CScreenHandler *m_ScreenHandler;
 		
@@ -75,7 +71,7 @@ public:
 		m_CurrentPlayList = NULL;
 		m_CurrentPlayListDir = NULL;
 		m_UI = NULL;
-		m_CurrentMetaData = NULL;
+//		m_CurrentMetaData = NULL;
 		m_ScreenHandler = NULL;
 	};
 
@@ -102,16 +98,6 @@ public:
 		
 		Setup_Logging(strDir);
 		
-		m_CurrentMetaData  = new CPSPSoundStream::MetaData;
-		if (m_CurrentMetaData)
-		{
-			memset(m_CurrentMetaData, 0, sizeof(CPSPSoundStream::MetaData));
-		}
-		else
-		{
-			Log(LOG_ERROR, "Memory allocation error during Metadata allocation.");
-		}
-		
 		Setup_UI(strDir);
 	
 		m_UI->SetTitle(strAppTitle);
@@ -129,7 +115,7 @@ public:
 	
 		Setup_Sound();
 		
-		m_ScreenHandler->SetUp(m_UI, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir, m_CurrentMetaData);
+		m_ScreenHandler->SetUp(m_UI, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
 		
 		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
 		{
@@ -314,10 +300,6 @@ public:
 		{
 			delete(m_CurrentPlayList);
 		}
-		if (m_CurrentMetaData)
-		{
-			delete (m_CurrentMetaData);
-		}
 		Log(LOG_LOWLEVEL, "Exiting. The end.");
 	}
 
@@ -384,8 +366,9 @@ public:
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						m_Sound->Play();
 						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						m_UI->OnNewSongData(m_CurrentMetaData);
+						m_CurrentPlayList->GetCurrentSong(&CurrentSoundStream.m_CurrentMetaData);
+						//CurrentSoundStream.SetURI(m_CurrentPlayList->GetURI());
+						m_UI->OnNewSongData(&CurrentSoundStream.m_CurrentMetaData);
 						break;
 					case CPSPSound::PLAY:
 						m_UI->DisplayActiveCommand(CPSPSound::STOP);
@@ -399,9 +382,6 @@ public:
 
 	int ProcessEvents()
 	{
-		char MData[MAX_METADATA_SIZE];
-		char *strURL = "";
-		char *strTitle = "";
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
 
@@ -484,38 +464,11 @@ public:
 					OnPlayStateChange(CPSPSound::PLAY);
 					m_UI->OnStreamOpeningSuccess();
 					break;
-				case MID_DECODE_METADATA_INFO:
-					memcpy(MData, event.pData, MAX_METADATA_SIZE);
 					
-					/** GetMetadataValue() modifies the metadata, so call it
-					with the last tag first */
-					strURL   = GetMetadataValue(MData, METADATA_STREAMURL_TAG);
-					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
-					
-					/** Update m_CurrentMetaData, and notify m_UI. */
-					strcpy(m_CurrentMetaData->strTitle, strTitle);
-					strcpy(m_CurrentMetaData->strURL, strURL);
-					m_UI->OnNewSongData(m_CurrentMetaData);
-					break;
 				//case MID_DECODE_DONE:
 				//	break;
-				case MID_DECODE_MAD_FRAME_INFO_HEADER:
-					struct mad_header *Header;
-					Header = (struct mad_header *)event.pData;
-					/** Update m_CurrentMetaData, and notify m_UI. */
-					m_CurrentMetaData->iSampleRate = Header->samplerate;
-					m_CurrentMetaData->iBitRate = Header->bitrate;
-					//m_CurrentMetaData->iMPEGLayer = Header->Layer;
-					m_UI->OnNewSongData(m_CurrentMetaData);
-					
-					break;
-					
-				case MID_DECODE_OGG_FRAME_INFO_HEADER:
-					vorbis_info *vi = (vorbis_info *)event.pData;
-					/** Update m_CurrentMetaData, and notify m_UI. */
-					m_CurrentMetaData->iSampleRate = vi->rate;
-					m_CurrentMetaData->iBitRate = 0;
-					m_UI->OnNewSongData(m_CurrentMetaData);
+				case MID_NEW_METADATA_AVAILABLE:
+					m_UI->OnNewSongData(&CurrentSoundStream.m_CurrentMetaData);
 					break;
 					
 				case MID_TCP_CONNECTING_PROGRESS:
@@ -552,28 +505,6 @@ public:
 		m_UI->OnVBlank();
 	};
 	
-	/** Raw metadata looks like this:
-	 *  "StreamTitle='title of the song';StreamUrl='url address';"
-	 */
-	char *GetMetadataValue(char *strMetadata, char *strTag)
-	{
-		char *ret = "Parse Error";
-		
-		if (strMetadata && 
-			strTag && 
-			(strlen(strMetadata) > strlen(strTag)) && 
-			strstr(strMetadata, strTag))
-		{
-			ret = strstr(strMetadata, strTag) + strlen(strTag);
-			if (strchr(ret, ';'))
-			{
-				*(strchr(ret, ';') - 1) = 0;
-			}
-		}
-		
-		return ret;
-	}
-	
 	void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 	{
 		static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
@@ -586,8 +517,8 @@ public:
 					case CPSPSound::PLAY:
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						m_UI->OnNewSongData(m_CurrentMetaData);
+						m_CurrentPlayList->GetCurrentSong(&CurrentSoundStream.m_CurrentMetaData);
+						m_UI->OnNewSongData(&CurrentSoundStream.m_CurrentMetaData);
 						break;
 					
 					case CPSPSound::STOP:
@@ -613,7 +544,7 @@ public:
 							CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
 							
 							/** Populate m_CurrentMetaData */
-							m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+							m_CurrentPlayList->GetCurrentSong(&CurrentSoundStream.m_CurrentMetaData);
 							
 							m_Sound->Play();
 						}

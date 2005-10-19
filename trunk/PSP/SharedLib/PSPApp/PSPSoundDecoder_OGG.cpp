@@ -98,10 +98,10 @@ COGGStreamReader::COGGStreamReader()
 			Log(LOG_INFO, "\nDecoded length: %ld samples\n",
 				(long)ov_pcm_total(&m_vf,-1));
 			Log(LOG_INFO, "Encoded by: %s\n\n",ov_comment(&m_vf,-1)->vendor);
-			pPSPSound->SendEvent(MID_DECODE_OGG_FRAME_INFO_HEADER, vi);
 			//CurrentSoundStream.SetBitRate(vi->bitrate);
 			CurrentSoundStream.SetSampleRate(vi->rate);
 			CurrentSoundStream.SetNumberOfChannels(vi->channels);
+			pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 		}			
 		break;
 		case OV_EREAD:

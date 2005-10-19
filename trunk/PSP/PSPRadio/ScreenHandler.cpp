@@ -64,19 +64,19 @@ CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *
 	m_iNetworkProfile = 1;
 	m_NetworkStarted  = false;
 	m_RequestOnPlayOrStop = NOTHING;
-
-	SetUp(UI, Config, Sound, NULL, NULL, NULL);
+	m_CurrentMetaData = &CurrentSoundStream.m_CurrentMetaData;
+	
+	SetUp(UI, Config, Sound, NULL, NULL);
 }
 
 void CScreenHandler::SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound,
-							CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir, CPSPSoundStream::MetaData *CurrentMetaData)
+							CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir)
 {	
 	m_UI = UI;
 	m_Config = Config;
 	m_Sound = Sound;
 	m_CurrentPlayList = CurrentPlayList;
 	m_CurrentPlayListDir = CurrentPlayListDir;
-	m_CurrentMetaData = CurrentMetaData;
 	
 	PopulateOptionsData();
 	StartScreen(m_CurrentScreen);

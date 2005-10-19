@@ -53,7 +53,7 @@
 		CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound);
 		
 		void SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound, 
-					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir, CPSPSoundStream::MetaData *CurrentMetaData);
+					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
 		void StartScreen(Screen screen);
 
 		int  Start_Network(int iNewProfile = -1);

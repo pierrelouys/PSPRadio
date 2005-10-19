@@ -319,11 +319,12 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
-	pPSPSound->SendEvent(MID_DECODE_MAD_FRAME_INFO_HEADER, Header);
-//	pPSPSound->SendEvent(MID_DECODE_MAD_FRAME_INFO_LAYER, (char*)Layer);
 	CurrentSoundStream.SetBitRate(Header->bitrate);
 	CurrentSoundStream.SetSampleRate(Header->samplerate);
 	CurrentSoundStream.SetNumberOfChannels(Header->mode);
+	CurrentSoundStream.SetMPEGLayer(Header->layer);
+	pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
+	
 	return(0);
 }
 
