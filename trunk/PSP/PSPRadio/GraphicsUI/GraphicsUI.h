@@ -65,7 +65,6 @@ private:
 	
 	
 private:
-	const SDL_VideoInfo *m_pVideoInfo;
 	SDL_Surface *m_pImageBase;	
 	SDL_Surface *m_pScreen;
 	int m_nDepth;

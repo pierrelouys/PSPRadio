@@ -41,7 +41,6 @@ CGraphicsUI::CGraphicsUI()
 {
 	m_pImageBase = NULL;
 	m_pScreen = NULL;
-	m_pVideoInfo = NULL;
 	m_nDepth = -1;
 	m_nFlags = SDL_FULLSCREEN | /*SDL_DOUBLEBUF |*/ SDL_HWSURFACE;
 }
