@@ -163,7 +163,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 			ReportError("Error in m_Frame info.");
 			return bRet;
 		}
-		m_Buffer->SetSampleRate(m_Frame.header.samplerate);
+		m_Buffer->SampleRateChange();
 	}
 
 	/* Accounting. The computed frame duration is in the frame

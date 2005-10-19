@@ -36,6 +36,7 @@
 		
 		void Close();
 		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
+		void ReadComments(); /** Retrieve metadata from the stream */
 	
 	private:
 		OggVorbis_File m_vf;

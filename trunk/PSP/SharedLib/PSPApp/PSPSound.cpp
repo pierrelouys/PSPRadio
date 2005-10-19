@@ -385,7 +385,7 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 	ringbuf_start=NULL;
 	pspbuf = NULL;
 	/** **/
-	m_samplerate = PSP_SAMPLERATE;
+	//m_samplerate = PSP_SAMPLERATE;
 	
 	m_NumBuffers = DEFAULT_NUM_BUFFERS;
 
@@ -448,14 +448,15 @@ size_t CPSPSoundBuffer::GetBufferFillPercentage()
 	return 100*m_FrameCount/(PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
 };
 		
-void CPSPSoundBuffer::SetSampleRate(size_t samplerate)
+void CPSPSoundBuffer::SampleRateChange()
 {
+	int samplerate = CurrentSoundStream.GetSampleRate();
 	if (samplerate > 0)
 	{
 		Empty();
-		m_samplerate = samplerate;
+		//m_samplerate = samplerate;
 		m_mult = 1, m_div = 1;
-		switch(m_samplerate)
+		switch(samplerate)
 		{
 		case 8000:
 			m_mult=11;

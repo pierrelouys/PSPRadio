@@ -92,13 +92,14 @@
 		void  Done();
 		bool  IsDone();
 		
-		void  SetSampleRate(size_t samplerate);
+		//void  SetSampleRate(size_t samplerate);
+		void SampleRateChange();
 		
 	private:
 		Frame 	*ringbuf_start, *pspbuf; /** Buffers */
 		Frame 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
 		bool  	m_buffering;
-		size_t 	m_samplerate, m_mult, m_div;
+		size_t 	/*m_samplerate,*/ m_mult, m_div;
 		size_t 	m_FrameCount; /** Used for buffer percentage */
 		size_t	m_NumBuffers; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
 		
@@ -157,6 +158,8 @@
 		
 		int GetEventToDecThSize() { return m_EventToDecTh->Size(); }
 		int GetEventToPlayThSize() { return m_EventToPlayTh->Size(); }
+		
+		void SampleRateChange() { Buffer.SampleRateChange(); }
 		
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);

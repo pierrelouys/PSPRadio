@@ -29,19 +29,19 @@
 #include "PSPSoundDecoder_OGG.h"
 using namespace std;
 
-size_t ogg_socket_read_wrapper(void *ptr, size_t size, size_t nmemb, void *datasource)
+size_t ogg_socket_read_wrapper(void *ptr, size_t size, size_t nmemb, void *pSocket)
 {
-	return recv(*(int*)datasource, ptr, size*nmemb, 0);
+	return recv(*(int*)pSocket, ptr, size*nmemb, 0);
 }
 
-int ogg_socket_seek_wrapper(void *datasource, ogg_int64_t offset, int whence)
+int ogg_socket_seek_wrapper(void *pSocket, ogg_int64_t offset, int whence)
 {
 	return -1;
 }
 
-int    ogg_socket_close_wrapper(void *datasource)
+int ogg_socket_close_wrapper(void *pSocket)
 {
-	return 0;//sceNetInetClose(*(int*)datasource);
+	return sceNetInetClose(*(int*)pSocket);
 }
 
 //long   ogg_socket_tell_wrapper(void *datasource)
@@ -87,26 +87,13 @@ COGGStreamReader::COGGStreamReader()
 	{
 		case 0: /** Success! */
 		{
-			char **ptr=ov_comment(&m_vf,-1)->user_comments;
 			vorbis_info *vi=ov_info(&m_vf,-1);
-			while(*ptr)
-			{
-				Log(LOG_INFO, "%s\n",*ptr);
-				if (strstr(*ptr, "TITLE="))
-				{
-					CurrentSoundStream.SetTitle((*ptr)+strlen("TITLE="));
-				}
-				else if (strstr(*ptr, "ARTIST="))
-				{
-					CurrentSoundStream.SetArtist((*ptr)+strlen("ARTIST="));
-				}
-				++ptr;
-			}
-			Log(LOG_INFO, "\nBitstream is %d channel, %ldHz\n",vi->channels,vi->rate);
-			Log(LOG_INFO, "\nDecoded length: %ld samples\n",
+			ReadComments();
+			Log(LOG_INFO, "Bitstream is %d channel, %ldHz",vi->channels,vi->rate);
+			Log(LOG_INFO, "Decoded length: %ld samples",
 				(long)ov_pcm_total(&m_vf,-1));
 			CurrentSoundStream.SetLength(ov_pcm_total(&m_vf,-1));
-			Log(LOG_INFO, "Encoded by: %s\n\n",ov_comment(&m_vf,-1)->vendor);
+			Log(LOG_INFO, "Encoded by: %s",ov_comment(&m_vf,-1)->vendor);
 			CurrentSoundStream.SetBitRate(vi->bitrate_nominal);
 			CurrentSoundStream.SetSampleRate(vi->rate);
 			CurrentSoundStream.SetNumberOfChannels(vi->channels);
@@ -142,6 +129,24 @@ COGGStreamReader::~COGGStreamReader()
 {
 }
 
+void COGGStreamReader::ReadComments()
+{
+	char **ptr=ov_comment(&m_vf,-1)->user_comments;
+	while(*ptr)
+	{
+		Log(LOG_INFO, "%s",*ptr);
+		if (strstr(*ptr, "TITLE="))
+		{
+			CurrentSoundStream.SetTitle((*ptr)+strlen("TITLE="));
+		}
+		else if (strstr(*ptr, "ARTIST="))
+		{
+			CurrentSoundStream.SetArtist((*ptr)+strlen("ARTIST="));
+		}
+		++ptr;
+	}
+}
+
 void COGGStreamReader::Close()
 {
 	//CurrentSoundStream.Close();
@@ -157,15 +162,15 @@ void COGGStreamReader::Close()
 
 size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 {
-	static int bitstream = 0;
+	static int current_section = -1;
 	size_t BytesRead = 0;
 	long lRet = 0;
-	int old_bitstream = bitstream;
+	int old_section = current_section;
 	//Log(LOG_VERYLOW, "Read. (Begin) bitstream=%d", bitstream);
 	
 	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
 	{
-		lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &bitstream);
+		lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &current_section);
 	
 		if (0 == lRet)
 		{
@@ -180,8 +185,7 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 				case OV_HOLE:
 					//indicates there was an interruption in the data.
 					//(one of: garbage between pages, loss of sync followed by recapture, or a corrupt page)
-					Log(LOG_INFO, "OGG Stream Warning: OV_HOLE (Garbage/loss of sync/corrupt page) bitstream=%d", 
-						bitstream);
+					Log(LOG_INFO, "OGG Stream Warning: OV_HOLE (Garbage/loss of sync/corrupt page) current_section=%d", current_section);
 					return BytesRead;
 					break;
 				case OV_EBADLINK:
@@ -199,9 +203,10 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 		}
 	}
 	
-	if (old_bitstream != bitstream)
+	if (old_section != current_section)
 	{
-		Log(LOG_LOWLEVEL, "Bitstream change from %d to %d.", old_bitstream, bitstream);
+		Log(LOG_LOWLEVEL, "current_section changed from %d to %d. ReadingComments()", old_section, current_section);
+		ReadComments();
 	}
 	//Log(LOG_VERYLOW, "Read. (End) bitstream=%d", bitstream);
 	return BytesRead;
