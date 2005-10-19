@@ -247,7 +247,7 @@ int CGraphicsUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 	DisplayWord(&m_posItemFileTitleString, pData->strTitle, true);	
 	DisplayWord(&m_posItemURLString, pData->strURL, true);	
 	//DisplayWord(&m_posItemSongTitleString, pData->strTitle, true); //RC Removed - was redundant
-	DisplayWord(&m_posItemSongAuthorString, pData->strAuthor, true);
+	DisplayWord(&m_posItemSongArtistString, pData->strArtist, true);
 	
 	sprintf(szTmp, "Length: %d", pData->iLength);
 	DisplayWord(&m_posItemLengthString, szTmp, true);
@@ -504,10 +504,10 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	}
 	
 	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:songauthor");
-	if(0 != m_theme.GetPosItem("stringpos:songauthor", &m_posItemSongAuthorString))
+	if(0 != m_theme.GetPosItem("stringpos:songauthor", &m_posItemSongArtistString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songauthor disabling");
-		m_posItemSongAuthorString.m_bEnabled = false;
+		m_posItemSongArtistString.m_bEnabled = false;
 	}
 	
 	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:length");

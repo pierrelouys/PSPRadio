@@ -95,7 +95,7 @@ private:
 	CGraphicsUIPosItem m_posItemFileTitleString;
 	CGraphicsUIPosItem m_posItemURLString;
 	CGraphicsUIPosItem m_posItemSongTitleString;
-	CGraphicsUIPosItem m_posItemSongAuthorString;
+	CGraphicsUIPosItem m_posItemSongArtistString;
 	CGraphicsUIPosItem m_posItemLengthString;
 	CGraphicsUIPosItem m_posItemSampleRateString;
 	CGraphicsUIPosItem m_posItemBitRateString;
