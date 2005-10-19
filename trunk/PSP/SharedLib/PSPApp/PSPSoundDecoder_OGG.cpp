@@ -41,13 +41,13 @@ int ogg_socket_seek_wrapper(void *datasource, ogg_int64_t offset, int whence)
 
 int    ogg_socket_close_wrapper(void *datasource)
 {
-	return sceNetInetClose(*(int*)datasource);
+	return 0;//sceNetInetClose(*(int*)datasource);
 }
 
-long   ogg_socket_tell_wrapper(void *datasource)
-{
-	return -1;
-}
+//long   ogg_socket_tell_wrapper(void *datasource)
+//{
+//	return -1;
+//}
 
 
 
@@ -75,7 +75,7 @@ COGGStreamReader::COGGStreamReader()
 			ogg_callbacks.read_func = ogg_socket_read_wrapper;
 			ogg_callbacks.seek_func = ogg_socket_seek_wrapper;
 			ogg_callbacks.close_func = ogg_socket_close_wrapper;
-			ogg_callbacks.tell_func = ogg_socket_tell_wrapper;
+			ogg_callbacks.tell_func = NULL;//ogg_socket_tell_wrapper;
 			
 			iRet = ov_open_callbacks(&m_fdSocket, &m_vf, NULL /*char *initial*/, 0 /*long ibytes*/, ogg_callbacks);
 			break;
@@ -83,46 +83,49 @@ COGGStreamReader::COGGStreamReader()
 		default:
 			break;
 	}
-	if(m_pfd)
+	switch(iRet)
 	{
-		switch(iRet)
+		case 0: /** Success! */
 		{
-			case 0: /** Success! */
+			char **ptr=ov_comment(&m_vf,-1)->user_comments;
+			vorbis_info *vi=ov_info(&m_vf,-1);
+			while(*ptr)
 			{
-				char **ptr=ov_comment(&m_vf,-1)->user_comments;
-				vorbis_info *vi=ov_info(&m_vf,-1);
-				while(*ptr)
-				{
-					Log(LOG_INFO, "%s\n",*ptr);
-					++ptr;
-				}
-				Log(LOG_INFO, "\nBitstream is %d channel, %ldHz\n",vi->channels,vi->rate);
-				Log(LOG_INFO, "\nDecoded length: %ld samples\n",
-					(long)ov_pcm_total(&m_vf,-1));
-				Log(LOG_INFO, "Encoded by: %s\n\n",ov_comment(&m_vf,-1)->vendor);
-			}			
+				Log(LOG_INFO, "%s\n",*ptr);
+				++ptr;
+			}
+			Log(LOG_INFO, "\nBitstream is %d channel, %ldHz\n",vi->channels,vi->rate);
+			Log(LOG_INFO, "\nDecoded length: %ld samples\n",
+				(long)ov_pcm_total(&m_vf,-1));
+			Log(LOG_INFO, "Encoded by: %s\n\n",ov_comment(&m_vf,-1)->vendor);
+			pPSPSound->SendEvent(MID_DECODE_OGG_FRAME_INFO_HEADER, vi);
+			//CurrentSoundStream.SetBitRate(vi->bitrate);
+			CurrentSoundStream.SetSampleRate(vi->rate);
+			CurrentSoundStream.SetNumberOfChannels(vi->channels);
+		}			
+		break;
+		case OV_EREAD:
+			ReportError("OGGError: A read from media returned an error.");
 			break;
-			case OV_EREAD:
-				ReportError("OGGError: A read from media returned an error.");
-				break;
-			case OV_ENOTVORBIS:
-				ReportError("OGGError: Bitstream is not Vorbis data.");
-				break;
-			case OV_EVERSION:
-				ReportError("OGGError: Vorbis version mismatch.");
-				break;
-			case OV_EBADHEADER:
-				ReportError("OGGError: Invalid Vorbis bitstream header.");
-				break;
-			case OV_EFAULT:
-				ReportError("Internal logic fault; indicates a bug or heap/stack corruption.");
-				break;
-		}
+		case OV_ENOTVORBIS:
+			ReportError("OGGError: Bitstream is not Vorbis data.");
+			break;
+		case OV_EVERSION:
+			ReportError("OGGError: Vorbis version mismatch.");
+			break;
+		case OV_EBADHEADER:
+			ReportError("OGGError: Invalid Vorbis bitstream header.");
+			break;
+		case OV_EFAULT:
+			ReportError("Internal logic fault; indicates a bug or heap/stack corruption.");
+			break;
+	}
 		
-		if (iRet < 0)
-		{
-			CurrentSoundStream.Close();
-		}
+	/** Only tell soundstream to close if ov_open fails.. If ov_open succeeds, then the
+	 *  Stream needs to be closed with ov_clear! */
+	if (iRet < 0)
+	{
+		CurrentSoundStream.Close();
 	}
 }
 
@@ -138,15 +141,18 @@ void COGGStreamReader::Close()
 		if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
 		{
 			ov_clear(&m_vf);
+			CurrentSoundStream.SetState(CPSPSoundStream::STREAM_STATE_CLOSED);
 		}
 	}	
 }
 
 size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 {
-	int bitstream = 0;
+	static int bitstream = 0;
 	size_t BytesRead = 0;
 	long lRet = 0;
+	int old_bitstream = bitstream;
+	//Log(LOG_VERYLOW, "Read. (Begin) bitstream=%d", bitstream);
 	
 	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
 	{
@@ -154,6 +160,7 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	
 		if (0 == lRet)
 		{
+			Log(LOG_INFO, "OGG Stream End.. Closing..");
 			Close();
 			m_eof = true;
 		}
@@ -164,7 +171,9 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 				case OV_HOLE:
 					//indicates there was an interruption in the data.
 					//(one of: garbage between pages, loss of sync followed by recapture, or a corrupt page)
-					Log(LOG_INFO, "OGG Stream Warning: OV_HOLE (Garbage/loss of sync/corrupt page)");
+					Log(LOG_INFO, "OGG Stream Warning: OV_HOLE (Garbage/loss of sync/corrupt page) bitstream=%d", 
+						bitstream);
+					return BytesRead;
 					break;
 				case OV_EBADLINK:
 					//indicates that an invalid stream section was supplied to libvorbisidec, or 
@@ -181,6 +190,11 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 		}
 	}
 	
+	if (old_bitstream != bitstream)
+	{
+		Log(LOG_LOWLEVEL, "Bitstream change from %d to %d.", old_bitstream, bitstream);
+	}
+	//Log(LOG_VERYLOW, "Read. (End) bitstream=%d", bitstream);
 	return BytesRead;
 }
 

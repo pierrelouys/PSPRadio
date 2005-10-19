@@ -239,26 +239,26 @@ int CGraphicsUI::OnVBlank()
 	return 0;
 }
 
-int CGraphicsUI::OnNewSongData(CPlayList::songmetadata *pData)
+int CGraphicsUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	char szTmp[50];
 	
-	DisplayWord(&m_posItemFileNameString, pData->strFileName, true);	
-	DisplayWord(&m_posItemFileTitleString, pData->strFileTitle, true);	
+	DisplayWord(&m_posItemFileNameString, pData->strURI, true);	
+	DisplayWord(&m_posItemFileTitleString, pData->strTitle, true);	
 	DisplayWord(&m_posItemURLString, pData->strURL, true);	
-	DisplayWord(&m_posItemSongTitleString, pData->songTitle, true);
-	DisplayWord(&m_posItemSongAuthorString, pData->songAuthor, true);
+	//DisplayWord(&m_posItemSongTitleString, pData->strTitle, true); //RC Removed - was redundant
+	DisplayWord(&m_posItemSongAuthorString, pData->strAuthor, true);
 	
 	sprintf(szTmp, "Length: %d", pData->iLength);
 	DisplayWord(&m_posItemLengthString, szTmp, true);
 	
-	sprintf(szTmp, "Sample Rate: %d", pData->SampleRate);
+	sprintf(szTmp, "Sample Rate: %d", pData->iSampleRate);
 	DisplayWord(&m_posItemSampleRateString, szTmp, true);
 	
-	sprintf(szTmp, "Bit Rate: %d", pData->BitRate);
+	sprintf(szTmp, "Bit Rate: %d", pData->iBitRate);
 	DisplayWord(&m_posItemBitRateString, szTmp, true);
 	
-	DisplayWord(&m_posItemMPEGLayerString, pData->strMPEGLayer, true);
+	//DisplayWord(&m_posItemMPEGLayerString, pData->strMPEGLayer, true); //RC Removed - not a string anymore...
 	
 	return 0;
 }
@@ -302,8 +302,8 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 
 	ClearLine(&m_posItemPlayListItemArea);
 		
-	list<CPlayList::songmetadata> dataList = *(PlayList->GetList());
-	list<CPlayList::songmetadata>::iterator dataIter = *(PlayList->GetCurrentElementIterator());
+	list<CPSPSoundStream::MetaData> dataList = *(PlayList->GetList());
+	list<CPSPSoundStream::MetaData>::iterator dataIter = *(PlayList->GetCurrentElementIterator());
 	
 	int nItemCount = m_posItemPlayListItemArea.m_pointSize.y / m_posItemPlayListItemAreaSel.m_pointSize.y;
 	int nItemMid = (nItemCount) / 2;
@@ -315,13 +315,13 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 	posTemp.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
 	posTemp.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
 		
-	if(strlen(dataIter->strFileTitle))
+	if(strlen(dataIter->strTitle))
 	{
-		DisplayWord(&posTemp, dataIter->strFileTitle, true);
+		DisplayWord(&posTemp, dataIter->strTitle, true);
 	}
 	else
 	{
-		DisplayWord(&posTemp, dataIter->strFileName, true);
+		DisplayWord(&posTemp, dataIter->strURI, true);
 	}	
 	
 	SetButton(m_posItemPlayListItemAreaSel, posTemp);

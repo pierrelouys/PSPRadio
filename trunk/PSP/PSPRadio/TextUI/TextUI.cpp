@@ -423,31 +423,32 @@ int CTextUI::OnStreamOpeningSuccess()
 	return 0;
 }
 
-int CTextUI::OnNewSongData(CPlayList::songmetadata *pData)
+int CTextUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	int r1,r2;
 	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
 	ClearRows(r1, r2);
 	
-	if (strlen(pData->strFileTitle) >= 59)
-		pData->strFileTitle[59] = 0;
+	if (strlen(pData->strTitle) >= 59)
+		pData->strTitle[59] = 0;
 		
 	if (strlen(pData->strURL) >= 59)
 		pData->strURL[59] = 0;
 	
-	if (0 != pData->SampleRate)
+	if (0 != pData->iSampleRate)
 	{
-		uiPrintf(0,r1, COLOR_WHITE, "%lukbps %dHz MPEG layer %s stream",
-				pData->BitRate/1000, 
-				pData->SampleRate,
-				pData->strMPEGLayer);
+		uiPrintf(0,r1, COLOR_WHITE, "%lukbps %dHz (%d channels) stream",
+				pData->iBitRate/1000, 
+				pData->iSampleRate,
+				pData->iNumberOfChannels);
+				//pData->strMPEGLayer);
 		r1++;
 	}
 	uiPrintf(0 , r1,	COLOR_WHITE,	"Stream: ");
-	uiPrintf(8 , r1,	COLOR_CYAN,		"%s ", pData->strFileName);
+	uiPrintf(8 , r1,	COLOR_CYAN,		"%s ", pData->strURI);
 	r1++;
 	uiPrintf(0 , r1,	COLOR_WHITE,	"Title : ");
-	uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strFileTitle);
+	uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
 	r1++;
 	if (pData->strURL && strlen(pData->strURL))
 	{
@@ -479,7 +480,7 @@ int CTextUI::DisplayPLList(CDirList *plList)
 
 int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 {
-	CPlayList::songmetadata Data;
+	CPSPSoundStream::MetaData Data;
 	int x,y,c;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
 	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
@@ -488,17 +489,17 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	int iRet = PlayList->GetCurrentSong(&Data);
 	if (0 == iRet)
 	{
-		if (strlen(Data.strFileTitle))
+		if (strlen(Data.strTitle))
 		{
-			if (strlen(Data.strFileTitle) >= 57)
-				Data.strFileTitle[57] = 0;
-			uiPrintf(x, y, c, "Stream  : %s", Data.strFileTitle);
+			if (strlen(Data.strTitle) >= 57)
+				Data.strTitle[57] = 0;
+			uiPrintf(x, y, c, "Stream  : %s", Data.strTitle);
 		}
 		else
 		{
-			if (strlen(Data.strFileName) >= 57)
-				Data.strFileName[57] = 0;
-			uiPrintf(x, y, c, "Stream  : %s", Data.strFileName);
+			if (strlen(Data.strURI) >= 57)
+				Data.strURI[57] = 0;
+			uiPrintf(x, y, c, "Stream  : %s", Data.strURI);
 		}
 	}
 	

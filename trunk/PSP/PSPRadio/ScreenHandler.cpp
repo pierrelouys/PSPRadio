@@ -69,7 +69,7 @@ CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *
 }
 
 void CScreenHandler::SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound,
-							CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir, CPlayList::songmetadata *CurrentMetaData)
+							CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir, CPSPSoundStream::MetaData *CurrentMetaData)
 {	
 	m_UI = UI;
 	m_Config = Config;
@@ -397,14 +397,14 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 		{
 			case CPSPSound::STOP:
 			case CPSPSound::PAUSE:
-				CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
+				CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
 				m_Sound->Play();
 				break;
 			case CPSPSound::PLAY:
 				/** No pausing for URLs, only for Files(local) */
 				if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
 				{
-					CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
+					CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
 					m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
 					m_Sound->Pause();
 				}
@@ -417,7 +417,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 					if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
 					{
 						/** If the new stream is different than the current, only then stop-"restart" */
-						if (0 != strcmp(m_CurrentMetaData->strFileName, m_CurrentPlayList->GetCurrentFileName()))
+						if (0 != strcmp(m_CurrentMetaData->strURI, m_CurrentPlayList->GetCurrentURI()))
 						{
 							Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
 							m_Sound->Stop();

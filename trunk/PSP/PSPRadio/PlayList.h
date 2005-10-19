@@ -20,29 +20,18 @@
 	#define __PLAYLIST_H__
 	
 	#include <list>
+	#include <PSPSound.h>
 	using namespace std;
 
 	class CPlayList
 	{
 	public:
-		struct songmetadata
-		{
-			char strFileName[MAXPATHLEN];
-			char strFileTitle[300];
-			char strURL[MAXPATHLEN];
-			char songTitle[300];
-			char songAuthor[300];
-			int iLength;
-			int SampleRate;
-			int BitRate;
-			char strMPEGLayer[20];
-		};
 		
 		CPlayList();
 		~CPlayList();
 		
-		int GetCurrentSong(songmetadata *pData);
-		char *GetCurrentFileName() { return (*m_songiterator).strFileName?(*m_songiterator).strFileName:(char*)""; };
+		int GetCurrentSong(CPSPSoundStream::MetaData *pData);
+		char *GetCurrentURI() { return (*m_songiterator).strURI?(*m_songiterator).strURI:(char*)""; };
 	
 		void Next();
 		void Prev();
@@ -52,12 +41,12 @@
 		void Clear();
 		
 		/** Accessors */
-		list<songmetadata> *GetList() { return &m_playlist; }
-		list<songmetadata>::iterator *GetCurrentElementIterator() { return &m_songiterator; }
+		list<CPSPSoundStream::MetaData> *GetList() { return &m_playlist; }
+		list<CPSPSoundStream::MetaData>::iterator *GetCurrentElementIterator() { return &m_songiterator; }
 		
 	private:
-		list<songmetadata> m_playlist; 
-		list<songmetadata>::iterator m_songiterator;
+		list<CPSPSoundStream::MetaData> m_playlist; 
+		list<CPSPSoundStream::MetaData>::iterator m_songiterator;
 	};
 
 #endif

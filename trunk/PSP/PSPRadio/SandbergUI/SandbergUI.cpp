@@ -929,7 +929,7 @@ int CSandbergUI::OnVBlank()
 	return 0;
 }
 
-int CSandbergUI::OnNewSongData(CPlayList::songmetadata *pData)
+int CSandbergUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	return 0;
 }
@@ -955,7 +955,7 @@ int CSandbergUI::DisplayPLList(CDirList *plList)
 
 int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
 {
-	CPlayList::songmetadata Data;
+	CPSPSoundStream::MetaData Data;
 	int iRet;
 
 	if (pl_entry != NULL)
@@ -968,20 +968,20 @@ int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
 
 	if (0 == iRet)
 	{
-		if (strlen(Data.strFileTitle))
+		if (strlen(Data.strTitle))
 		{
-			pl_entry = (char *) malloc(strlen(Data.strFileTitle));
+			pl_entry = (char *) malloc(strlen(Data.strTitle));
 			if (pl_entry)
 			{	
-				strcpy(pl_entry, Data.strFileTitle);
+				strcpy(pl_entry, Data.strTitle);
 			}
 		}
 		else
 		{
-			pl_entry = (char *) malloc(strlen(Data.strFileName));
+			pl_entry = (char *) malloc(strlen(Data.strURI));
 			if (pl_entry)
 			{	
-				strcpy(pl_entry, Data.strFileName);
+				strcpy(pl_entry, Data.strURI);
 			}
 		}
 	}

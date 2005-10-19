@@ -40,7 +40,7 @@ public:
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
 	int OnVBlank();
-	int OnNewSongData(CPlayList::songmetadata *pData);	
+	int OnNewSongData(CPSPSoundStream::MetaData *pData);	
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
 

@@ -32,7 +32,7 @@
 		virtual int OnStreamOpeningError(){return 0;};
 		virtual int OnStreamOpeningSuccess(){return 0;};
 		virtual int OnVBlank(){return 0;};
-		virtual int OnNewSongData(CPlayList::songmetadata *pData){return 0;};
+		virtual int OnNewSongData(CPSPSoundStream::MetaData *pData){return 0;};
 		
 		virtual int DisplayPLList(CDirList *plList){return 0;};
 		virtual	int DisplayPLEntries(CPlayList *PlayList){return 0;};

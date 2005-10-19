@@ -35,6 +35,7 @@
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
+#include <ivorbisfile.h>
 
 asm(".global __lib_stub_top");
 asm(".global __lib_stub_bottom");
@@ -61,7 +62,7 @@ private:
 	CPSPSound *m_Sound;
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
-	CPlayList::songmetadata *m_CurrentMetaData;
+	CPSPSoundStream::MetaData *m_CurrentMetaData;
 	IPSPRadio_UI *m_UI;
 	CScreenHandler *m_ScreenHandler;
 		
@@ -101,10 +102,10 @@ public:
 		
 		Setup_Logging(strDir);
 		
-		m_CurrentMetaData  = new CPlayList::songmetadata;
+		m_CurrentMetaData  = new CPSPSoundStream::MetaData;
 		if (m_CurrentMetaData)
 		{
-			memset(m_CurrentMetaData, 0, sizeof(CPlayList::songmetadata));
+			memset(m_CurrentMetaData, 0, sizeof(CPSPSoundStream::MetaData));
 		}
 		else
 		{
@@ -379,7 +380,7 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
-						CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
+						CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						m_Sound->Play();
 						/** Populate m_CurrentMetaData */
@@ -492,26 +493,31 @@ public:
 					strTitle = GetMetadataValue(MData, METADATA_STREAMTITLE_TAG);
 					
 					/** Update m_CurrentMetaData, and notify m_UI. */
-					strcpy(m_CurrentMetaData->strFileTitle, strTitle);
+					strcpy(m_CurrentMetaData->strTitle, strTitle);
 					strcpy(m_CurrentMetaData->strURL, strURL);
 					m_UI->OnNewSongData(m_CurrentMetaData);
 					break;
 				//case MID_DECODE_DONE:
 				//	break;
-				case MID_DECODE_FRAME_INFO_HEADER:
+				case MID_DECODE_MAD_FRAME_INFO_HEADER:
 					struct mad_header *Header;
 					Header = (struct mad_header *)event.pData;
 					/** Update m_CurrentMetaData, and notify m_UI. */
-					m_CurrentMetaData->SampleRate = Header->samplerate;
-					m_CurrentMetaData->BitRate = Header->bitrate;
+					m_CurrentMetaData->iSampleRate = Header->samplerate;
+					m_CurrentMetaData->iBitRate = Header->bitrate;
+					//m_CurrentMetaData->iMPEGLayer = Header->Layer;
 					m_UI->OnNewSongData(m_CurrentMetaData);
 					
 					break;
-				case MID_DECODE_FRAME_INFO_LAYER:
+					
+				case MID_DECODE_OGG_FRAME_INFO_HEADER:
+					vorbis_info *vi = (vorbis_info *)event.pData;
 					/** Update m_CurrentMetaData, and notify m_UI. */
-					strcpy(m_CurrentMetaData->strMPEGLayer, (char*)event.pData);
+					m_CurrentMetaData->iSampleRate = vi->rate;
+					m_CurrentMetaData->iBitRate = 0;
 					m_UI->OnNewSongData(m_CurrentMetaData);
 					break;
+					
 				case MID_TCP_CONNECTING_PROGRESS:
 					m_UI->OnConnectionProgress();
 					break;
@@ -604,7 +610,7 @@ public:
 						
 						if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
 						{
-							CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentFileName());
+							CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
 							
 							/** Populate m_CurrentMetaData */
 							m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);

@@ -71,7 +71,7 @@ int CPlayList::GetNumberOfSongs()
 	return m_playlist.size();
 }
 
-int CPlayList::GetCurrentSong(songmetadata *pData)
+int CPlayList::GetCurrentSong(CPSPSoundStream::MetaData *pData)
 { 
 	if (m_playlist.size())
 	{
@@ -86,13 +86,13 @@ int CPlayList::GetCurrentSong(songmetadata *pData)
 
 void CPlayList::InsertURI(char *strFileName)
 {
-	songmetadata *songdata;
+	CPSPSoundStream::MetaData *songdata;
 	
-	songdata = new songmetadata;
+	songdata = new CPSPSoundStream::MetaData;
 	
 	Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 	memset(songdata, 0, sizeof(songdata));
-	strncpy(songdata->strFileName, strFileName, 256);
+	strncpy(songdata->strURI, strFileName, 256);
 	m_playlist.push_back(*songdata);
 	
 	delete(songdata);
@@ -106,7 +106,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 	char strLine[256];
 	int iLines = 0;
 	int iFormatVersion = 1;
-	songmetadata *songdata;
+	CPSPSoundStream::MetaData *songdata;
 	bool fStopParsing = false;
 	
 	int iV2_numberofentries = 0;
@@ -124,7 +124,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 		WAITING_FOR_LENGTH,
 	} v2_state = WAITING_FOR_FILE;//WAITING_FOR_NUM_OF_ENTRIES;
 	
-	songdata = new songmetadata;
+	songdata = new CPSPSoundStream::MetaData;
 	
 	fd = fopen(strFileName, "r");
 	
@@ -159,8 +159,8 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 			switch(iFormatVersion)
 			{
 				case 1:
-					memset(songdata, 0, sizeof(songmetadata));
-					memcpy(songdata->strFileName, strLine, 256);
+					memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
+					memcpy(songdata->strURI, strLine, 256);
 					m_playlist.push_back(*songdata);
 					Log(LOG_INFO, "Adding '%s' to the list.", strLine);
 					break;
@@ -239,11 +239,11 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 								if (2 == iV2_ParsingTemp)
 								{
 									/** Good!, all fields for this entry aquired, let's insert in the list! */
-									memset(songdata, 0, sizeof(songmetadata));
+									memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
 									Log(LOG_INFO, "Adding V2 Entry: File='%s' Title='%s' Length='%i' to the list.", 
 										strV2_File, strV2_Title, iV2_Length);
-									memcpy(songdata->strFileName,  strV2_File,  256);
-									memcpy(songdata->strFileTitle, strV2_Title, 256);
+									memcpy(songdata->strURI,  strV2_File,  256);
+									memcpy(songdata->strTitle, strV2_Title, 256);
 									songdata->iLength = iV2_Length;
 									m_playlist.push_back(*songdata);
 									//Log(LOG_INFO, "Added V2 Entry: File='%s' Title='%s' Length='%s' to the list.", 
