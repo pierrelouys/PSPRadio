@@ -1,5 +1,12 @@
-PSPRadio by Raf 0.35-final 10/16/05
+PSPRadio by Raf 0.36-pre1 10/18/05
 ====================================
+
+*****************************************************************
+THIS IS A PRE-RELEASE!!!
+FOR THE LATEST STABLE OFFICIAL RELEASE, GO TO:
+https://developer.berlios.de/project/showfiles.php?group_id=4862
+*****************************************************************
+
 
 -Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php
@@ -46,6 +53,8 @@ The author would also like to thank (In no particular order):
 -jpfouch48
 -Mr Pochi
 -PSPDEV Team for their incredible work on the PSPSDK, toolchain, libraries, etc!
+-libMAD and libTremor teams.
+-mpg123 team.
 -everybody I'm missing!!
 
 Also thanks for mirroring and posting news to:
