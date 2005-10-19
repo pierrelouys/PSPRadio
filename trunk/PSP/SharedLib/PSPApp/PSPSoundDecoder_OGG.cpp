@@ -92,13 +92,22 @@ COGGStreamReader::COGGStreamReader()
 			while(*ptr)
 			{
 				Log(LOG_INFO, "%s\n",*ptr);
+				if (strstr(*ptr, "TITLE="))
+				{
+					CurrentSoundStream.SetTitle((*ptr)+strlen("TITLE="));
+				}
+				else if (strstr(*ptr, "ARTIST="))
+				{
+					CurrentSoundStream.SetArtist((*ptr)+strlen("ARTIST="));
+				}
 				++ptr;
 			}
 			Log(LOG_INFO, "\nBitstream is %d channel, %ldHz\n",vi->channels,vi->rate);
 			Log(LOG_INFO, "\nDecoded length: %ld samples\n",
 				(long)ov_pcm_total(&m_vf,-1));
+			CurrentSoundStream.SetLength(ov_pcm_total(&m_vf,-1));
 			Log(LOG_INFO, "Encoded by: %s\n\n",ov_comment(&m_vf,-1)->vendor);
-			//CurrentSoundStream.SetBitRate(vi->bitrate);
+			CurrentSoundStream.SetBitRate(vi->bitrate_nominal);
 			CurrentSoundStream.SetSampleRate(vi->rate);
 			CurrentSoundStream.SetNumberOfChannels(vi->channels);
 			pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
