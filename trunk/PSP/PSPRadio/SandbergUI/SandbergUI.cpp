@@ -36,7 +36,6 @@
 
 #include <pspkernel.h>
 #include <pspdisplay.h>
-
 #include <pspgu.h>
 #include <pspgum.h>
 
@@ -717,14 +716,8 @@ static unsigned char sound[] __attribute__((aligned(16))) = {
 	0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 0xff, 0xff, 0xff, 0x00, 
 };
 
-struct Vertex
-{
-	float u, v;
-	unsigned int color;
-	float x,y,z;
-};
 
-static IconStr __attribute__((aligned(16))) icon_list[] =
+static CSandbergUI::IconStr __attribute__((aligned(16))) icon_list[] =
 	{
 	{440,   8, 472,  40, NETWORK_INACTIVE_COLOR, ::network},
 	{440,  48, 472,  80, LOAD_INACTIVE_COLOR, ::load},
@@ -734,7 +727,7 @@ static IconStr __attribute__((aligned(16))) icon_list[] =
 	};
 
 
-static unsigned int __attribute__((aligned(16))) list[262144];
+static unsigned int __attribute__((aligned(16))) gu_list[262144];
 
 
 CSandbergUI::CSandbergUI()
@@ -742,6 +735,7 @@ CSandbergUI::CSandbergUI()
 	framebuffer 	= 0;
 	pl_name 	= 0;
 	pl_entry 	= 0;
+	screen_state	= SCREEN_PLAYING;
 }
 
 CSandbergUI::~CSandbergUI()
@@ -764,7 +758,7 @@ int CSandbergUI::Initialize(char *strCWD)
 	// setup GU
 	sceGuInit();
 
-	sceGuStart(GU_DIRECT,::list);
+	sceGuStart(GU_DIRECT,::gu_list);
 	sceGuDrawBuffer(GU_PSM_8888,(void*)0,BUF_WIDTH);
 	sceGuDispBuffer(SCR_WIDTH,SCR_HEIGHT,(void*)0x88000,BUF_WIDTH);
 	sceGuDepthBuffer((void*)0x110000,BUF_WIDTH);
@@ -810,11 +804,6 @@ int CSandbergUI::SetTitle(char *strTitle)
 int CSandbergUI::DisplayMessage_EnablingNetwork()
 {
 	icon_list[ICON_NETWORK].color = NETWORK_CONNECTING_COLOR;
-	return 0;
-}
-
-int CSandbergUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
-{
 	return 0;
 }
 
@@ -890,7 +879,7 @@ int CSandbergUI::OnStreamOpeningSuccess()
 
 int CSandbergUI::OnVBlank()
 {
-	sceGuStart(GU_DIRECT,::list);
+	sceGuStart(GU_DIRECT,::gu_list);
 
 	sceGuClearColor(0xFFAA6633);
 	sceGuClearDepth(0);
@@ -913,6 +902,32 @@ int CSandbergUI::OnVBlank()
 	sceGumMatrixMode(GU_VIEW);
 	sceGumLoadIdentity();
 
+	switch (screen_state)
+	{
+		case SCREEN_PLAYING:
+		{
+			RenderPlayScreen();
+		}
+		break;
+		case SCREEN_OPTIONS:
+		{
+			RenderOptionScreen();
+		}
+		break;
+		default:
+		{
+		}
+		break;
+	}
+	sceGuFinish();
+	sceGuSync(0,0);
+
+	framebuffer = sceGuSwapBuffers();
+	return 0;
+}
+
+void CSandbergUI::RenderPlayScreen(void)
+{
 	RenderLogo();
 	RenderCommands();
 	RenderFX();
@@ -921,12 +936,6 @@ int CSandbergUI::OnVBlank()
 	RenderNetwork();
 	RenderLoad();
 	RenderSound();
-
-	sceGuFinish();
-	sceGuSync(0,0);
-
-	framebuffer = sceGuSwapBuffers();
-	return 0;
 }
 
 int CSandbergUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
@@ -1040,4 +1049,21 @@ void CSandbergUI::RenderIcon(IconStr *icon_info)
 
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
+}
+
+void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
+{
+	switch (screen)
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+		{
+		screen_state = SCREEN_PLAYING;
+		}
+		break;
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+		{
+		screen_state = SCREEN_OPTIONS;
+		}
+		break;
+	}
 }

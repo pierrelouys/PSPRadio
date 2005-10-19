@@ -48,14 +48,7 @@
 #define 	FX_TIME_LENGTH	15.0f
 
 
-struct NVertex
-{
-	unsigned int color;
-	float nx,ny,nz;
-	float x,y,z;
-};
-
-static struct NVertex __attribute__((aligned(16))) vertices[12*3] =
+static struct CSandbergUI::NVertex __attribute__((aligned(16))) vertices[12*3] =
 {
 	{COLOR_LIGHT, 0, 0,-1,-1,-1, 0.2}, // 0
 	{COLOR_LIGHT, 0, 0,-1,-1, 1, 0.2}, // 4
@@ -112,7 +105,7 @@ static struct NVertex __attribute__((aligned(16))) vertices[12*3] =
 };
 
 
-static struct NVertex __attribute__((aligned(16))) heart_vertices[] =
+static struct CSandbergUI::NVertex __attribute__((aligned(16))) heart_vertices[] =
 {
 {OBJECT_COLOR, -0.1639523953f,-0.4476167858f,-0.8790670633f,-0.9136141539f,-0.0598550737f,1.3365108967f},
 {OBJECT_COLOR, -0.1822175235f,-0.0000056528f,-0.9832582474f,-0.9160151482f,-0.0000010765f,1.3500449657f},
@@ -2701,8 +2694,8 @@ static unsigned short __attribute__((aligned(16))) heart_indexes[] =
 
 static int __attribute__((aligned(16))) fx_list[] =
 {
-	FX_CUBES,
-	FX_HEART
+	CSandbergUI::FX_CUBES,
+	CSandbergUI::FX_HEART
 };
 
 void CSandbergUI::InitFX(void)

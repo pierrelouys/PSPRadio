@@ -23,43 +23,64 @@
 
 #include "IPSPRadio_UI.h"
 
-struct char_map
-{
-	char	char_index;
-	float	min_x;
-	float	min_y;
-	float	max_x;
-	float	max_y;
-};
 
-enum fx_list_enum
-{
-	FX_CUBES,
-	FX_HEART
-};
 
-enum icon_list_enum
-{
-	ICON_NETWORK,
-	ICON_LOAD,
-	ICON_SOUND,
-	ICON_PLAY,
-	ICON_STOP
-};
-
-typedef struct IconStr
-{
-	float		x1, y1;
-	float		x2, y2;
-	unsigned int	color;
-	unsigned char	*texture;
-};
 
 class CSandbergUI : public IPSPRadio_UI
 {
 public:
+	enum fx_list_enum
+	{
+		FX_CUBES,
+		FX_HEART
+	};
+
+	typedef struct IconStr
+	{
+		float		x1, y1;
+		float		x2, y2;
+		unsigned int	color;
+		unsigned char	*texture;
+	};
+
+	typedef struct char_map
+	{
+		char	char_index;
+		float	min_x, min_y;
+		float	max_x, max_y;
+	};
+
+	struct NCVertex
+	{
+		float u, v;
+		unsigned int color;
+		float nx,ny,nz;
+		float x,y,z;
+	};
+
+	struct NVertex
+	{
+		unsigned int color;
+		float nx,ny,nz;
+		float x,y,z;
+	};
+
+	struct Vertex
+	{
+		float u, v;
+		unsigned int color;
+		float x,y,z;
+	};
+
+	struct TexCoord
+	{
+		int  		x1, y1;
+		int  		x2, y2;
+	};
+
+public:
 	CSandbergUI();
-	virtual ~CSandbergUI();
+	~CSandbergUI();
 	
 public:
 	int Initialize(char *strCWD);
@@ -69,7 +90,6 @@ public:
 	int DisplayMessage_EnablingNetwork();
 	int DisplayMessage_DisablingNetwork();
 	int DisplayMessage_NetworkReady(char *strIP);
-	int DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName);
 	int DisplayMainCommands();
 	int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	int DisplayErrorMessage(char *strMsg);
@@ -84,38 +104,72 @@ public:
 	int OnVBlank();
 	int OnNewSongData(CPSPSoundStream::MetaData *pData);
 	int DisplayPLList(CDirList *plList);
-	virtual	int DisplayPLEntries(CPlayList *PlayList);
+	int DisplayPLEntries(CPlayList *PlayList);
+
+	/** Screen Handling */
+	void Initialize_Screen(CScreenHandler::Screen screen);
+	void UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
+							list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
 
 private:
-
-	struct char_map	* CSandbergUI::FindCharMap(char index);
+	struct char_map	* FindCharMap(char index);
+	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
 
 	void CSandbergUI::InitPL(void);
 	void CSandbergUI::InitFX(void);
 
-	void CSandbergUI::RenderFX(void);
-	void CSandbergUI::RenderFX_1(void);
-	void CSandbergUI::RenderFX_2(void);
-	void CSandbergUI::RenderLogo(void);
-	void CSandbergUI::RenderCommands(void);
-	void CSandbergUI::RenderPL(void);
-	void CSandbergUI::RenderState(void);
-	void CSandbergUI::RenderPLName(void);
-	void CSandbergUI::RenderPLEntry(void);
-	void CSandbergUI::RenderNetwork(void);
-	void CSandbergUI::RenderLoad(void);
-	void CSandbergUI::RenderSound(void);
-	void CSandbergUI::RenderIcon(IconStr *icon_info);
+	void RenderFX(void);
+	void RenderFX_1(void);
+	void RenderFX_2(void);
+	void RenderLogo(void);
+	void RenderCommands(void);
+	void RenderPL(void);
+	void RenderState(void);
+	void RenderPLName(void);
+	void RenderPLEntry(void);
+	void RenderNetwork(void);
+	void RenderLoad(void);
+	void RenderSound(void);
+	void RenderIcon(IconStr *icon_info);
+
+	void RenderPlayScreen(void);
+	void RenderOptionScreen(void);
+	void RenderOptionLogo(void);
+	void StoreOption(int y, bool active_item, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState);
+	void RenderOptions(void);
 
 private:
+
+	enum screen_state_enum
+	{
+		SCREEN_PLAYING,
+		SCREEN_OPTIONS
+	};
+
+	enum icon_list_enum
+	{
+		ICON_NETWORK,
+		ICON_LOAD,
+		ICON_SOUND,
+		ICON_PLAY,
+		ICON_STOP
+	};
+
+	struct StoredOptionItem
+	{
+		int  		x, y;
+		unsigned int	color;
+		char 		strText[MAX_OPTION_LENGTH];
+	};
+	list<StoredOptionItem> OptionsItems;
+
 	char*	pl_name;
 	char*	pl_entry;
 	void* 	framebuffer;
 	float 	start, curr;
 	struct	timeval tval;
 	int	current_fx;
+	int	screen_state;
 };
-
-
 
 #endif

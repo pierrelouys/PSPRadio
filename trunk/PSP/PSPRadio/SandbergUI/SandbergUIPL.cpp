@@ -48,7 +48,7 @@
 
 #define NUMBER_OF_CHARS		(2*26+1+10+12)
 
-static struct char_map __attribute__((aligned(16))) char_mapping[NUMBER_OF_CHARS] =
+static CSandbergUI::char_map __attribute__((aligned(16))) char_mapping[NUMBER_OF_CHARS] =
 {
 	{' ', (float)( 0*16)/256, (float)( 3*16)/64, (float)( 1*16)/256, (float)( 4*16)/64},
 
@@ -132,17 +132,10 @@ static struct char_map __attribute__((aligned(16))) char_mapping[NUMBER_OF_CHARS
 	{'"', (float)(15*16)/256, (float)( 2*16)/64, (float)(16*16)/256, (float)( 3*16)/64},
 };
 
-struct NVertex
-{
-	float u, v;
-	unsigned int color;
-	float nx,ny,nz;
-	float x,y,z;
-};
 
-static struct NVertex __attribute__((aligned(16))) pl_name_vertices[2*3*(PL_TEXT_LENGTH+2)];
+static struct CSandbergUI::NCVertex __attribute__((aligned(16))) pl_name_vertices[2*3*(PL_TEXT_LENGTH+2)];
 
-static struct NVertex __attribute__((aligned(16))) pl_entry_vertices[2*3*(PL_TEXT_LENGTH+2)];
+static struct CSandbergUI::NCVertex __attribute__((aligned(16))) pl_entry_vertices[2*3*(PL_TEXT_LENGTH+2)];
 
 void CSandbergUI::InitPL(void)
 {
@@ -418,7 +411,7 @@ void CSandbergUI::RenderPLName(void)
 	val++;
 }
 
-struct char_map	* CSandbergUI::FindCharMap(char index)
+CSandbergUI::char_map* CSandbergUI::FindCharMap(char index)
 {
 struct char_map		*character = NULL;
 

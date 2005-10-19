@@ -84,12 +84,6 @@ static float __attribute__((aligned(16))) costable[] = {
 0.092388f,0.094154f,0.095694f,0.097003f,0.098079f,0.098918f,0.099518f,0.099880f,
 };
 
-struct Vertex
-{
-	float u, v;
-	unsigned int color;
-	float x,y,z;
-};
 
 void CSandbergUI::RenderLogo(void)
 {
