@@ -145,15 +145,11 @@ int CPSPSound::Play()
 			m_CurrentState = PLAY;
 			event.EventId = MID_DECODER_START;
 			m_EventToDecTh->Send(event);
-			event.EventId = MID_PLAY_START;
-			m_EventToPlayTh->Send(event);
 			break;
 		case PAUSE:
 			m_CurrentState = PLAY;
 			event.EventId = MID_DECODER_START;
 			m_EventToDecTh->Send(event);
-			event.EventId = MID_PLAY_START;
-			m_EventToPlayTh->Send(event);
 			break;
 			
 		case PLAY:
@@ -337,6 +333,11 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 
 					if (true == bDecoderCreated)
 					{
+						/** Start play thread */
+						CPSPEventQ::QEvent event = { 0, 0, NULL };
+						event.EventId = MID_PLAY_START;
+						pPSPSound->m_EventToPlayTh->Send(event);
+						
 						pPSPSound->SendEvent(MID_THDECODE_DECODING);
 						/** Main decoding loop */
 						/* pPSPSound is the decoding loop. */
