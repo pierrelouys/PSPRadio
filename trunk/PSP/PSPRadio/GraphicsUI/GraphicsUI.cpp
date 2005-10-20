@@ -41,6 +41,10 @@ CGraphicsUI::CGraphicsUI()
 {
 	m_pImageBase = NULL;
 	m_pScreen = NULL;
+	memset(m_pPlayListText, 0, sizeof(m_pPlayListText));
+	m_nPlayListTextCount = -1;
+	memset(m_pPlayListItemText, 0, sizeof(m_pPlayListItemText));
+	m_nPlayListItemTextCount = -1;
 	m_nDepth = -1;
 	m_nFlags = SDL_FULLSCREEN | /*SDL_DOUBLEBUF |*/ SDL_HWSURFACE;
 }
@@ -57,30 +61,23 @@ int CGraphicsUI::Initialize(char *strCWD)
 	sprintf(szThemePath, "%s/THEME/", strCWD);
 	sprintf(szThemeFile, "%s%s", szThemePath, THEME_FILE);
 
-	Log(LOG_VERYLOW, "Initialize: Theme Initializing");
 	if(FALSE == InitializeTheme(szThemeFile, szThemePath))
 	{
 		Log(LOG_ERROR, "Initialize: error initializing Theme");
 		return -1;
 	}		
-	Log(LOG_VERYLOW, "Initialize: Theme Initialized");
-
 	
-	Log(LOG_VERYLOW, "Initialize: SDL Initializing");		
 	if(FALSE == InitializeSDL())
 	{
 		Log(LOG_ERROR, "Initialize: error initializing SDL");
 		return -1;
 	}	
-	Log(LOG_VERYLOW, "Initialize: SDL Initialized");	
 	
-	Log(LOG_VERYLOW, "Initialize: Images Initializing");
 	if(FALSE == InitializeImages())
 	{
 		Log(LOG_ERROR, "Initialize: error initializing images");
 		return -1;
 	}	
-	Log(LOG_VERYLOW, "Initialize: Images Initialied");
 	
 	SetBaseImage();
 
@@ -97,11 +94,7 @@ SDL_Surface *CGraphicsUI::LoadImage(char *szImageName)
 		Log(LOG_ERROR, "LoadImage: error loading image %s : %s",
 			szImageName,
 			SDL_GetError());		
-	}
-	else
-	{
-		Log(LOG_INFO, "LoadImage: %s loaded", szImageName);
-	}
+	}	
 	
 	return pImage;
 }
@@ -117,24 +110,21 @@ void CGraphicsUI::UnLoadImage(SDL_Surface **ppImage)
 
 void CGraphicsUI::Terminate()
 {
-	Log(LOG_INFO, "Terminate: unloading images");
 	UnLoadImage(&m_pImageBase);
-	Log(LOG_INFO, "Terminate: images all unloaded");
-
-	Log(LOG_INFO, "Terminate: unloading images");
 	UnLoadImage(&m_pScreen);
-	Log(LOG_INFO, "Terminate: images all unloaded");
 	
+	for(int x = 0; x != 100; x++)
+	{
+		UnLoadImage(&m_pPlayListText[x]);
+		UnLoadImage(&m_pPlayListItemText[x]);
+	}	
 		
 	/** If we are initialized do some cleaning up **/
 	if(0 != SDL_WasInit(SDL_INIT_VIDEO))
 	{
-		Log(LOG_INFO, "Terminate: cleaning up SDL");
 		/** Shut down SDL **/
 		SDL_Quit();
-	}
-	
-	Log(LOG_INFO, "Terminate: completed");
+	}	
 }
 
 int CGraphicsUI::SetTitle(char *strTitle)
@@ -292,24 +282,46 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 		return 0;
 	}
 	
-//	ClearLine(&m_posItemPlayListArea);
-	
-	list<CDirList::directorydata> dataList = *(plList->GetList());
-	list<CDirList::directorydata>::iterator dataIter = *(plList->GetCurrentElementIterator());
-	
 	int nItemCount = m_posItemPlayListArea.m_pointSize.y / m_posItemPlayListAreaSel.m_pointSize.y;
-	int nItemMid = (nItemCount) / 2;
 
-	CGraphicsUIPosItem posTemp;	
+	// Reset playlist item count so they reinit
+	m_nPlayListItemTextCount = -1;
 	
-	posTemp.m_pointDst.x = m_posItemPlayListArea.m_pointDst.x;
-	posTemp.m_pointDst.y = m_posItemPlayListArea.m_pointDst.y + (nItemMid * m_posItemPlayListAreaSel.m_pointSize.y);
-	posTemp.m_pointSize.x = m_posItemPlayListAreaSel.m_pointSize.x;
-	posTemp.m_pointSize.y = m_posItemPlayListAreaSel.m_pointSize.y;
+	if(-1 == m_nPlayListTextCount)
+	{
+		m_nPlayListTextCount = plList->GetList()->size();
+		
+		list<CDirList::directorydata>::iterator dataIter = plList->GetList()->begin();
+			
+		while(dataIter != plList->GetList()->end())
+		{
+			char *szTemp = dataIter->strURI;
+			int nIndex = dataIter->iItemIndex;
+			UnLoadImage(&m_pPlayListText[nIndex]);		
+			m_pPlayListText[nIndex] = DisplayWord(basename(szTemp));
+			dataIter++;
+		}
+	}
 	
-	ResetImageArea(&posTemp, m_pImageBase, m_pScreen);
-	DisplayWord(&posTemp, basename(dataIter->strURI), true);
-	SetButton(m_posItemPlayListAreaSel, posTemp);
+	int nCurrentIndex = plList->GetCurrentIndex();
+	
+	for(int x = 0; x < nItemCount; x++)
+	{	
+		CGraphicsUIPosItem posDst;	
+			
+		posDst.m_pointDst.x = m_posItemPlayListArea.m_pointDst.x;
+		posDst.m_pointDst.y = m_posItemPlayListArea.m_pointDst.y + (x * m_posItemPlayListAreaSel.m_pointSize.y);
+		posDst.m_pointSize.x = m_posItemPlayListAreaSel.m_pointSize.x;
+		posDst.m_pointSize.y = m_posItemPlayListAreaSel.m_pointSize.y;
+			
+		ResetImageArea(&posDst, m_pImageBase, m_pScreen);		
+		CopySurface(m_pPlayListText[x+nCurrentIndex], m_pScreen, &posDst, false);
+		
+		if((x+nCurrentIndex) == nCurrentIndex)
+		{
+			SetButton(m_posItemPlayListAreaSel, posDst);
+		}
+	}
 	
 	return 0;
 }
@@ -321,34 +333,56 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 	{
 		return 0;
 	}
-
-//	ClearLine(&m_posItemPlayListItemArea);
-		
-	list<CPSPSoundStream::MetaData> dataList = *(PlayList->GetList());
-	list<CPSPSoundStream::MetaData>::iterator dataIter = *(PlayList->GetCurrentElementIterator());
 	
 	int nItemCount = m_posItemPlayListItemArea.m_pointSize.y / m_posItemPlayListItemAreaSel.m_pointSize.y;
-	int nItemMid = (nItemCount) / 2;
 
-	CGraphicsUIPosItem posTemp;	
-	
-	posTemp.m_pointDst.x = m_posItemPlayListItemArea.m_pointDst.x;
-	posTemp.m_pointDst.y = m_posItemPlayListItemArea.m_pointDst.y + (nItemMid * m_posItemPlayListItemAreaSel.m_pointSize.y);
-	posTemp.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
-	posTemp.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
-		
-	ResetImageArea(&posTemp, m_pImageBase, m_pScreen);
-		
-	if(strlen(dataIter->strTitle))
+	if(-1 == m_nPlayListItemTextCount)
 	{
-		DisplayWord(&posTemp, dataIter->strTitle, true);
+		m_nPlayListItemTextCount = PlayList->GetList()->size();
+		
+		list<CPSPSoundStream::MetaData>::iterator dataIter = PlayList->GetList()->begin();
+			
+		while(dataIter != PlayList->GetList()->end())
+		{
+			char *szTemp;
+			int nIndex = dataIter->iItemIndex;
+			
+			UnLoadImage(&m_pPlayListItemText[nIndex]);			
+			
+			if(0 < strlen(dataIter->strTitle))
+			{
+				szTemp = dataIter->strTitle;
+			}
+			else
+			{
+				szTemp = dataIter->strURI;
+			}
+			
+			m_pPlayListItemText[nIndex] = DisplayWord(szTemp);		
+			
+			dataIter++;
+		}
 	}
-	else
-	{
-		DisplayWord(&posTemp, dataIter->strURI, true);
-	}	
 	
-	SetButton(m_posItemPlayListItemAreaSel, posTemp);
+	int nCurrentIndex = PlayList->GetCurrentIndex();
+			
+	for(int x = 0; x < nItemCount; x++)
+	{	
+		CGraphicsUIPosItem posDst;	
+			
+		posDst.m_pointDst.x = m_posItemPlayListItemArea.m_pointDst.x;
+		posDst.m_pointDst.y = m_posItemPlayListItemArea.m_pointDst.y + (x * m_posItemPlayListItemAreaSel.m_pointSize.y);
+		posDst.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
+		posDst.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
+			
+		ResetImageArea(&posDst, m_pImageBase, m_pScreen);		
+		CopySurface(m_pPlayListItemText[x+nCurrentIndex], m_pScreen, &posDst, false);
+		
+		if((x+nCurrentIndex) == nCurrentIndex)
+		{
+			SetButton(m_posItemPlayListItemAreaSel, posDst);
+		}
+	}
 	
 	return 0;
 }
@@ -430,7 +464,6 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	}	
 	
 	/** Get theme image */
-	Log(LOG_VERYLOW, "InitializeTheme: getting image path");
 	if(0 != m_theme.GetImagePath(szBaseImage, sizeof(szBaseImage)))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme image path");
@@ -438,59 +471,50 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	}	
 	
 	sprintf(m_szThemeImagePath, "%s%s", szThemePath, szBaseImage);
-	Log(LOG_VERYLOW, "InitializeTheme: base image = %s", m_szThemeImagePath);
 	
 	/** Get the theme items */
-	Log(LOG_VERYLOW, "InitializeTheme: getting background");
 	if(0 != m_theme.GetItem("background", &m_themeItemBackground))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme background");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting play");
 	if(0 != m_theme.GetItem("play", &m_themeItemPlay))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme play");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting pause");
 	if(0 != m_theme.GetItem("pause", &m_themeItemPause))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme pause");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting stop");
 	if(0 != m_theme.GetItem("stop", &m_themeItemStop))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme stop");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting load");
 	if(0 != m_theme.GetItem("load", &m_themeItemLoad))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme load");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting sound");
 	if(0 != m_theme.GetItem("sound", &m_themeItemSound))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme sound");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting volume");
 	if(0 != m_theme.GetItem("volume", &m_themeItemVolume))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme volume");
 		return FALSE;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting letters adn numbers");
 	if(0 != m_theme.GetLettersAndNumbers("letters", "numbers", &m_themeItemABC123))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme letters and numbers");
@@ -499,119 +523,102 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	
 	/** Get the string positions from ini file. If the value is not found we */
 	/** will just disable that string item. */
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:filename");
 	if(0 != m_theme.GetPosItem("stringpos:filename", &m_posItemFileNameString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filename disabling");
 		m_posItemFileNameString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:filetitle");
 	if(0 != m_theme.GetPosItem("stringpos:filetitle", &m_posItemFileTitleString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filetitle disabling");
 		m_posItemFileTitleString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:uri");
 	if(0 != m_theme.GetPosItem("stringpos:uri", &m_posItemURLString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos url disabling");
 		m_posItemURLString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:songtitle");
 	if(0 != m_theme.GetPosItem("stringpos:songtitle", &m_posItemSongTitleString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songtitle disabling");
 		m_posItemSongTitleString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:songauthor");
 	if(0 != m_theme.GetPosItem("stringpos:songauthor", &m_posItemSongArtistString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos songauthor disabling");
 		m_posItemSongArtistString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:length");
 	if(0 != m_theme.GetPosItem("stringpos:length", &m_posItemLengthString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos length disabling");
 		m_posItemLengthString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:samplerate");
 	if(0 != m_theme.GetPosItem("stringpos:samplerate", &m_posItemSampleRateString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos samplerate disabling");
 		m_posItemSampleRateString.m_bEnabled = false;
 	}
 
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:bitrate");
 	if(0 != m_theme.GetPosItem("stringpos:bitrate", &m_posItemBitRateString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos bitrate disabling");
 		m_posItemBitRateString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:mpeglayer");
 	if(0 != m_theme.GetPosItem("stringpos:mpeglayer", &m_posItemMPEGLayerString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos mpeglayer disabling");
 		m_posItemMPEGLayerString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:error");
 	if(0 != m_theme.GetPosItem("stringpos:error", &m_posItemErrorString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos error disabling");
 		m_posItemErrorString.m_bEnabled = false;
 	}
 
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:stream");
 	if(0 != m_theme.GetPosItem("stringpos:stream", &m_posItemStreamString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos stream disabling");
 		m_posItemStreamString.m_bEnabled = false;
 	}
 
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:network");
 	if(0 != m_theme.GetPosItem("stringpos:network", &m_posItemNetworkString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos network disabling");
 		m_posItemNetworkString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos stringpos:buffer");
 	if(0 != m_theme.GetPosItem("stringpos:buffer", &m_posItemBufferString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos buffer disabling");
 		m_posItemBufferString.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistarea");
 	if(0 != m_theme.GetPosItem("itempos:playlistarea", &m_posItemPlayListArea))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistarea disabling");
 		m_posItemPlayListArea.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistareasel");
 	if(0 != m_theme.GetPosItem("itempos:playlistareasel", &m_posItemPlayListAreaSel))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistareasel disabling");
 		m_posItemPlayListAreaSel.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistitemarea");
 	if(0 != m_theme.GetPosItem("itempos:playlistitemarea", &m_posItemPlayListItemArea))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistitemarea disabling");
 		m_posItemPlayListItemArea.m_bEnabled = false;
 	}
 	
-	Log(LOG_VERYLOW, "InitializeTheme: getting string pos itempos:playlistitemareasel");
 	if(0 != m_theme.GetPosItem("itempos:playlistitemareasel", &m_posItemPlayListItemAreaSel))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos playlistitemareasel disabling");
@@ -623,23 +630,16 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 
 bool CGraphicsUI::InitializeSDL()
 {
-	Log(LOG_VERYLOW, "InitializeSDL: SDL Initializing with SDL_INIT_VIDEO");
 	if(SDL_Init(SDL_INIT_VIDEO) < 0) 
 	{	
 		Log(LOG_ERROR, "InitializeSDL: SDL_Init error : %s", SDL_GetError());
 		return FALSE;
 	}	
-	Log(LOG_VERYLOW, "InitializeSDL: SDL Initialized with SDL_INIT_VIDEO");	
 	
-	Log(LOG_VERYLOW, "InitializeSDL: disabling cursor"); 	
 	SDL_ShowCursor(SDL_DISABLE);
-	Log(LOG_VERYLOW, "InitializeSDL: disabled cursor"); 	
 	
-	Log(LOG_VERYLOW, "InitializeSDL: Checking video mode"); 	
 	m_nDepth = SDL_VideoModeOK(PSP_RES_WIDTH, PSP_RES_HEIGHT, 32, m_nFlags);
-	Log(LOG_VERYLOW, "InitializeSDL: Checking video mode completed depth %d", m_nDepth); 	
 		
-	Log(LOG_VERYLOW, "InitializeSDL: Setting video mode"); 	
  	if(NULL == (m_pScreen = SDL_SetVideoMode(PSP_RES_WIDTH, 
  												PSP_RES_HEIGHT, 
  												m_nDepth, 
@@ -649,25 +649,20 @@ bool CGraphicsUI::InitializeSDL()
 			PSP_RES_WIDTH, PSP_RES_HEIGHT, m_nDepth, SDL_GetError());
 		return FALSE;
  	}
-	Log(LOG_VERYLOW, "InitializeSDL: Setting video mode completed");	
 			
 	return TRUE;
 }
 
 bool CGraphicsUI::InitializeImages()
 {
-	Log(LOG_VERYLOW, "InitializeImages: Loading base image"); 		
 	if(NULL == (m_pImageBase = LoadImage(m_szThemeImagePath)))
 	{
 		Log(LOG_ERROR, "InitializeImages: error loading base image");
 		return FALSE;
 	}	
-	Log(LOG_VERYLOW, "InitializeImages: Loaded base image"); 		
 	
-	Log(LOG_VERYLOW, "InitializeSDL: Setting transparency");
 	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
 	SDL_SetColorKey(m_pScreen, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
-	Log(LOG_VERYLOW, "InitializeSDL: Setting completed");
 
 	return TRUE;
 }
@@ -676,12 +671,12 @@ SDL_Surface *CGraphicsUI::DisplayWord(char *szWord)
 {
 	int nFontWidth = m_themeItemABC123.m_pointSize.x;
 	int nFontHeight = m_themeItemABC123.m_pointSize.y;
-	int nCurrentXPos = 0;
+	int nCurrentXPos = 5; /** JPF added a little offset to start of string */
 	int nCurrentYPos = 0;	
 	SDL_Surface *pSurface = NULL;
 	
 	pSurface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCCOLORKEY,
-									nFontWidth * strlen(szWord),
+									nFontWidth * strlen(szWord) + 5, /** JPF added a little offset to start of string */
 									nFontHeight,
 									m_pImageBase->format->BitsPerPixel,
 									m_pImageBase->format->Rmask,
@@ -725,45 +720,43 @@ void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem,
 								char *szWord, 
 								bool bCenter)
 {
-	SDL_Surface *pWordSurface = NULL;
-	int nXPos = pPosItem->m_pointDst.x;
-	int nYPos = pPosItem->m_pointDst.y + (pPosItem->m_pointSize.y / 2);
+	SDL_Surface *pWordSurface = DisplayWord(szWord);
+	CopySurface(pWordSurface, m_pScreen, pPosItem, bCenter);
+	SDL_FreeSurface(pWordSurface);	
+}
+
+void CGraphicsUI::CopySurface(SDL_Surface *pSrcSurface, 
+								SDL_Surface *pDstSurface, 
+								CGraphicsUIPosItem *pDstPosItem,
+								bool bCenter)
+{
+	int nXPos = 0;
+	int nYPos = 0;
 	int nWidth = 0;
 	int nHeight = 0;
 	
-	if(NULL == pPosItem)
+	if((NULL == pSrcSurface) || (NULL == pDstSurface) || (NULL == pDstPosItem))
 	{
-		Log(LOG_ERROR, "DisplayWord: error pPosItem is NULL");
-		return;
-	}
-	
-	if(false == pPosItem->m_bEnabled)
-	{
-		return;
-	}	
-
-	pWordSurface = DisplayWord(szWord);
-
-	if(NULL == pWordSurface)
-	{
-		Log(LOG_ERROR, "DisplayWord: error pWordSurface is NULL");
+		Log(LOG_ERROR, "CopySurface: error arguments are NULL");
 		return;
 	}
 		
-	if(pWordSurface->w > pPosItem->m_pointSize.x)
+	if(pSrcSurface->w > pDstPosItem->m_pointSize.x)
 	{
-		nWidth = pPosItem->m_pointSize.x - 1;
+		nWidth = pDstPosItem->m_pointSize.x - 1;
 	}
 	else
 	{
-		nWidth = pWordSurface->w;
+		nWidth = pSrcSurface->w;
 	}
 	
-	nHeight = pWordSurface->h;
+	nHeight = pSrcSurface->h;
+	nXPos = pDstPosItem->m_pointDst.x;
+	nYPos = pDstPosItem->m_pointDst.y + (pDstPosItem->m_pointSize.y / 2);	
 		
 	if(true == bCenter)
 	{
-		nXPos = pPosItem->m_pointDst.x + ((pPosItem->m_pointSize.x/2) - (nWidth/2));
+		nXPos = pDstPosItem->m_pointDst.x + ((pDstPosItem->m_pointSize.x/2) - (nWidth/2));
 	}
 	
 	SDL_Rect src = 	{
@@ -776,14 +769,9 @@ void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem,
 	SDL_Rect dst = 	{ 
 						nXPos,
 						nYPos,
-						pPosItem->m_pointDst.x, 
-						pPosItem->m_pointDst.y
 					};
 	
-	SDL_BlitSurface(pWordSurface, &src, m_pScreen, &dst);	
-	
-	SDL_FreeSurface(pWordSurface);
-	
+	SDL_BlitSurface(pSrcSurface, &src, pDstSurface, &dst);	
 }
 
 void CGraphicsUI::ResetImageArea(CGraphicsUIPosItem *pSrcPosItem, 

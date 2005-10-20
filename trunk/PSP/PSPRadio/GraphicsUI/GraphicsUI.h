@@ -64,10 +64,18 @@ private:
 	void DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool bCenter=true);
 	void ResetImageArea(CGraphicsUIPosItem *pSrcPosItem, CGraphicsUIPosItem *pDstPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
 	void ResetImageArea(CGraphicsUIPosItem *pPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
+	void CopySurface(SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface, CGraphicsUIPosItem *pDstPosItem, bool bCenter);
 	
 private:
 	SDL_Surface *m_pImageBase;	
-	SDL_Surface *m_pScreen;
+	SDL_Surface *m_pScreen;	
+	
+	SDL_Surface *m_pPlayListText[100]; // TODO: Make this dynamic
+	int			m_nPlayListTextCount;
+	
+	SDL_Surface *m_pPlayListItemText[100]; // TODO: Make this dynamic
+	int			m_nPlayListItemTextCount;
+		
 	int m_nDepth;
  	int m_nFlags;	
 	
@@ -105,7 +113,5 @@ private:
 	CGraphicsUIPosItem m_posItemNetworkString;
 	CGraphicsUIPosItem m_posItemBufferString;
 };
-
-
 
 #endif
