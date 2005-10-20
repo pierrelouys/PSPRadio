@@ -508,8 +508,16 @@ int CTextUI::DisplayPLList(CDirList *plList)
 	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
 	{
+		ListIterator = *CurrentElement;
+		for (int i = 0; i < (r2-r1)/2; i++)
+		{
+			if (ListIterator == List->begin())
+				break;
+			ListIterator--;
+		
+		}
 		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
-		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++)
+		for (; ListIterator != List->end() ; ListIterator++)
 		{
 			if (y > r2)
 			{
@@ -561,11 +569,21 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	
 	text = (char *)malloc (MAXPATHLEN);
 	
+	
+	
 	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
 	{
+		ListIterator = *CurrentElement;
+		for (int i = 0; i < (r2-r1)/2; i++)
+		{
+			if (ListIterator == List->begin())
+				break;
+			ListIterator--;
+		
+		}
 		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
-		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++)
+		for (; ListIterator != List->end() ; ListIterator++)
 		{
 			if (y > r2)
 			{

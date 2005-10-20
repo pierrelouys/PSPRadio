@@ -2,7 +2,7 @@ What's New for PSPRadio
 ========================
 0.36
 
-0.36-pre2
+0.36-pre2 (r358)
 (sandberg) Added support for the option menu in the 3D UI.
 (jpfouch48) GraphicsUI playlist browser and playlist item browser is now functional
 (jpfouch48) Made the text display funtions more modulare to make future enhancments easier
@@ -10,6 +10,7 @@ What's New for PSPRadio
 			browsable playlist integration a little bit easier
 (raf) Some more work on the OGG decoder.
 (raf) Now TextUI will display selectable lists for playlist and playlist entries
+(raf) Made the current selections more dynamic so they follow the list.
 
 0.36-pre1 (r336)
 ------------------------------------------------------------------------
