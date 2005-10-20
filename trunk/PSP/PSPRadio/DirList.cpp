@@ -70,6 +70,7 @@ void CDirList::InsertURI(char *strFileName)
 	Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 	memset(&dirdata, 0, sizeof(dirdata));
 	strncpy(dirdata.strURI, strFileName, MAXPATHLEN);
+	dirdata.iItemIndex = m_dirlist.size(); /** jpf added unique id for list item */
 	m_dirlist.push_back(dirdata);
 	
 	m_diriterator = m_dirlist.begin();
@@ -98,6 +99,7 @@ void CDirList::LoadDirectory(char *strDirName)
 			{
 				sprintf(mydata->strURI, "%s/%s", strDirName, direntry.d_name);
  				Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Adding '%s' to list.", mydata->strURI);
+				mydata->iItemIndex = m_dirlist.size(); /** jpf added unique id for list item */
 				m_dirlist.push_back(*mydata);
 			}
 		}

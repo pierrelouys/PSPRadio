@@ -24,6 +24,7 @@
 			int iBitRate;
 			int iNumberOfChannels;
 			int iMPEGLayer;
+			int iItemIndex; /** JPF added to be used as a unique id for each item in list */
 		} *m_CurrentMetaData;
 		/** MetaData Accessors */
 		void SetURI(char *NewURI);

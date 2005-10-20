@@ -32,6 +32,7 @@
 		
 		int GetCurrentSong(CPSPSoundStream::MetaData *pData);
 		char *GetCurrentURI() { return (*m_songiterator).strURI?(*m_songiterator).strURI:(char*)""; };
+		int GetCurrentIndex() { return (*m_songiterator).iItemIndex; };
 	
 		void Next();
 		void Prev();

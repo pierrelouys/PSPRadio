@@ -93,6 +93,7 @@ void CPlayList::InsertURI(char *strFileName)
 	Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 	memset(songdata, 0, sizeof(songdata));
 	strncpy(songdata->strURI, strFileName, 256);
+	songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */
 	m_playlist.push_back(*songdata);
 	
 	delete(songdata);
@@ -161,6 +162,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 				case 1:
 					memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
 					memcpy(songdata->strURI, strLine, 256);
+					songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */					
 					m_playlist.push_back(*songdata);
 					Log(LOG_INFO, "Adding '%s' to the list.", strLine);
 					break;
@@ -245,6 +247,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 									memcpy(songdata->strURI,  strV2_File,  256);
 									memcpy(songdata->strTitle, strV2_Title, 256);
 									songdata->iLength = iV2_Length;
+									songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */
 									m_playlist.push_back(*songdata);
 									//Log(LOG_INFO, "Added V2 Entry: File='%s' Title='%s' Length='%s' to the list.", 
 									//	strV2_File, strV2_Title, iV2_Length);

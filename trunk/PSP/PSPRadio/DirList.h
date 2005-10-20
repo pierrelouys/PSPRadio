@@ -29,12 +29,14 @@
 		struct directorydata
 		{
 			char strURI[MAXPATHLEN];
+			int iItemIndex; /** JPF added to be used as a unique id for each item in list*/			
 		};
 		
 		CDirList();
 		~CDirList();
 		
 		char *GetCurrentURI() { return (*m_diriterator).strURI?(*m_diriterator).strURI:(char*)""; };
+		int GetCurrentIndex() { return (*m_diriterator).iItemIndex; };
 	
 		void Next();
 		void Prev();
