@@ -83,7 +83,7 @@ int CGraphicsUI::Initialize(char *strCWD)
 	Log(LOG_VERYLOW, "Initialize: Images Initialied");
 	
 	SetBaseImage();
-		
+
 	return 0;
 }
 
@@ -120,7 +120,12 @@ void CGraphicsUI::Terminate()
 	Log(LOG_INFO, "Terminate: unloading images");
 	UnLoadImage(&m_pImageBase);
 	Log(LOG_INFO, "Terminate: images all unloaded");
+
+	Log(LOG_INFO, "Terminate: unloading images");
+	UnLoadImage(&m_pScreen);
+	Log(LOG_INFO, "Terminate: images all unloaded");
 	
+		
 	/** If we are initialized do some cleaning up **/
 	if(0 != SDL_WasInit(SDL_INIT_VIDEO))
 	{
@@ -139,6 +144,7 @@ int CGraphicsUI::SetTitle(char *strTitle)
 
 int CGraphicsUI::DisplayMessage_EnablingNetwork()
 {
+	ResetImageArea(&m_posItemNetworkString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemNetworkString, "Enabling Network", true);
 	return 0;
 }
@@ -146,6 +152,7 @@ int CGraphicsUI::DisplayMessage_EnablingNetwork()
 int CGraphicsUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName)
 {
 	char szTmp[256];
+	ResetImageArea(&m_posItemNetworkString, m_pImageBase, m_pScreen);
 	sprintf(szTmp, "Press TRIANGLE for Network Profile: %d '%s'", iProfileID, strProfileName);
 	DisplayWord(&m_posItemNetworkString, szTmp, true);
 	return 0;
@@ -153,12 +160,14 @@ int CGraphicsUI::DisplayMessage_NetworkSelection(int iProfileID, char *strProfil
 
 int CGraphicsUI::DisplayMessage_DisablingNetwork()
 {
+	ResetImageArea(&m_posItemNetworkString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemNetworkString, "Disabling Network", true);
 	return 0;
 }
 
 int CGraphicsUI::DisplayMessage_NetworkReady(char *strIP)
 {
+	ResetImageArea(&m_posItemNetworkString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemNetworkString, strIP, true);
 	return 0;
 }
@@ -196,6 +205,7 @@ int CGraphicsUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CGraphicsUI::DisplayErrorMessage(char *strMsg)
 {
+	ResetImageArea(&m_posItemErrorString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemErrorString, strMsg, true);
 	return 0;
 }
@@ -204,30 +214,35 @@ int CGraphicsUI::DisplayBufferPercentage(int iPercentage)
 {
 	char szTmp[50];
 	sprintf(szTmp, "Buffer: %03d%%", iPercentage);
+	ResetImageArea(&m_posItemBufferString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemBufferString, szTmp, true);
 	return 0;
 }
 
 int CGraphicsUI::OnNewStreamStarted()
 {
+	ResetImageArea(&m_posItemStreamString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemStreamString, "Stream Starting", true);
 	return 0;
 }
 
 int CGraphicsUI::OnStreamOpening()
 {
+	ResetImageArea(&m_posItemStreamString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemStreamString, "Stream Opening", true);
 	return 0;
 }
 
 int CGraphicsUI::OnStreamOpeningError()
 {
+	ResetImageArea(&m_posItemStreamString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemStreamString, "Stream Error", true);
 	return 0;
 }
 
 int CGraphicsUI::OnStreamOpeningSuccess()
 {
+	ResetImageArea(&m_posItemStreamString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemStreamString, "Stream Opened", true);
 	SetButton(m_themeItemLoad, UIBUTTONSTATE_OFF);
 	return 0;
@@ -242,23 +257,30 @@ int CGraphicsUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	char szTmp[50];
 	
+	ResetImageArea(&m_posItemFileNameString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemFileNameString, pData->strURI, true);	
+	
+	ResetImageArea(&m_posItemFileTitleString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemFileTitleString, pData->strTitle, true);	
+	
+	ResetImageArea(&m_posItemURLString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemURLString, pData->strURL, true);	
-	//DisplayWord(&m_posItemSongTitleString, pData->strTitle, true); //RC Removed - was redundant
+	
+	ResetImageArea(&m_posItemSongArtistString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemSongArtistString, pData->strArtist, true);
 	
 	sprintf(szTmp, "Length: %d", pData->iLength);
+	ResetImageArea(&m_posItemLengthString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemLengthString, szTmp, true);
 	
 	sprintf(szTmp, "Sample Rate: %d", pData->iSampleRate);
+	ResetImageArea(&m_posItemSampleRateString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemSampleRateString, szTmp, true);
 	
 	sprintf(szTmp, "Bit Rate: %d", pData->iBitRate);
+	ResetImageArea(&m_posItemBitRateString, m_pImageBase, m_pScreen);
 	DisplayWord(&m_posItemBitRateString, szTmp, true);
-	
-	//DisplayWord(&m_posItemMPEGLayerString, pData->strMPEGLayer, true); //RC Removed - not a string anymore...
-	
+		
 	return 0;
 }
 
@@ -270,7 +292,7 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 		return 0;
 	}
 	
-	ClearLine(&m_posItemPlayListArea);
+//	ClearLine(&m_posItemPlayListArea);
 	
 	list<CDirList::directorydata> dataList = *(plList->GetList());
 	list<CDirList::directorydata>::iterator dataIter = *(plList->GetCurrentElementIterator());
@@ -285,7 +307,8 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 	posTemp.m_pointSize.x = m_posItemPlayListAreaSel.m_pointSize.x;
 	posTemp.m_pointSize.y = m_posItemPlayListAreaSel.m_pointSize.y;
 	
-	DisplayWord(&posTemp, dataIter->strURI, true);
+	ResetImageArea(&posTemp, m_pImageBase, m_pScreen);
+	DisplayWord(&posTemp, basename(dataIter->strURI), true);
 	SetButton(m_posItemPlayListAreaSel, posTemp);
 	
 	return 0;
@@ -299,7 +322,7 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 		return 0;
 	}
 
-	ClearLine(&m_posItemPlayListItemArea);
+//	ClearLine(&m_posItemPlayListItemArea);
 		
 	list<CPSPSoundStream::MetaData> dataList = *(PlayList->GetList());
 	list<CPSPSoundStream::MetaData>::iterator dataIter = *(PlayList->GetCurrentElementIterator());
@@ -313,6 +336,8 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 	posTemp.m_pointDst.y = m_posItemPlayListItemArea.m_pointDst.y + (nItemMid * m_posItemPlayListItemAreaSel.m_pointSize.y);
 	posTemp.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
 	posTemp.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
+		
+	ResetImageArea(&posTemp, m_pImageBase, m_pScreen);
 		
 	if(strlen(dataIter->strTitle))
 	{
@@ -641,53 +666,38 @@ bool CGraphicsUI::InitializeImages()
 	
 	Log(LOG_VERYLOW, "InitializeSDL: Setting transparency");
 	SDL_SetColorKey(m_pImageBase, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
+	SDL_SetColorKey(m_pScreen, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
 	Log(LOG_VERYLOW, "InitializeSDL: Setting completed");
 
 	return TRUE;
 }
 
-void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool bCenter)
+SDL_Surface *CGraphicsUI::DisplayWord(char *szWord)
 {
-	if(NULL == pPosItem)
-	{
-		Log(LOG_ERROR, "DisplayWord: error pPosItem is NULL");
-		return;
-	}
-	
-	if(false == pPosItem->m_bEnabled)
-	{
-		return;
-	}
-	
-	int nStringLen = strlen(szWord);
 	int nFontWidth = m_themeItemABC123.m_pointSize.x;
 	int nFontHeight = m_themeItemABC123.m_pointSize.y;
+	int nCurrentXPos = 0;
+	int nCurrentYPos = 0;	
+	SDL_Surface *pSurface = NULL;
 	
-	int nCurrentXPos = pPosItem->m_pointDst.x; 
-	int nCurrentYPos = pPosItem->m_pointDst.y + 
-						(pPosItem->m_pointSize.y / 2) -
-						(nFontHeight / 2);
-						
-	/** If our word is longer than the position lets truncate it for now */
-	/** to prevent us from somping on other strings */
-	/** Eventually I want to implement a scrolling text option */	
-	if((nStringLen * nFontWidth) > pPosItem->m_pointSize.x)
+	pSurface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCCOLORKEY,
+									nFontWidth * strlen(szWord),
+									nFontHeight,
+									m_pImageBase->format->BitsPerPixel,
+									m_pImageBase->format->Rmask,
+									m_pImageBase->format->Gmask,
+									m_pImageBase->format->Bmask,
+									m_pImageBase->format->Amask);
+																		
+	if(NULL == pSurface)
 	{
-		nStringLen = pPosItem->m_pointSize.x / nFontWidth;
+		return NULL;
 	}
-		
-	ClearLine(pPosItem);
-		
-	if(true == bCenter)
-	{
-		int nStringWidth = nStringLen * nFontWidth;
-		
-		nCurrentXPos = pPosItem->m_pointDst.x + 
-						(pPosItem->m_pointSize.x / 2) - 
-						(nStringWidth / 2);
-	}	
 	
-	for(int x = 0; x != nStringLen; x++)
+	SDL_SetColorKey(pSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageBase->format, 255, 0, 255)); 
+	SDL_FillRect(pSurface, NULL, SDL_MapRGB(m_pImageBase->format, 255, 0, 255));
+
+	for(size_t x = 0; x != strlen(szWord); x++)
 	{
 		int index = m_themeItemABC123.GetIndexFromKey(toupper(szWord[x]));
 		
@@ -703,17 +713,27 @@ void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool b
 							nCurrentYPos,
 						};
 			
-		SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);
+		SDL_BlitSurface(m_pImageBase, &src, pSurface, &dst);
 		
 		nCurrentXPos += nFontWidth;		
 	}
+	
+	return pSurface;
 }
 
-void CGraphicsUI::ClearLine(CGraphicsUIPosItem *pPosItem)
+void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem,
+								char *szWord, 
+								bool bCenter)
 {
+	SDL_Surface *pWordSurface = NULL;
+	int nXPos = pPosItem->m_pointDst.x;
+	int nYPos = pPosItem->m_pointDst.y + (pPosItem->m_pointSize.y / 2);
+	int nWidth = 0;
+	int nHeight = 0;
+	
 	if(NULL == pPosItem)
 	{
-		Log(LOG_ERROR, "ClearLine: error pPosItem is NULL");
+		Log(LOG_ERROR, "DisplayWord: error pPosItem is NULL");
 		return;
 	}
 	
@@ -721,20 +741,89 @@ void CGraphicsUI::ClearLine(CGraphicsUIPosItem *pPosItem)
 	{
 		return;
 	}	
+
+	pWordSurface = DisplayWord(szWord);
+
+	if(NULL == pWordSurface)
+	{
+		Log(LOG_ERROR, "DisplayWord: error pWordSurface is NULL");
+		return;
+	}
+		
+	if(pWordSurface->w > pPosItem->m_pointSize.x)
+	{
+		nWidth = pPosItem->m_pointSize.x - 1;
+	}
+	else
+	{
+		nWidth = pWordSurface->w;
+	}
+	
+	nHeight = pWordSurface->h;
+		
+	if(true == bCenter)
+	{
+		nXPos = pPosItem->m_pointDst.x + ((pPosItem->m_pointSize.x/2) - (nWidth/2));
+	}
+	
+	SDL_Rect src = 	{
+						0,
+						0,
+						nWidth,
+						nHeight
+					};
+	
+	SDL_Rect dst = 	{ 
+						nXPos,
+						nYPos,
+						pPosItem->m_pointDst.x, 
+						pPosItem->m_pointDst.y
+					};
+	
+	SDL_BlitSurface(pWordSurface, &src, m_pScreen, &dst);	
+	
+	SDL_FreeSurface(pWordSurface);
+	
+}
+
+void CGraphicsUI::ResetImageArea(CGraphicsUIPosItem *pSrcPosItem, 
+									CGraphicsUIPosItem *pDstPosItem,
+									SDL_Surface *pSrcSurface, 
+									SDL_Surface *pDstSurface)
+{
+	if((NULL == pSrcPosItem) || 
+		(NULL == pDstPosItem) || 
+		(NULL == pSrcSurface) || 
+		(NULL == pDstSurface))
+	{
+		Log(LOG_ERROR, "ResetImageArea: error pPosItem is NULL");
+		return;
+	}
+	
+	if((false == pSrcPosItem->m_bEnabled) ||
+		(false == pDstPosItem->m_bEnabled))
+	{
+		return;
+	}	
 	
 	SDL_Rect src = 	{ 
-						pPosItem->m_pointDst.x,
-						pPosItem->m_pointDst.y,
-						pPosItem->m_pointSize.x,
-						pPosItem->m_pointSize.y
+						pSrcPosItem->m_pointDst.x,
+						pSrcPosItem->m_pointDst.y,
+						pSrcPosItem->m_pointSize.x,
+						pSrcPosItem->m_pointSize.y
 					};
 						
 	SDL_Rect dst = 	{ 
-						pPosItem->m_pointDst.x,
-						pPosItem->m_pointDst.y,
-						pPosItem->m_pointSize.x,
-						pPosItem->m_pointSize.y
+						pDstPosItem->m_pointDst.x,
+						pDstPosItem->m_pointDst.y,
 					};
 			
-	SDL_BlitSurface(m_pImageBase, &src, m_pScreen, &dst);		
+	SDL_BlitSurface(pSrcSurface, &src, pDstSurface, &dst);			
+}
+
+void CGraphicsUI::ResetImageArea(CGraphicsUIPosItem *pPosItem, 
+									SDL_Surface *pSrcSurface, 
+									SDL_Surface *pDstSurface)
+{
+	ResetImageArea(pPosItem, pPosItem, pSrcSurface, pDstSurface);	
 }

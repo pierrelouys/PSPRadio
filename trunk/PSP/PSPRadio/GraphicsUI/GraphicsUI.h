@@ -60,9 +60,10 @@ private:
 	bool InitializeSDL();
 	bool InitializeImages();
 	
+	SDL_Surface *DisplayWord(char *szWord);	
 	void DisplayWord(CGraphicsUIPosItem *pPosItem, char *szWord, bool bCenter=true);
-	void ClearLine(CGraphicsUIPosItem *pPosItem);
-	
+	void ResetImageArea(CGraphicsUIPosItem *pSrcPosItem, CGraphicsUIPosItem *pDstPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
+	void ResetImageArea(CGraphicsUIPosItem *pPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
 	
 private:
 	SDL_Surface *m_pImageBase;	
