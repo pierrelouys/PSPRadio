@@ -3130,7 +3130,7 @@ static char __attribute__((aligned(16))) char_list[] = {'A', 'B', 'C', 'D', 'E',
 void CSandbergUI::RenderOptionScreen(void)
 {
 	RenderOptionLogo();
-	RenderOptions();
+	RenderOptions(RENDER_OPTIONS);
 }
 
 void CSandbergUI::RenderOptionLogo(void)
@@ -3206,6 +3206,7 @@ void CSandbergUI::StoreOption(int y, bool active_item, char *strName, char *strS
 	}
 	strcpy(Option.strText, strName);
 	strupr(Option.strText);
+	Option.ID = TEXT_OPTION;
 	OptionsItems.push_back(Option);
 
 	if (iNumberOfStates > 0)
@@ -3236,6 +3237,7 @@ void CSandbergUI::StoreOption(int y, bool active_item, char *strName, char *strS
 			Option.color 	= color;
 			strcpy(Option.strText, strStates[iStates]);
 			strupr(Option.strText);
+			Option.ID = TEXT_OPTION;
 			OptionsItems.push_back(Option);
 
 			x += strlen(strStates[iStates])+1;
@@ -3243,7 +3245,7 @@ void CSandbergUI::StoreOption(int y, bool active_item, char *strName, char *strS
 	}	
 }
 
-void CSandbergUI::RenderOptions(void)
+void CSandbergUI::RenderOptions(int render_option)
 {
 	StoredOptionItem			Option;
 	list<StoredOptionItem>::iterator 	OptionIterator;
@@ -3253,6 +3255,7 @@ void CSandbergUI::RenderOptions(void)
 
 	sceGuAlphaFunc(GU_GREATER,0,0xff);
 	sceGuEnable(GU_ALPHA_TEST);
+	sceGuDepthFunc(GU_ALWAYS);
 
 	// setup texture
 	sceGuTexImage(0,512,16,512,::small_font);
@@ -3268,39 +3271,44 @@ void CSandbergUI::RenderOptions(void)
 
 			Option = (*OptionIterator);
 
-			sprintf(strText, Option.strText);
-			strsize = strlen(strText);
-			sx = Option.x * FONT_WIDTH;
-			sy = Option.y * FONT_HEIGHT;
-
-			struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(strsize * 2 * sizeof(struct Vertex));
-
-			for (int i = 0, index = 0 ; i < strsize ; i++)
+			if (((render_option == RENDER_OPTIONS)  && (Option.ID == TEXT_OPTION)) ||
+			    ((render_option == RENDER_METADATA) && (Option.ID != TEXT_OPTION)))
 			{
-				char	letter = strText[i];
-				FindSmallFontTexture(letter, &texture_offset);
+				sprintf(strText, Option.strText);
+				strsize = strlen(strText);
+				sx = Option.x * FONT_WIDTH;
+				sy = Option.y * FONT_HEIGHT;
 
-				c_vertices[index+0].u 		= texture_offset.x1;
-				c_vertices[index+0].v 		= texture_offset.y1;
-				c_vertices[index+0].x 		= sx;
-				c_vertices[index+0].y 		= sy;
-				c_vertices[index+0].z 		= 0;
-				c_vertices[index+0].color 	= Option.color;
+				struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(strsize * 2 * sizeof(struct Vertex));
 
-				c_vertices[index+1].u 		= texture_offset.x2;
-				c_vertices[index+1].v 		= texture_offset.y2;
-				c_vertices[index+1].x 		= sx + FONT_WIDTH;
-				c_vertices[index+1].y 		= sy + FONT_HEIGHT;
-				c_vertices[index+1].z 		= 0;
-				c_vertices[index+1].color 	= Option.color;
+				for (int i = 0, index = 0 ; i < strsize ; i++)
+				{
+					char	letter = strText[i];
+					FindSmallFontTexture(letter, &texture_offset);
 
-				sx 	+= FONT_WIDTH;
-				index 	+= 2;
+					c_vertices[index+0].u 		= texture_offset.x1;
+					c_vertices[index+0].v 		= texture_offset.y1;
+					c_vertices[index+0].x 		= sx;
+					c_vertices[index+0].y 		= sy;
+					c_vertices[index+0].z 		= 0;
+					c_vertices[index+0].color 	= Option.color;
+
+					c_vertices[index+1].u 		= texture_offset.x2;
+					c_vertices[index+1].v 		= texture_offset.y2;
+					c_vertices[index+1].x 		= sx + FONT_WIDTH;
+					c_vertices[index+1].y 		= sy + FONT_HEIGHT;
+					c_vertices[index+1].z 		= 0;
+					c_vertices[index+1].color 	= Option.color;
+
+					sx 	+= FONT_WIDTH;
+					index 	+= 2;
+				}
+				sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
 			}
-			sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
 		}
 	}
 
+	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
 }

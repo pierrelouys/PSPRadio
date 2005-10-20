@@ -48,6 +48,20 @@
 #define FRAME_SIZE (BUF_WIDTH * SCR_HEIGHT * PIXEL_SIZE)
 #define ZBUF_SIZE (BUF_WIDTH SCR_HEIGHT * 2) /* zbuffer seems to be 16-bit? */
 
+#define META_NAME_X	 9
+#define META_NAME_Y	 6
+#define META_ARTIST_X	 9
+#define META_ARTIST_Y	 7
+#define META_URL_X	 9
+#define META_URL_Y	 8
+#define META_BUFFER_X	 9
+#define META_BUFFER_Y	 9
+#define META_FORMAT_X	23
+#define META_FORMAT_Y	 9
+#define META_ERROR_X	 9
+#define META_ERROR_Y	10
+
+
 #define NETWORK_INACTIVE_COLOR		0xFF444444
 #define NETWORK_CONNECTING_COLOR	0xFF4488FF
 #define NETWORK_CONNECTED_COLOR		0xFF44FF44
@@ -848,11 +862,18 @@ int CSandbergUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CSandbergUI::DisplayErrorMessage(char *strMsg)
 {
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, strMsg);
+
 	return 0;
 }
 
 int CSandbergUI::DisplayBufferPercentage(int iPercentage)
 {
+	char	perStr[MAXPATHLEN];
+
+	sprintf(perStr, "Buffer: %03d%c%c", iPercentage, 37, 37);
+	UpdateTextItem(TEXT_BUFFER, META_BUFFER_X, META_BUFFER_Y, perStr);
+
 	return 0;
 }
 
@@ -863,17 +884,20 @@ int CSandbergUI::OnNewStreamStarted()
 
 int CSandbergUI::OnStreamOpening()
 {
+	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Opening stream");
 	return 0;
 }
 
 int CSandbergUI::OnStreamOpeningError()
 {
+	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Error opening stream");
 	return 0;
 }
 
 int CSandbergUI::OnStreamOpeningSuccess()
 {
 	icon_list[ICON_LOAD].color = LOAD_INACTIVE_COLOR;
+	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Stream opened succesfully");
 	return 0;
 }
 
@@ -940,8 +964,31 @@ void CSandbergUI::RenderPlayScreen(void)
 
 int CSandbergUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
+	char	strBuf[MAXPATHLEN];
+
+	if (strlen(pData->strTitle) >= 42)
+		pData->strTitle[42] = 0;
+
+	if (strlen(pData->strURL) >= 42)
+		pData->strURL[42] = 0;
+
+	if (0 != pData->iSampleRate)
+	{
+		sprintf(strBuf, "%d kbps %dHz (%d channels)", pData->iBitRate/1000, pData->iSampleRate, pData->iNumberOfChannels);
+		UpdateTextItem(TEXT_STREAM_FORMAT, META_FORMAT_X, META_FORMAT_Y, strBuf);
+	}
+
+	UpdateTextItem(TEXT_STREAM_URL,  META_URL_X, META_URL_Y, pData->strURI);
+	UpdateTextItem(TEXT_STREAM_NAME, META_NAME_X, META_NAME_Y, pData->strTitle);
+
+	if (pData->strArtist && strlen(pData->strArtist))
+	{
+		UpdateTextItem(TEXT_STREAM_ARTIST, META_ARTIST_X, META_ARTIST_Y, pData->strTitle);
+	}
+
 	return 0;
 }
+
 
 int CSandbergUI::DisplayPLList(CDirList *plList)
 {
@@ -1065,5 +1112,35 @@ void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
 		screen_state = SCREEN_OPTIONS;
 		}
 		break;
+	}
+}
+
+void CSandbergUI::UpdateTextItem(int ID, int x, int y, char *strText)
+{
+	StoredOptionItem			Option;
+	list<StoredOptionItem>::iterator 	OptionIterator;
+	bool					found = false;
+
+	if (OptionsItems.size() > 0)
+	{
+		for (OptionIterator = OptionsItems.begin() ; OptionIterator != OptionsItems.end() ; OptionIterator++)
+		{
+			if ((*OptionIterator).ID == ID)
+			{
+				strcpy((*OptionIterator).strText, strText);
+				strupr((*OptionIterator).strText);
+				found = true;
+			}
+		}
+	}
+	if (!found)
+	{
+		Option.x = x;
+		Option.y = y;
+		Option.color = 0xFFFFFFFF;
+		strcpy(Option.strText, strText);
+		strupr(Option.strText);
+		Option.ID = ID;
+		OptionsItems.push_back(Option);
 	}
 }

@@ -112,8 +112,50 @@ public:
 							list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
 
 private:
+	enum screen_state_enum
+	{
+		SCREEN_PLAYING,
+		SCREEN_OPTIONS
+	};
+
+	enum render_option_enum
+	{
+		RENDER_OPTIONS,
+		RENDER_METADATA
+	};
+
+	enum icon_list_enum
+	{
+		ICON_NETWORK,
+		ICON_LOAD,
+		ICON_SOUND,
+		ICON_PLAY,
+		ICON_STOP
+	};
+
+	enum text_enum
+	{
+		TEXT_OPTION,
+		TEXT_IP,
+		TEXT_ERROR,
+		TEXT_BUFFER,
+		TEXT_STREAM_FORMAT,
+		TEXT_STREAM_URL,
+		TEXT_STREAM_NAME,
+		TEXT_STREAM_ARTIST,
+	};
+
+	struct StoredOptionItem
+	{
+		int		ID;
+		int  		x, y;
+		unsigned int	color;
+		char 		strText[MAXPATHLEN];
+	};
+
 	struct char_map	* FindCharMap(char index);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
+	void UpdateTextItem(int ID, int x, int y, char *strText);
 
 	void CSandbergUI::InitPL(void);
 	void CSandbergUI::InitFX(void);
@@ -130,37 +172,15 @@ private:
 	void RenderLoad(void);
 	void RenderSound(void);
 	void RenderIcon(IconStr *icon_info);
-	void RenderMetaData(void);
+	void RenderMetaDataFrame(void);
 
 	void RenderPlayScreen(void);
 	void RenderOptionScreen(void);
 	void RenderOptionLogo(void);
 	void StoreOption(int y, bool active_item, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState);
-	void RenderOptions(void);
+	void RenderOptions(int render_option);
 
 private:
-
-	enum screen_state_enum
-	{
-		SCREEN_PLAYING,
-		SCREEN_OPTIONS
-	};
-
-	enum icon_list_enum
-	{
-		ICON_NETWORK,
-		ICON_LOAD,
-		ICON_SOUND,
-		ICON_PLAY,
-		ICON_STOP
-	};
-
-	struct StoredOptionItem
-	{
-		int  		x, y;
-		unsigned int	color;
-		char 		strText[MAX_OPTION_LENGTH];
-	};
 	list<StoredOptionItem> OptionsItems;
 
 	char*	pl_name;
