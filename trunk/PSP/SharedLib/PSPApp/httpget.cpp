@@ -233,7 +233,7 @@ unsigned char *proxyport;
 char *httpauth = NULL;
 char httpauth1[256];
 
-int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType)
+int CPSPSoundStream::http_open(char *url)
 {
 	char *purl = NULL, 
 		 *host = NULL, 
@@ -558,8 +558,8 @@ fail:
 			}
 			else if (strncmp(request, "icy-metaint:", 12) == 0)
 			{
-				sscanf(request, "icy-metaint: %d", &iMetadataInterval);
-				Log(LOG_INFO, "http_connect(): Metadata Interval received: %d", iMetadataInterval);
+				sscanf(request, "icy-metaint: %d", &m_iMetaDataInterval);
+				Log(LOG_INFO, "http_connect(): Metadata Interval received: %d", m_iMetaDataInterval);
 			}
 			else if (0 == strncmp(request, "content-type:", strlen("content-type:")) ||
 					 0 == strncmp(request, "Content-Type:", strlen("content-type:")))
@@ -570,18 +570,23 @@ fail:
 				Log(LOG_VERYLOW, "Parsing content:%s",content);
 				if (0 == strncmp(content, "audio/mpeg", strlen("audio/mpeg")))
 				{
-					ContentType = CPSPSoundStream::STREAM_CONTENT_AUDIO_MPEG;
+					SetContentType(STREAM_CONTENT_AUDIO_MPEG);
 					Log(LOG_INFO, "Content Type set to audio/mpeg");
 				}
 				else if (0 == strncmp(content, "application/ogg", strlen("application/ogg")))
 				{
-					ContentType = CPSPSoundStream::STREAM_CONTENT_AUDIO_OGG;
+					SetContentType(STREAM_CONTENT_AUDIO_OGG);
 					Log(LOG_INFO, "Content Type set to application/ogg");
 				}
 				else if (0 == strncmp(content, "audio/aac", strlen("audio/aac")))
 				{
-					ContentType = CPSPSoundStream::STREAM_CONTENT_AUDIO_AAC;
+					SetContentType(STREAM_CONTENT_AUDIO_AAC);
 					Log(LOG_INFO, "Content Type set to audio/aac");
+				}
+				else if (0 == strncmp(content, "audio/x-scpls", strlen("audio/x-scpls")))
+				{
+					SetContentType(STREAM_CONTENT_PLAYLIST);
+					Log(LOG_INFO, "Content Type set to playlist");
 				}
 			}
 		} while (request[0] != '\r' && request[0] != '\n');

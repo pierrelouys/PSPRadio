@@ -329,6 +329,30 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 							bDecoderCreated = false;
 							break;
+						
+						case CPSPSoundStream::STREAM_CONTENT_PLAYLIST:
+						{
+							Log(LOG_INFO, "ThDecode: This is a playlist.. downloading..");
+							CPSPSoundStreamReader *PLReader = new CPSPSoundStreamReader();
+							char strPlayListBuf[256];
+							strPlayListBuf[0]=0;
+							PLReader->Read((u8*)strPlayListBuf, 256);
+							strPlayListBuf[255] =0;
+							Log(LOG_INFO, "playlist contents: '%s'", strPlayListBuf);
+							char *strURI = "";
+							if (strstr(strPlayListBuf, "File1="))
+							{
+								strURI = strstr(strPlayListBuf, "File1=")+strlen("File1=");
+								*strchr(strURI, 0xA) = 0;
+								CurrentSoundStream->SetURI(strURI);
+								/** We send an event to ourselves */
+								event.EventId = MID_DECODER_START;
+								m_EventToDecTh->Send(event);
+							}
+							delete (PLReader);
+							bDecoderCreated = false;
+							break;
+						}	
 					}
 
 					if (true == bDecoderCreated)
@@ -362,8 +386,8 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				}
 				else
 				{
+					Log(LOG_ERROR, "ThDecode:: Unable to open stream '%s'.", CurrentSoundStream->GetURI());
 					pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
-					Log(LOG_ERROR, "Unable to open stream '%s'.", CurrentSoundStream->GetURI());
 				}
 				
 				break;

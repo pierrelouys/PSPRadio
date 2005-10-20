@@ -32,10 +32,6 @@
 
 #define METADATA_STREAMURL_TAG "StreamUrl='"
 #define METADATA_STREAMTITLE_TAG "StreamTitle='"
-char *GetMetadataValue(char *strMetadata, char *strTag);
-
-/* ------ Declarations from "httpget.c" (From mpg123) ------ */
-int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType);
 
 CPSPSoundStream *CurrentSoundStream = NULL;
 
@@ -134,14 +130,14 @@ void CPSPSoundStream::Close()
 
 int CPSPSoundStream::Open()
 {
-	enum content_types ContentType = STREAM_CONTENT_NOT_DEFINED;
+	SetContentType(STREAM_CONTENT_NOT_DEFINED);
 	if (STREAM_STATE_CLOSED == m_State)
 	{
 		switch(m_Type)
 		{
 			case STREAM_TYPE_URL:
 				//ReportError ("Opening URL '%s'\n", filename);
-				m_fdSocket = http_open(m_CurrentMetaData->strURI, m_iMetaDataInterval, ContentType);
+				m_fdSocket = http_open(m_CurrentMetaData->strURI);
 				if (m_fdSocket < 0)
 				{
 					//Don't report again, because http_open will report.
@@ -153,7 +149,6 @@ int CPSPSoundStream::Open()
 					//ReportError("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fdSocket);
 					//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
 					m_State = STREAM_STATE_OPEN;
-					m_ContentType = ContentType;
 				}
 				break;
 			
@@ -272,16 +267,16 @@ size_t CPSPSoundStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 				}
 				if (SizeInBytes + m_iRunningCountModMetadataInterval > m_iMetaDataInterval)
 				{
-					size = SocketRead((char*)pBuffer, m_iMetaDataInterval - m_iRunningCountModMetadataInterval, m_fdSocket);
+					size = SocketRead((char*)pBuffer, m_iMetaDataInterval - m_iRunningCountModMetadataInterval);
 					if (size != (m_iMetaDataInterval - m_iRunningCountModMetadataInterval))
 					{
 						Close();
 						m_eof = true;
 					}
-					iReadRet = SocketRead(&bMetaDataSize, 1, m_fdSocket);
+					iReadRet = SocketRead(&bMetaDataSize, 1);
 					if (iReadRet > 0)
 					{
-						iReadRet = SocketRead(bMetaData, bMetaDataSize * 16, m_fdSocket);
+						iReadRet = SocketRead(bMetaData, bMetaDataSize * 16);
 					}
 					if (iReadRet != bMetaDataSize * 16)
 					{
@@ -318,7 +313,7 @@ size_t CPSPSoundStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 				}
 				else
 				{
-					size = SocketRead((char*)pBuffer, SizeInBytes, m_fdSocket);
+					size = SocketRead((char*)pBuffer, SizeInBytes);
 					if (size != SizeInBytes)
 					{
 						Close();
@@ -372,14 +367,14 @@ bool CPSPSoundStreamReader::IsEOF()
 	return iseof?true:false;
 }
 
-int SocketRead(char *pBuffer, size_t LengthInBytes, int sock)
+int CPSPSoundStreamReader::SocketRead(char *pBuffer, size_t LengthInBytes)
 {
 	size_t bytesread = 0, bytestoread = 0;
 	size_t size = 0;
 	for(;;) 
 	{
 		bytestoread = LengthInBytes-size;
-		bytesread = recv(sock, pBuffer+size, bytestoread, 0);
+		bytesread = recv(m_fdSocket, pBuffer+size, bytestoread, 0);
 		if (bytesread > 0)
 			size += bytesread;
 		if(bytesread == bytestoread) 
@@ -410,7 +405,7 @@ int SocketRead(char *pBuffer, size_t LengthInBytes, int sock)
 /** Raw metadata looks like this:
  *  "StreamTitle='title of the song';StreamUrl='url address';"
  */
-char *GetMetadataValue(char *strMetadata, char *strTag)
+char *CPSPSoundStreamReader::GetMetadataValue(char *strMetadata, char *strTag)
 {
 	char *ret = "Parse Error";
 	

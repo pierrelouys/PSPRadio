@@ -9,11 +9,6 @@
 	#define MAX_METADATA_SIZE		4080
 	
 	
-	/** Other functions */
-	int SocketRead(char *pBuffer, size_t LengthInBytes, int sock);
-	
-
-	
 	class CPSPSoundStream
 	{
 	public:
@@ -69,7 +64,8 @@
 			STREAM_CONTENT_NOT_DEFINED,
 			STREAM_CONTENT_AUDIO_MPEG,
 			STREAM_CONTENT_AUDIO_OGG,
-			STREAM_CONTENT_AUDIO_AAC
+			STREAM_CONTENT_AUDIO_AAC,
+			STREAM_CONTENT_PLAYLIST
 		};
 		
 		CPSPSoundStream();
@@ -88,6 +84,8 @@
 		stream_types GetType() { return m_Type; }
 		stream_states GetState() { return m_State; }
 	private:
+		int http_open(char *url);
+		
 		size_t m_iMetaDataInterval;
 		enum content_types m_ContentType;
 		FILE *m_pfd;
@@ -110,6 +108,9 @@
 		virtual bool IsEOF();
 	
 	protected:
+		int SocketRead(char *pBuffer, size_t LengthInBytes);
+		char *GetMetadataValue(char *strMetadata, char *strTag);
+		
 		bstdfile_t *m_BstdFile; /** For MAD */
 		bool m_eof;
 		size_t m_iRunningCountModMetadataInterval;
