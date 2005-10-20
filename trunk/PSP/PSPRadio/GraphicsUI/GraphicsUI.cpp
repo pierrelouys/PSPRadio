@@ -414,26 +414,43 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 		}
 	}
 	
-	int nCurrentIndex = plList->GetCurrentIndex();
+	list<CDirList::directorydata>::iterator dataIter = *plList->GetCurrentElementIterator();
 	
-	for(int x = 0; x < nItemCount; x++)
-	{	
+		
+	for (int i = 0; i < nItemCount/2; i++)
+	{
+		if (dataIter == plList->GetList()->begin())
+			break;
+		dataIter--;
+	}
+	
+	int count = 0;
+	
+	for (; dataIter != plList->GetList()->end() ; dataIter++)
+	{
+		if (count > nItemCount-1)
+		{
+			break;
+		}
+
 		CGraphicsUIPosItem posDst;	
 			
 		posDst.m_pointDst.x = m_posItemPlayListArea.m_pointDst.x;
-		posDst.m_pointDst.y = m_posItemPlayListArea.m_pointDst.y + (x * m_posItemPlayListAreaSel.m_pointSize.y);
+		posDst.m_pointDst.y = m_posItemPlayListArea.m_pointDst.y + (count * m_posItemPlayListAreaSel.m_pointSize.y);
 		posDst.m_pointSize.x = m_posItemPlayListAreaSel.m_pointSize.x;
 		posDst.m_pointSize.y = m_posItemPlayListAreaSel.m_pointSize.y;
 			
 		ResetImageArea(&posDst, m_pImageBase, m_pScreen);		
-		CopySurface(m_pPlayListText[x+nCurrentIndex], m_pScreen, &posDst, false);
+		CopySurface(m_pPlayListText[dataIter->iItemIndex], m_pScreen, &posDst, false);
 		
-		if((x+nCurrentIndex) == nCurrentIndex)
+		if(dataIter == *plList->GetCurrentElementIterator())
 		{
 			SetButton(m_posItemPlayListAreaSel, posDst);
 		}
-	}
-	
+		
+		count++;
+	}	
+		
 	return 0;
 }
 
@@ -475,27 +492,45 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 		}
 	}
 	
-	int nCurrentIndex = PlayList->GetCurrentIndex();
-			
-	for(int x = 0; x < nItemCount; x++)
-	{	
+	list<CPSPSoundStream::MetaData>::iterator dataIter = *PlayList->GetCurrentElementIterator();
+	
+		
+	for (int i = 0; i < nItemCount/2; i++)
+	{
+		if (dataIter == PlayList->GetList()->begin())
+			break;
+		dataIter--;
+	}
+	
+	int count = 0;
+	
+	for (; dataIter != PlayList->GetList()->end() ; dataIter++)
+	{
+		if (count > nItemCount-1)
+		{
+			break;
+		}
+
 		CGraphicsUIPosItem posDst;	
 			
 		posDst.m_pointDst.x = m_posItemPlayListItemArea.m_pointDst.x;
-		posDst.m_pointDst.y = m_posItemPlayListItemArea.m_pointDst.y + (x * m_posItemPlayListItemAreaSel.m_pointSize.y);
+		posDst.m_pointDst.y = m_posItemPlayListItemArea.m_pointDst.y + (count * m_posItemPlayListItemAreaSel.m_pointSize.y);
 		posDst.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
 		posDst.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
 			
 		ResetImageArea(&posDst, m_pImageBase, m_pScreen);		
-		CopySurface(m_pPlayListItemText[x+nCurrentIndex], m_pScreen, &posDst, false);
+		CopySurface(m_pPlayListItemText[dataIter->iItemIndex], m_pScreen, &posDst, false);
 		
-		if((x+nCurrentIndex) == nCurrentIndex)
+		if(dataIter == *PlayList->GetCurrentElementIterator())
 		{
 			SetButton(m_posItemPlayListItemAreaSel, posDst);
 		}
-	}
-	
+		
+		count++;
+	}	
+		
 	return 0;
+	
 }
 
 int CGraphicsUI::OnConnectionProgress()
