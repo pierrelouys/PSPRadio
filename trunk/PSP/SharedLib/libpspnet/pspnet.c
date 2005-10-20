@@ -20,13 +20,7 @@
 
 #include <stdio.h>
 #include <pspkernel.h>
-#include <pspdebug.h>
 #include "pspnet.h"
-#define printf	pspDebugScreenPrintf
-
-asm(".global __lib_stub_top");
-asm(".global __lib_stub_bottom");
-
 
 ////////////////////////////////////////////////////////////////////
 // SLIME NOTE: Module library linkage trickery
@@ -83,7 +77,7 @@ static u32 FindProcEntry(u32 oid, u32 nid)
 	return 0;
 }
 
-static int PatchMyLibraryEntries(u32 oid)
+static int PatchMyLibraryEntries(SceModuleInfo * modInfoPtr, u32 oid)
 {
 	//REVIEW: should match single module name
     // this version is dumb and walks all of them (assumes NIDs are unique)
@@ -91,8 +85,8 @@ static int PatchMyLibraryEntries(u32 oid)
     int nPatched = 0;
 
     int* stubPtr; // 20 byte structure
-    for (stubPtr = (int*)__lib_stub_top;
-     stubPtr + 5 <= (int*)__lib_stub_bottom;
+    for (stubPtr = modInfoPtr->stub_top;
+     stubPtr + 5 <= (int*)modInfoPtr->stub_end;
       stubPtr += 5)
     {
         int count = (stubPtr[2] >> 16) & 0xFFFF;
@@ -134,7 +128,7 @@ static int PatchMyLibraryEntries(u32 oid)
     return nPatched;
 }
 
-u32 LoadAndStartAndPatch(const char* szFile)
+u32 LoadAndStartAndPatch(SceModuleInfo * modInfoPtr, const char* szFile)
     // return oid or error code
 {
 	u32 oid;
@@ -169,7 +163,7 @@ u32 LoadAndStartAndPatch(const char* szFile)
 
     // Patch it
     {
-		/*int n = */PatchMyLibraryEntries(oid);
+		/*int n = */PatchMyLibraryEntries(modInfoPtr, oid);
 		//printf("  +patch : %i\n", n);
     }
     return oid;
@@ -198,19 +192,19 @@ static void FlushCaches()
     (*pfnFlush)();
 }
 
-int nlhLoadDrivers()
+int nlhLoadDrivers(SceModuleInfo * modInfoPtr)
 {
-	LoadAndStartAndPatch("flash0:/kd/ifhandle.prx"); // kernel
+	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/ifhandle.prx"); // kernel
 
 	// wipeout list
 	// LoadAndStartAndPatch("flash0:/kd/memab.prx");
 	// LoadAndStartAndPatch("flash0:/kd/pspnet_adhoc_auth.prx");
-	LoadAndStartAndPatch("flash0:/kd/pspnet.prx");
+	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet.prx");
 	// LoadAndStartAndPatch("flash0:/kd/pspnet_adhoc.prx");
 	// LoadAndStartAndPatch("flash0:/kd/pspnet_adhocctl.prx");
-	LoadAndStartAndPatch("flash0:/kd/pspnet_inet.prx");
-	LoadAndStartAndPatch("flash0:/kd/pspnet_apctl.prx");
-	LoadAndStartAndPatch("flash0:/kd/pspnet_resolver.prx");
+	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_inet.prx");
+	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_apctl.prx");
+	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_resolver.prx");
 	// LoadAndStartAndPatch("flash0:/kd/pspnet_ap_dialog_dummy.prx");
 
 

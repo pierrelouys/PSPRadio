@@ -41,8 +41,10 @@
 	#define FALSE (BOOLEAN)0
 	#endif
 	
+	#include <pspkernel.h>
+
 	
-	int nlhLoadDrivers();
+	int nlhLoadDrivers(SceModuleInfo * modInfoPtr);
 	int nlhInit();
 	int nlhTerm();
 	

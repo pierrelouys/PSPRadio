@@ -28,6 +28,8 @@
 
 #undef ReportError
 
+PSP_MODULE_INFO("PSPAPP", 0x1000, 1, 1);
+
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
 CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
@@ -212,7 +214,7 @@ int CPSPApp::EnableNetwork(int profile)
 	
 	if (false == fDriversLoaded)
 	{
-		if (0 == nlhLoadDrivers())
+		if (0 == nlhLoadDrivers(&module_info))
 		{
 			fDriversLoaded = true;
 		}

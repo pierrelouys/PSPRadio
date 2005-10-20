@@ -37,16 +37,10 @@
 #include "SandbergUI.h" 
 #include <ivorbisfile.h>
 
-asm(".global __lib_stub_top");
-asm(".global __lib_stub_bottom");
-
-/* Define the module info section */
-PSP_MODULE_INFO("PSPRADIO", 0x1000, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 PSP_MAIN_THREAD_PRIORITY(80);
 //PSP_MAIN_THREAD_STACK_SIZE_KB(512);
-
 
 #define CFG_FILENAME "PSPRadio.cfg"
 #define ReportError pPSPApp->ReportError
