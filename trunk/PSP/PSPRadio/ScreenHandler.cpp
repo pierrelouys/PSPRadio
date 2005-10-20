@@ -64,7 +64,6 @@ CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *
 	m_iNetworkProfile = 1;
 	m_NetworkStarted  = false;
 	m_RequestOnPlayOrStop = NOTHING;
-	m_CurrentMetaData = CurrentSoundStream->m_CurrentMetaData;
 	
 	SetUp(UI, Config, Sound, NULL, NULL);
 }
@@ -98,10 +97,6 @@ int CScreenHandler::Start_Network(int iProfile)
 	{
 		pPSPApp->CantExit();
 
-		//m_UI->DisplayActiveCommand(CPSPSound::STOP);
-		//m_Sound->Stop();
-		//sceKernelDelayThread(50000);  
-		
 		if (m_NetworkStarted)
 		{
 			m_UI->DisplayMessage_DisablingNetwork();
@@ -153,8 +148,6 @@ void CScreenHandler::GetNetworkProfileName(int iProfile, char *buf, size_t size)
 	sceUtilityGetNetParam(iProfile, 0/**Profile Name*/, &data);
 	
 	strncpy(buf, data.asString, size);
-	//m_UI->DisplayMessage_NetworkSelection(m_iNetworkProfile, data.asString);
-	//Log(LOG_INFO, "Current Network Profile Selection: %d Name: '%s'", m_iNetworkProfile, data.asString);
 }
 	
 
@@ -165,7 +158,7 @@ void CScreenHandler::StartScreen(Screen screen)
 	switch(screen)
 	{
 		case PSPRADIO_SCREEN_PLAYLIST:
-			if (m_UI && m_CurrentPlayListDir && m_CurrentPlayList && m_Sound && m_CurrentMetaData)
+			if (m_UI && m_CurrentPlayListDir && m_CurrentPlayList && m_Sound)
 			{
 				Log(LOG_LOWLEVEL, "Displaying current playlist");
 				m_UI->DisplayPLList(m_CurrentPlayListDir);
@@ -179,7 +172,7 @@ void CScreenHandler::StartScreen(Screen screen)
 						/** Populate m_CurrentMetaData */
 						//don't until user starts it!
 						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						m_UI->OnNewSongData(m_CurrentMetaData);
+						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
 					}
 				}
 			}
@@ -254,8 +247,6 @@ void CScreenHandler::PopulateOptionsData()
 
 void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 {
-//	Options Option;
-	
 	if (iButtonMask & PSP_CTRL_TRIANGLE)
 	{
 		m_CurrentScreen = (Screen)(m_CurrentScreen+1);
@@ -418,7 +409,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 					if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 					{
 						/** If the new stream is different than the current, only then stop-"restart" */
-						if (0 != strcmp(m_CurrentMetaData->strURI, m_CurrentPlayList->GetCurrentURI()))
+						if (0 != strcmp(CurrentSoundStream->GetURI(), m_CurrentPlayList->GetCurrentURI()))
 						{
 							Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
 							m_Sound->Stop();

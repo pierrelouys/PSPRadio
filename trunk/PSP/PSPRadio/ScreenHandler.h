@@ -76,7 +76,5 @@
 		bool m_NetworkStarted;
 		CPlayList *m_CurrentPlayList;
 		CDirList  *m_CurrentPlayListDir;
-		CPSPSoundStream::MetaData *m_CurrentMetaData;
-
 	};
 #endif
