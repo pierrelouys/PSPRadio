@@ -98,6 +98,8 @@ public:
 		
 		Setup_Logging(strDir);
 		
+		Setup_Sound();
+		
 		Setup_UI(strDir);
 	
 		m_UI->SetTitle(strAppTitle);
@@ -113,8 +115,6 @@ public:
 		
 		Setup_PlayLists();
 	
-		Setup_Sound();
-		
 		m_ScreenHandler->SetUp(m_UI, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
 		
 		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
@@ -362,13 +362,13 @@ public:
 				{
 					case CPSPSound::STOP:
 					case CPSPSound::PAUSE:
-						CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
+						CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						m_Sound->Play();
 						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(&CurrentSoundStream.m_CurrentMetaData);
-						//CurrentSoundStream.SetURI(m_CurrentPlayList->GetURI());
-						m_UI->OnNewSongData(&CurrentSoundStream.m_CurrentMetaData);
+						m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
+						//CurrentSoundStream->SetURI(m_CurrentPlayList->GetURI());
+						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
 						break;
 					case CPSPSound::PLAY:
 						m_UI->DisplayActiveCommand(CPSPSound::STOP);
@@ -468,7 +468,7 @@ public:
 				//case MID_DECODE_DONE:
 				//	break;
 				case MID_NEW_METADATA_AVAILABLE:
-					m_UI->OnNewSongData(&CurrentSoundStream.m_CurrentMetaData);
+					m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
 					break;
 					
 				case MID_TCP_CONNECTING_PROGRESS:
@@ -517,8 +517,8 @@ public:
 					case CPSPSound::PLAY:
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(&CurrentSoundStream.m_CurrentMetaData);
-						m_UI->OnNewSongData(&CurrentSoundStream.m_CurrentMetaData);
+						m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
+						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
 						break;
 					
 					case CPSPSound::STOP:
@@ -541,10 +541,10 @@ public:
 						
 						if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
 						{
-							CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
+							CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
 							
 							/** Populate m_CurrentMetaData */
-							m_CurrentPlayList->GetCurrentSong(&CurrentSoundStream.m_CurrentMetaData);
+							m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
 							
 							m_Sound->Play();
 						}

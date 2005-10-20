@@ -64,7 +64,7 @@ CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *
 	m_iNetworkProfile = 1;
 	m_NetworkStarted  = false;
 	m_RequestOnPlayOrStop = NOTHING;
-	m_CurrentMetaData = &CurrentSoundStream.m_CurrentMetaData;
+	m_CurrentMetaData = CurrentSoundStream->m_CurrentMetaData;
 	
 	SetUp(UI, Config, Sound, NULL, NULL);
 }
@@ -397,14 +397,15 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 		{
 			case CPSPSound::STOP:
 			case CPSPSound::PAUSE:
-				CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
+				CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
+				Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", CurrentSoundStream->GetURI());
 				m_Sound->Play();
 				break;
 			case CPSPSound::PLAY:
 				/** No pausing for URLs, only for Files(local) */
-				if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
+				if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
 				{
-					CurrentSoundStream.SetURI(m_CurrentPlayList->GetCurrentURI());
+					CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
 					m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
 					m_Sound->Pause();
 				}
@@ -414,7 +415,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 					currently selected stream! */
 					/** We do this by stopping the stream, and asking the handler to start playing
 					when the stream stops. */
-					if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
+					if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 					{
 						/** If the new stream is different than the current, only then stop-"restart" */
 						if (0 != strcmp(m_CurrentMetaData->strURI, m_CurrentPlayList->GetCurrentURI()))

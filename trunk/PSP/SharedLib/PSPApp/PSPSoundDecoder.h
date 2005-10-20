@@ -29,29 +29,29 @@
 			int iBitRate;
 			int iNumberOfChannels;
 			int iMPEGLayer;
-		} m_CurrentMetaData;
+		} *m_CurrentMetaData;
 		/** MetaData Accessors */
 		void SetURI(char *NewURI);
-		char *GetURI(){ return m_CurrentMetaData.strURI; }
+		char *GetURI(){ return m_CurrentMetaData->strURI; }
 		
 		void ClearMetadata();
-		void SetTitle(char *Title) { strcpy(m_CurrentMetaData.strTitle, Title); }
-		char *GetTitle(){ return m_CurrentMetaData.strTitle; }
-		void SetURL(char *URL) { strcpy(m_CurrentMetaData.strURL, URL); }
-		char *GetURL(){ return m_CurrentMetaData.strURL; }
-		void SetArtist(char *Artist) { strcpy(m_CurrentMetaData.strArtist, Artist); }
-		char *GetArtist(){ return m_CurrentMetaData.strArtist; }
+		void SetTitle(char *Title) { strcpy(m_CurrentMetaData->strTitle, Title); }
+		char *GetTitle(){ return m_CurrentMetaData->strTitle; }
+		void SetURL(char *URL) { strcpy(m_CurrentMetaData->strURL, URL); }
+		char *GetURL(){ return m_CurrentMetaData->strURL; }
+		void SetArtist(char *Artist) { strcpy(m_CurrentMetaData->strArtist, Artist); }
+		char *GetArtist(){ return m_CurrentMetaData->strArtist; }
 		
-		void SetLength(int Length){ m_CurrentMetaData.iLength = Length; }
-		int  GetLength(){ return m_CurrentMetaData.iLength; }
+		void SetLength(int Length){ m_CurrentMetaData->iLength = Length; }
+		int  GetLength(){ return m_CurrentMetaData->iLength; }
 		void SetSampleRate(int SampleRate);
-		int  GetSampleRate(){ return m_CurrentMetaData.iSampleRate; }
-		void SetBitRate(int BitRate){ m_CurrentMetaData.iBitRate = BitRate; }
-		int  GetBitRate(){ return m_CurrentMetaData.iBitRate; }
-		void SetNumberOfChannels(int NumberOfChannels){ m_CurrentMetaData.iNumberOfChannels = NumberOfChannels; }
-		int  GetNumberOfChannels(){ return m_CurrentMetaData.iNumberOfChannels; }
-		void SetMPEGLayer(int MPEGLayer){ m_CurrentMetaData.iMPEGLayer = MPEGLayer; }
-		int  GetMPEGLayer(){ return m_CurrentMetaData.iMPEGLayer; }
+		int  GetSampleRate(){ return m_CurrentMetaData->iSampleRate; }
+		void SetBitRate(int BitRate){ m_CurrentMetaData->iBitRate = BitRate; }
+		int  GetBitRate(){ return m_CurrentMetaData->iBitRate; }
+		void SetNumberOfChannels(int NumberOfChannels){ m_CurrentMetaData->iNumberOfChannels = NumberOfChannels; }
+		int  GetNumberOfChannels(){ return m_CurrentMetaData->iNumberOfChannels; }
+		void SetMPEGLayer(int MPEGLayer){ m_CurrentMetaData->iMPEGLayer = MPEGLayer; }
+		int  GetMPEGLayer(){ return m_CurrentMetaData->iMPEGLayer; }
 		
 		enum stream_types
 		{
@@ -73,7 +73,7 @@
 		};
 		
 		CPSPSoundStream();
-		~CPSPSoundStream(){}
+		~CPSPSoundStream();
 		
 		int Open();
 		void Close();
@@ -96,7 +96,7 @@
 		enum stream_states m_State;
 	};
 	
-	extern CPSPSoundStream CurrentSoundStream;
+	extern CPSPSoundStream *CurrentSoundStream;
 	
 	class CPSPSoundStreamReader
 	{

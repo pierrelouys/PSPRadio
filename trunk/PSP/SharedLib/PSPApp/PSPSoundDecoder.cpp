@@ -37,7 +37,7 @@ char *GetMetadataValue(char *strMetadata, char *strTag);
 /* ------ Declarations from "httpget.c" (From mpg123) ------ */
 int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_types &ContentType);
 
-CPSPSoundStream CurrentSoundStream;
+CPSPSoundStream *CurrentSoundStream = NULL;
 
 /** class CPSPSoundStream */
 CPSPSoundStream::CPSPSoundStream()
@@ -47,13 +47,22 @@ CPSPSoundStream::CPSPSoundStream()
 	m_pfd = NULL;
 	m_fdSocket = -1;
 	m_ContentType = STREAM_CONTENT_NOT_DEFINED;
+	m_CurrentMetaData = new MetaData;
 	ClearMetadata();
 	
 }
 
+CPSPSoundStream::~CPSPSoundStream()
+{
+	if (m_CurrentMetaData)
+	{
+		delete(m_CurrentMetaData);
+	}
+}
+
 void CPSPSoundStream::ClearMetadata()
 {
-	memset(&m_CurrentMetaData, 0, sizeof(MetaData));
+	memset(m_CurrentMetaData, 0, sizeof(m_CurrentMetaData));
 }
 
 /** Accessors */
@@ -65,15 +74,15 @@ void CPSPSoundStream::SetURI(char *strFile)
 		{
 			/** New URI, clear Metadata */
 			ClearMetadata();
-			strncpy(m_CurrentMetaData.strURI, strFile, 256);
-			if (memcmp(m_CurrentMetaData.strURI, "http://", strlen("http://")) == 0)
+			strncpy(m_CurrentMetaData->strURI, strFile, MAXPATHLEN);
+			if (memcmp(m_CurrentMetaData->strURI, "http://", strlen("http://")) == 0)
 			{
-				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <URL> called", strFile);
+				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <URL> called", m_CurrentMetaData->strURI);
 				m_Type = STREAM_TYPE_URL;
 			}
 			else // It's a file!
 			{
-				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <FILE> called", strFile);
+				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <FILE> called", m_CurrentMetaData->strURI);
 				m_Type = STREAM_TYPE_FILE;
 			}
 		}
@@ -88,7 +97,7 @@ void CPSPSoundStream::SetURI(char *strFile)
 
 void CPSPSoundStream::SetSampleRate(int SampleRate)
 { 
-	m_CurrentMetaData.iSampleRate = SampleRate; 
+	m_CurrentMetaData->iSampleRate = SampleRate; 
 	pPSPSound->SampleRateChange();
 }
 
@@ -132,7 +141,7 @@ int CPSPSoundStream::Open()
 		{
 			case STREAM_TYPE_URL:
 				//ReportError ("Opening URL '%s'\n", filename);
-				m_fdSocket = http_open(m_CurrentMetaData.strURI, m_iMetaDataInterval, ContentType);
+				m_fdSocket = http_open(m_CurrentMetaData->strURI, m_iMetaDataInterval, ContentType);
 				if (m_fdSocket < 0)
 				{
 					//Don't report again, because http_open will report.
@@ -151,7 +160,7 @@ int CPSPSoundStream::Open()
 			case STREAM_TYPE_FILE:
 				if(m_pfd)
 				{
-					char *ext = strrchr(m_CurrentMetaData.strURI, '.') + 1;
+					char *ext = strrchr(m_CurrentMetaData->strURI, '.') + 1;
 					if (strlen(ext) >= 3)
 					{
 						if (0 == strncmp(ext, "mp", 2) || 0 == strncmp(ext, "MP", 2))
@@ -167,11 +176,11 @@ int CPSPSoundStream::Open()
 				}
 				else
 				{
-					ReportError("Unable to open %s", m_CurrentMetaData.strURI);
+					ReportError("Unable to open %s", m_CurrentMetaData->strURI);
 				}
 				break;
 			case STREAM_TYPE_NONE:
-				ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_CurrentMetaData.strURI);
+				ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_CurrentMetaData->strURI);
 				break;
 		}
 	}
@@ -194,25 +203,25 @@ CPSPSoundStreamReader::CPSPSoundStreamReader()
 	m_BstdFile = NULL;
 	//m_eof = true;
 	m_eof = false;
-	m_iMetaDataInterval = CurrentSoundStream.GetMetaDataInterval();
+	m_iMetaDataInterval = CurrentSoundStream->GetMetaDataInterval();
 	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
  	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
-	m_pfd = CurrentSoundStream.GetFileDescriptor();
-	m_fdSocket = CurrentSoundStream.GetSocketDescriptor();
+	m_pfd = CurrentSoundStream->GetFileDescriptor();
+	m_fdSocket = CurrentSoundStream->GetSocketDescriptor();
 	if(m_pfd)
 	{
 		m_BstdFile=NewBstdFile(m_pfd);
 		if(m_BstdFile)
 		{
-			//CurrentSoundStream.SetState(STREAM_STATE_OPEN);
+			//CurrentSoundStream->SetState(STREAM_STATE_OPEN);
 		}
 		else
 		{
 			ReportError("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).",
 					strerror(errno));
 			//m_State = STREAM_STATE_CLOSED;
-			CurrentSoundStream.Close();
+			CurrentSoundStream->Close();
 		}
 	}
 }
@@ -224,10 +233,10 @@ CPSPSoundStreamReader::~CPSPSoundStreamReader()
 
 void CPSPSoundStreamReader::Close()
 {
-	CurrentSoundStream.Close();
-	//if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
+	CurrentSoundStream->Close();
+	//if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
+		if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
 		{
 			if (m_BstdFile)
 			{
@@ -248,9 +257,9 @@ size_t CPSPSoundStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	char bMetaDataSize = 0;
 	int iReadRet = -1;
 	
-	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
+	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		switch(CurrentSoundStream.GetType())
+		switch(CurrentSoundStream->GetType())
 		{
 			case CPSPSoundStream::STREAM_TYPE_FILE:
 				size = BstdRead(pBuffer, 1, SizeInBytes, m_BstdFile);
@@ -296,8 +305,8 @@ size_t CPSPSoundStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 								strURL   = GetMetadataValue(tempMData, METADATA_STREAMURL_TAG);
 								strTitle = GetMetadataValue(tempMData, METADATA_STREAMTITLE_TAG);
 								
-								CurrentSoundStream.SetURL(strURL);
-								CurrentSoundStream.SetTitle(strTitle);
+								CurrentSoundStream->SetURL(strURL);
+								CurrentSoundStream->SetTitle(strTitle);
 								
 								free(tempMData), tempMData = NULL;
 								
@@ -337,9 +346,9 @@ bool CPSPSoundStreamReader::IsEOF()
 {
 	int iseof = 0;
 	
-	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
+	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		switch(CurrentSoundStream.GetType())
+		switch(CurrentSoundStream->GetType())
 		{
 			case CPSPSoundStream::STREAM_TYPE_FILE:
 				iseof = BstdFileEofP(m_BstdFile);

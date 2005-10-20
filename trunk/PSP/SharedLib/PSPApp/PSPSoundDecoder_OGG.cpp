@@ -56,15 +56,15 @@ COGGStreamReader::COGGStreamReader()
 {
 	//m_eof = true;
 	m_eof = false;
-	m_iMetaDataInterval = CurrentSoundStream.GetMetaDataInterval();
+	m_iMetaDataInterval = CurrentSoundStream->GetMetaDataInterval();
 	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
  	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
-	m_pfd = CurrentSoundStream.GetFileDescriptor();
-	m_fdSocket = CurrentSoundStream.GetSocketDescriptor();
+	m_pfd = CurrentSoundStream->GetFileDescriptor();
+	m_fdSocket = CurrentSoundStream->GetSocketDescriptor();
 	
 	int iRet  = -1;
-	switch (CurrentSoundStream.GetType())
+	switch (CurrentSoundStream->GetType())
 	{
 		case CPSPSoundStream::STREAM_TYPE_FILE:
 			iRet = ov_open(m_pfd, &m_vf, NULL /*char *initial*/, 0 /*long ibytes*/);
@@ -92,11 +92,11 @@ COGGStreamReader::COGGStreamReader()
 			Log(LOG_INFO, "Bitstream is %d channel, %ldHz",vi->channels,vi->rate);
 			Log(LOG_INFO, "Decoded length: %ld samples",
 				(long)ov_pcm_total(&m_vf,-1));
-			CurrentSoundStream.SetLength(ov_pcm_total(&m_vf,-1));
+			CurrentSoundStream->SetLength(ov_pcm_total(&m_vf,-1));
 			Log(LOG_INFO, "Encoded by: %s",ov_comment(&m_vf,-1)->vendor);
-			CurrentSoundStream.SetBitRate(vi->bitrate_nominal);
-			CurrentSoundStream.SetSampleRate(vi->rate);
-			CurrentSoundStream.SetNumberOfChannels(vi->channels);
+			CurrentSoundStream->SetBitRate(vi->bitrate_nominal);
+			CurrentSoundStream->SetSampleRate(vi->rate);
+			CurrentSoundStream->SetNumberOfChannels(vi->channels);
 			pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 		}			
 		break;
@@ -121,7 +121,7 @@ COGGStreamReader::COGGStreamReader()
 	 *  Stream needs to be closed with ov_clear! */
 	if (iRet < 0)
 	{
-		CurrentSoundStream.Close();
+		CurrentSoundStream->Close();
 	}
 }
 
@@ -137,11 +137,11 @@ void COGGStreamReader::ReadComments()
 		Log(LOG_INFO, "%s",*ptr);
 		if (strstr(*ptr, "TITLE="))
 		{
-			CurrentSoundStream.SetTitle((*ptr)+strlen("TITLE="));
+			CurrentSoundStream->SetTitle((*ptr)+strlen("TITLE="));
 		}
 		else if (strstr(*ptr, "ARTIST="))
 		{
-			CurrentSoundStream.SetArtist((*ptr)+strlen("ARTIST="));
+			CurrentSoundStream->SetArtist((*ptr)+strlen("ARTIST="));
 		}
 		++ptr;
 	}
@@ -149,13 +149,13 @@ void COGGStreamReader::ReadComments()
 
 void COGGStreamReader::Close()
 {
-	//CurrentSoundStream.Close();
-	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream.GetState())
+	//CurrentSoundStream->Close();
+	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream.GetType())
+		//if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
 		{
 			ov_clear(&m_vf);
-			CurrentSoundStream.SetState(CPSPSoundStream::STREAM_STATE_CLOSED);
+			CurrentSoundStream->SetState(CPSPSoundStream::STREAM_STATE_CLOSED);
 		}
 	}	
 }
@@ -168,10 +168,19 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	int old_section = current_section;
 	//Log(LOG_VERYLOW, "Read. (Begin) bitstream=%d", bitstream);
 	
-	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
+	//while ( (BytesRead < SizeInBytes) && (false == m_eof) )
 	{
 		lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &current_section);
 	
+		if (old_section != current_section)
+		{
+			Log(LOG_LOWLEVEL, "current_section changed from %d to %d. ReadingComments()", 
+				old_section, current_section);
+			ReadComments(); /** Get metadata from the stream */
+			old_section = current_section;
+			pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
+		}
+		
 		if (0 == lRet)
 		{
 			Log(LOG_INFO, "OGG Stream End.. Closing..");
@@ -201,13 +210,9 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 		{
 			BytesRead += lRet;
 		}
+		
 	}
 	
-	if (old_section != current_section)
-	{
-		Log(LOG_LOWLEVEL, "current_section changed from %d to %d. ReadingComments()", old_section, current_section);
-		ReadComments();
-	}
 	//Log(LOG_VERYLOW, "Read. (End) bitstream=%d", bitstream);
 	return BytesRead;
 }
@@ -217,7 +222,6 @@ void CPSPSoundDecoder_OGG::Initialize()
 {
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_OGG Initialize"); 
 
-	m_NumberOfChannels = 2;
 	m_InputStreamReader = new COGGStreamReader();
 
 	if (!m_InputStreamReader)
@@ -256,6 +260,8 @@ bool CPSPSoundDecoder_OGG::Decode()
 	
 	long lRet = 0;
 	
+	int iNumberOfChannels = CurrentSoundStream->GetNumberOfChannels();
+	
 	lRet = m_InputStreamReader->Read(m_pInputBuffer, 4096);
 	
 	if (lRet > 0)
@@ -268,7 +274,7 @@ bool CPSPSoundDecoder_OGG::Decode()
 		for (long Cnt = 0; Cnt < lFramesDecoded; Cnt++)
 		{
 			SampleL = *pOutputSample++;
-			if(m_NumberOfChannels==2)
+			if(2 == iNumberOfChannels)
 			{
 				SampleR = *pOutputSample++; 
 			}

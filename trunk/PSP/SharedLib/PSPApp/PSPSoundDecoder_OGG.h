@@ -54,7 +54,6 @@
 		bool Decode();
 
 	private:
-		int m_NumberOfChannels;
 		unsigned char	*m_pInputBuffer;
 		unsigned char	*m_GuardPtr;
 		unsigned long	m_FrameCount;

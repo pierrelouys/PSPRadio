@@ -68,6 +68,9 @@ void CPSPSound::Initialize()
 		ReportError("Unable to aquire sound channel");
 	}
 	
+	/** Global */
+	CurrentSoundStream = new CPSPSoundStream();
+	
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
 	
@@ -133,7 +136,8 @@ void CPSPSound::SetPlayThreadPriority(int iNewPrio)
 int CPSPSound::Play()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
-	Log(LOG_LOWLEVEL, "Play(): m_CurrentState=%s", 
+	Log(LOG_LOWLEVEL, "Play('%s'): m_CurrentState=%s", 
+		CurrentSoundStream->GetURI(),
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
@@ -298,13 +302,13 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				
 				pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
 				Log(LOG_INFO, "ThDecode:: Calling Open For '%s'", 
-					CurrentSoundStream.GetURI());
-				CurrentSoundStream.Open();
+					CurrentSoundStream->GetURI());
+				CurrentSoundStream->Open();
 				
-				if (true == CurrentSoundStream.IsOpen())
+				if (true == CurrentSoundStream->IsOpen())
 				{
 					bool bDecoderCreated = false;
-					switch (CurrentSoundStream.GetContentType())
+					switch (CurrentSoundStream->GetContentType())
 					{
 						case CPSPSoundStream::STREAM_CONTENT_NOT_DEFINED:
 							Log(LOG_INFO, "ThDecode:: Content type not defined. Defaulting to MPEG.");
@@ -352,13 +356,13 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 					else
 					{
 						/** Close if no decoder instantiated */
-						CurrentSoundStream.Close();
+						CurrentSoundStream->Close();
 					}
 				}
 				else
 				{
 					pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
-					Log(LOG_ERROR, "Unable to open stream '%s'.", CurrentSoundStream.GetURI());
+					Log(LOG_ERROR, "Unable to open stream '%s'.", CurrentSoundStream->GetURI());
 				}
 				
 				break;
@@ -450,7 +454,7 @@ size_t CPSPSoundBuffer::GetBufferFillPercentage()
 		
 void CPSPSoundBuffer::SampleRateChange()
 {
-	int samplerate = CurrentSoundStream.GetSampleRate();
+	int samplerate = CurrentSoundStream->GetSampleRate();
 	if (samplerate > 0)
 	{
 		Empty();
