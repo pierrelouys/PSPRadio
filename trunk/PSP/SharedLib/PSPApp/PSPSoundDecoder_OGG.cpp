@@ -168,7 +168,7 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	int old_section = current_section;
 	//Log(LOG_VERYLOW, "Read. (Begin) bitstream=%d", bitstream);
 	
-	//while ( (BytesRead < SizeInBytes) && (false == m_eof) )
+	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
 	{
 		lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &current_section);
 	
@@ -195,7 +195,9 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 					//indicates there was an interruption in the data.
 					//(one of: garbage between pages, loss of sync followed by recapture, or a corrupt page)
 					Log(LOG_INFO, "OGG Stream Warning: OV_HOLE (Garbage/loss of sync/corrupt page) current_section=%d", current_section);
-					return BytesRead;
+					//Close();
+					//m_eof = true;
+					//return BytesRead;
 					break;
 				case OV_EBADLINK:
 					//indicates that an invalid stream section was supplied to libvorbisidec, or 
