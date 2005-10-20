@@ -433,18 +433,18 @@ int http_open (char *url, size_t &iMetadataInterval, CPSPSoundStream::content_ty
 		if (sock < 0)
 			goto fail;
 		
-	//	struct timeval  timeo;
-	//	timeo.tv_sec  = 3; //sec
-	//	timeo.tv_usec = 3; //usec
-	//	Log(LOG_LOWLEVEL, "http_connect(): Calling Setsockopt()");
-	//	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
-	//	{
-	//		ReportError("setsockopt SO_RCVTIMEO Failed");
-	//	}
-	//	if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo)) < 0) 
-	//	{
-	//		ReportError("setsockopt SO_SNDTIMEO Failed");
-	//	}
+		struct timeval  timeo;
+		timeo.tv_sec  = 3; //sec
+		timeo.tv_usec = 0; //usec
+		Log(LOG_LOWLEVEL, "http_connect(): Calling Setsockopt()");
+		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
+		{
+			ReportError("setsockopt SO_RCVTIMEO Failed");
+		}
+		if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeo, sizeof(timeo)) < 0) 
+		{
+			ReportError("setsockopt SO_SNDTIMEO Failed");
+		}
 		
 		
 		memset(&sin, 0, sizeof(struct sockaddr_in));
