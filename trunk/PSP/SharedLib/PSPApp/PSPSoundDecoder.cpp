@@ -158,6 +158,7 @@ int CPSPSoundStream::Open()
 				break;
 			
 			case STREAM_TYPE_FILE:
+				m_pfd = fopen(m_CurrentMetaData->strURI, "rb");
 				if(m_pfd)
 				{
 					char *ext = strrchr(m_CurrentMetaData->strURI, '.') + 1;
