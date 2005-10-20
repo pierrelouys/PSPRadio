@@ -245,6 +245,21 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	m_lockclear->Unlock();
 }
 
+void CTextUI::ClearHalfRows(int iColStart, int iRowStart, int iRowEnd)
+{
+	if (iRowEnd == -1)
+		iRowEnd = iRowStart;
+		
+	m_lockclear->Lock();
+	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
+	{
+		pspDebugScreenSetXY(iColStart,iRow);
+		printf("%33c", ' ');
+	}
+	m_lockclear->Unlock();
+}
+	
+	
 int CTextUI::SetTitle(char *strTitle)
 {
 //	int x,y;
@@ -472,43 +487,120 @@ int CTextUI::OnConnectionProgress()
 
 int CTextUI::DisplayPLList(CDirList *plList)
 {
-	int x,y,c;
-	char strPL[60];
+	int x,y,c,r1,r2,ct,cs;
+	list<CDirList::directorydata>::iterator ListIterator;
+	list<CDirList::directorydata>::iterator *CurrentElement = plList->GetCurrentElementIterator();
+	list<CDirList::directorydata> *List = plList->GetList();
+	char *text = NULL;
 	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &x, &y);
-	c = GetConfigColor("COLORS:PLAYLIST_DIRS");
+	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
+	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
+	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
+	cs = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
+	int color = c;
 
-	ClearRows(y);
-	strncpy(strPL, basename(plList->GetCurrentURI()), 56);
-	uiPrintf(x, y, c, "PlayList: %s", strPL);
+	ClearHalfRows(x, r1,r2);
+	uiPrintf(33/2 + x - 2/*list/2*/, y, ct, "List");
+	y++;
+	
+	text = (char *)malloc (MAXPATHLEN);
+	
+	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
+	if (List->size() > 0)
+	{
+		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
+		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++)
+		{
+			if (y > r2)
+			{
+				break;
+			}
+			
+			if (ListIterator == *CurrentElement)
+			{
+				color = cs;
+			}
+			else
+			{
+				color = c;
+			}
+			
+			//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
+			strncpy(text, (*ListIterator).strURI, 28);
+			text[28] = 0;
+		
+			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
+			uiPrintf(x, y, color, text);
+			y+=1;
+		}
+	}
+	
+	free(text), text = NULL;
 	
 	return 0;
 }
 
 int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 {
-	CPSPSoundStream::MetaData Data;
-	int x,y,c;
+	int x,y,c,r1,r2,ct,cs;
+	list<CPSPSoundStream::MetaData>::iterator ListIterator;
+	list<CPSPSoundStream::MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
+	list<CPSPSoundStream::MetaData> *List = PlayList->GetList();
+	char *text;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
+	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
 	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
+	cs = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
+	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
+	int color = c;
 
-	ClearRows(y);
-	int iRet = PlayList->GetCurrentSong(&Data);
-	if (0 == iRet)
+	ClearHalfRows(x, r1,r2);
+	
+	uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
+	y++;
+	
+	text = (char *)malloc (MAXPATHLEN);
+	
+	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
+	if (List->size() > 0)
 	{
-		if (strlen(Data.strTitle))
+		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
+		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++)
 		{
-			if (strlen(Data.strTitle) >= 57)
-				Data.strTitle[57] = 0;
-			uiPrintf(x, y, c, "Stream  : %s", Data.strTitle);
-		}
-		else
-		{
-			if (strlen(Data.strURI) >= 57)
-				Data.strURI[57] = 0;
-			uiPrintf(x, y, c, "Stream  : %s", Data.strURI);
+			if (y > r2)
+			{
+				break;
+			}
+			
+			if (ListIterator == *CurrentElement)
+			{
+				color = cs;
+			}
+			else
+			{
+				color = c;
+			}
+			
+			if (strlen((*ListIterator).strTitle))
+			{
+				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
+				strncpy(text, (*ListIterator).strTitle, 28);
+				text[28] = 0;
+			}
+			else
+			{
+				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
+				strncpy(text, (*ListIterator).strURI, 28);
+				text[28] = 0;
+			}
+		
+			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
+			uiPrintf(x, y, color, text);
+			y+=1;
 		}
 	}
 	
+	free(text), text = NULL;
 	
 	return 0;
 }

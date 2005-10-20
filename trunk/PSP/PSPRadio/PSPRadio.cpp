@@ -52,12 +52,11 @@ private:
 	CPSPSound *m_Sound;
 	CPlayList *m_CurrentPlayList;
 	CDirList  *m_CurrentPlayListDir;
-//	CPSPSoundStream::MetaData *m_CurrentMetaData;
 	IPSPRadio_UI *m_UI;
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre1")
+	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre2")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -65,7 +64,6 @@ public:
 		m_CurrentPlayList = NULL;
 		m_CurrentPlayListDir = NULL;
 		m_UI = NULL;
-//		m_CurrentMetaData = NULL;
 		m_ScreenHandler = NULL;
 	};
 

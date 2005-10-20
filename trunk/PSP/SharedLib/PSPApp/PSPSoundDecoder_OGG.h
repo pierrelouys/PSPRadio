@@ -36,10 +36,13 @@
 		
 		void Close();
 		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
-		void ReadComments(); /** Retrieve metadata from the stream */
-	
+		void ReadComments(); /** Retrieve/Process metadata from the stream */
+		void COGGStreamReader::ProcessInfo(); /** Get/Process Stream info */
+		
 	private:
 		OggVorbis_File m_vf;
+		int m_last_section;
+		CLock *m_lock;
 	};
 	
 	class CPSPSoundDecoder_OGG : public IPSPSoundDecoder

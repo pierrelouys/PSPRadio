@@ -159,11 +159,11 @@ int CPSPSoundStream::Open()
 					char *ext = strrchr(m_CurrentMetaData->strURI, '.') + 1;
 					if (strlen(ext) >= 3)
 					{
-						if (0 == strncmp(ext, "mp", 2) || 0 == strncmp(ext, "MP", 2))
+						if (0 == strncasecmp(ext, "mp", 2))
 						{
 							m_ContentType = STREAM_CONTENT_AUDIO_MPEG;
 						}
-						else if (0 == strncmp(ext, "ogg", 3) || 0 == strncmp(ext, "OGG", 3))
+						else if (0 == strncasecmp(ext, "ogg", 3))
 						{
 							m_ContentType = STREAM_CONTENT_AUDIO_OGG;
 						}
