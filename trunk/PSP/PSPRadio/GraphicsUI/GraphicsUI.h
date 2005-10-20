@@ -44,6 +44,11 @@ public:
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
 
+	/** Screen Handling */
+	void Initialize_Screen(CScreenHandler::Screen screen);
+	void UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
+							list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
+		
 private:
 	SDL_Surface *LoadImage(char *szImageName);
 	void UnLoadImage(SDL_Surface **ppImage);
@@ -65,6 +70,9 @@ private:
 	void ResetImageArea(CGraphicsUIPosItem *pSrcPosItem, CGraphicsUIPosItem *pDstPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
 	void ResetImageArea(CGraphicsUIPosItem *pPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
 	void CopySurface(SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface, CGraphicsUIPosItem *pDstPosItem, bool bCenter);
+
+	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
+					int iActiveState);
 	
 private:
 	SDL_Surface *m_pImageBase;	
@@ -84,6 +92,7 @@ private:
 	
 	/** Image and Button Items */
 	CGraphicsUIThemeItem m_themeItemBackground;
+	CGraphicsUIThemeItem m_themeItemSettings;
 	CGraphicsUIThemeItem m_themeItemPlay;
 	CGraphicsUIThemeItem m_themeItemPause;
 	CGraphicsUIThemeItem m_themeItemStop;
@@ -97,8 +106,9 @@ private:
 	CGraphicsUIPosItem m_posItemPlayListAreaSel;
 	CGraphicsUIPosItem m_posItemPlayListItemArea;
 	CGraphicsUIPosItem m_posItemPlayListItemAreaSel;
-		
+			
 	/** String Locations */
+	CGraphicsUIPosItem m_posItemSettingsArea;
 	CGraphicsUIPosItem m_posItemFileNameString;
 	CGraphicsUIPosItem m_posItemFileTitleString;
 	CGraphicsUIPosItem m_posItemURLString;

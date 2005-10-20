@@ -127,6 +127,117 @@ void CGraphicsUI::Terminate()
 	}	
 }
 
+void CGraphicsUI::Initialize_Screen(CScreenHandler::Screen screen)
+{
+#if 0
+	int x,y,c;
+#endif
+
+	switch (screen)
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+			SetButton(m_themeItemBackground, UIBUTTONSTATE_ON);
+#if 0
+			pspDebugScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
+			pspDebugScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
+			pspDebugScreenClear(); 
+			if (m_strTitle)
+			{
+				GetConfigPos("TEXT_POS:TITLE", &x, &y);
+				c = GetConfigColor("COLORS:TITLE");
+				uiPrintf(x,y, c, m_strTitle);
+			}
+			GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+			c = GetConfigColor("COLORS:MAIN_COMMANDS");
+				
+			ClearRows(y);
+			uiPrintf(x, y, c, "X Play | [] Stop | L / R Songs | UP/DN PlayLists | ^ Options");
+#endif			
+			break;
+			
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+			SetButton(m_themeItemSettings, UIBUTTONSTATE_ON);
+#if 0		
+			pspDebugScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
+			pspDebugScreenSetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
+			pspDebugScreenClear(); 
+			uiPrintf(-1,0, GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"), "PSPRadio OPTIONS:");
+#endif			
+			break;
+	
+	}
+}
+
+void CGraphicsUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
+								list<CScreenHandler::Options>::iterator &CurrentOptionIterator)
+{
+	list<CScreenHandler::Options>::iterator OptionIterator;
+	CScreenHandler::Options	Option;
+	
+//	int x=-1,y=5,c=0xFFFFFF;
+	
+	if (OptionsList.size() > 0)
+	{
+		for (OptionIterator = OptionsList.begin() ; OptionIterator != OptionsList.end() ; OptionIterator++)
+		{
+			if (OptionIterator == CurrentOptionIterator)
+			{
+//				c = GetConfigColor("COLORS:OPTIONS_SCREEN_OPTION_NAME_TEXT");//0xFFFFFF;
+			}
+			else
+			{
+//				c = GetConfigColor("COLORS:OPTIONS_SCREEN_OPTION_SELECTED_NAME_TEXT");//0x888888;
+			}
+			
+			Option = (*OptionIterator);
+			
+//			ClearRows(y);
+//			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
+//						Option.iActiveState);
+			
+//			y+=2;
+		}
+	}
+}
+
+void CGraphicsUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
+						  int iActiveState)
+{
+//	int iTextPos = 5;
+//	int color = 0xFFFFFF;
+	
+	//uiPrintf(x,y,c, "%s(%d): %s", strName, iSelectedState, strStates);
+//	uiPrintf(iTextPos,y,c, "%s: ", strName);
+	if (iNumberOfStates > 0)
+	{
+//		iTextPos += strlen(strName)+2;
+		for (int iStates = 0; iStates < iNumberOfStates ; iStates++)
+		{
+			if (iStates+1 == iActiveState)
+			{
+//				color = GetConfigColor("COLORS:OPTIONS_SCREEN_ACTIVE_STATE");//0x0000FF;
+			}
+			else if (iStates+1 == iSelectedState) /** 1-based */
+			{
+//				color = GetConfigColor("COLORS:OPTIONS_SCREEN_SELECTED_STATE");//0xFFFFFF;
+			}
+			else
+			{
+//				color = GetConfigColor("COLORS:OPTIONS_SCREEN_NOT_SELECTED_STATE");//0x888888;
+			}
+			
+			if ((iStates+1 == iActiveState) && (iStates+1 == iSelectedState))
+			{
+//				color =  GetConfigColor("COLORS:OPTIONS_SCREEN_ACTIVE_AND_SELECTED_STATE");//0x9090E3;
+			}
+			
+//			uiPrintf(iTextPos,y,color, "%s ", strStates[iStates]);
+//			iTextPos += strlen(strStates[iStates])+1;
+		}
+	}	
+}
+
+
 int CGraphicsUI::SetTitle(char *strTitle)
 {
 	return 0;
@@ -479,6 +590,13 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 		return FALSE;
 	}
 	
+	if(0 != m_theme.GetItem("settings", &m_themeItemSettings))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme settings");
+		return FALSE;
+	}
+	
+	
 	if(0 != m_theme.GetItem("play", &m_themeItemPlay))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme play");
@@ -523,6 +641,12 @@ bool CGraphicsUI::InitializeTheme(char *szFilename, char *szThemePath)
 	
 	/** Get the string positions from ini file. If the value is not found we */
 	/** will just disable that string item. */
+	if(0 != m_theme.GetPosItem("stringpos:settingsarea", &m_posItemSettingsArea))
+	{
+		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos settingsarea disabling");
+		m_posItemSettingsArea.m_bEnabled = false;
+	}
+	
 	if(0 != m_theme.GetPosItem("stringpos:filename", &m_posItemFileNameString))
 	{
 		Log(LOG_ERROR, "InitializeTheme: error getting theme string pos filename disabling");
@@ -670,7 +794,7 @@ bool CGraphicsUI::InitializeImages()
 SDL_Surface *CGraphicsUI::DisplayWord(char *szWord)
 {
 	int nFontWidth = m_themeItemABC123.m_pointSize.x;
-	int nFontHeight = m_themeItemABC123.m_pointSize.y;
+	int nFontHeight = m_themeItemABC123.m_pointSize.y + 2;
 	int nCurrentXPos = 5; /** JPF added a little offset to start of string */
 	int nCurrentYPos = 0;	
 	SDL_Surface *pSurface = NULL;
@@ -720,6 +844,13 @@ void CGraphicsUI::DisplayWord(CGraphicsUIPosItem *pPosItem,
 								char *szWord, 
 								bool bCenter)
 {
+	
+	if(pPosItem == NULL || false == pPosItem->m_bEnabled)
+	{
+		return;
+	}
+	
+	
 	SDL_Surface *pWordSurface = DisplayWord(szWord);
 	CopySurface(pWordSurface, m_pScreen, pPosItem, bCenter);
 	SDL_FreeSurface(pWordSurface);	
