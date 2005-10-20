@@ -162,7 +162,10 @@ void CScreenHandler::StartScreen(Screen screen)
 			{
 				Log(LOG_LOWLEVEL, "Displaying current playlist");
 				m_UI->DisplayPLList(m_CurrentPlayListDir);
-				
+				m_CurrentPlayListSideSelection = PLAYLIST_LIST;
+				/** tell ui of m_CurrentPlayListSideSelection change. */
+				m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
+
 				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
 				{
 					m_UI->DisplayPLEntries(m_CurrentPlayList);
@@ -356,72 +359,104 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 	
 		
-	if (iButtonMask & PSP_CTRL_LTRIGGER)
+	if (iButtonMask & PSP_CTRL_LEFT)
 	{
-		m_CurrentPlayList->Prev();
-		m_UI->DisplayPLEntries(m_CurrentPlayList);
+		m_CurrentPlayListSideSelection = PLAYLIST_LIST;
+		/** tell ui of m_CurrentPlayListSideSelection change. */
+		m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 	}
-	else if (iButtonMask & PSP_CTRL_RTRIGGER)
+	else if (iButtonMask & PSP_CTRL_RIGHT)
 	{
-		m_CurrentPlayList->Next();
-		m_UI->DisplayPLEntries(m_CurrentPlayList);
+		m_CurrentPlayListSideSelection = PLAYLIST_ENTRIES;
+		/** tell ui of m_CurrentPlayListSideSelection change. */
+		m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 	}
 	else if (iButtonMask & PSP_CTRL_UP)
 	{
-		m_CurrentPlayListDir->Prev();
-		m_UI->DisplayPLList(m_CurrentPlayListDir);
-		m_CurrentPlayList->Clear();
-		m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-		m_UI->DisplayPLEntries(m_CurrentPlayList);
+		switch(m_CurrentPlayListSideSelection)
+		{
+			case PLAYLIST_LIST:
+				m_CurrentPlayListDir->Prev();
+				m_UI->DisplayPLList(m_CurrentPlayListDir);
+				break;
+			
+			case PLAYLIST_ENTRIES:
+				m_CurrentPlayList->Prev();
+				m_UI->DisplayPLEntries(m_CurrentPlayList);
+				break;
+		}
 	}
 	else if (iButtonMask & PSP_CTRL_DOWN)
 	{
-		m_CurrentPlayListDir->Next();
-		m_UI->DisplayPLList(m_CurrentPlayListDir);
-		m_CurrentPlayList->Clear();
-		m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-		m_UI->DisplayPLEntries(m_CurrentPlayList);
+		switch(m_CurrentPlayListSideSelection)
+		{
+			case PLAYLIST_LIST:
+				m_CurrentPlayListDir->Next();
+				m_UI->DisplayPLList(m_CurrentPlayListDir);
+				break;
+			
+			case PLAYLIST_ENTRIES:
+				m_CurrentPlayList->Next();
+				m_UI->DisplayPLEntries(m_CurrentPlayList);
+				break;
+		}
 	}
 	else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
 	{
-		switch(playingstate)
+		switch(m_CurrentPlayListSideSelection)
 		{
-			case CPSPSound::STOP:
-			case CPSPSound::PAUSE:
-				CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
-				Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", CurrentSoundStream->GetURI());
-				m_Sound->Play();
+			case PLAYLIST_LIST:
+				m_CurrentPlayList->Clear();
+				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+				m_UI->DisplayPLEntries(m_CurrentPlayList);
+				m_CurrentPlayListSideSelection = PLAYLIST_ENTRIES;
+				/** tell ui of m_CurrentPlayListSideSelection change. */
+				m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 				break;
-			case CPSPSound::PLAY:
-				/** No pausing for URLs, only for Files(local) */
-				if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
+			
+			case PLAYLIST_ENTRIES:
+				switch(playingstate)
 				{
-					CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
-					m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
-					m_Sound->Pause();
-				}
-				else
-				{
-					/** If currently playing a stream, and the user presses play, then start the 
-					currently selected stream! */
-					/** We do this by stopping the stream, and asking the handler to start playing
-					when the stream stops. */
-					if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
-					{
-						/** If the new stream is different than the current, only then stop-"restart" */
-						if (0 != strcmp(CurrentSoundStream->GetURI(), m_CurrentPlayList->GetCurrentURI()))
+					case CPSPSound::STOP:
+					case CPSPSound::PAUSE:
+						CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
+						Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", CurrentSoundStream->GetURI());
+						m_Sound->Play();
+						break;
+					case CPSPSound::PLAY:
+						/** No pausing for URLs, only for Files(local) */
+						if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
 						{
-							Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
-							m_Sound->Stop();
-							m_RequestOnPlayOrStop = PLAY;
+							CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
+							m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+							m_Sound->Pause();
 						}
 						else
 						{
-							Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
+							/** If currently playing a stream, and the user presses play, then start the 
+							currently selected stream! */
+							/** We do this by stopping the stream, and asking the handler to start playing
+							when the stream stops. */
+							if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+							{
+								/** If the new stream is different than the current, only then stop-"restart" */
+								if (0 != strcmp(CurrentSoundStream->GetURI(), m_CurrentPlayList->GetCurrentURI()))
+								{
+									Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
+									m_Sound->Stop();
+									m_RequestOnPlayOrStop = PLAY;
+								}
+								else
+								{
+									Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
+								}
+							}
 						}
-					}
+						break;
 				}
 				break;
+			
+			
 		}
 	}
 	else if (iButtonMask & PSP_CTRL_SQUARE)

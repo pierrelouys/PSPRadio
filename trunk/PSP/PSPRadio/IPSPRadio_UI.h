@@ -36,6 +36,7 @@
 		
 		virtual int DisplayPLList(CDirList *plList){return 0;};
 		virtual	int DisplayPLEntries(CPlayList *PlayList){return 0;};
+		virtual int OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection){return 0;};
 		
 		/** Screen Handling */
 		virtual void Initialize_Screen(CScreenHandler::Screen screen){};

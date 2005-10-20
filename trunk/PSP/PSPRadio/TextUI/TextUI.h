@@ -29,8 +29,10 @@ public:
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
 	int OnNewSongData(CPSPSoundStream::MetaData *pData);
+	
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
+	int OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection);
 	
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);

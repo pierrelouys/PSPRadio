@@ -121,7 +121,7 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			c = GetConfigColor("COLORS:MAIN_COMMANDS");
 				
 			ClearRows(y);
-			uiPrintf(x, y, c, "X Play | [] Stop | L / R Songs | UP/DN PlayLists | ^ Options");
+			uiPrintf(x, y, c, "X Play | [] Stop | ^ Options");
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			pspDebugScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
@@ -499,8 +499,8 @@ int CTextUI::DisplayPLList(CDirList *plList)
 	cs = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
 	int color = c;
 
-	ClearHalfRows(x, r1,r2);
-	uiPrintf(33/2 + x - 2/*list/2*/, y, ct, "List");
+	ClearHalfRows(x, r1+1,r2); /** Don't clear title (+1) */
+	//uiPrintf(33/2 + x - 2/*list/2*/, y, ct, "List");
 	y++;
 	
 	text = (char *)malloc (MAXPATHLEN);
@@ -562,9 +562,9 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
 	int color = c;
 
-	ClearHalfRows(x, r1,r2);
+	ClearHalfRows(x, r1+1,r2); /** Don't clear Entry title */
 	
-	uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
+	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
 	y++;
 	
 	text = (char *)malloc (MAXPATHLEN);
@@ -622,3 +622,31 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	
 	return 0;
 }
+
+int CTextUI::OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection)
+{
+	int r1,r2, ct, iListX, iEntryX, y;
+	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &iEntryX, &y);
+	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &iListX, &y);
+	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
+	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
+
+	ClearRows(r1);
+	
+	switch (CurrentPlayListSideSelection)
+	{
+		case CScreenHandler::PLAYLIST_LIST:
+			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
+			uiPrintf(33/2 + iEntryX - 3/*entry/2*/, r1, ct, "Entry");
+			break;
+		
+		case CScreenHandler::PLAYLIST_ENTRIES:
+			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
+			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "*Entry*");
+			break;
+	
+	}
+	
+	return 0;
+}
+

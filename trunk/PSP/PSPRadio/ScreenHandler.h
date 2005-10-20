@@ -16,8 +16,11 @@
 		enum Screen
 		{
 			PSPRADIO_SCREEN_PLAYLIST,
-			PSPRADIO_SCREEN_OPTIONS
+			PSPRADIO_SCREEN_OPTIONS//,
+			//PSPRADIO_SCREEN_SHOUTCAST_BROWSER
 		};
+		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
+		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 		
 		enum request_on_play_stop
 		{
@@ -26,9 +29,11 @@
 			STOP
 		};
 		
-		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
-		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
-		
+		enum PlayListSide
+		{
+			PLAYLIST_LIST,
+			PLAYLIST_ENTRIES
+		};
 		
 		#define MAX_OPTION_LENGTH 60
 		#define MAX_NUM_OF_OPTIONS 20
@@ -76,5 +81,6 @@
 		bool m_NetworkStarted;
 		CPlayList *m_CurrentPlayList;
 		CDirList  *m_CurrentPlayListDir;
+		PlayListSide m_CurrentPlayListSideSelection;
 	};
 #endif
