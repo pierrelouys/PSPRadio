@@ -92,10 +92,6 @@ public:
 		
 		Setup_Sound();
 		
-		Setup_UI(strDir);
-	
-		m_UI->SetTitle(strAppTitle);
-		
 		if (-1 != m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"))
 		{
 		
@@ -107,7 +103,12 @@ public:
 		
 		Setup_PlayLists();
 	
-		m_ScreenHandler->SetUp(m_UI, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
+		m_ScreenHandler = new CScreenHandler(m_Config, m_Sound);
+		m_ScreenHandler->SetUp(m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
+		Setup_UI(strDir);
+	
+		m_UI->SetTitle(strAppTitle);
+		m_UI->DisplayMainCommands();
 		
 		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
 		{
@@ -178,19 +179,18 @@ public:
 		
 		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
 		{
-			m_UI = new CGraphicsUI();
+			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_GRAPHICS);//m_UI = new CGraphicsUI();
 		}
 		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
 		{
-			m_UI = new CSandbergUI();
+			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_3D);//m_UI = new CSandbergUI();
 		}
 		else
 		{
-			m_UI = new CTextUI();
+			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_TEXT);//m_UI = new CTextUI();
 		}
 		
-		m_UI->Initialize(strCurrentDir); /* Initialize takes cwd */
-		m_ScreenHandler = new CScreenHandler(m_UI, m_Config, m_Sound);
+		//m_UI->Initialize(strCurrentDir); /* Initialize takes cwd */
 		
 		return 0;
 	}
@@ -242,8 +242,6 @@ public:
 		if (m_CurrentPlayList)
 		{
 			m_CurrentPlayListDir = new CDirList();
-			
-			m_UI->DisplayMainCommands();
 		}
 		else
 		{
@@ -261,14 +259,6 @@ public:
 			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Sound object");
 			delete(m_Sound);
 			m_Sound = NULL;
-		}
-		if (m_UI)
-		{
-			Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
-			m_UI->Terminate();
-			Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
-			delete(m_UI);
-			m_UI = NULL;
 		}
 		if (m_Config)
 		{

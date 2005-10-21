@@ -38,27 +38,71 @@
 
 #define ReportError pPSPApp->ReportError
 
-CScreenHandler::CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound)
+CScreenHandler::CScreenHandler(CIniParser *Config, CPSPSound *Sound)
 {
 	m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
 	m_iNetworkProfile = 1;
 	m_NetworkStarted  = false;
 	m_RequestOnPlayOrStop = NOTHING;
+	m_CurrentUI = UI_TEXT;
+	m_UI = NULL;
 	
-	SetUp(UI, Config, Sound, NULL, NULL);
+	SetUp(Config, Sound, NULL, NULL);
 }
 
-void CScreenHandler::SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound,
+
+CScreenHandler::~CScreenHandler()
+{
+	if (m_UI)
+	{
+		Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
+		m_UI->Terminate();
+		Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
+		delete(m_UI);
+		m_UI = NULL;
+	}
+}
+
+void CScreenHandler::SetUp(CIniParser *Config, CPSPSound *Sound,
 							CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir)
 {	
-	m_UI = UI;
 	m_Config = Config;
 	m_Sound = Sound;
 	m_CurrentPlayList = CurrentPlayList;
 	m_CurrentPlayListDir = CurrentPlayListDir;
+	m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
 	
 	PopulateOptionsData();
+}
+
+IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
+{
+	if (m_UI)
+	{
+		Log(LOG_INFO, "StartUI: Destroying current UI");
+		m_UI->Terminate();
+		delete(m_UI), m_UI = NULL;
+	}
+	switch(UI)
+	{
+		case UI_TEXT:
+			Log(LOG_INFO, "StartUI: Starting Text UI");
+			m_UI = new CTextUI();
+			break;
+		case UI_GRAPHICS:
+			Log(LOG_INFO, "StartUI: Starting Graphics UI");
+			m_UI = new CGraphicsUI();
+			break;
+		case UI_3D:
+			Log(LOG_INFO, "StartUI: Starting 3D UI");
+			m_UI = new CSandbergUI();
+			break;
+	}
+	m_CurrentUI = UI;
+	m_UI->Initialize("./");//strCurrentDir); /* Initialize takes cwd */ ///FIX!!!
 	StartScreen(m_CurrentScreen);
+	
+	return m_UI;
 }
 
 int CScreenHandler::Start_Network(int iProfile)

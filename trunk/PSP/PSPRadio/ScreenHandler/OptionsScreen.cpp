@@ -56,7 +56,7 @@ CScreenHandler::Options OptionsData[] =
 	{	OPTION_ID_NETWORK_ENABLE,	"Start Network",			{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"222","266","333"},			1,1,3		},
-	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"10","20","50","80","100"},	1,1,5		},
+	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphic","3D"},		1,1,3		},
 	
 	{  -1,  						"",							{""},							0,0,0		}
@@ -110,11 +110,35 @@ void CScreenHandler::PopulateOptionsData()
 				break;
 				
 			case OPTION_ID_CPU_SPEED:
-			default:
 				break;
 		
+			case OPTION_ID_LOG_LEVEL:
+				switch(Logging.GetLevel())
+				{
+					case 0:
+					case LOG_VERYLOW:
+						Option.iActiveState = 1;
+						break;
+					case LOG_LOWLEVEL:
+						Option.iActiveState = 2;
+						break;
+					case LOG_INFO:
+						Option.iActiveState = 3;
+						break;
+					case LOG_ERROR:
+						Option.iActiveState = 4;
+						break;
+					case LOG_ALWAYS:
+					default:
+						Option.iActiveState = 5;
+						break;
+				}
+				break;
+			
+			case OPTION_ID_UI:
+				Option.iActiveState = m_CurrentUI + 1;
+				break;
 		}
-		
 		
 		m_OptionsList.push_back(Option);
 	}
@@ -218,6 +242,31 @@ void CScreenHandler::OnOptionActivation()
 				fOptionActivated = true;
 			}
 			break;
+		case OPTION_ID_LOG_LEVEL:
+			switch((*m_CurrentOptionIterator).iSelectedState)
+			{
+				case 1:
+					Logging.SetLevel(LOG_VERYLOW);
+					break;
+				case 2:
+					Logging.SetLevel(LOG_LOWLEVEL);
+					break;
+				case 3:
+					Logging.SetLevel(LOG_INFO);
+					break;
+				case 4:
+					Logging.SetLevel(LOG_ERROR);
+					break;
+				case 5:
+					Logging.SetLevel(LOG_ALWAYS);
+					break;
+			}
+			fOptionActivated = true;
+			break;
+		case OPTION_ID_UI:
+			StartUI((UIs)((*m_CurrentOptionIterator).iSelectedState - 1));
+			fOptionActivated = true;
+			break;	
 	}
 	
 	if (true == fOptionActivated)	

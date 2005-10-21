@@ -22,6 +22,13 @@
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 		
+		enum UIs
+		{
+			UI_TEXT = 0,
+			UI_GRAPHICS = 1,
+			UI_3D = 2,
+		};
+		
 		enum request_on_play_stop
 		{
 			NOTHING,
@@ -55,9 +62,11 @@
 		void PopulateOptionsData();
 		/** Options screen */
 		
-		CScreenHandler(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound);
+		CScreenHandler(CIniParser *Config, CPSPSound *Sound);
+		~CScreenHandler();
+		IPSPRadio_UI *StartUI(UIs UI);
 		
-		void SetUp(IPSPRadio_UI *UI, CIniParser *Config, CPSPSound *Sound, 
+		void SetUp(CIniParser *Config, CPSPSound *Sound, 
 					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
 		void StartScreen(Screen screen);
 
@@ -74,6 +83,7 @@
 		
 	private:
 		Screen m_CurrentScreen;
+		UIs m_CurrentUI;
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;
 		CPSPSound *m_Sound;
