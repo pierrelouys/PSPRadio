@@ -44,7 +44,9 @@ enum OptionIDs
 	OPTION_ID_NETWORK_PROFILES,
 	OPTION_ID_NETWORK_ENABLE,
 	OPTION_ID_USB_ENABLE,
-	OPTION_ID_CPU_SPEED
+	OPTION_ID_CPU_SPEED,
+	OPTION_ID_LOG_LEVEL,
+	OPTION_ID_UI,
 };
 
 CScreenHandler::Options OptionsData[] = 
@@ -54,6 +56,8 @@ CScreenHandler::Options OptionsData[] =
 	{	OPTION_ID_NETWORK_ENABLE,	"Start Network",			{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"222","266","333"},			1,1,3		},
+	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"10","20","50","80","100"},	1,1,5		},
+	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphic","3D"},		1,1,3		},
 	
 	{  -1,  						"",							{""},							0,0,0		}
 };

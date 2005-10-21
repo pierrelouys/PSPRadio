@@ -40,6 +40,7 @@
 
 #define SHOUTXML_URI_TAG 					"<entry Playstring=\""
 #define SHOUTXML_TITLE_TAG					"<Name>"
+#define SHOUTXML_GENRE_TAG					"<Genre>"
 
 CPlayList::CPlayList()
 {
@@ -112,12 +113,13 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 	CPSPSoundStream::MetaData *songdata;
 	char strURI[256];
 	char strTitle[256];
+	char strGenre[128];
 	
 	enum shoutcastxml_states
 	{
 		WAITING_FOR_URI,
 		WAITING_FOR_TITLE,
-		//WAITING_FOR_GENRE,
+		WAITING_FOR_GENRE,
 	} shoutxml_state = WAITING_FOR_URI;
 	
 	songdata = new CPSPSoundStream::MetaData;
@@ -192,18 +194,47 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 								break;
 							}
 						}
+						shoutxml_state = WAITING_FOR_GENRE;
+					}
+					break;
+			/* i.e '     <Genre>Pop Rock Top 40</Genre>' */
+				case WAITING_FOR_GENRE: 
+					if (strstr(strLine, SHOUTXML_GENRE_TAG))
+					{
+						strcpy(strGenre, strstr(strLine, SHOUTXML_GENRE_TAG) + strlen(SHOUTXML_GENRE_TAG));
+				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strURI);
+						
+						char *endTag = strGenre;
+						/* Terminate the string where the end tag is */
+						for(;;)
+						{
+							endTag = strchr(endTag, '<');
+							if(endTag) 
+							{
+								if ('/' == endTag[1])
+								{
+									endTag = 0;
+									break;
+								}
+							}
+							else
+							{
+								break;
+							}
+						}
 						/** Good!, all fields for this entry aquired, let's insert in the list! */
 						memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
-						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' to the list.", 
-							strURI, strTitle);
+						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' Genre='%s' to the list.", 
+							strURI, strTitle, strGenre);
 						memcpy(songdata->strURI,  strURI,  256);
 						memcpy(songdata->strTitle, strTitle, 256);
+						memcpy(songdata->strGenre, strGenre, 128);
 						songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */
 						m_playlist.push_back(*songdata);
 						
 						shoutxml_state = WAITING_FOR_URI;
 					}
-					break;
+					break;					
 			}
 			
 			iLines++;
