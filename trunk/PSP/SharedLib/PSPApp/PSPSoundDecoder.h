@@ -15,10 +15,11 @@
 		struct MetaData
 		{
 			char strURI[MAXPATHLEN]; /** Filename/URL -- 'user' populated */
-			/** Decoder populated */
+			/** Decoder/playlist/xml populated */
 			char strTitle[300];
 			char strURL[MAXPATHLEN];
 			char strArtist[300];
+			char strGenre[128];
 			int iLength;
 			int iSampleRate;
 			int iBitRate;

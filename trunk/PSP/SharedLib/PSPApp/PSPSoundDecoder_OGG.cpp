@@ -180,7 +180,7 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 {
 	size_t BytesRead = 0;
 	long lRet = 0;
-	int current_section;
+	int current_section = m_last_section;
 	
 	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
 	{
