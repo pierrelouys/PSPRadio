@@ -82,9 +82,12 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 		Log(LOG_INFO, "StartUI: Destroying current UI");
 		m_UI->Terminate();
 		delete(m_UI), m_UI = NULL;
+		Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
 	}
+	Log(LOG_LOWLEVEL, "StartUI: Starting UI %d", UI);
 	switch(UI)
 	{
+		default:
 		case UI_TEXT:
 			Log(LOG_INFO, "StartUI: Starting Text UI");
 			m_UI = new CTextUI();
