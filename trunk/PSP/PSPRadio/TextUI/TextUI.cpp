@@ -534,7 +534,7 @@ int CTextUI::DisplayPLList(CDirList *plList)
 			}
 			
 			//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
-			strncpy(text, (*ListIterator).strURI, 28);
+			strncpy(text, basename((*ListIterator).strURI), 28);
 			text[28] = 0;
 		
 			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
@@ -637,12 +637,12 @@ int CTextUI::OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide C
 	{
 		case CScreenHandler::PLAYLIST_LIST:
 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
-			uiPrintf(33/2 + iEntryX - 3/*entry/2*/, r1, ct, "Entry");
+			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
 			break;
 		
 		case CScreenHandler::PLAYLIST_ENTRIES:
 			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
-			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "*Entry*");
+			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
 			break;
 	
 	}
