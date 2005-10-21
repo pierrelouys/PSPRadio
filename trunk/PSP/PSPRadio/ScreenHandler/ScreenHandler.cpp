@@ -77,8 +77,12 @@ void CScreenHandler::SetUp(CIniParser *Config, CPSPSound *Sound,
 
 IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 {
+	bool wasPolling = pPSPApp->IsPolling();
 	if (m_UI)
 	{
+		if (wasPolling)
+			pPSPApp->StopPolling();
+			
 		Log(LOG_INFO, "StartUI: Destroying current UI");
 		m_UI->Terminate();
 		delete(m_UI), m_UI = NULL;
@@ -105,7 +109,15 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 	m_UI->Initialize("./");//strCurrentDir); /* Initialize takes cwd */ ///FIX!!!
 	StartScreen(m_CurrentScreen);
 	
+	if (wasPolling)
+		pPSPApp->StartPolling();
+	
 	return m_UI;
+}
+
+void CScreenHandler::OnVBlank()
+{
+	m_UI->OnVBlank();
 }
 
 int CScreenHandler::Start_Network(int iProfile)

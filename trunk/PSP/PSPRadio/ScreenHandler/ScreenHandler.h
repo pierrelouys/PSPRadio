@@ -78,6 +78,7 @@
 		Screen GetCurrentScreen(){return m_CurrentScreen;}
 		int 	GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 		
+		void OnVBlank();
 		
 		request_on_play_stop m_RequestOnPlayOrStop;
 		

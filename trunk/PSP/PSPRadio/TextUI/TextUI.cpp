@@ -57,6 +57,7 @@ CTextUI::CTextUI()
 
 CTextUI::~CTextUI()
 {
+	Log(LOG_VERYLOW, "~CTextUI(): Start");
 	if (m_lockprint)
 	{
 		delete(m_lockprint);
@@ -67,6 +68,7 @@ CTextUI::~CTextUI()
 		delete(m_lockclear);
 		m_lockclear = NULL;
 	}
+	Log(LOG_VERYLOW, "~CTextUI(): End");
 }
 
 int CTextUI::Initialize(char *strCWD)

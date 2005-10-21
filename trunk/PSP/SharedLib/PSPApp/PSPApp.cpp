@@ -47,6 +47,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_strProgramName = strdup(strProgramName);
 	m_strVersionNumber = strdup(strVersionNumber);
 	pPSPApp = this;
+	m_Polling = false;
 	
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 1024, THREAD_ATTR_USER);
 	m_ExitSema = new CSema("PSPApp_Exit_Sema");
@@ -75,11 +76,19 @@ int CPSPApp::StartPolling()
 	if (NULL == m_thRun)
 	{
 		m_thRun = new CPSPThread("run_thread", runThread, 80, 80000);
+		
+		/** Start Polling for Vblank and buttons */
+		m_thRun->Start();
 	}
+	m_Polling = true;
 	
-	/** Start Polling for Vblank and buttons */
-	m_thRun->Start();
-	
+	return 0;
+}
+
+int CPSPApp::StopPolling()
+{
+	m_Polling = false;
+	sceKernelDelayThread(1000*50); /* Wait 50ms */
 	return 0;
 }
 
@@ -133,6 +142,9 @@ int CPSPApp::Run()
 		sceDisplayWaitVblankStart();
 		sceKernelDelayThread(10);
 		//sceCtrlReadBufferPositive(&m_pad, 1); 
+		
+		if (false == m_Polling)
+			continue;
 		
 		OnVBlank();
 		//SendEvent(MID_ONVBLANK);

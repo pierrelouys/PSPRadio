@@ -476,7 +476,7 @@ public:
 	
 	void OnVBlank()
 	{
-		m_UI->OnVBlank();
+		m_ScreenHandler->OnVBlank();
 	};
 	
 	void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)

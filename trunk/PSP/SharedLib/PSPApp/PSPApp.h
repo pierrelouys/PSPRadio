@@ -45,7 +45,6 @@
 	#define MID_THDECODE_END				0x00000052
 	#define MID_DECODE_STREAM_OPENING		0x00000060
 	#define MID_DECODE_STREAM_OPEN_ERROR	0x00000070
-	//#define MID_DECODE_METADATA_INFO		0x00000071
 	#define MID_DECODE_STREAM_OPEN			0x00000080
 	#define MID_NEW_METADATA_AVAILABLE		0x000000A0
 	#define MID_THDECODE_DECODING_DONE		0x000000B1
@@ -109,9 +108,11 @@
 		int  DisableUSB();
 		bool IsUSBEnabled() { return m_USBEnabled; }
 		
+		int StartPolling(); /** Start polling buttons/vblank */
+		int StopPolling();
+		bool IsPolling(){ return m_Polling;}
 	protected:
 		/** Helpers */
-		int StartPolling(); /** Start polling buttons/vblank */
 	
 		virtual int CallbackSetupThread(SceSize args, void *argp);
 		virtual void OnExit(){};
@@ -142,6 +143,7 @@
 		char m_ResolverBuffer[1024]; /** Could be smaller, no idea */
 		int  m_ResolverId;
 		char *m_strProgramName, *m_strVersionNumber;
+		bool m_Polling;
 		
 		virtual int OnAppExit(int arg1, int arg2, void *common);
 		int WLANConnectionHandler(int profile);

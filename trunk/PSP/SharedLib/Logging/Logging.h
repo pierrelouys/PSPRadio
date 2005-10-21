@@ -41,6 +41,7 @@
 	
 		int Set(char *strLogFilename, loglevel_enum iLogLevel);
 		void SetLevel(loglevel_enum iNewLevel);
+		int  GetLevel(){return m_LogLevel;}
 		
 		int Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...);
 		
