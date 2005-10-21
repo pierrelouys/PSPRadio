@@ -2,6 +2,9 @@ What's New for PSPRadio
 ========================
 0.36
 
+0.36-pre3 (r)
+(raf) Started adding SHOUTcast support
+
 0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
 (jpfouch48) GraphicsUI playlist browser and playlist item browser is now functional
