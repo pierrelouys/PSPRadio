@@ -419,6 +419,9 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 		dataIter--;
 	}
 	
+	
+	ResetImageArea(&m_posItemPlayListArea, m_pImageBase, m_pScreen);		
+	
 	int count = 0;
 	
 	for (; dataIter != plList->GetList()->end() ; dataIter++)
@@ -435,7 +438,6 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 		posDst.m_pointSize.x = m_posItemPlayListAreaSel.m_pointSize.x;
 		posDst.m_pointSize.y = m_posItemPlayListAreaSel.m_pointSize.y;
 			
-		ResetImageArea(&posDst, m_pImageBase, m_pScreen);		
 		CopySurface(m_pPlayListText[dataIter->iItemIndex], m_pScreen, &posDst, false);
 		
 		if(dataIter == *plList->GetCurrentElementIterator())
@@ -496,6 +498,8 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 			break;
 		dataIter--;
 	}
+
+	ResetImageArea(&m_posItemPlayListItemArea, m_pImageBase, m_pScreen);		
 	
 	int count = 0;
 	
@@ -513,7 +517,6 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 		posDst.m_pointSize.x = m_posItemPlayListItemAreaSel.m_pointSize.x;
 		posDst.m_pointSize.y = m_posItemPlayListItemAreaSel.m_pointSize.y;
 			
-		ResetImageArea(&posDst, m_pImageBase, m_pScreen);		
 		CopySurface(m_pPlayListItemText[dataIter->iItemIndex], m_pScreen, &posDst, false);
 		
 		if(dataIter == *PlayList->GetCurrentElementIterator())
