@@ -71,7 +71,7 @@ private:
 	void ResetImageArea(CGraphicsUIPosItem *pPosItem, SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface);
 	void CopySurface(SDL_Surface *pSrcSurface, SDL_Surface *pDstSurface, CGraphicsUIPosItem *pDstPosItem, bool bCenter);
 
-	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
+	void PrintOption(int nLineNumber, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
 					int iActiveState);
 	
 private:

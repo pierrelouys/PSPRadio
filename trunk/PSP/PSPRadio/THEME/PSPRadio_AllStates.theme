@@ -19,7 +19,7 @@ dst=[0,0];
 size=[480,272];
 
 [stringpos]
-settingarea=[35,303] [406,229]
+settingarea=[35,25] [406,229]
 filename=[31,25] [420,11];
 filetitle=[31,36] [420,11];
 uri=[31,47] [420,11];
