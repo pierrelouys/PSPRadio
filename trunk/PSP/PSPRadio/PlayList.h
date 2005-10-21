@@ -39,6 +39,7 @@
 		int GetNumberOfSongs();
 		void InsertURI(char *strFileName);
 		void LoadPlayListURI(char *strFileName);
+		void LoadPlayListFromSHOUTcastXML(char *strFileName);
 		void Clear();
 		
 		/** Accessors */

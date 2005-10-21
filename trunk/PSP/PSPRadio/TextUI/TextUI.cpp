@@ -107,6 +107,7 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	int x,y,c;
 	switch (screen)
 	{
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 			pspDebugScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
 			pspDebugScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));

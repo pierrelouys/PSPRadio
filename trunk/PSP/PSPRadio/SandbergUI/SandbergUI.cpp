@@ -1102,6 +1102,7 @@ void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
 {
 	switch (screen)
 	{
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 		{
 		screen_state = SCREEN_PLAYING;

@@ -161,6 +161,48 @@ void CScreenHandler::StartScreen(Screen screen)
 			if (m_UI && m_CurrentPlayListDir && m_CurrentPlayList && m_Sound)
 			{
 				Log(LOG_LOWLEVEL, "Displaying current playlist");
+				m_CurrentPlayListDir->Clear();
+				m_CurrentPlayListDir->LoadDirectory("PlayLists"); //**//
+				if (m_CurrentPlayListDir->Size() > 0)
+				{
+					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
+					m_CurrentPlayList->Clear();
+					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+				}
+
+				m_UI->DisplayPLList(m_CurrentPlayListDir);
+				m_CurrentPlayListSideSelection = PLAYLIST_LIST;
+				/** tell ui of m_CurrentPlayListSideSelection change. */
+				m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
+
+				if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+				{
+					m_UI->DisplayPLEntries(m_CurrentPlayList);
+					
+					if (CPSPSound::PLAY == m_Sound->GetPlayState())
+					{
+						/** Populate m_CurrentMetaData */
+						//don't until user starts it!
+						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
+					}
+				}
+			}
+			break;
+			
+		case PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+			if (m_UI && m_CurrentPlayListDir && m_CurrentPlayList && m_Sound)
+			{
+				Log(LOG_LOWLEVEL, "StartScreen::PSPRADIO_SCREEN_SHOUTCAST_BROWSER");
+				m_CurrentPlayListDir->Clear();
+				m_CurrentPlayListDir->LoadDirectory("SHOUTcast"); //**//
+				if (m_CurrentPlayListDir->Size() > 0)
+				{
+					Log(LOG_LOWLEVEL, "Loading xml file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
+					m_CurrentPlayList->Clear();
+					m_CurrentPlayList->LoadPlayListFromSHOUTcastXML(m_CurrentPlayListDir->GetCurrentURI());
+				}
+				
 				m_UI->DisplayPLList(m_CurrentPlayListDir);
 				m_CurrentPlayListSideSelection = PLAYLIST_LIST;
 				/** tell ui of m_CurrentPlayListSideSelection change. */
@@ -407,7 +449,14 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 		{
 			case PLAYLIST_LIST:
 				m_CurrentPlayList->Clear();
-				m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+				if (PSPRADIO_SCREEN_SHOUTCAST_BROWSER == m_CurrentScreen)
+				{
+					m_CurrentPlayList->LoadPlayListFromSHOUTcastXML(m_CurrentPlayListDir->GetCurrentURI());
+				}
+				else
+				{
+					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+				}
 				m_UI->DisplayPLEntries(m_CurrentPlayList);
 				m_CurrentPlayListSideSelection = PLAYLIST_ENTRIES;
 				/** tell ui of m_CurrentPlayListSideSelection change. */

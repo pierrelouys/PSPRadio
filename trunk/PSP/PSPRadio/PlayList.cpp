@@ -38,6 +38,9 @@
 #define PLV2_LENGTH_TAG						"LengthX="
 #define PLV2_LENGTH_PARSING_STR				"Length%d=%d"
 
+#define SHOUTXML_URI_TAG 					"<entry Playstring=\""
+#define SHOUTXML_TITLE_TAG					"<Name>"
+
 CPlayList::CPlayList()
 {
 	m_songiterator = m_playlist.begin();
@@ -99,6 +102,125 @@ void CPlayList::InsertURI(char *strFileName)
 	delete(songdata);
 	
 	m_songiterator = m_playlist.begin();
+}
+
+void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
+{
+	FILE *fd = NULL;
+	char strLine[256];
+	int iLines = 0;
+	CPSPSoundStream::MetaData *songdata;
+	char strURI[256];
+	char strTitle[256];
+	
+	enum shoutcastxml_states
+	{
+		WAITING_FOR_URI,
+		WAITING_FOR_TITLE,
+		//WAITING_FOR_GENRE,
+	} shoutxml_state = WAITING_FOR_URI;
+	
+	songdata = new CPSPSoundStream::MetaData;
+	
+	fd = fopen(strFileName, "r");
+	
+	if(fd != NULL)
+	{
+		while ( (!feof(fd)) )
+		{
+			strLine[0] = 0;
+			fgets(strLine, 256, fd);
+			if (strlen(strLine) == 0 || strLine[0] == '\r' || strLine[0] == '\n')
+			{
+				continue;
+			}
+			if (strLine[0] == '<' && strLine[1] == '&')
+			{
+				/** A comment!, ignore */
+				continue;
+			}
+			
+			strLine[strlen(strLine)-1] = 0; /** Remove LF 0D*/
+			if (strLine[strlen(strLine)-1] == 0x0D) 
+				strLine[strlen(strLine)-1] = 0; /** Remove CR 0A*/
+			
+			/** This shouldn't happen at this point, but it won't hurt */
+			if (0 == strlen(strLine))
+			{
+				continue;
+			}
+			/** We have a line with data here */
+			
+			//Log(LOG_VERYLOW, "line(%d) strLine='%s'", iLines, strLine);
+			switch(shoutxml_state)
+			{
+			/* ie '<entry Playstring="http://www.shoutcast.com/sbin/tunein-station.pls?id=3281&amp;filename=playlist.pls">'*/
+				case WAITING_FOR_URI: 
+					if (strstr(strLine, SHOUTXML_URI_TAG))
+					{
+						strcpy(strURI, strstr(strLine, SHOUTXML_URI_TAG) + strlen(SHOUTXML_URI_TAG));
+				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strURI = '%s'", iLines, strLine, strURI);
+						if(strchr(strURI, '"'))
+						{
+							*strchr(strURI, '"') = 0;
+						}
+						shoutxml_state = WAITING_FOR_TITLE;
+					}
+					break;
+			/* ie '     <Name>CLUB 977 The Hitz Channel (HIGH BANDWIDTH)</Name>' */
+				case WAITING_FOR_TITLE: 
+					if (strstr(strLine, SHOUTXML_TITLE_TAG))
+					{
+						strcpy(strTitle, strstr(strLine, SHOUTXML_TITLE_TAG) + strlen(SHOUTXML_TITLE_TAG));
+				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strURI);
+						
+						char *endTag = strTitle;
+						/* Terminate the string where the end tag is */
+						for(;;)
+						{
+							endTag = strchr(endTag, '<');
+							if(endTag) 
+							{
+								if ('/' == endTag[1])
+								{
+									endTag = 0;
+									break;
+								}
+							}
+							else
+							{
+								break;
+							}
+						}
+						/** Good!, all fields for this entry aquired, let's insert in the list! */
+						memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
+						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' to the list.", 
+							strURI, strTitle);
+						memcpy(songdata->strURI,  strURI,  256);
+						memcpy(songdata->strTitle, strTitle, 256);
+						songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */
+						m_playlist.push_back(*songdata);
+						
+						shoutxml_state = WAITING_FOR_URI;
+					}
+					break;
+			}
+			
+			iLines++;
+		}
+		fclose(fd), fd = NULL;
+		
+		m_songiterator = m_playlist.begin();
+	}
+	else
+	{
+		ReportError("Unable to open XML file '%s'", strFileName);
+	}
+	
+	if (songdata)
+	{
+		delete(songdata), songdata = NULL;
+	}
 }
 
 void CPlayList::LoadPlayListURI(char *strFileName)

@@ -243,15 +243,6 @@ public:
 		{
 			m_CurrentPlayListDir = new CDirList();
 			
-			if (m_CurrentPlayListDir)
-			{
-				m_CurrentPlayListDir->LoadDirectory("PlayLists"); //**//
-				if (m_CurrentPlayListDir->Size() > 0)
-				{
-					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
-					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				}
-			}
 			m_UI->DisplayMainCommands();
 		}
 		else
@@ -310,6 +301,7 @@ public:
 			switch (m_ScreenHandler->GetCurrentScreen())
 			{
 				case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+				case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 					m_ScreenHandler->PlayListScreenInputHandler(iButtonMask);
 					break;
 				case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
