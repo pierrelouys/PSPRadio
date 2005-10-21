@@ -3,7 +3,7 @@ KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
 OBJS = PSPRadio.o  DirList.o PlayList.o \
-		./ScreenHandler.o \
+		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
 		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
@@ -14,6 +14,7 @@ INCDIR = ../
 CFLAGS = -O2 -Wall -Werror -I../SharedLib/PSPApp -L../SharedLib/lib \
 		 -I../SharedLib/libpspnet -I../SharedLib/libiniparser \
 		 -I../SharedLib/Tools -I../SharedLib/Logging \
+		 -I./ScreenHandler \
 		 -I./TextUI \
 		 -I./GraphicsUI \
 		 -I./SandbergUI
@@ -38,7 +39,7 @@ PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
 
 clean: 
-	rm -fv *.o *.PBP *.SFO ./TextUI/*.o ./GraphicsUI/*.o ./SandbergUI/*.o
+	rm -fv *.o *.PBP *.SFO $(OBJS) ./TextUI/*.o ./GraphicsUI/*.o ./SandbergUI/*.o
 	rm -Rf $(KXPLOIT_PRIMARY_DIR) $(KXPLOIT_SECONDARY_DIR)
 
 kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
