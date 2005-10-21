@@ -4,6 +4,8 @@ What's New for PSPRadio
 
 0.36-pre3 (r)
 (raf) Started adding SHOUTcast support
+(sandberg) Implemented a VRAM memory manager, so all textures are now loaded from files
+into VRAM.
 
 0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
@@ -20,6 +22,7 @@ User can also use <- or -> to go back and forth between List and Entries. (need 
 (jpfouch48) Added options screen
 (jpfouch48) Updated how playlist scrolls
 (jpfouch48) Fixed problem with theme clipping song filename in upper pannel
+(sandberg) Added support for displaying the MetaData in the 3D UI.
 
 0.36-pre1 (r336)
 ------------------------------------------------------------------------

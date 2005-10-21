@@ -39,8 +39,6 @@
 
 #include "SandbergUI.h"
 
-#include "SandbergUILogoBitmap.cpp"
-
 #define ROTSIZE		128
 
 static float __attribute__((aligned(16))) sintable[] = {
@@ -99,8 +97,7 @@ static int rot = 0;
 	}
 
 	// setup texture
-	sceGuTexMode(GU_PSM_8888,0,0,0);
-	sceGuTexImage(0,256,64,256,::logo);
+	(void)tcache.jsaTCacheSetTexture(TEX_LOGO);
 	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 	sceGuTexFilter(GU_LINEAR,GU_LINEAR);
 	sceGuTexScale(1.0f,1.0f);
@@ -158,7 +155,7 @@ void CSandbergUI::RenderCommands(void)
 {
 	sceGuEnable(GU_TEXTURE_2D);
 	// setup texture
-	sceGuTexImage(0,64,64,64,::commands);
+	(void)tcache.jsaTCacheSetTexture(TEX_COMMANDS);
 	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 
 	struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(2 * sizeof(struct Vertex));

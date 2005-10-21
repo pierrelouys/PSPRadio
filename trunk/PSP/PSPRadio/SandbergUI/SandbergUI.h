@@ -22,17 +22,41 @@
 #define _PSPRADIOSANDBERGUI_
 
 #include "IPSPRadio_UI.h"
-
+#include "jsaTextureCache.h"
 
 
 
 class CSandbergUI : public IPSPRadio_UI
 {
 public:
+	enum texture_enum
+	{
+		TEX_LOGO,
+		TEX_COMMANDS,
+		TEX_PLATE,
+		TEX_FONT_LARGE,
+		TEX_FONT_SMALL,
+		TEX_PLAY,
+		TEX_STOP,
+		TEX_NETWORK,
+		TEX_LOAD,
+		TEX_SOUND,
+		TEX_OPTIONS
+	};
+
 	enum fx_list_enum
 	{
 		FX_CUBES,
 		FX_HEART
+	};
+
+	typedef struct texture_file
+	{
+		int	ID;
+		int	format;
+		int	width;
+		int	height;
+		char	filename[MAXPATHLEN];
 	};
 
 	typedef struct IconStr
@@ -40,7 +64,7 @@ public:
 		float		x1, y1;
 		float		x2, y2;
 		unsigned int	color;
-		unsigned char	*texture;
+		int		ID;
 	};
 
 	typedef struct char_map
@@ -153,9 +177,11 @@ private:
 		char 		strText[MAXPATHLEN];
 	};
 
+	void *LoadFile(char *filename);
 	struct char_map	* FindCharMap(char index);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
 	void UpdateTextItem(int ID, int x, int y, char *strText);
+	void LoadTextures(char *strCWD);
 
 	void CSandbergUI::InitPL(void);
 	void CSandbergUI::InitFX(void);
@@ -181,7 +207,8 @@ private:
 	void RenderOptions(int render_option);
 
 private:
-	list<StoredOptionItem> OptionsItems;
+	jsaTextureCache		tcache;
+	list<StoredOptionItem>	OptionsItems;
 
 	char*	pl_name;
 	char*	pl_entry;
