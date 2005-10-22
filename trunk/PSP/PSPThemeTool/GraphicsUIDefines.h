@@ -8,7 +8,18 @@ enum StringJustEnum
 {
 	JUST_LEFT,
 	JUST_RIGHT,
-	JUST_CENTER
+	JUST_CENTER,
+
+	JUST_ITEM_COUNT
+};
+
+enum OutputAreaEnum
+{
+	OA_PLAYLIST,
+	OA_PLAYLISTITEM,
+	OA_SETTINGS,
+
+	OA_ITEM_COUNT
 };
 
 enum StringPosEnum
@@ -37,24 +48,9 @@ enum ButtonPosEnum
 	BP_STOP,
 	BP_LOAD,
 	BP_SOUND,
+	BP_VOLUME,
 
 	BP_ITEM_COUNT
-};
-
-enum ButtonStateEnum
-{
-	BS_ON,
-	BS_OFF,
-
-	BS_ITEM_COUNT
-};
-
-enum ButtonTypeEnum
-{
-	BT_NORMAL,
-	BT_MULTI_STATE,
-
-	BT_ITEM_COUNT
 };
 
 struct StringPosType
@@ -68,14 +64,23 @@ struct StringPosType
 
 struct ButtonPosType
 {
-	ButtonTypeEnum type;
 	char szIniName[50];
-//	SDL_Rect *pSrcRect;
-	SDL_Rect onRect;
-	SDL_Rect offRect;
+	SDL_Rect *pSrcRect;
 	SDL_Rect dstRect;
-	ButtonStateEnum currentState;
+	int nCurrentState;
 	bool bEnabled;
+	int nButtonCount;
+};
+
+struct OutputAreaType
+{
+	char szIniName[50];
+	int nLineCount;
+	SDL_Rect srcRect;
+	SDL_Rect dstRect;
+	SDL_Rect lineSize;
+	bool bEnabled;
+	int nFontIndex;
 };
 
 #endif
