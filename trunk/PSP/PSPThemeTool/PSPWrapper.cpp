@@ -28,6 +28,8 @@ bool CPSPWrapper::Terminate(void)
 bool CPSPWrapper::Run(void)
 {
 	SDL_Event event;
+
+	static int count = 1;
 	
 	/* Ignore key events */
 //	SDL_EventState(SDL_KEYDOWN, SDL_IGNORE);
@@ -88,14 +90,20 @@ bool CPSPWrapper::Run(void)
 
 					case SDLK_6:
 					{
+						m_GUI.DisplayButton(BP_VOLUME);
 					} break;
 
 					case SDLK_7:
 					{
+						m_GUI.DisplayString("TEST 1", OA_PLAYLIST, count);
+						m_GUI.DisplayString("TEST 1", OA_PLAYLISTITEM, count);
+						count++;
 					} break;
 
 					case SDLK_8:
 					{
+						m_GUI.DisplayString("TEST 1", OA_SETTINGS, count);
+						count++;
 					} break;
 
 					case SDLK_9:
