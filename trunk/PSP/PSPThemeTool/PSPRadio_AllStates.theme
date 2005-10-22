@@ -1,0 +1,81 @@
+; Default PSPRadio Theme
+
+[main]
+version=0.2;
+themeimage=PSPRadio_AllStates.bmp;
+transparency=[255,0,255];
+
+[screens]
+main=[0,0] [480,272];
+shoutcast=[0,0] [480,272];
+settings=[0,274] [480,272];
+
+[font]
+fontCount=1;
+
+[font1]
+lineCount=2;
+keyLine1=~ABCDEFGHIJKLMNOPQRSTUVWXYZ"@;
+srcLine1=[540,97] [5,6];
+keyLine2=0123456789=()-+*[]&^%$.,\/:#;
+srcLine2=[540,103] [5,6];
+
+[stringpos]
+filename=[31,25] [415,11] CENTER 1;
+filetitle=[31,25] [415,11] LEFT 1;
+uri=[31,47] [415,11] RIGHT 1;
+buffer=[31,57] [140,11] CENTER 1;
+mpeglayer=[171,57] [140,11] LEFT 1;
+samplerate=[311,57] [140,11] CENTER 1;
+stream=[31,67] [420,11] CENTER 1;
+error=[31,67] [420,11] CENTER 1;
+network=[31,67] [420,11] CENTER 1;
+songtitle=[31,55] [210,11] CENTER 1;
+songauthor=[241,55] [210,11] CENTER 1;
+length=[241,35] [210,11] CENTER 1;
+samplerate=[241,45] [210,11] CENTER 1;
+bitrate=[241,55] [210,11] CENTER 1;
+
+[play]
+on=[485,4] [14,15];
+off=[485,23] [14,15];
+dst=[16,252] [14,15];
+
+[pause]
+on=[503,4] [14,15];
+off=[503,23] [14,15];
+dst=[34,252] [14,15];
+
+[stop]
+on=[521,4] [14,15];
+off=[521,23] [14,15];
+dst=[52,252] [14,15];
+
+[load]
+on=[539,4] [29,14];
+off=[539,23] [29,14];
+dst=[70,252] [29,14];
+
+[sound]
+on=[573,4] [17,15];
+off=[573,23] [17,15];
+dst=[407,252] [17,15];
+
+[volume]
+states=8
+src1=[484,89] [42,10];
+src2=[484,103] [42,10];
+src3=[484,117] [42,10];
+src4=[484,131] [42,10];
+src5=[484,145] [42,10];
+src6=[484,159] [42,10];
+src7=[484,173] [42,10];
+src8=[484,187] [42,10];
+dst=[429,254] [42,10];
+
+;[itempos]
+;playlistarea=[0,114] [154,133];
+;playlistareasel=[485,42] [154,19];
+;playlistitemarea=[162,114] [318,133];
+;playlistitemareasel=[485,66] [318,19];
+;settingarea=[35,25] [406,229];
