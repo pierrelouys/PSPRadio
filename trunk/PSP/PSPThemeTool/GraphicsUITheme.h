@@ -22,13 +22,15 @@ public:
 	void DisplaySettingScreen();
 	void DisplayShoutcastScreen();
 	void DisplayString(char *szWord, StringPosEnum posEnum);
+	void DisplayString(char *szWord, OutputAreaEnum posEnum, int nLineNumber);
 	void DisplayButton(ButtonPosEnum posEnum);
-	void DisplayButton(ButtonPosEnum posEnum, ButtonStateEnum state);
+	void DisplayButton(ButtonPosEnum posEnum, int nState);
 
 private:
 	int GetFonts();
 	int GetStringPos();
 	int GetButtonPos();
+	int GetOutputAreaPos();
 	
 	int GetIniRect(char *szIniTag, SDL_Rect *pRect);
 	int GetIniColor(char *szIniTag, SDL_Color *pColor);

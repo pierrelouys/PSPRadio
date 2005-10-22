@@ -39,12 +39,19 @@ StringPosType g_StringPosArray[] =
 
 ButtonPosType g_ButtonPosArray[] =
 {
-	{ BT_NORMAL, "play", {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, BS_OFF, true },
-	{ BT_NORMAL, "pause", {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, BS_OFF, true },
-	{ BT_NORMAL, "stop", {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, BS_OFF, true },
-	{ BT_NORMAL, "load", {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, BS_OFF, true },
-	{ BT_NORMAL, "sound", {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, BS_OFF, true },
-//	{ BT_MULTI_STATE, "sound", {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, BS_OFF, true },
+	{ "play", NULL, {0,0,0,0}, 0, true, 2 },
+	{ "pause", NULL, {0,0,0,0}, 0, true, 2  },
+	{ "stop", NULL, {0,0,0,0}, 0, true, 2  },
+	{ "load", NULL, {0,0,0,0}, 0, true, 2  },
+	{ "sound", NULL, {0,0,0,0}, 0, true, 2  },
+	{ "volume", NULL, {0,0,0,0}, 0, true, -1 },
+};
+
+OutputAreaType g_OutputAreaArray[] =
+{
+	{ "playlist", -1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},true, 0 },
+	{ "playlistitem", -1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},true, 0 },
+	{ "settings", 1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0},true, 0 },
 };
 
 //*****************************************************************************
@@ -152,11 +159,21 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName)
 		return -1;
 	}
 
+	// Get Button Positions
 	if(-1 == GetButtonPos())
 	{
 		printf("Initialize: ERROR Initializing button positions\n");
 		return -1;
 	}
+
+	// Get Output Areas
+	if(-1 == GetOutputAreaPos())
+	{
+		printf("Initialize: ERROR Initializing output area positions\n");
+		return -1;
+	}
+
+
 
 	// Get Transparency color
 	if(-1 == GetIniColor("main:transparency", &m_TransparencyColor))
@@ -166,14 +183,10 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName)
 		m_TransparencyColor.g = 0;
 		m_TransparencyColor.b = 255;
 	}
-	else
-	{
-		SDL_SetColorKey(m_pPSPSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pPSPSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
-		SDL_SetColorKey(m_pImageSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
-	}
 
+	SDL_SetColorKey(m_pPSPSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pPSPSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
+	SDL_SetColorKey(m_pImageSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
 
-	
 	return 0;
 }
 
@@ -185,6 +198,8 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName)
 //*****************************************************************************
 void CGraphicsUITheme::Terminate()
 {
+	// TODO: Free up the button src rects
+
 	SAFE_DELETE(m_pIniTheme);
 	SAFE_FREE_SURFACE(m_pImageSurface);
 	SAFE_FREE_SURFACE(m_pPSPSurface);
@@ -691,47 +706,123 @@ int CGraphicsUITheme::GetStringPos()
 //*****************************************************************************
 int CGraphicsUITheme::GetButtonPos()
 {
+	char szIniTag[50];
+	SDL_Rect tmpButtonPos;
+
 	// Get the regular buttons
 	for(int x = 0; x < BP_ITEM_COUNT; x++)
 	{
-		char szIniTag[50];
-		SDL_Rect tmpButtonPos;
-
-		// Get On Pos
-		sprintf(szIniTag, "%s:on", g_ButtonPosArray[x].szIniName);
-		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+		// Allocate the Src State Buttons
+		if(-1 != g_ButtonPosArray[x].nButtonCount)
 		{
-			printf("GetButtonPos: ERROR getting on pos [%s] disabling\n", szIniTag);
-			g_ButtonPosArray[x].bEnabled = false;
-			continue;
+			g_ButtonPosArray[x].pSrcRect = (SDL_Rect*)malloc(sizeof(SDL_Rect) * g_ButtonPosArray[x].nButtonCount);
 		}
-		memcpy(&g_ButtonPosArray[x].onRect, &tmpButtonPos, sizeof(SDL_Rect));
-
-		// Get Off Pos
-		sprintf(szIniTag, "%s:off", g_ButtonPosArray[x].szIniName);
-		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+		else
 		{
-			printf("GetButtonPos: ERROR getting off pos [%s] disabling\n", szIniTag);
-			g_ButtonPosArray[x].bEnabled = false;
-			continue;
-		}
-		memcpy(&g_ButtonPosArray[x].offRect, &tmpButtonPos, sizeof(SDL_Rect));
+			// Get On Pos
+			sprintf(szIniTag, "%s:stateCount", g_ButtonPosArray[x].szIniName);
+			g_ButtonPosArray[x].nButtonCount = m_pIniTheme->GetInteger(szIniTag, -1);
+			
+			if(-1 == g_ButtonPosArray[x].nButtonCount)
+			{
+				printf("GetButtonPos: ERROR unable to find state count for %s", szIniTag);
+				g_ButtonPosArray[x].bEnabled = false;
+				continue;
+			}
 
-		// Get Dst Pos
-		sprintf(szIniTag, "%s:dst", g_ButtonPosArray[x].szIniName);
-		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
-		{
-			printf("GetButtonPos: ERROR getting dst pos [%s] disabling\n", szIniTag);
-			g_ButtonPosArray[x].bEnabled = false;
-			continue;
+			g_ButtonPosArray[x].pSrcRect = (SDL_Rect*)malloc(sizeof(SDL_Rect) * g_ButtonPosArray[x].nButtonCount);
+
 		}
-		memcpy(&g_ButtonPosArray[x].dstRect, &tmpButtonPos, sizeof(SDL_Rect));
-		g_ButtonPosArray[x].bEnabled = true;
+
+		// Get the src rects
+		for(int y = 0; y < g_ButtonPosArray[x].nButtonCount; y++)
+		{
+			// Get On Pos
+			sprintf(szIniTag, "%s:src%d", g_ButtonPosArray[x].szIniName,y+1);
+			if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+			{
+				printf("GetButtonPos: ERROR getting on pos [%s] disabling\n", szIniTag);
+				g_ButtonPosArray[x].bEnabled = false;
+				break;
+			}
+			memcpy(&g_ButtonPosArray[x].pSrcRect[y], &tmpButtonPos, sizeof(SDL_Rect));
+		}
+
+		// If we did not disable to button above get the dst position
+		if(true == g_ButtonPosArray[x].bEnabled)
+		{
+			// Get Dst Pos
+			sprintf(szIniTag, "%s:dst", g_ButtonPosArray[x].szIniName);
+			if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+			{
+				printf("GetButtonPos: ERROR getting dst pos [%s] disabling\n", szIniTag);
+				g_ButtonPosArray[x].bEnabled = false;
+				continue;
+			}
+			memcpy(&g_ButtonPosArray[x].dstRect, &tmpButtonPos, sizeof(SDL_Rect));
+			g_ButtonPosArray[x].bEnabled = true;
+		}
 	}
 
-	// Get Multi State Buttons
+	return 0;
+}
 
-	// Volume
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
+int CGraphicsUITheme::GetOutputAreaPos()
+{
+	char szIniTag[50];
+	SDL_Rect tmpButtonPos;
+
+	// Get the regular buttons
+	for(int x = 0; x < OA_ITEM_COUNT; x++)
+	{
+		// Get Line Count
+		sprintf(szIniTag, "%s:lineCount", g_OutputAreaArray[x].szIniName);
+		g_OutputAreaArray[x].nLineCount = m_pIniTheme->GetInteger(szIniTag, -1);
+
+		if(-1 == g_OutputAreaArray[x].nLineCount)
+		{
+			printf("GetOutputAreaPos: ERROR getting %s\n", szIniTag);
+			g_OutputAreaArray[x].bEnabled = false;
+			continue;
+		}
+
+		// Get Line Size
+		sprintf(szIniTag, "%s:lineSize", g_OutputAreaArray[x].szIniName);
+		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+		{
+			printf("GetOutputAreaPos: ERROR getting on pos [%s] disabling\n", szIniTag);
+			g_OutputAreaArray[x].bEnabled = false;
+			continue;
+		}
+		memcpy(&g_OutputAreaArray[x].lineSize, &tmpButtonPos, sizeof(SDL_Rect));
+
+
+		// Get Src Pos
+		sprintf(szIniTag, "%s:src", g_OutputAreaArray[x].szIniName);
+		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+		{
+			printf("GetOutputAreaPos: ERROR getting on pos [%s] disabling\n", szIniTag);
+			g_OutputAreaArray[x].bEnabled = false;
+			continue;
+		}
+		memcpy(&g_OutputAreaArray[x].srcRect, &tmpButtonPos, sizeof(SDL_Rect));
+
+		// Get Dst Pos
+		sprintf(szIniTag, "%s:dst", g_OutputAreaArray[x].szIniName);
+		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
+		{
+			printf("GetOutputAreaPos: ERROR getting on pos [%s] disabling\n", szIniTag);
+			g_OutputAreaArray[x].bEnabled = false;
+			continue;
+		}
+		memcpy(&g_OutputAreaArray[x].dstRect, &tmpButtonPos, sizeof(SDL_Rect));
+	}
 
 	return 0;
 }
@@ -753,15 +844,34 @@ void CGraphicsUITheme::DisplayString(char *szWord, StringPosEnum posEnum)
 //
 //
 //*****************************************************************************
-void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum)
+void CGraphicsUITheme::DisplayString(char *szWord, OutputAreaEnum posEnum, int nLineNumber)
 {
-	if(g_ButtonPosArray[posEnum].currentState == BS_ON)
+	SDL_Rect dst;
+
+	if(false == g_OutputAreaArray[posEnum].bEnabled)
 	{
-		DisplayButton(posEnum, BS_OFF);
+		return;
 	}
-	else
+
+	if((nLineNumber - 1) >= g_OutputAreaArray[posEnum].nLineCount)
 	{
-		DisplayButton(posEnum, BS_ON);
+		return;
+	}
+
+	SDL_Surface *pSurface = GetStringSurface(szWord, g_OutputAreaArray[posEnum].nFontIndex);
+
+	if(NULL != pSurface)
+	{
+		memcpy(&dst, &g_OutputAreaArray[posEnum].dstRect, sizeof(SDL_Rect));
+
+		// Vertically align word;
+		dst.y = dst.y + (g_OutputAreaArray[posEnum].lineSize.h * (nLineNumber - 1)) + (pSurface->h / 2) + 1;
+		
+		// Clear out area before repaint
+		SDL_BlitSurface(m_pImageSurface, &g_OutputAreaArray[posEnum].srcRect, m_pPSPSurface, &g_OutputAreaArray[posEnum].dstRect);
+		SDL_BlitSurface(pSurface, NULL, m_pPSPSurface, &dst);
+		SDL_Flip(m_pPSPSurface);
+		SDL_FreeSurface(pSurface);
 	}
 }
 
@@ -771,7 +881,18 @@ void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum)
 //
 //
 //*****************************************************************************
-void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum, ButtonStateEnum state)
+void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum)
+{
+	DisplayButton(posEnum, (g_ButtonPosArray[posEnum].nCurrentState+1)%g_ButtonPosArray[posEnum].nButtonCount);
+}
+
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
+void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum, int nState)
 {
 	SDL_Rect *pRect = NULL;
 
@@ -780,16 +901,8 @@ void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum, ButtonStateEnum stat
 		return;
 	}
 
-	if(BS_ON == state)
-	{
-		pRect = &g_ButtonPosArray[posEnum].onRect;
-		g_ButtonPosArray[posEnum].currentState = BS_ON;
-	}
-	else
-	{
-		pRect = &g_ButtonPosArray[posEnum].offRect;
-		g_ButtonPosArray[posEnum].currentState = BS_OFF;
-	}
+	pRect = &g_ButtonPosArray[posEnum].pSrcRect[nState];
+	g_ButtonPosArray[posEnum].nCurrentState = nState;
 	
 	SDL_BlitSurface(m_pImageSurface, 
 						pRect,
@@ -797,8 +910,6 @@ void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum, ButtonStateEnum stat
 						&g_ButtonPosArray[posEnum].dstRect);
 
 	SDL_Flip(m_pPSPSurface);
-
-
 }
 
 //*****************************************************************************
