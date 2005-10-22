@@ -2747,11 +2747,11 @@ void CSandbergUI::RenderFX_1(void)
 		sceGumLoadIdentity();
 			{
 			ScePspFVector3 pos = { -1*CUBE_COUNT/2+count, 0, -4.5f };
-			ScePspFVector3 rot = { 	val * 0.59f * (M_PI/180.0f) / 2.0f,
-						val * 0.78f * (M_PI/180.0f) / 2.0f, 
-						val * 1.12f * (M_PI/180.0f) / 2.0f};
-			sceGumRotateXYZ(&rot);
+			ScePspFVector3 rot = { 	val * 0.59f * (GU_PI/180.0f) / 2.0f,
+						val * 0.78f * (GU_PI/180.0f) / 2.0f, 
+						val * 1.12f * (GU_PI/180.0f) / 2.0f};
 			sceGumTranslate(&pos);
+			sceGumRotateXYZ(&rot);
 			}
 		sceGumDrawArray(GU_TRIANGLES, GU_COLOR_8888|GU_NORMAL_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 12*3, 0, ::vertices);
 		}
@@ -2771,11 +2771,11 @@ void CSandbergUI::RenderFX_2(void)
 	sceGumLoadIdentity();
 		{
 		ScePspFVector3 pos = { 0, 0, -4.5f };
-		ScePspFVector3 rot = { 	val * 0.59f * (M_PI/180.0f) / 2.0f,
-					val * 0.78f * (M_PI/180.0f) / 2.0f, 
-					val * 1.12f * (M_PI/180.0f) / 2.0f};
-		sceGumRotateXYZ(&rot);
+		ScePspFVector3 rot = { 	val * 0.59f * (GU_PI/180.0f) / 2.0f,
+					val * 0.78f * (GU_PI/180.0f) / 2.0f, 
+					val * 1.12f * (GU_PI/180.0f) / 2.0f};
 		sceGumTranslate(&pos);
+		sceGumRotateXYZ(&rot);
 
 		/* Draw heart */
 		sceGumDrawArray(GU_TRIANGLES, GU_COLOR_8888|GU_NORMAL_32BITF|GU_VERTEX_32BITF|GU_INDEX_16BIT|GU_TRANSFORM_3D, sizeof(::heart_indexes)/sizeof(unsigned short), ::heart_indexes, ::heart_vertices);

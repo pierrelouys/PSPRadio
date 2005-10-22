@@ -67,13 +67,6 @@ public:
 		int		ID;
 	};
 
-	typedef struct char_map
-	{
-		char	char_index;
-		float	min_x, min_y;
-		float	max_x, max_y;
-	};
-
 	struct NCVertex
 	{
 		float u, v;
@@ -93,6 +86,11 @@ public:
 	{
 		float u, v;
 		unsigned int color;
+		float x,y,z;
+	};
+
+	struct SVertex
+	{
 		float x,y,z;
 	};
 
@@ -129,6 +127,7 @@ public:
 	int OnNewSongData(CPSPSoundStream::MetaData *pData);
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
+	int OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection);
 
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);
@@ -178,13 +177,11 @@ private:
 	};
 
 	void *LoadFile(char *filename);
-	struct char_map	* FindCharMap(char index);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
 	void UpdateTextItem(int ID, int x, int y, char *strText);
 	void LoadTextures(char *strCWD);
 
-	void CSandbergUI::InitPL(void);
-	void CSandbergUI::InitFX(void);
+	void InitFX(void);
 
 	void RenderFX(void);
 	void RenderFX_1(void);
@@ -198,7 +195,8 @@ private:
 	void RenderLoad(void);
 	void RenderSound(void);
 	void RenderIcon(IconStr *icon_info);
-	void RenderMetaDataFrame(void);
+	void RenderFrame(TexCoord &area, unsigned int tex_color);
+	void RenderActiveList(void);
 
 	void RenderPlayScreen(void);
 	void RenderOptionScreen(void);
@@ -217,6 +215,7 @@ private:
 	struct	timeval tval;
 	int	current_fx;
 	int	screen_state;
+	int	select_state, select_target;
 };
 
 #endif

@@ -90,7 +90,6 @@ static CSandbergUI::texture_file __attribute__((aligned(16))) texture_list[] =
 	{CSandbergUI::TEX_LOGO,		GU_PSM_8888, 256, 64, "ui_logo.raw"},
 	{CSandbergUI::TEX_COMMANDS,	GU_PSM_8888,  64, 64, "commands.raw"},
 	{CSandbergUI::TEX_PLATE,	GU_PSM_8888,  64, 64, "plate.raw"},
-	{CSandbergUI::TEX_FONT_LARGE,	GU_PSM_8888, 256, 64, "font.raw"},
 	{CSandbergUI::TEX_FONT_SMALL,	GU_PSM_8888, 512, 16, "font_small.raw"},
 	{CSandbergUI::TEX_PLAY,		GU_PSM_8888,  32, 32, "play.raw"},
 	{CSandbergUI::TEX_STOP,		GU_PSM_8888,  32, 32, "stop.raw"},
@@ -111,6 +110,8 @@ CSandbergUI::CSandbergUI()
 	pl_name 	= 0;
 	pl_entry 	= 0;
 	screen_state	= SCREEN_PLAYING;
+	select_state	= 0;
+	select_target	= 0;
 }
 
 CSandbergUI::~CSandbergUI()
@@ -193,7 +194,6 @@ int CSandbergUI::Initialize(char *strCWD)
 
 	sceKernelDcacheWritebackAll();
 
-	InitPL();
 	InitFX();
 
 	Log(LOG_LOWLEVEL, "Initialize: completed");
@@ -295,6 +295,7 @@ int CSandbergUI::OnStreamOpeningSuccess()
 {
 	icon_list[ICON_LOAD].color = LOAD_INACTIVE_COLOR;
 	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Stream opened succesfully");
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, "");
 	return 0;
 }
 
