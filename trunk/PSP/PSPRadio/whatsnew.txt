@@ -9,6 +9,9 @@ into VRAM.
 (sandberg) Added full playlist and playlist entries support for the 3D UI.
 (sandberg) made 2 minor error correction to the option menu.
 (sandberg) Added rendering of the background effect to the option menu.
+(jpfouch48) Re-vamped Grapics UI Theme class
+(jpfouch48) Cleaned up theme implementation and theme file
+(jpfouch48) Created icons for buffer display, network status, and stream status
 
 0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
