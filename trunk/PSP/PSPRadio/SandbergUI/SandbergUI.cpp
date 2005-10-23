@@ -107,8 +107,6 @@ static unsigned int __attribute__((aligned(16))) gu_list[262144];
 CSandbergUI::CSandbergUI()
 {
 	framebuffer 	= 0;
-	pl_name 	= 0;
-	pl_entry 	= 0;
 	screen_state	= SCREEN_PLAYING;
 	select_state	= 0;
 	select_target	= 0;
@@ -116,15 +114,6 @@ CSandbergUI::CSandbergUI()
 
 CSandbergUI::~CSandbergUI()
 {
-	if (pl_name != NULL)
-	{
-		free(pl_entry);
-	}
-
-	if (pl_entry != NULL)
-	{
-		free(pl_entry);
-	}
 }
 
 void CSandbergUI::LoadTextures(char *strCWD)
@@ -259,7 +248,7 @@ int CSandbergUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CSandbergUI::DisplayErrorMessage(char *strMsg)
 {
-	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, strMsg);
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, strMsg, 0xFFFFFFFF);
 
 	return 0;
 }
@@ -269,7 +258,7 @@ int CSandbergUI::DisplayBufferPercentage(int iPercentage)
 	char	perStr[MAXPATHLEN];
 
 	sprintf(perStr, "Buffer: %03d%c%c", iPercentage, 37, 37);
-	UpdateTextItem(TEXT_BUFFER, META_BUFFER_X, META_BUFFER_Y, perStr);
+	UpdateTextItem(TEXT_BUFFER, META_BUFFER_X, META_BUFFER_Y, perStr, 0xFFFFFFFF);
 
 	return 0;
 }
@@ -281,21 +270,21 @@ int CSandbergUI::OnNewStreamStarted()
 
 int CSandbergUI::OnStreamOpening()
 {
-	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Opening stream");
+	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Opening stream", 0xFFFFFFFF);
 	return 0;
 }
 
 int CSandbergUI::OnStreamOpeningError()
 {
-	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Error opening stream");
+	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Error opening stream", 0xFFFFFFFF);
 	return 0;
 }
 
 int CSandbergUI::OnStreamOpeningSuccess()
 {
 	icon_list[ICON_LOAD].color = LOAD_INACTIVE_COLOR;
-	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Stream opened succesfully");
-	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, "");
+	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Stream opened succesfully", 0xFFFFFFFF);
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, "", 0xFFFFFFFF);
 	return 0;
 }
 
@@ -373,76 +362,19 @@ int CSandbergUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 	if (0 != pData->iSampleRate)
 	{
 		sprintf(strBuf, "%d kbps %dHz (%d channels)", pData->iBitRate/1000, pData->iSampleRate, pData->iNumberOfChannels);
-		UpdateTextItem(TEXT_STREAM_FORMAT, META_FORMAT_X, META_FORMAT_Y, strBuf);
+		UpdateTextItem(TEXT_STREAM_FORMAT, META_FORMAT_X, META_FORMAT_Y, strBuf, 0xFFFFFFFF);
 	}
 
-	UpdateTextItem(TEXT_STREAM_URL,  META_URL_X, META_URL_Y, pData->strURI);
-	UpdateTextItem(TEXT_STREAM_NAME, META_NAME_X, META_NAME_Y, pData->strTitle);
+	UpdateTextItem(TEXT_STREAM_URL,  META_URL_X, META_URL_Y, pData->strURI, 0xFFFFFFFF);
+	UpdateTextItem(TEXT_STREAM_NAME, META_NAME_X, META_NAME_Y, pData->strTitle, 0xFFFFFFFF);
 
 	if (pData->strArtist && strlen(pData->strArtist))
 	{
-		UpdateTextItem(TEXT_STREAM_ARTIST, META_ARTIST_X, META_ARTIST_Y, pData->strTitle);
+		UpdateTextItem(TEXT_STREAM_ARTIST, META_ARTIST_X, META_ARTIST_Y, pData->strTitle, 0xFFFFFFFF);
 	}
 
 	return 0;
 }
-
-
-int CSandbergUI::DisplayPLList(CDirList *plList)
-{
-
-	if (pl_name != NULL)
-	{
-		free(pl_name);
-		pl_name = NULL;
-	}
-
-	pl_name = (char *) malloc(strlen(plList->GetCurrentURI()));
-
-	if(pl_name)
-	{
-		strcpy(pl_name, plList->GetCurrentURI());
-	}
-
-	return 0;
-}
-
-int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
-{
-	CPSPSoundStream::MetaData Data;
-	int iRet;
-
-	if (pl_entry != NULL)
-	{
-		free(pl_entry);
-		pl_entry = NULL;
-	}
-
-	iRet = PlayList->GetCurrentSong(&Data);
-
-	if (0 == iRet)
-	{
-		if (strlen(Data.strTitle))
-		{
-			pl_entry = (char *) malloc(strlen(Data.strTitle));
-			if (pl_entry)
-			{	
-				strcpy(pl_entry, Data.strTitle);
-			}
-		}
-		else
-		{
-			pl_entry = (char *) malloc(strlen(Data.strURI));
-			if (pl_entry)
-			{	
-				strcpy(pl_entry, Data.strURI);
-			}
-		}
-	}
-
-	return 0;
-}
-
 
 int CSandbergUI::OnConnectionProgress()
 {
@@ -514,7 +446,7 @@ void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
 	}
 }
 
-void CSandbergUI::UpdateTextItem(int ID, int x, int y, char *strText)
+void CSandbergUI::UpdateTextItem(int ID, int x, int y, char *strText, unsigned int color)
 {
 	StoredOptionItem			Option;
 	list<StoredOptionItem>::iterator 	OptionIterator;
@@ -528,7 +460,9 @@ void CSandbergUI::UpdateTextItem(int ID, int x, int y, char *strText)
 			{
 				strcpy((*OptionIterator).strText, strText);
 				strupr((*OptionIterator).strText);
+				(*OptionIterator).color = color;
 				found = true;
+				break;
 			}
 		}
 	}
@@ -539,6 +473,7 @@ void CSandbergUI::UpdateTextItem(int ID, int x, int y, char *strText)
 		Option.color = 0xFFFFFFFF;
 		strcpy(Option.strText, strText);
 		strupr(Option.strText);
+		Option.color = color;
 		Option.ID = ID;
 		OptionsItems.push_back(Option);
 	}

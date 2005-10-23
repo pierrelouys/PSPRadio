@@ -166,6 +166,16 @@ private:
 		TEXT_STREAM_URL,
 		TEXT_STREAM_NAME,
 		TEXT_STREAM_ARTIST,
+		TEXT_PL_LIST1,
+		TEXT_PL_LIST2,
+		TEXT_PL_LIST3,
+		TEXT_PL_LIST4,
+		TEXT_PL_LIST5,
+		TEXT_PL_ENTRY1,
+		TEXT_PL_ENTRY2,
+		TEXT_PL_ENTRY3,
+		TEXT_PL_ENTRY4,
+		TEXT_PL_ENTRY5,
 	};
 
 	struct StoredOptionItem
@@ -178,8 +188,9 @@ private:
 
 	void *LoadFile(char *filename);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
-	void UpdateTextItem(int ID, int x, int y, char *strText);
+	void UpdateTextItem(int ID, int x, int y, char *strText, unsigned int color);
 	void LoadTextures(char *strCWD);
+	int FindFirstEntry(int list_cnt, int current);
 
 	void InitFX(void);
 
@@ -208,8 +219,6 @@ private:
 	jsaTextureCache		tcache;
 	list<StoredOptionItem>	OptionsItems;
 
-	char*	pl_name;
-	char*	pl_entry;
 	void* 	framebuffer;
 	float 	start, curr;
 	struct	timeval tval;

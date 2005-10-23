@@ -2,7 +2,6 @@
 	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
 	PSPRadio Copyright (C) 2005 Rafael Cabezas a.k.a. Raf
 	SandbergUI Copyright (C) 2005 Jesper Sandberg
-
 	
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -37,14 +36,24 @@
 #include <pspgu.h>
 #include <pspgum.h>
 
+#include <Tools.h>
+
 #include "SandbergUI.h"
 
-#define		LIST_FRAME_X		  8
-#define		LIST_FRAME_Y		200
-#define		ENTRY_FRAME_X		336
-#define		ENTRY_FRAME_Y		200
-#define		FRAME_WIDTH		128
-#define		FRAME_HEIGHT		 64
+#define		LIST_COUNT		5
+#define		LIST_MARGIN		(((LIST_COUNT-1) / 2) + 1)
+
+#define		FRAME_WIDTH		176
+#define		FRAME_HEIGHT		 80
+#define		LIST_FRAME_X		  6
+#define		LIST_FRAME_Y		188
+#define		LIST_TEXT_X		  1
+#define		LIST_TEXT_Y		 12
+#define		ENTRY_FRAME_X		(480-LIST_FRAME_X-FRAME_WIDTH)
+#define		ENTRY_FRAME_Y		188
+#define		ENTRY_TEXT_X		 38
+#define		ENTRY_TEXT_Y		 12
+#define		MAX_CHARS		((FRAME_WIDTH/8)-1)
 
 #define		SELECT_MIN_X		LIST_FRAME_X
 #define		SELECT_MAX_X		ENTRY_FRAME_X
@@ -116,6 +125,170 @@ void CSandbergUI::RenderFrame(TexCoord &area, unsigned int tex_color)
 	sceGuDrawArray(GU_LINE_STRIP,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,5,0,l_vertices);
 
 	sceGuDepthFunc(GU_GEQUAL);
+}
+
+int CSandbergUI::DisplayPLList(CDirList *plList)
+{
+	int 		list_cnt, render_cnt;
+	int		current = 1;
+	int		i = 0;
+	unsigned int	color;
+	int		y = LIST_TEXT_Y;
+	int		first_entry;
+	char		strTemp[MAX_CHARS+1];
+
+	list<CDirList::directorydata>::iterator ListIterator;
+	list<CDirList::directorydata>::iterator *CurrentElement = plList->GetCurrentElementIterator();
+	list<CDirList::directorydata> *List = plList->GetList();
+
+	list_cnt = List->size();
+
+	/*  Find number of current element */
+	if (list_cnt > 0)
+	{
+		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++, current++)
+		{
+			if (ListIterator == *CurrentElement)
+			{
+			break;
+			}
+		}
+
+		/* Calculate start element in list */
+		first_entry = FindFirstEntry(list_cnt, current);
+
+		/* Find number of elements to show */
+		render_cnt = (list_cnt > LIST_COUNT) ? LIST_COUNT : list_cnt;
+
+		/* Go to start element */
+		for (ListIterator = List->begin() ; i < first_entry ; i++, ListIterator++);
+
+		for (i = 0 ; i < LIST_COUNT ; i++)
+		{
+			if (i < render_cnt)
+			{
+				if (ListIterator == *CurrentElement)
+				{
+					color = 0xFFFFFFFF;
+				}
+				else
+				{
+					color = 0xFF444444;
+				}
+				strncpy(strTemp, basename((*ListIterator).strURI), MAX_CHARS);
+				strTemp[MAX_CHARS] = 0;
+				ListIterator++;
+			}
+			else
+			{
+				/* Add dummy elements for cleaning the list */
+				strTemp[0] = ' ';
+				strTemp[1] = 0;
+				color = 0xFFFFFFFF;
+			}
+			UpdateTextItem(TEXT_PL_LIST1 +  i, LIST_TEXT_X, y++, strTemp, color);
+		}
+	}
+
+	return 0;
+}
+
+int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
+{
+	int 		list_cnt, render_cnt;
+	int		current = 1;
+	int		i = 0;
+	unsigned int	color;
+	int		y = ENTRY_TEXT_Y;
+	int		first_entry;
+	char		strTemp[MAX_CHARS+1];
+
+	list<CPSPSoundStream::MetaData>::iterator ListIterator;
+	list<CPSPSoundStream::MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
+	list<CPSPSoundStream::MetaData> *List = PlayList->GetList();
+
+	list_cnt = List->size();
+
+	/*  Find number of current element */
+	if (list_cnt > 0)
+	{
+		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++, current++)
+		{
+			if (ListIterator == *CurrentElement)
+			{
+			break;
+			}
+		}
+
+		/* Calculate start element in list */
+		first_entry = FindFirstEntry(list_cnt, current);
+
+		/* Find number of elements to show */
+		render_cnt = (list_cnt > LIST_COUNT) ? LIST_COUNT : list_cnt;
+
+		/* Go to start element */
+		for (ListIterator = List->begin() ; i < first_entry ; i++, ListIterator++);
+
+		for (i = 0 ; i < LIST_COUNT ; i++)
+		{
+			if (i < render_cnt)
+			{
+				if (ListIterator == *CurrentElement)
+				{
+					color = 0xFFFFFFFF;
+				}
+				else
+				{
+					color = 0xFF444444;
+				}
+
+				if (strlen((*ListIterator).strTitle))
+				{
+					strncpy(strTemp, (*ListIterator).strTitle, MAX_CHARS);
+					strTemp[MAX_CHARS] = 0;
+				}
+				else
+				{
+					strncpy(strTemp, (*ListIterator).strURI, MAX_CHARS);
+					strTemp[MAX_CHARS] = 0;
+				}
+				ListIterator++;
+			}
+			else
+			{
+				/* Add dummy elements for cleaning the list */
+				strTemp[0] = ' ';
+				strTemp[1] = 0;
+				color = 0xFFFFFFFF;
+			}
+			UpdateTextItem(TEXT_PL_ENTRY1 +  i, ENTRY_TEXT_X, y++, strTemp, color);
+		}
+	}
+
+	return 0;
+}
+
+int CSandbergUI::FindFirstEntry(int list_cnt, int current)
+{
+	int		first_entry;
+
+	/* Handle start of list */
+	if ((list_cnt<=LIST_COUNT) || (current < LIST_MARGIN))
+	{
+		first_entry = 0;
+	}
+	/* Handle end of list */
+	else if ((list_cnt > LIST_COUNT) && ((list_cnt - current) < LIST_MARGIN))
+	{
+		first_entry = list_cnt - LIST_COUNT;
+	}
+	/* Handle rest of list */
+	else
+	{
+		first_entry = current - LIST_MARGIN;
+	}
+	
+	return first_entry;
 }
 
 int CSandbergUI::OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection)
