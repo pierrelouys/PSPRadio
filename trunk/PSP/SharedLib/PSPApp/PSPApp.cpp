@@ -354,9 +354,11 @@ int CPSPApp::WLANConnectionHandler(int profile)
 
 int CPSPApp::ReportError(char *format, ...)
 {
-	char strMessage[4096];
+	char *strMessage;
 	va_list args;
-	
+
+	strMessage   = (char *)malloc(4096);
+
 	va_start (args, format);         /* Initialize the argument list. */
 	
 	vsprintf(strMessage, format, args);

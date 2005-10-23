@@ -386,6 +386,7 @@ public:
 			case MID_ERROR:
 				m_UI->DisplayErrorMessage((char*)event.pData);
 				Log(LOG_ERROR, (char*)event.pData);
+				free(event.pData);
 				continue;
 				break;
 			}
