@@ -41,6 +41,7 @@
 CScreenHandler::CScreenHandler(CIniParser *Config, CPSPSound *Sound)
 {
 	m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
+	m_PreviousScreen = PSPRADIO_SCREEN_PLAYLIST;
 	m_iNetworkProfile = 1;
 	m_NetworkStarted  = false;
 	m_RequestOnPlayOrStop = NOTHING;
@@ -397,6 +398,13 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 			Log(LOG_VERYLOW, "Calling Stop() at InputHandler, [] pressed.");
 			m_Sound->Stop();
 		}
+	}
+	else if (iButtonMask & PSP_CTRL_SELECT)
+	{
+		// Enter option menu and store the current screen
+		m_PreviousScreen = m_CurrentScreen;
+		m_CurrentScreen  = PSPRADIO_SCREEN_OPTIONS;
+		StartScreen(m_CurrentScreen);
 	}
 	else if (iButtonMask & PSP_CTRL_TRIANGLE)
 	{

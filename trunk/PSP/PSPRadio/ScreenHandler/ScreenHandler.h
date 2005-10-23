@@ -20,7 +20,7 @@
 			PSPRADIO_SCREEN_OPTIONS,
 		};
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
-		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
+		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS)
 		
 		enum UIs
 		{
@@ -84,6 +84,7 @@
 		
 	private:
 		Screen m_CurrentScreen;
+		Screen m_PreviousScreen;
 		UIs m_CurrentUI;
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;

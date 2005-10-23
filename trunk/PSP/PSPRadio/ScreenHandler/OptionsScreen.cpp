@@ -148,13 +148,10 @@ void CScreenHandler::PopulateOptionsData()
 
 void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 {
-	if (iButtonMask & PSP_CTRL_TRIANGLE)
+	if (iButtonMask & PSP_CTRL_SELECT)
 	{
-		m_CurrentScreen = (Screen)(m_CurrentScreen+1);
-		if (m_CurrentScreen == PSPRADIO_SCREEN_LIST_END)
-		{
-			m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
-		}
+		// Go back to where we were before entering the options menu
+		m_CurrentScreen = m_PreviousScreen;
 		StartScreen(m_CurrentScreen);
 	}
 	else if (iButtonMask & PSP_CTRL_UP)

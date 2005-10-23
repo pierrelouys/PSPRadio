@@ -12,6 +12,8 @@ into VRAM.
 (jpfouch48) Re-vamped Grapics UI Theme class
 (jpfouch48) Cleaned up theme implementation and theme file
 (jpfouch48) Created icons for buffer display, network status, and stream status
+(sandberg) Implemented support for using the Select button for entering the option menu.
+The triangle button is only used for swapping between the playlist and Shoutcast list.
 
 0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
