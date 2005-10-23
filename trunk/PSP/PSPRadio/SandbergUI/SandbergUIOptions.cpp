@@ -47,10 +47,13 @@ static char __attribute__((aligned(16))) char_list[] = {'A', 'B', 'C', 'D', 'E',
 							'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5',
 							'6', '7', '8', '9', ':', '.', ',', '-', '+', '(', ')', '[', ']', '?', '=', ';',
 							'\\', '/', '<', '>', '!', '"', '#', '&', '$', '@', '{', '}', '*', '\'', '%', ' '};
+static CSandbergUI::TexCoord __attribute__((aligned(16))) option_frame = { 8, 8, 480-8, 272-8};
 
 
 void CSandbergUI::RenderOptionScreen(void)
 {
+	RenderFX();
+	RenderFrame(option_frame, 0xFFFFFFFF);
 	RenderOptionLogo();
 	RenderOptions(RENDER_OPTIONS);
 }
@@ -105,7 +108,7 @@ void CSandbergUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList
 			}
 			Option = (*OptionIterator);
 			StoreOption(y, active_item, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, Option.iActiveState);
-			y += 2;
+			y += 1;
 		}
 	}
 }

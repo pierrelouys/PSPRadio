@@ -216,6 +216,7 @@ int CSandbergUI::DisplayMessage_DisablingNetwork()
 int CSandbergUI::DisplayMessage_NetworkReady(char *strIP)
 {
 	icon_list[ICON_NETWORK].color = NETWORK_CONNECTED_COLOR;
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, " ", 0xFFFFFFFF);
 	return 0;
 }
 
@@ -271,6 +272,7 @@ int CSandbergUI::OnNewStreamStarted()
 int CSandbergUI::OnStreamOpening()
 {
 	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Opening stream", 0xFFFFFFFF);
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, " ", 0xFFFFFFFF);
 	return 0;
 }
 
@@ -284,7 +286,7 @@ int CSandbergUI::OnStreamOpeningSuccess()
 {
 	icon_list[ICON_LOAD].color = LOAD_INACTIVE_COLOR;
 	UpdateTextItem(TEXT_STREAM_URL, META_URL_X, META_URL_Y, "Stream opened succesfully", 0xFFFFFFFF);
-	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, "", 0xFFFFFFFF);
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, " ", 0xFFFFFFFF);
 	return 0;
 }
 
@@ -352,6 +354,8 @@ void CSandbergUI::RenderPlayScreen(void)
 int CSandbergUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	char	strBuf[MAXPATHLEN];
+
+	UpdateTextItem(TEXT_ERROR, META_ERROR_X, META_ERROR_Y, " ", 0xFFFFFFFF);
 
 	if (strlen(pData->strTitle) >= 42)
 		pData->strTitle[42] = 0;
@@ -435,12 +439,12 @@ void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 		{
-		screen_state = SCREEN_PLAYING;
+			screen_state = SCREEN_PLAYING;
 		}
 		break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 		{
-		screen_state = SCREEN_OPTIONS;
+			screen_state = SCREEN_OPTIONS;
 		}
 		break;
 	}

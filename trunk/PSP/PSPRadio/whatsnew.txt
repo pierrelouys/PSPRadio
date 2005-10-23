@@ -7,6 +7,8 @@ What's New for PSPRadio
 (sandberg) Implemented a VRAM memory manager, so all textures are now loaded from files
 into VRAM.
 (sandberg) Added full playlist and playlist entries support for the 3D UI.
+(sandberg) made 2 minor error correction to the option menu.
+(sandberg) Added rendering of the background effect to the option menu.
 
 0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
