@@ -6,6 +6,7 @@ What's New for PSPRadio
 (raf) Started adding SHOUTcast support
 (sandberg) Implemented a VRAM memory manager, so all textures are now loaded from files
 into VRAM.
+(sandberg) Added full playlist and playlist entries support for the 3D UI.
 
 0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
