@@ -270,6 +270,8 @@ void CScreenHandler::StartScreen(Screen screen)
 			break;
 			
 		case PSPRADIO_SCREEN_OPTIONS:
+			// Update network and UI options.  This is necesary the first time */
+			PopulateOptionsData();
 			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 			break;
 	}
