@@ -147,8 +147,15 @@ int CScreenHandler::Start_Network(int iProfile)
 		
 		m_UI->DisplayMessage_EnablingNetwork();
 
-		pPSPApp->EnableNetwork(abs(m_iNetworkProfile));
-		
+		if (pPSPApp->EnableNetwork(abs(m_iNetworkProfile)) == 0)
+		{
+			m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		}
+		else
+		{
+			m_UI->DisplayMessage_DisablingNetwork();
+		}
+
 		m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
 		
