@@ -1,84 +1,128 @@
-; Default PSPRadio Theme version 0.1
+; Default PSPRadio Theme
 
-[image]
-file=PSPRadio_AllStates.bmp
+[main]
+version=0.2;
+themeimage=ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.bmp;
+transparency=[255,0,255];
 
-[transparency]
-red=255;
-green=0;
-blue=255;
+[screens]
+main=[0,0] [480,272];
+shoutcast=[0,0] [480,272];
+settings=[0,274] [480,272];
 
-[background]
-src=[0,0];
-dst=[0,0];
-size=[480,272];
+[font]
+fontCount=1;
 
-[settings]
-src=[0,274];
-dst=[0,0];
-size=[480,272];
+[font1]
+lineCount=2;
+keyLine1=~ABCDEFGHIJKLMNOPQRSTUVWXYZ"@;
+srcLine1=[540,97] [5,6];
+keyLine2=0123456789=()-+*[]&^%$.,\/:#;
+srcLine2=[540,103] [5,6];
 
 [stringpos]
-settingarea=[35,25] [406,229]
-filename=[31,25] [420,11];
-filetitle=[31,36] [420,11];
-uri=[31,47] [420,11];
-buffer=[31,57] [140,11];
-mpeglayer=[171,57] [140,11];
-samplerate=[311,57] [140,11];
-stream=[31,67] [420,11];
-error=[31,67] [420,11];
-network=[31,67] [420,11];
-;songtitle=[31,55] [210,11];
-;songauthor=[241,55] [210,11];
-;length=[241,35] [210,11];
-;samplerate=[241,45] [210,11];
-;bitrate=[241,55] [210,11];
+filetitle=[38,23] [399,11] CENTER 1;
+uri=[38,34] [399,11] CENTER 1;
+url=[38,45] [399,11] CENTER 1;
+;genre=[38,56] [199,11] CENTER 1;
+;songauthor=[237,56] [199,11] CENTER 1;
 
-[itempos]
-playlistarea=[0,114] [154,133];
-playlistareasel=[485,42] [154,19];
-playlistitemarea=[162,114] [318,133];
-playlistitemareasel=[485,66] [318,19];
+length=[372,66] [33,13] CENTER 1;
+bitrate=[196,66] [41,13] CENTER 1;
+samplerate=[265,66] [63,13] CENTER 1;
+mpeglayer=[44,66] [62,13] CENTER 1;
+channels=[126,66] [46,13] CENTER 1;
+error=[155,251] [188,16] CENTER 1;
 
 [play]
-src=[485,4] [485,23];
-dst=[16,252];
-size=[14,15];
+src1=[485,23] [14,15];
+src2=[485,4] [14,15];
+dst=[16,252] [14,15];
 
 [pause]
-src=[503,4] [503,23];
-dst=[34,252];
-size=[14,15];
+src1=[503,23] [14,15];
+src2=[503,4] [14,15];
+dst=[34,252] [14,15];
 
 [stop]
-src=[521,4] [521,23];
-dst=[52,252];
-size=[14,15];
+states=2
+src1=[521,23] [14,15];
+src2=[521,4] [14,15];
+dst=[52,252] [14,15];
 
 [load]
-src=[539,4] [539,23];
-dst=[70,252];
-size=[29,14];
+src1=[539,23] [29,14];
+src2=[539,4] [29,14];
+dst=[70,252] [29,14];
 
 [sound]
-src=[573,4] [573,23];
-dst=[407,252];
-size=[17,15];
+src1=[573,23] [17,15];
+src2=[573,4] [17,15];
+dst=[407,253] [17,15];
+
+[network]
+stateCount=4
+src1=[543,134] [15,14];
+src2=[564,134] [15,14];
+src3=[585,134] [15,14];
+src4=[606,134] [15,14];
+dst=[380,253] [15,14];
+
+[stream]
+stateCount=5
+src1=[542,116] [11,11];
+src2=[555,116] [11,11];
+src3=[568,116] [11,11];
+src4=[581,116] [11,11];
+src5=[594,116] [11,11];
+dst=[351,255] [11,11];
 
 [volume]
-src=[484,89] [484,103] [484,117] [484,131] [484,145] [484,159] [484,173] [484,187];
-dst=[429,254];
-size=[42,10];
+stateCount=8
+src1=[484,187] [42,10];
+src2=[484,173] [42,10];
+src3=[484,159] [42,10];
+src4=[484,145] [42,10];
+src5=[484,131] [42,10];
+src6=[484,117] [42,10];
+src7=[484,103] [42,10];
+src8=[484,89] [42,10];
+dst=[429,254] [42,10];
 
-[letters]
-keys=~ABCDEFGHIJKLMNOPQRSTUVWXYZ"@;
-src=[540,97];
-size=[5,6];
+[buffer]
+stateCount=11
+src1=[486,202] [47,10];
+src2=[486,214] [47,10];
+src3=[486,226] [47,10];
+src4=[486,238] [47,10];
+src5=[486,250] [47,10];
+src6=[486,262] [47,10];
+src7=[486,274] [47,10];
+src8=[486,286] [47,10];
+src9=[486,298] [47,10];
+src10=[486,310] [47,10];
+src11=[486,322] [47,10];
+dst=[208,81] [47,10];
 
-[numbers]
-keys=0123456789=()-+*[]&^%$.,\/:#;
-src=[540,103];
-size=[5,6];
+[playlist]
+lineCount=7;
+lineSize=[0,0] [152,19];
+src=[0,114] [154,132];
+dst=[0,114] [154,132];
+selector=[485,42] [154,19];
+font=1;
 
+[playlistitem]
+lineCount=7;
+lineSize=[0,0] [318,19];
+src=[162,114] [318,132];
+dst=[162,114] [318,132];
+selector=[485,66] [318,19];
+font=1;
 
+[settings]
+lineCount=7;
+lineSize=[0,0] [318,19];
+src=[82,387] [318,132];
+dst=[82,117] [318,132];
+font=1;
