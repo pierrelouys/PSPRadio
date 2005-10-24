@@ -14,11 +14,15 @@ settings=[0,274] [480,272];
 fontCount=1;
 
 [font1]
-lineCount=2;
-keyLine1=~ABCDEFGHIJKLMNOPQRSTUVWXYZ"@;
-srcLine1=[540,97] [5,6];
-keyLine2=0123456789=()-+*[]&^%$.,\/:#;
-srcLine2=[540,103] [5,6];
+lineCount=4;
+keyLine1=abcdefghijklmnopqrstuvwxyz;
+srcLine1=[548,179] [8,11];
+keyLine2=ABCDEFGHIJKLMNOPQRSTUVWXYZ;
+srcLine2=[548,192] [8,11];
+keyLine3=0123456789;
+srcLine3=[548,205] [8,11];
+keyLine4=~`!@ $%^&*()_+-={}|:"<>?[]\;',./;
+srcLine4=[548,218] [8,11];
 
 [stringpos]
 filetitle=[38,23] [399,11] CENTER 1;
