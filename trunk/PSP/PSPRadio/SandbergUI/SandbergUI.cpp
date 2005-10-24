@@ -96,7 +96,7 @@ static CSandbergUI::texture_file __attribute__((aligned(16))) texture_list[] =
 	{CSandbergUI::TEX_NETWORK,	GU_PSM_8888,  32, 32, "network.raw"},
 	{CSandbergUI::TEX_LOAD,		GU_PSM_8888,  32, 32, "load.raw"},
 	{CSandbergUI::TEX_SOUND,	GU_PSM_8888,  32, 32, "sound.raw"},
-	{CSandbergUI::TEX_OPTIONS,	GU_PSM_8888, 256, 64, "options.raw"},
+	{CSandbergUI::TEX_OPTIONS,	GU_PSM_8888, 128, 64, "options.raw"},
 	};
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(CSandbergUI::texture_file))
@@ -418,6 +418,7 @@ void CSandbergUI::RenderSound(void)
 void CSandbergUI::RenderIcon(IconStr *icon_info)
 {
 	sceGuEnable(GU_TEXTURE_2D);
+	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuAlphaFunc(GU_GREATER,0x80,0xff);
 	sceGuEnable(GU_ALPHA_TEST);
@@ -436,6 +437,7 @@ void CSandbergUI::RenderIcon(IconStr *icon_info)
 	sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
 
 	sceGuDisable(GU_ALPHA_TEST);
+	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_TEXTURE_2D);
 }
 

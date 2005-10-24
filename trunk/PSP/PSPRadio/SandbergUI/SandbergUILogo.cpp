@@ -104,6 +104,8 @@ static int rot = 0;
 	sceGuTexOffset(0.0f,0.0f);
 	sceGuAmbientColor(0xffffffff);
 
+	sceGuDepthFunc(GU_ALWAYS);
+
 	struct Vertex* l_vertices = (struct Vertex*)sceGuGetMemory(2 * 3 * sizeof(struct Vertex));
 
 	sceGuColor(0xFFFFFFFF);
@@ -147,6 +149,8 @@ static int rot = 0;
 
 	// draw logo
 	sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_3D,2*3,0,l_vertices);
+
+	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_TEXTURE_2D);
 	rot++;
 }
@@ -154,6 +158,7 @@ static int rot = 0;
 void CSandbergUI::RenderCommands(void)
 {
 	sceGuEnable(GU_TEXTURE_2D);
+	sceGuDepthFunc(GU_ALWAYS);
 	// setup texture
 	(void)tcache.jsaTCacheSetTexture(TEX_COMMANDS);
 	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
@@ -164,5 +169,6 @@ void CSandbergUI::RenderCommands(void)
 	c_vertices[1].u = 64; c_vertices[1].v = 64;
 	c_vertices[1].x = 8+64; c_vertices[1].y = 8+64; c_vertices[1].z = 0;
 	sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
+	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_TEXTURE_2D);
 }

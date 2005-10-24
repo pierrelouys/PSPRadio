@@ -125,6 +125,14 @@ void CSandbergUI::InitFX(char *strCWD)
 	{
 		Log(LOG_ERROR, "JSA:Error loading!!");
 	}
+//TEST
+	#include <jsaP3OLoad.h>
+	jsaP3OLoad::jsaP3OVertex *current = object_info.vertices;
+	for (int i = 0  ; i < object_info.vertice_count  ; i++)
+	{
+		current->color = 0xFF0000FF;
+		current++;
+	}
 }
 
 void CSandbergUI::RenderFX(void)

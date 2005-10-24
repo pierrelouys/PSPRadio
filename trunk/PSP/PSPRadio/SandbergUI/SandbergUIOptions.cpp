@@ -64,6 +64,8 @@ void CSandbergUI::RenderOptionLogo(void)
 
 	sceGuAlphaFunc(GU_GREATER,0,0xff);
 	sceGuEnable(GU_ALPHA_TEST);
+	sceGuBlendFunc(GU_ADD, GU_SRC_COLOR, GU_DST_COLOR, 0, 0);
+	sceGuEnable(GU_BLEND);
 
 	// setup texture
 	(void)tcache.jsaTCacheSetTexture(TEX_OPTIONS);
@@ -71,13 +73,14 @@ void CSandbergUI::RenderOptionLogo(void)
 
 	struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(2 * sizeof(struct Vertex));
 	c_vertices[0].u = 0; c_vertices[0].v = 0;
-	c_vertices[0].x = 112; c_vertices[0].y = 8; c_vertices[0].z = 0;
+	c_vertices[0].x = 176; c_vertices[0].y = 8; c_vertices[0].z = 0;
 	c_vertices[0].color = 0xFFFFFFFF;
-	c_vertices[1].u = 256; c_vertices[1].v = 64;
-	c_vertices[1].x = 368; c_vertices[1].y = 72; c_vertices[1].z = 0;
+	c_vertices[1].u = 128; c_vertices[1].v = 64;
+	c_vertices[1].x = 304; c_vertices[1].y = 72; c_vertices[1].z = 0;
 	c_vertices[1].color = 0xFFFFFFFF;
 	sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
 
+	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
 }
