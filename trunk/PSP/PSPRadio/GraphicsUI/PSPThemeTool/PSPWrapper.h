@@ -1,6 +1,7 @@
-#pragma once
+#ifndef __PSPTHEMEWRAPPER__
+#define __PSPTHEMEWRAPPER__
 
-#include "GraphicsUITheme.h"
+#include "../GraphicsUITheme.h"
 
 class CPSPWrapper
 {
@@ -15,3 +16,5 @@ public:
 private:
 	CGraphicsUITheme m_GUI;
 };
+
+#endif
