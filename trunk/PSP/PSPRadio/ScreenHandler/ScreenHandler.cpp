@@ -360,12 +360,12 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 		/** tell ui of m_CurrentPlayListSideSelection change. */
 		m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 	}
-	else if (iButtonMask & PSP_CTRL_RIGHT)
-	{
-		m_CurrentPlayListSideSelection = PLAYLIST_ENTRIES;
-		/** tell ui of m_CurrentPlayListSideSelection change. */
-		m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
-	}
+	//else if (iButtonMask & PSP_CTRL_RIGHT)
+	//{
+	//	m_CurrentPlayListSideSelection = PLAYLIST_ENTRIES;
+	//	/** tell ui of m_CurrentPlayListSideSelection change. */
+	//	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
+	//}
 	else if (iButtonMask & PSP_CTRL_UP)
 	{
 		switch(m_CurrentPlayListSideSelection)
@@ -412,7 +412,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 				}
 				m_UI->DisplayPLEntries(m_CurrentPlayList);
 				m_CurrentPlayListSideSelection = PLAYLIST_ENTRIES;
-				/** tell ui of m_CurrentPlayListSideSelection change. */
+				/** Notify the UI of m_CurrentPlayListSideSelection change. */
 				m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 				break;
 			
