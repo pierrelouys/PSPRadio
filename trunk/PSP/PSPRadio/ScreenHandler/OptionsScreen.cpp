@@ -64,14 +64,24 @@ CScreenHandler::Options OptionsData[] =
 
 void CScreenHandler::PopulateOptionsData()
 {
-	Options Option;
-	
+	Options 			Option;
+	list<Options>::iterator		OptionIterator;
+
 	while(m_OptionsList.size())
 	{
+		// Release memory allocated for network profile names
+		OptionIterator = m_OptionsList.begin();
+		if ((*OptionIterator).Id == OPTION_ID_NETWORK_PROFILES)
+		{
+			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
+			{
+				free((*OptionIterator).strStates[i]);
+			}
+		}
 		m_OptionsList.pop_front();
 	}
-	
-	
+
+
 	for (int iOptNo=0;; iOptNo++)
 	{
 		if (-1 == OptionsData[iOptNo].Id)
@@ -90,7 +100,6 @@ void CScreenHandler::PopulateOptionsData()
 			case OPTION_ID_NETWORK_PROFILES:
 			{
 				Option.iNumberOfStates = pPSPApp->GetNumberOfNetworkProfiles() - 1;
-				/** allocate memory and lose it forever.. */
 				char *NetworkName = NULL;
 				for (int i = 0; i < Option.iNumberOfStates; i++)
 				{
