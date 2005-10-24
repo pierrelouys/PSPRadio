@@ -17,10 +17,16 @@
 		{
 			PSPRADIO_SCREEN_PLAYLIST,
 			PSPRADIO_SCREEN_SHOUTCAST_BROWSER,
-			PSPRADIO_SCREEN_OPTIONS,
+			/** Add more elements here **/
+
+			PSPRADIO_SCREEN_OPTIONS /* Leave this as the last one */
 		};
+		/** These point to the first and one-beyond the last elements of the
+			list; just like in a sdl list. This to allow for easy iteration
+			though the list with a for loop/etc. 
+		*/
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
-		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS)
+		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 		
 		enum UIs
 		{
@@ -69,6 +75,7 @@
 		void SetUp(CIniParser *Config, CPSPSound *Sound, 
 					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
 		void StartScreen(Screen screen);
+		void CommonInputHandler(int iButtonMask);
 
 		int  Start_Network(int iNewProfile = -1);
 		int  Stop_Network();

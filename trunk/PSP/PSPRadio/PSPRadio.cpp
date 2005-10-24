@@ -276,42 +276,6 @@ public:
 		Log(LOG_LOWLEVEL, "Exiting. The end.");
 	}
 
-	void OnButtonReleased(int iButtonMask)
-	{
-		static bool fOnExitMenu = false;
-		
-		if (false == fOnExitMenu)
-		{
-			if (iButtonMask & PSP_CTRL_HOME)
-			{
-				Log(LOG_VERYLOW, "Entering HOME menu, ignoring buttons..");
-				fOnExitMenu = true;
-				return;
-			}
-			switch (m_ScreenHandler->GetCurrentScreen())
-			{
-				case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-				case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-					m_ScreenHandler->PlayListScreenInputHandler(iButtonMask);
-					break;
-				case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-					m_ScreenHandler->OptionsScreenInputHandler(iButtonMask);
-					break;
-			}
-		}
-		else
-		{
-			if ( (iButtonMask & PSP_CTRL_HOME)   ||
-				 (iButtonMask & PSP_CTRL_CROSS)  ||
-				 (iButtonMask & PSP_CTRL_CIRCLE)
-				)
-			{
-				fOnExitMenu = false;
-				Log(LOG_VERYLOW, "Exiting HOME menu");
-			}
-		}
-	}
-	
 	void OnHPRMReleased(u32 iHPRMMask)
 	{
 		Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
@@ -454,13 +418,14 @@ public:
 					break;
 					
 				case MID_ONBUTTON_RELEASED:
-					OnButtonReleased(*((int*)event.pData));
+					m_ScreenHandler->CommonInputHandler(*((int*)event.pData));
 					break;
 					
 				case MID_ONHPRM_RELEASED:
 					OnHPRMReleased(*((u32*)event.pData));
 					break;
 
+				/** This is not used, vblank notification is done via 'callback' of OnVBlank from PSPApp */
 				case MID_ONVBLANK:
 					m_UI->OnVBlank();
 					break;

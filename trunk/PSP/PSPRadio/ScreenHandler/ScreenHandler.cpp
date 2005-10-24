@@ -278,6 +278,76 @@ void CScreenHandler::StartScreen(Screen screen)
 	}
 }
 
+void CScreenHandler::CommonInputHandler(int iButtonMask)
+{
+	static bool fOnExitMenu = false;
+	
+	if (false == fOnExitMenu) /** Not in home menu */
+	{
+		if (iButtonMask & PSP_CTRL_HOME)
+		{
+			Log(LOG_VERYLOW, "Entering HOME menu, ignoring buttons..");
+			fOnExitMenu = true;
+			return;
+		}
+		else
+		{
+			switch (m_CurrentScreen)
+			{
+				case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+				case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+					if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
+					{
+						// Enter option menu and store the current screen
+						m_PreviousScreen = m_CurrentScreen;
+						m_CurrentScreen  = PSPRADIO_SCREEN_OPTIONS;
+						StartScreen(m_CurrentScreen);
+					}
+					else if (iButtonMask & PSP_CTRL_TRIANGLE) /** Cycle through screens (except options) */
+					{
+						m_CurrentScreen = (Screen)(m_CurrentScreen+1);
+						/** Don't go to options screen with triangle;
+							Also, as options screen is the last one in the list
+							we cycle back to the first one */
+						if (m_CurrentScreen == PSPRADIO_SCREEN_OPTIONS)
+						{
+							m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
+						}
+						StartScreen(m_CurrentScreen);
+					}
+					else
+					{
+						PlayListScreenInputHandler(iButtonMask);
+					}
+					break;
+				case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+					if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
+					{
+						// Go back to where we were before entering the options menu
+						m_CurrentScreen = m_PreviousScreen;
+						StartScreen(m_CurrentScreen);
+					}
+					else
+					{
+						OptionsScreenInputHandler(iButtonMask);
+					}
+					break;
+			}
+		}
+	}
+	else /** In the home menu */
+	{
+		if ( (iButtonMask & PSP_CTRL_HOME)		||
+				(iButtonMask & PSP_CTRL_CROSS)	||
+				(iButtonMask & PSP_CTRL_CIRCLE)
+			)
+		{
+			fOnExitMenu = false;
+			Log(LOG_VERYLOW, "Exiting HOME menu");
+		}
+	}
+}
+
 void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 {
 	CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
@@ -398,21 +468,5 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 			Log(LOG_VERYLOW, "Calling Stop() at InputHandler, [] pressed.");
 			m_Sound->Stop();
 		}
-	}
-	else if (iButtonMask & PSP_CTRL_SELECT)
-	{
-		// Enter option menu and store the current screen
-		m_PreviousScreen = m_CurrentScreen;
-		m_CurrentScreen  = PSPRADIO_SCREEN_OPTIONS;
-		StartScreen(m_CurrentScreen);
-	}
-	else if (iButtonMask & PSP_CTRL_TRIANGLE)
-	{
-		m_CurrentScreen = (Screen)(m_CurrentScreen+1);
-		if (m_CurrentScreen == PSPRADIO_SCREEN_LIST_END)
-		{
-			m_CurrentScreen = PSPRADIO_SCREEN_LIST_BEGIN;
-		}
-		StartScreen(m_CurrentScreen);
 	}
 };

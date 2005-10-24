@@ -148,13 +148,7 @@ void CScreenHandler::PopulateOptionsData()
 
 void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 {
-	if (iButtonMask & PSP_CTRL_SELECT)
-	{
-		// Go back to where we were before entering the options menu
-		m_CurrentScreen = m_PreviousScreen;
-		StartScreen(m_CurrentScreen);
-	}
-	else if (iButtonMask & PSP_CTRL_UP)
+	if (iButtonMask & PSP_CTRL_UP)
 	{
 		if(m_CurrentOptionIterator == m_OptionsList.begin())
 			m_CurrentOptionIterator = m_OptionsList.end();
