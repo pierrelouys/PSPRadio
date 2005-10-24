@@ -7,7 +7,7 @@ OBJS = PSPRadio.o  DirList.o PlayList.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
 		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
-		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o ./SandbergUI/SandbergUIOptions.o ./SandbergUI/jsaTextureCache.o
+		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o ./SandbergUI/SandbergUIOptions.o ./SandbergUI/jsaTextureCache.o ./SandbergUI/jsaP3OLoad.o
 
 INCDIR = ../
 
@@ -58,4 +58,5 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 	cp -vf SHOUTcast/* $(KXPLOIT_PRIMARY_DIR)/SHOUTcast
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	cp -vf SandbergUI/Graphics/*.raw $(KXPLOIT_PRIMARY_DIR)/SandbergUI
+	cp -vf SandbergUI/Graphics/*.p3o $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 

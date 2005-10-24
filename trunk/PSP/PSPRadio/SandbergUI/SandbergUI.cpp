@@ -114,6 +114,14 @@ CSandbergUI::CSandbergUI()
 
 CSandbergUI::~CSandbergUI()
 {
+	if (object_info.vertices)
+	{
+		free(object_info.vertices);
+	}
+	if (object_info.faces)
+	{
+		free(object_info.faces);
+	}
 }
 
 void CSandbergUI::LoadTextures(char *strCWD)
@@ -138,7 +146,7 @@ void CSandbergUI::LoadTextures(char *strCWD)
 		success = tcache.jsaTCacheStoreTexture(texture_list[i].ID, &texture, filebuffer);
 		if (!success)
 		{
-		Log(LOG_INFO, "Failed loading texture: %s", filename);
+			Log(LOG_INFO, "Failed loading texture: %s", filename);
 		}
 		sceKernelDcacheWritebackAll();
 		free(filebuffer);
@@ -147,7 +155,6 @@ void CSandbergUI::LoadTextures(char *strCWD)
 
 int CSandbergUI::Initialize(char *strCWD)
 {
-
 	Log(LOG_LOWLEVEL, "Initialize:");
 
 	/* Allocate space in VRAM for 2 displaybuffer and the Zbuffer */
@@ -183,7 +190,7 @@ int CSandbergUI::Initialize(char *strCWD)
 
 	sceKernelDcacheWritebackAll();
 
-	InitFX();
+	InitFX(strCWD);
 
 	Log(LOG_LOWLEVEL, "Initialize: completed");
 	return 0;

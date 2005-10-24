@@ -23,6 +23,7 @@
 
 #include "IPSPRadio_UI.h"
 #include "jsaTextureCache.h"
+#include "jsaP3OLoad.h"
 
 
 
@@ -192,7 +193,7 @@ private:
 	void LoadTextures(char *strCWD);
 	int FindFirstEntry(int list_cnt, int current);
 
-	void InitFX(void);
+	void InitFX(char *strCWD);
 
 	void RenderFX(void);
 	void RenderFX_1(void);
@@ -217,6 +218,7 @@ private:
 
 private:
 	jsaTextureCache		tcache;
+	jsaP3OLoad		p3oloader;
 	list<StoredOptionItem>	OptionsItems;
 
 	void* 	framebuffer;
@@ -225,6 +227,8 @@ private:
 	int	current_fx;
 	int	screen_state;
 	int	select_state, select_target;
+
+	jsaP3OLoad::jsaP3OInfo	object_info;
 };
 
 #endif
