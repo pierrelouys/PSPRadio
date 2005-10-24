@@ -692,7 +692,7 @@ int CGraphicsUITheme::GetFonts()
 				rectItem.x = fontSrcRect.x + (fontSrcRect.w * z);
 
 				// Add to font map
-				m_FontMap[x][toupper(szValue[z])] = rectItem;                
+				m_FontMap[x][szValue[z]] = rectItem;                
 			}
 		}
 	}
@@ -1113,15 +1113,17 @@ SDL_Surface *CGraphicsUITheme::GetStringSurface(char *szWord, int nFontIndex)
 	SDL_FillRect(pSurface, NULL, SDL_MapRGB(pSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b));
 	for(size_t x = 0; x < strlen(szWord); x++)
 	{
-		SDL_Rect src = m_FontMap[nFontIndex][toupper(szWord[x])];
+		if(m_FontMap[nFontIndex].end() != m_FontMap[nFontIndex].find(szWord[x]))
+		{
+			SDL_Rect src = m_FontMap[nFontIndex][szWord[x]];
 
-		SDL_Rect dst = 	{ 
-							nCurrentXPos,
-							nCurrentYPos,
-						};
+			SDL_Rect dst = 	{ 
+								nCurrentXPos,
+								nCurrentYPos,
+							};
 			
-		SDL_BlitSurface(m_pImageSurface, &src, pSurface, &dst);
-		
+			SDL_BlitSurface(m_pImageSurface, &src, pSurface, &dst);		
+		}
 		nCurrentXPos += nFontWidth;		
 	}
 	
