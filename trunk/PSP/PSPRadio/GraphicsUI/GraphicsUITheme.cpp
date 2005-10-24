@@ -18,6 +18,7 @@
 */
 #include "GraphicsUITheme.h"
 #include <Logging.h>
+#include <Tools.h>
 
 
 #define CURRENT_VERSION "0.2"
@@ -90,7 +91,7 @@ CGraphicsUITheme::~CGraphicsUITheme()
 //
 //*****************************************************************************
 int CGraphicsUITheme::Initialize(char *szThemeFileName)
-{
+{	
 	// Check to see if we have already initialized INI
 	if(NULL != m_pIniTheme)
 	{
@@ -140,7 +141,11 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName)
 	// TODO: Get Version and make sure it is compatable
 
 	// Get the base theme image
+//	char *szTemp = (char *)malloc(strlen(dirname(szThemeFileName)) +
+//									strlen(m_pIniTheme->GetString("main:themeimage", "--")) +10);
+//	sprintf(szTemp, "%s", dirname(szThemeFileName),m_pIniTheme->GetString("main:themeimage", "--"));
 	m_pImageSurface = SDL_LoadBMP(m_pIniTheme->GetString("main:themeimage", "--"));
+//	free(szTemp);
 
 	if(NULL == m_pImageSurface)
 	{

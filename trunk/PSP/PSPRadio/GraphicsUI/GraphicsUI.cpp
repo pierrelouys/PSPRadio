@@ -23,7 +23,7 @@
 #include <Logging.h>
 #include "GraphicsUI.h"
 
-#define THEME_FILE 		"ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.theme"
+#define THEME_FILE 		"./THEME/PSPRadio_AllStates.theme"
 
 CGraphicsUI::CGraphicsUI()
 {
@@ -35,16 +35,16 @@ CGraphicsUI::~CGraphicsUI()
 
 int CGraphicsUI::Initialize(char *strCWD)
 {	
-	char *szThemeFile = (char *)malloc(strlen(THEME_FILE));
-	strcpy(szThemeFile, THEME_FILE);
-	if(-1 == m_theme.Initialize(szThemeFile))
+//	char *szThemeFile = (char *)malloc(strlen(THEME_FILE) + strlen(strCWD));
+//	sprintf(szThemeFile, "%s/%s", strCWD, THEME_FILE);
+	if(-1 == m_theme.Initialize(THEME_FILE))
 	{
 		Log(LOG_ERROR, "Initialize: error initializing Theme");
-		SAFE_FREE(szThemeFile);
+//		SAFE_FREE(szThemeFile);
 		return -1;
 	}
 	
-	SAFE_FREE(szThemeFile);
+//	SAFE_FREE(szThemeFile);
 
 	return 0;
 }

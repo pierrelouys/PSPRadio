@@ -2,7 +2,7 @@
 
 [main]
 version=0.2;
-themeimage=ms0:/PSP/GAME/PSPRadio/THEME/PSPRadio_AllStates.bmp;
+themeimage=./THEME/PSPRadio_AllStates.bmp;
 transparency=[255,0,255];
 
 [screens]
@@ -24,8 +24,8 @@ srcLine2=[540,103] [5,6];
 filetitle=[38,23] [399,11] CENTER 1;
 uri=[38,34] [399,11] CENTER 1;
 url=[38,45] [399,11] CENTER 1;
-;genre=[38,56] [199,11] CENTER 1;
-;songauthor=[237,56] [199,11] CENTER 1;
+genre=[38,56] [199,11] CENTER 1;
+songauthor=[237,56] [199,11] CENTER 1;
 
 length=[372,66] [33,13] CENTER 1;
 bitrate=[196,66] [41,13] CENTER 1;
