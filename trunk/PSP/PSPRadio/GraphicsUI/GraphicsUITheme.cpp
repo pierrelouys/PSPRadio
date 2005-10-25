@@ -22,6 +22,8 @@
 
 #ifdef WIN32
 	#include <windows.h>
+#else
+	#include <stdarg.h>
 #endif
 
 
