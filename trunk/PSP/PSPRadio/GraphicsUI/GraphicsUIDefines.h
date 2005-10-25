@@ -7,14 +7,16 @@
 
 enum ScreenTypeEnum
 {
-	ST_MAINSCREEN,
+	ST_MAINSCREEN = 0,
 	ST_SHOUTCASTSCREEN,
-	ST_SETTINGSSCREEN
+	ST_SETTINGSSCREEN,
+	
+	ST_ITEM_COUNT
 };
 
 enum StringJustEnum
 {
-	JUST_LEFT,
+	JUST_LEFT = 0,
 	JUST_RIGHT,
 	JUST_CENTER,
 
@@ -23,7 +25,7 @@ enum StringJustEnum
 
 enum OutputAreaEnum
 {
-	OA_PLAYLIST,
+	OA_PLAYLIST = 0,
 	OA_PLAYLISTITEM,
 	OA_SETTINGS,
 
