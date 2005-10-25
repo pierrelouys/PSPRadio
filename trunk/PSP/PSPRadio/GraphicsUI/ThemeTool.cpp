@@ -146,6 +146,10 @@ bool CPSPThemeTool::Run(void)
 							m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, x+1);
 						}
 					} break;
+					
+					default:
+					{
+					} break;
 
 				}
 
@@ -154,6 +158,10 @@ bool CPSPThemeTool::Run(void)
 			case SDL_QUIT: 
 			{
 				return true;
+			} break;
+			
+			default:
+			{
 			} break;
 		}
 		
@@ -166,6 +174,16 @@ bool CPSPThemeTool::Run(void)
 int main(int argc, char *argv[])
 {
 	CPSPThemeTool psp;
+	char szThemeFile[255];
+		
+	if(argc <= 1)
+	{
+		strcpy(szThemeFile, "THEME/PSPRadio_AllStates.theme");
+	}
+	else
+	{
+		strcpy(szThemeFile, argv[1]);
+	}
 	
 	Logging.Set("ThemeTool.log", LOG_VERYLOW);
 
