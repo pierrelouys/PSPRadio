@@ -24,11 +24,15 @@
 #include <stdarg.h>
 #include <pspnet.h>
 #include <psphprm.h>
+#include <psppower.h>
 #include "PSPApp.h"
 
 #undef ReportError
 
-PSP_MODULE_INFO("PSPAPP", 0x1000, 1, 1);
+PSP_MODULE_INFO("PSPAPP", 0x1000, 0, 1);
+/* Define the main thread's attribute value (optional) */
+PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER);
+//extern SceModuleInfo module_info;
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
@@ -210,6 +214,8 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 
 	cbid = sceKernelCreateCallback("Exit Callback", CPSPApp::exitCallback, NULL);
 	sceKernelRegisterExitCallback(cbid);
+    cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
+    scePowerRegisterCallback(0, cbid);
 	sceKernelSleepThreadCB();
 
 	return 0;
@@ -218,145 +224,8 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 /** Note: OnAppExit is executed from the exit callback thread, which is running in USER MODE */
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
-
 	m_Exit = true;
-	
 	return 0;
-}
-
-/** Network */
-//#include <arpa/inet.h>	
-int CPSPApp::EnableNetwork(int profile)
-{
-	int iRet = 0;
-	static bool fDriversLoaded = false, fnlhInit = false;
-	
-	if (false == fDriversLoaded)
-	{
-		if (0 == nlhLoadDrivers(&module_info))
-		{
-			fDriversLoaded = true;
-		}
-	}
-	if (false == fnlhInit)
-	{
-		int err = nlhInit();
-		if (err != 0) 
-		{
-			ReportError("ERROR - WLANConnectionHandler : nlhInit returned '0x%x'.\n", err);
-			DisableNetwork();
-			iRet = -1;
-		}
-		else
-		{
-			fnlhInit = true;
-		}
-	}
-	if (fDriversLoaded && fnlhInit)
-	{
-		if (WLANConnectionHandler(profile) == 0)
-		{
-			//printf("PSP IP = %s\n", GetMyIP());
-			
-			//sceNetResolverInit();
-			iRet = 0;
-			if (0 == m_ResolverId)
-			{
-				int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
-				if (rc < 0)
-				{
-					Log(LOG_LOWLEVEL, "EnableNetwork, Resolvercreate = 0x%0x rid = %d\n", rc, m_ResolverId);
-					iRet = -1;
-				}
-			}
-			
-			if (0 == iRet)
-			{
-				m_NetworkEnabled = true;
-				/** Test! */
-				//printf ("Getting google.com's address...");
-				//in_addr addr;
-				//rc = sceNetResolverStartNtoA(m_ResolverId, "google.com", &addr, 2, 3);
-				//printf ("Got it! '%s' rc=%d\n", inet_ntoa(addr), rc);
-			}
-		}
-		else
-		{
-			ReportError("Error starting network\n");
-			iRet = -1;
-		}
-	}
-	else
-	{
-		ReportError("Error loading network drivers\n");
-		iRet = -1;
-	}
-	return iRet;
-}
-
-void CPSPApp::DisableNetwork()
-{
-	u32 err = 0;
-	
-	if (true == IsNetworkEnabled())
-	{
-		if (0)//m_ResolverId)
-		{
-			err = sceNetResolverStop(m_ResolverId);
-			err = sceNetResolverDelete(m_ResolverId);
-			err = sceNetResolverTerm();
-			m_ResolverId = 0;
-		}
-		
-		err = sceNetApctlDisconnect();
-		if (err != 0) 
-		{
-			ReportError("ERROR - DisableNetwork: sceNetApctlDisconnect returned '0x%x'.\n", err);
-	    }
-	
-		/*
-	    err = nlhTerm();
-		if (err != 0) 
-		{
-			ReportError("ERROR - DisableNetwork: nlhTerm returned '0x%x'.\n", err);
-	    }
-		*/
-    }
-    else
-    {
-	    Log(LOG_ERROR, "DisableNetwork() Called, but networking was not enabled. Ignoring.");
-    }
-}
-
-/** From FTPD */
-int CPSPApp::WLANConnectionHandler(int profile) 
-{
-    u32 err;
-    int iRet = 0;
-
-	err = sceNetApctlConnect(profile);
-    if (err != 0) 
-	{
-		ReportError("ERROR - WLANConnectionHandler : sceNetApctlConnect returned '0x%x'.\n", err);
-        //DisableNetwork();
-        iRet =-1;
-    }
-    
-	sceKernelDelayThread(500000);  
-	
-	if (0 == iRet)  
-	{
-		if (NetApctlHandler() == 0)
-		{
-			iRet = 0;
-		}
-		else
-		{
-			iRet = -1;
-		}
-	}
-		
-	return iRet;
 }
 
 int CPSPApp::ReportError(char *format, ...)
@@ -382,6 +251,11 @@ int CPSPApp::exitCallback(int arg1, int arg2, void *common)
 	return pPSPApp->OnAppExit(arg1, arg2, common);
 }
 
+int CPSPApp::powerCallback(int arg1, int pwrflags, void *common) 
+{
+	return pPSPApp->OnPowerEvent(pwrflags);
+}
+
 /* Callback thread */
 int CPSPApp::callbacksetupThread(SceSize args, void *argp) 
 {
@@ -393,172 +267,4 @@ int CPSPApp::runThread(SceSize args, void *argp)
 	return pPSPApp->Run();
 }
 
-int CPSPApp::NetApctlHandler() 
-{
-	int iRet = 0;
-	u32 state1 = 0;
-	u32 err = sceNetApctlGetState(&state1);
-	if (err != 0)
-	{
-		ReportError("NetApctlHandler: getstate: err=%d state=%d\n", err, state1);
-		iRet = -1;
-	}
-	
-	u32 statechange=0;
-	u32 ostate=0xffffffff;
 
-	while ((false == m_Exit) && iRet == 0)
-	{
-		u32 state;
-		
-		err = sceNetApctlGetState(&state);
-		if (err != 0)
-		{
-			ReportError("NetApctlHandler: sceNetApctlGetState returns %d\n", err);
-			iRet = -1;
-			break;
-		}
-		
-		if(statechange > 180) 
-		{
-			iRet = -1;
-			break;
-		} 
-		else if(state == ostate) 
-		{
-			statechange++;
-		} 
-		else 
-		{
-			statechange=0;
-		}
-		ostate=state;
-		
-		sceKernelDelayThread(50000);  /** 50ms */
-		
-		if (state == apctl_state_IPObtained)
-		{
-			break;  // connected with static IP
-		}
-	}
-
-	if((false == m_Exit) && (iRet == 0)) 
-	{
-		// get IP address
-		if (sceNetApctlGetInfo(SCE_NET_APCTL_INFO_IP_ADDRESS, m_strMyIP) != 0)
-		{
-			strcpy(m_strMyIP, "0.0.0.0");
-			ReportError("NetApctlHandler: Error-could not get IP\n");
-			iRet = -1;
-		}
-		//else
-		//{
-		//	printf("sceNetApctlGetInfo (SCE_NET_APCTL_INFO_IP_ADDRESS): ipaddr=%s\n",m_strMyIP);
-		//}
-	}
-	
-	return iRet;
-}
-
-//helper function to make things easier
-int LoadStartModule(char *path)
-{
-    u32 loadResult;
-    u32 startResult;
-    int status;
-
-    loadResult = sceKernelLoadModule(path, 0, NULL);
-    if (loadResult & 0x80000000)
-	return -1;
-    else
-	startResult =
-	    sceKernelStartModule(loadResult, 0, NULL, &status, NULL);
-
-    if (loadResult != startResult)
-	return -2;
-
-    return 0;
-}
-
-//Based on USB Sample v1.0 by John_K - Based off work by PSPPet
-#include <pspusb.h>
-#include <pspusbstor.h>
-int  CPSPApp::EnableUSB()
-{
-	int retVal;
-	int state = 0;
-	
-	Log(LOG_INFO, "Starting USB...");
-	
-	//start necessary drivers
-	LoadStartModule("flash0:/kd/semawm.prx");
-	LoadStartModule("flash0:/kd/usbstor.prx");
-	LoadStartModule("flash0:/kd/usbstormgr.prx");
-	LoadStartModule("flash0:/kd/usbstorms.prx");
-	LoadStartModule("flash0:/kd/usbstorboot.prx");
-	
-	//setup USB drivers
-	retVal = sceUsbStart(PSP_USBBUS_DRIVERNAME, 0, 0);
-	if (retVal != 0) 
-	{
-		Log(LOG_ERROR, "Error starting USB Bus driver (0x%08X)\n", retVal);
-		return retVal;
-	}
-	retVal = sceUsbStart(PSP_USBSTOR_DRIVERNAME, 0, 0);
-	if (retVal != 0) 
-	{
-		Log(LOG_ERROR, "Error starting USB Mass Storage driver (0x%08X)\n", retVal);
-		return retVal;
-	}
-	retVal = sceUsbstorBootSetCapacity(0x800000);
-	if (retVal != 0) 
-	{
-		Log(LOG_ERROR, "Error setting capacity with USB Mass Storage driver (0x%08X)\n", retVal);
-		return retVal;
-	}
-	
-	retVal = sceUsbActivate(0x1c8);
-	state = sceUsbGetState();
-	if (state & PSP_USB_ACTIVATED == 0) //PSP_USB_CABLE_CONNECTED , PSP_USB_CONNECTION_ESTABLISHED
-	{
-		Log(LOG_ERROR, "Error Activating USB\n", retVal);
-		return retVal;
-	}
-	
-	m_USBEnabled = true;
-	
-	return retVal;
-}
-
-int CPSPApp::DisableUSB()
-{
-	int retVal = 0;
-	int state = 0;
-	
-	if (m_USBEnabled)
-	{
-		Log(LOG_INFO, "Stopping USB...");
-		
-		state = sceUsbGetState();
-		//if (state & PSP_USB_ACTIVATED)
-		{
-			retVal = sceUsbDeactivate();
-			if (retVal != 0)
-			{
-				Log(LOG_ERROR, "Error calling sceUsbDeactivate (0x%08X)\n", retVal);
-			}
-		}
-		retVal = sceUsbStop(PSP_USBSTOR_DRIVERNAME, 0, 0);
-		if (retVal != 0)
-		{
-			Log(LOG_ERROR, "Error stopping USB Mass Storage driver (0x%08X)\n", retVal);
-		}
-		retVal = sceUsbStop(PSP_USBBUS_DRIVERNAME, 0, 0);
-		if (retVal != 0)
-		{
-			Log(LOG_ERROR, "Error stopping USB BUS driver (0x%08X)\n", retVal);
-		}
-	}
-	
-	return retVal;
-}

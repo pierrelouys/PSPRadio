@@ -25,6 +25,7 @@
 	#include <list>
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>
+	#include <psppower.h>
 	#include <pspnet.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
@@ -123,7 +124,8 @@
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
 
 		/* System Callbacks */
-		static int  exitCallback(int arg1, int arg2, void *common);
+		static int exitCallback(int arg1, int arg2, void *common);
+		static int powerCallback(int arg1, int arg2, void *common);
 		/* Callback thread */
 		static int callbacksetupThread(SceSize args, void *argp);
 		static int runThread(SceSize args, void *argp);
@@ -146,6 +148,8 @@
 		bool m_Polling;
 		
 		virtual int OnAppExit(int arg1, int arg2, void *common);
+		virtual int OnPowerEvent(int pwrflags){return 0;};
+
 		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();
 		
@@ -166,7 +170,7 @@
 	
 	public:
 		CPSPThread(const char *strName, SceKernelThreadEntry ThreadEntry, int initPriority = 0x11,
-					int stackSize = 0xFA0, SceUInt attr = 0/*PSP_THREAD_ATTR_USER*/, SceKernelThreadOptParam *option = NULL)
+					int stackSize = 0xFA0, SceUInt attr = PSP_THREAD_ATTR_USER, SceKernelThreadOptParam *option = NULL)
 				{ m_thid = sceKernelCreateThread(strName, ThreadEntry, initPriority, stackSize, attr, option);  };
 		~CPSPThread()
 				{ /*if (m_thid>=0) sceKernelWaitThreadEnd(m_thid, NULL),sceKernelTerminateDeleteThread(m_thid); */  };

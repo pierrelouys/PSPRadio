@@ -79,7 +79,7 @@
 		void PopulateOptionsData();
 		/** Options screen */
 		
-		CScreenHandler(CIniParser *Config, CPSPSound *Sound);
+		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound);
 		~CScreenHandler();
 		IPSPRadio_UI *StartUI(UIs UI);
 		
@@ -111,6 +111,7 @@
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;
 		CPSPSound *m_Sound;
+		char *m_strCWD;
 		int m_iNetworkProfile;
 		bool m_NetworkStarted;
 		CPlayList *m_CurrentPlayList;

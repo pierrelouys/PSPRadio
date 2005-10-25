@@ -38,7 +38,7 @@
 
 #define ReportError pPSPApp->ReportError
 
-CScreenHandler::CScreenHandler(CIniParser *Config, CPSPSound *Sound)
+CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound)
 {
 	m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
 	m_PreviousScreen = PSPRADIO_SCREEN_PLAYLIST;
@@ -47,7 +47,8 @@ CScreenHandler::CScreenHandler(CIniParser *Config, CPSPSound *Sound)
 	m_RequestOnPlayOrStop = NOTHING;
 	m_CurrentUI = UI_TEXT;
 	m_UI = NULL;
-	
+	m_strCWD = strdup(strCWD);
+
 	SetUp(Config, Sound, NULL, NULL);
 }
 
@@ -61,6 +62,10 @@ CScreenHandler::~CScreenHandler()
 		Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
 		delete(m_UI);
 		m_UI = NULL;
+	}
+	if (m_strCWD)
+	{
+		free(m_strCWD), m_strCWD = NULL;
 	}
 }
 
@@ -220,7 +225,12 @@ void CScreenHandler::StartScreen(Screen screen)
 			{
 				Log(LOG_LOWLEVEL, "Displaying current playlist");
 				m_CurrentPlayListDir->Clear();
-				m_CurrentPlayListDir->LoadDirectory("PlayLists"); //**//
+				char *strFileName = NULL;
+				strFileName = (char *)malloc(strlen(m_strCWD) + strlen("PlayLists") + 10);
+				sprintf(strFileName, "%s/PlayLists", m_strCWD);
+				m_CurrentPlayListDir->LoadDirectory(strFileName); //**//
+				free(strFileName),strFileName = NULL;
+				//m_CurrentPlayListDir->LoadDirectory(); //**//
 				if (m_CurrentPlayListDir->Size() > 0)
 				{
 					Log(LOG_LOWLEVEL, "Loading Playlist file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
@@ -253,7 +263,11 @@ void CScreenHandler::StartScreen(Screen screen)
 			{
 				Log(LOG_LOWLEVEL, "StartScreen::PSPRADIO_SCREEN_SHOUTCAST_BROWSER");
 				m_CurrentPlayListDir->Clear();
-				m_CurrentPlayListDir->LoadDirectory("SHOUTcast"); //**//
+				char *strFileName = NULL;
+				strFileName = (char *)malloc(strlen(m_strCWD) + strlen("SHOUTcast") + 10);
+				sprintf(strFileName, "%s/SHOUTcast", m_strCWD);
+				m_CurrentPlayListDir->LoadDirectory(strFileName); //**//
+				free(strFileName),strFileName = NULL;
 				if (m_CurrentPlayListDir->Size() > 0)
 				{
 					Log(LOG_LOWLEVEL, "Loading xml file '%s'.", m_CurrentPlayListDir->GetCurrentURI());

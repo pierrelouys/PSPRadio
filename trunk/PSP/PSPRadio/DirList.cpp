@@ -78,7 +78,6 @@ void CDirList::InsertURI(char *strFileName)
 
 void CDirList::LoadDirectory(char *strDirName)
 {
-//#if 0
 	directorydata *mydata = NULL;
 	int dfd;
 	SceIoDirent direntry;
@@ -112,11 +111,6 @@ void CDirList::LoadDirectory(char *strDirName)
 	}
 	
 	delete (mydata);
-//#endif
-//	directorydata mydata;
-//	strcpy(mydata.strURI, "PlayLists/MIXED.PLS");
-//	m_dirlist.push_back(mydata);
-//	m_diriterator = m_dirlist.begin();
 }
 
 void CDirList::Clear()

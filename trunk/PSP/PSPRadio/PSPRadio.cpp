@@ -37,8 +37,6 @@
 #include "SandbergUI.h" 
 #include <ivorbisfile.h>
 
-/* Define the main thread's attribute value (optional) */
-PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU);
 PSP_MAIN_THREAD_PRIORITY(80);
 //PSP_MAIN_THREAD_STACK_SIZE_KB(512);
 
@@ -80,12 +78,12 @@ public:
 			GetProgramName(),
 			GetProgramVersion());
 		
-		strDir = strdup(argv[0]);
+		strDir = (char*)malloc(MAXPATHLEN);
 		if (!strDir)
 			return -1;
+
+		getcwd(strDir, MAXPATHLEN);
 			
-		dirname(strDir); /** Retrieve the directory name */
-		
 		Setup_OpenConfigFile(strDir);
 		
 		Setup_Logging(strDir);
@@ -103,7 +101,7 @@ public:
 		
 		Setup_PlayLists();
 	
-		m_ScreenHandler = new CScreenHandler(m_Config, m_Sound);
+		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound);
 		m_ScreenHandler->SetUp(m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
 		Setup_UI(strDir);
 	
@@ -489,6 +487,39 @@ public:
 		OldPlayState = NewPlayState;
 	}
 
+	int OnPowerEvent(int pwrflags)
+	{
+		/* check for power switch and suspending as one is manual and the other automatic */
+		Log(LOG_INFO,
+				"flags: 0x%08X\n", pwrflags);
+		if (pwrflags & PSP_POWER_CB_POWER_SWITCH || pwrflags & PSP_POWER_CB_SUSPENDING) {
+			Log(LOG_INFO,
+				"flags: 0x%08X: suspending\n", pwrflags);
+		} 
+		else if (pwrflags & PSP_POWER_CB_RESUMING) 
+		{
+			Log(LOG_INFO,
+				"flags: 0x%08X: resuming from suspend mode\n", pwrflags);
+		} 
+		else if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE) 
+		{
+			Log(LOG_INFO,
+				"flags: 0x%08X: resume complete\n", pwrflags);
+		} 
+		else if (pwrflags & PSP_POWER_CB_STANDBY) 
+		{
+			Log(LOG_INFO,
+				"flags: 0x%08X: entering standby mode\n", pwrflags);
+		} 
+		else 
+		{
+			Log(LOG_INFO, "flags: 0x%08X: Unhandled power event\n", pwrflags);
+		}
+		//sceDisplayWaitVblankStart();
+	
+		return 0;
+	}
+
 };
 
 /** main */
@@ -504,5 +535,5 @@ int main(int argc, char **argv)
 	}
 	
 	return 0;
-}
 
+}
