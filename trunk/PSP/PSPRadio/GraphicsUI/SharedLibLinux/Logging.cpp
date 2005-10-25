@@ -18,8 +18,10 @@
 */
 #include <new>
 #include <stdio.h>
-#include <sys/fcntl.h>
-#include <unistd.h>
+#ifndef WIN32
+	#include <sys/fcntl.h>
+	#include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>

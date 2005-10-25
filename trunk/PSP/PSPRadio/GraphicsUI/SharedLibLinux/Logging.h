@@ -22,6 +22,10 @@
 //	#include <pspkernel.h>
 //	#include <pspkerneltypes.h>
 //	#include <PSPSema.h>
+
+#ifdef WIN32
+	#include <time.h>
+#endif
 	
 	
 	enum loglevel_enum
@@ -60,7 +64,10 @@
 	};
 	
 	extern CLogging Logging;
-	#define Log(level, format, args...) Logging.Log_(__FILE__, __LINE__, level, format, ## args)
 
+#ifndef WIN32
+	#define Log(level, format, args...) Logging.Log_(__FILE__, __LINE__, level, format, ## args)
+#endif
+	#define Log(level, format) Logging.Log_(__FILE__, __LINE__, level, format)
 #endif
 
