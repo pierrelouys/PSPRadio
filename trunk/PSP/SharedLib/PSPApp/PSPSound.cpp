@@ -226,7 +226,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendEvent(MID_THPLAY_BEGIN);
 		
-		pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
+///		pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
 		///
 		for(;;)
 		{
@@ -239,7 +239,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				Log(LOG_VERYLOW, "ThPlay:: Thread Exit message received.");
 				pPSPSound->SendEvent(MID_THPLAY_END);
 				m_EventToPlayTh->SendReceiveOK();
-				pPSPApp->CanExit(); /** OK, App can exit now. */
+///				pPSPApp->CanExit(); /** OK, App can exit now. */
 				sceKernelExitThread(0);
 				break;
 			
@@ -276,7 +276,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 	Log(LOG_INFO,"Starting Decoding Thread.");
 	pPSPSound->SendEvent(MID_THDECODE_BEGIN);
 
-	pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
+///	pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
 	
 	CPSPEventQ *m_EventToDecTh = pPSPSound->m_EventToDecTh;
 	CPSPEventQ::QEvent event = { 0, 0, NULL };
@@ -403,7 +403,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				Log(LOG_VERYLOW, "ThDecode:: Thread Exit message received.");
 				pPSPSound->SendEvent(MID_THDECODE_END);
 				m_EventToDecTh->SendReceiveOK();
-				pPSPApp->CanExit(); /** OK, App can exit now. */
+///				pPSPApp->CanExit(); /** OK, App can exit now. */
 				sceKernelExitThread(0);
 				break;
 		}

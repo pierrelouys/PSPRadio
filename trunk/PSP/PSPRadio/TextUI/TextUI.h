@@ -20,6 +20,7 @@ public:
 	int DisplayMainCommands();
 	int DisplayActiveCommand(CPSPSound::pspsound_state playingstate);
 	int DisplayErrorMessage(char *strMsg);
+	int DisplayMessage(char *strMsg);
 	int DisplayBufferPercentage(int a);
 
 	/** these are listed in sequential order */

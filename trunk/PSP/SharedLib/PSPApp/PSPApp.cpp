@@ -94,32 +94,38 @@ int CPSPApp::StopPolling()
 
 CPSPApp::~CPSPApp()
 {
-	Log(LOG_LOWLEVEL, "Destructor Called.");
+	Log(LOG_VERYLOW, "Destructor Called.");
 	
-	if (m_USBEnabled == true)
+	if (true == IsUSBEnabled())
 	{
+		Log(LOG_VERYLOW, "Disabling USB.");
 		DisableUSB();
 	}
 	
-	if (IsNetworkEnabled() == true)
+	if (true == IsNetworkEnabled())
 	{
+		Log(LOG_VERYLOW, "Disabling Network.");
 		DisableNetwork();
 	}
 	
-	free(m_strProgramName);
-	free(m_strVersionNumber);
-	
 	if (m_ExitSema)
 	{
+		Log(LOG_VERYLOW, "deleting exitsema");
 		delete m_ExitSema;
 	}
 
 	if (m_EventToPSPApp)
 	{
+		Log(LOG_VERYLOW, "deleting eventtopspapp");
 		delete(m_EventToPSPApp), m_EventToPSPApp = NULL;
 	}
+
+	Log(LOG_VERYLOW, "freeing program name.");
+	free(m_strProgramName);
+	Log(LOG_VERYLOW, "freeing version number.");
+	free(m_strVersionNumber);
 	
-	Log(LOG_LOWLEVEL, "Bye!.");
+	Log(LOG_INFO, "Bye!.");
 	
 	sceKernelExitGame();
 
@@ -192,7 +198,8 @@ int CPSPApp::Run()
 	Log(LOG_VERYLOW, "Run:: Calling OnExit().");
 	OnExit();
 	SendEvent(MID_PSPAPP_EXITING);
-	
+
+	Log(LOG_VERYLOW, "Run:: Right before calling sceKernelExitThread.");
 	sceKernelExitThread(0);
 	return 0;
 }
@@ -289,9 +296,9 @@ int CPSPApp::EnableNetwork(int profile)
 
 void CPSPApp::DisableNetwork()
 {
-	u32 err;
+	u32 err = 0;
 	
-	if (IsNetworkEnabled() == true)
+	if (true == IsNetworkEnabled())
 	{
 		if (0)//m_ResolverId)
 		{
@@ -363,7 +370,7 @@ int CPSPApp::ReportError(char *format, ...)
 	
 	vsprintf(strMessage, format, args);
 	
-	va_end (args);      
+	va_end (args);
 	
 	return SendEvent(MID_ERROR, strMessage);
 }

@@ -60,6 +60,7 @@ CPSPEventQ::CPSPEventQ(char *strName)
 CPSPEventQ::~CPSPEventQ()
 {
 	Log (LOG_VERYLOW, "~CPSPEventQ(): Start");
+	Clear();
 	if (m_RcvBlocker)
 	{
 		delete m_RcvBlocker; m_RcvBlocker = NULL;

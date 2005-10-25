@@ -266,6 +266,7 @@ void CScreenHandler::OnOptionActivation()
 					Logging.SetLevel(LOG_ALWAYS);
 					break;
 			}
+			Log(LOG_ALWAYS, "Log Level Changed to (%d)", Logging.GetLevel());
 			fOptionActivated = true;
 			break;
 		case OPTION_ID_UI:

@@ -253,27 +253,35 @@ public:
 	
 	void OnExit()
 	{
-		Log(LOG_LOWLEVEL, "PSPRadio::OnExit()");
+		Log(LOG_VERYLOW, "PSPRadio::OnExit()");
 		if (m_Sound)
 		{
-			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Sound object");
+			Log(LOG_VERYLOW, "Exiting. Destroying m_Sound object");
 			delete(m_Sound);
 			m_Sound = NULL;
 		}
 		if (m_Config)
 		{
-			Log(LOG_LOWLEVEL, "Exiting. Destroying m_Config object");
+			Log(LOG_VERYLOW, "Exiting. Destroying m_Config object");
 			delete(m_Config);
 		}
 		if (m_CurrentPlayListDir)
 		{
+			Log(LOG_VERYLOW, "Exiting. Destroying m_CurrentPlayListDir object");
 			delete(m_CurrentPlayListDir);
 		}
 		if (m_CurrentPlayList)
 		{
+			Log(LOG_VERYLOW, "Exiting. Destroying m_CurrentPlayList object");
 			delete(m_CurrentPlayList);
 		}
-		Log(LOG_LOWLEVEL, "Exiting. The end.");
+		if (m_ScreenHandler)
+		{
+			Log(LOG_VERYLOW, "Exiting. Destroying m_ScreenHandler object");
+			delete(m_ScreenHandler);
+		}
+		
+		Log(LOG_VERYLOW, "Exiting. The end.");
 	}
 
 	void OnHPRMReleased(u32 iHPRMMask)
