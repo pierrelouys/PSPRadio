@@ -371,12 +371,9 @@ public:
 				//case MID_THPLAY_END:
 				//	break;
 				case MID_BUFF_PERCENT_UPDATE:
-					if (CScreenHandler::PSPRADIO_SCREEN_PLAYLIST == m_ScreenHandler->GetCurrentScreen())
+					if (CPSPSound::PLAY == m_Sound->GetPlayState())
 					{
-						if (CPSPSound::PLAY == m_Sound->GetPlayState())
-						{
-							m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
-						}
+						m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
 					}
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
@@ -431,7 +428,8 @@ public:
 					break;
 				
 				default:
-					Log(LOG_VERYLOW, "ProcessEvents: Unhandled event: MID=0x%x SID=0x%x", event.EventId, event.SenderId);
+					Log(LOG_VERYLOW, "ProcessEvents: Unhandled event: MID=0x%x SID=0x%x", 
+						event.EventId, event.SenderId);
 					break;
 				}
 			}

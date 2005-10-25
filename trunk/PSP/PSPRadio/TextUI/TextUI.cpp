@@ -48,6 +48,7 @@ CTextUI::CTextUI()
 {
 	m_lockprint = NULL;
 	m_lockclear = NULL;
+	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
 	m_strTitle = strdup("PSPRadio by Raf");
 	
 	m_lockprint = new CLock("Print_Lock");
@@ -107,6 +108,7 @@ void CTextUI::Terminate()
 void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 {
 	int x,y,c;
+	m_CurrentScreen = screen;
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
@@ -391,14 +393,19 @@ int CTextUI::ClearErrorMessage()
 int CTextUI::DisplayBufferPercentage(int iPerc)
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
-	c = GetConfigColor("COLORS:BUFFER_PERCENTAGE");
 
-	if (iPerc > 97)
-		iPerc = 100;
-	if (iPerc < 2)
-		iPerc = 0;
-	uiPrintf(x, y, c, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
+	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
+	{
+		GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
+		c = GetConfigColor("COLORS:BUFFER_PERCENTAGE");
+	
+		if (iPerc > 97)
+			iPerc = 100;
+		if (iPerc < 2)
+			iPerc = 0;
+
+		uiPrintf(x, y, c, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
+	}
 	return 0;
 }
 

@@ -45,6 +45,8 @@ private:
 	CLock *m_lockclear;
 	CIniParser *m_Config;
 	char  *m_strTitle;
+	CScreenHandler::Screen m_CurrentScreen;
+
 	//helpers
 	enum uicolors
 	{
