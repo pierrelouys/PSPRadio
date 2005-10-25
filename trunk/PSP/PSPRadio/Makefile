@@ -30,7 +30,7 @@ LIBS = -lPSPApp -lsupc++ -lstdc++ -lpspnet \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
-		-lm 
+		-lm -lpsppower
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio

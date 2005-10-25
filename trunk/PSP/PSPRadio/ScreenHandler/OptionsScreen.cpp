@@ -27,8 +27,9 @@
 #include <iniparser.h>
 #include <Tools.h>
 #include <Logging.h>
-#include <pspwlan.h> 
-#include <psphprm.h>
+#include <psppower.h>
+
+
 #include "ScreenHandler.h"
 #include "DirList.h"
 #include "PlayList.h"
@@ -121,6 +122,22 @@ void CScreenHandler::PopulateOptionsData()
 				break;
 				
 			case OPTION_ID_CPU_SPEED:
+				switch(scePowerGetCpuClockFrequency())
+				{
+					case 222:
+						Option.iActiveState = 1;
+						break;
+					case 266:
+						Option.iActiveState = 2;
+						break;
+					case 333:
+						Option.iActiveState = 3;
+						break;
+					default:
+						Log(LOG_ERROR, "CPU speed unrecognized: %dMHz", 
+							scePowerGetCpuClockFrequency());
+						break;
+				}
 				break;
 		
 			case OPTION_ID_LOG_LEVEL:
@@ -247,6 +264,32 @@ void CScreenHandler::OnOptionActivation()
 				fOptionActivated = true;
 			}
 			break;
+		case OPTION_ID_CPU_SPEED:
+		{
+			int iRet = -1;
+			switch ((*m_CurrentOptionIterator).iSelectedState)
+			{
+				case 1: /* 222 */
+					iRet = scePowerSetClockFrequency(222, 222, 111);
+					break;
+				case 2: /* 266 */
+					iRet = scePowerSetClockFrequency(266, 266, 133);
+					break;
+				case 3: /* 333 */
+					iRet = scePowerSetClockFrequency(333, 333, 166);
+					break;
+			}
+		    if (0 == iRet) 
+			{
+				fOptionActivated = true;
+			}
+			else
+			{
+				Log(LOG_ERROR, "Unable to change CPU/BUS Speed to selection %d",
+						(*m_CurrentOptionIterator).iSelectedState);
+			}
+			break;
+		}
 		case OPTION_ID_LOG_LEVEL:
 			switch((*m_CurrentOptionIterator).iSelectedState)
 			{
