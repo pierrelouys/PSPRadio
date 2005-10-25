@@ -125,176 +125,30 @@ bool CPSPThemeTool::Run(void)
 
 					case SDLK_b:
 					{
-						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 1);
-						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 2);
-						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 3);
-						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 4);
-						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 5);
-						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 6);
+						for(int x = 0; x < m_GUI.GetLineCount(OA_PLAYLIST); x++)
+						{
+							m_GUI.DisplayString("Play List Text 1", OA_PLAYLIST, x+1);
+						}
 					} break;
 
 					case SDLK_c:
 					{
-						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 1);
-						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 2);
-						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 3);
-						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 4);
-						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 5);
-						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 6);
+						for(int x = 0; x < m_GUI.GetLineCount(OA_PLAYLISTITEM); x++)
+						{
+							m_GUI.DisplayString("Play List Item Text 1", OA_PLAYLISTITEM, x+1);
+						}
 					} break;
 
 					case SDLK_d:
 					{
-						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 1);
-						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 2);
-						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 3);
-						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 4);
-						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 5);
-						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 6);
+						for(int x = 0; x < m_GUI.GetLineCount(OA_SETTINGS); x++)
+						{
+							m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, x+1);
+						}
 					} break;
 
-					case SDLK_e:
-					{
-					} break;
-
-					case SDLK_f:
-					{
-					} break;
-
-					case SDLK_g:
-					{
-					} break;
-
-					case SDLK_h:
-					{
-					} break;
-
-					case SDLK_i:
-					{
-					} break;
-
-					case SDLK_j:
-					{
-					} break;
-
-					case SDLK_k:
-					{
-					} break;
-
-					case SDLK_l:
-					{
-						
-					} break;
-
-					case SDLK_m:
-					{
-					} break;
-
-					case SDLK_n:
-					{
-					} break;
-
-					case SDLK_o:
-					{
-					} break;
-
-					case SDLK_p:
-					{
-					} break;
-
-					case SDLK_q:
-					{
-					} break;
-
-					case SDLK_r:
-					{
-					} break;
-
-					case SDLK_s:
-					{
-					} break;
-
-					case SDLK_t:
-					{
-					} break;
-
-					case SDLK_u:
-					{
-					} break;
-
-					case SDLK_v:
-					{
-					} break;
-
-					case SDLK_w:
-					{
-					} break;
-
-					case SDLK_x:
-					{
-					} break;
-
-					case SDLK_y:
-					{
-					} break;
-
-					case SDLK_z:
-					{
-					} break;
 				}
 
-			} break;
-
-			case SDL_KEYUP:
-			{
-			} break;
-
-			case SDL_MOUSEMOTION:
-			{
-			} break;
-				
-			case SDL_MOUSEBUTTONUP:
-			{
-			} break;
-
-			case SDL_JOYAXISMOTION:
-			{
-			} break;
-
-			case SDL_JOYBALLMOTION:
-			{
-			} break;
-
-			case SDL_JOYHATMOTION:
-			{
-			} break;
-
-			case SDL_JOYBUTTONDOWN:
-			{
-			} break;
-
-			case SDL_JOYBUTTONUP:
-			{
-			} break;
-
-			case SDL_MOUSEBUTTONDOWN: 
-			{
-			} break;
-
-			case SDL_SYSWMEVENT:
-			{
-			} break;
-
-			case SDL_VIDEORESIZE:
-			{
-			} break;
-
-			case SDL_VIDEOEXPOSE:
-			{
-			} break;
-
-			case SDL_USEREVENT:
-			{
 			} break;
 
 			case SDL_QUIT: 
