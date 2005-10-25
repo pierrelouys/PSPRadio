@@ -2,7 +2,7 @@ What's New for PSPRadio
 ========================
 0.36
 
-0.36-pre3 (r)
+0.36-pre3 (r422)
 (raf) Started adding SHOUTcast support
 (sandberg) Implemented a VRAM memory manager, so all textures are now loaded from files
 into VRAM.
@@ -12,7 +12,7 @@ into VRAM.
 (jpfouch48) Re-vamped Grapics UI Theme class
 (jpfouch48) Cleaned up theme implementation and theme file
 (jpfouch48) Created icons for buffer display, network status, and stream status
-(sandberg) Implemented support for using the Start button for entering the option menu.
+(sandberg) Implemented support for using the Select(raf: changed to Start) button for entering the option menu.
 The triangle button is only used for swapping between the playlist and Shoutcast list.
 (raf) Now user needs to press X or O to go from playlist selection over to entries box.
 (raf) Fixed crash on exit when logging is 80 or higher.
