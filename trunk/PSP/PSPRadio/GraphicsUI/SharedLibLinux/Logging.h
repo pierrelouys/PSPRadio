@@ -67,7 +67,8 @@
 
 #ifndef WIN32
 	#define Log(level, format, args...) Logging.Log_(__FILE__, __LINE__, level, format, ## args)
-#endif
+#else
 	#define Log(level, format) Logging.Log_(__FILE__, __LINE__, level, format)
 #endif
 
+#endif
