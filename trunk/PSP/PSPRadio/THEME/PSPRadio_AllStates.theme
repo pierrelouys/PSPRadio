@@ -25,17 +25,17 @@ keyLine4=~`!@ $%^&*()_+-={}|:"<>?[]\;',./;
 srcLine4=[548,218] [8,11];
 
 [stringpos]
-filetitle=[38,23] [399,11] CENTER 1;
-uri=[38,34] [399,11] CENTER 1;
-url=[38,45] [399,11] CENTER 1;
-genre=[38,56] [199,11] CENTER 1;
-songauthor=[237,56] [199,11] CENTER 1;
+filetitle=[38,20] [399,13] CENTER 1;
+uri=[38,36] [399,13] CENTER 1;
+;url=[38,45] [399,13] CENTER 1;
+;genre=[38,56] [199,13] CENTER 1;
+;songauthor=[237,56] [199,13] CENTER 1;
 
-length=[372,66] [33,13] CENTER 1;
-bitrate=[196,66] [41,13] CENTER 1;
-samplerate=[265,66] [63,13] CENTER 1;
-mpeglayer=[44,66] [62,13] CENTER 1;
-channels=[126,66] [46,13] CENTER 1;
+length=[372,64] [33,13] CENTER 1;
+bitrate=[196,64] [41,13] CENTER 1;
+samplerate=[265,64] [63,13] CENTER 1;
+mpeglayer=[44,64] [62,13] CENTER 1;
+channels=[126,64] [46,13] CENTER 1;
 error=[155,251] [188,16] CENTER 1;
 
 [play]
