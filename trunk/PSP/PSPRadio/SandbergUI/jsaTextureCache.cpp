@@ -29,65 +29,27 @@
 #include "jsaTextureCache.h"
 
 
-jsaTextureCache::jsaTextureCache()
-{
-	m_vram_start	= (unsigned long)sceGeEdramGetAddr();
-	m_vram_size	= (unsigned long)sceGeEdramGetSize();
-	m_vram_free	= 0;
-	m_vram_offset	= 0;
-	m_systemoffset	= 0;
-	m_initialized	= false;
-}
-
-jsaTextureCache::~jsaTextureCache()
-{
-}
-
-void jsaTextureCache::jsaTCacheInit(unsigned long buffersize)
-{
-	m_systemoffset	= buffersize;
-	m_vram_free	= m_vram_size  - m_systemoffset;
-	m_vram_offset	= m_vram_start + m_systemoffset;
-	m_initialized	= true;
-}
-
 bool jsaTextureCache::jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info, void *tbuffer)
 {
 	bool		ret_value = false;
+	unsigned long	texture_address;
 	jsaTextureItem	Texture;
 	unsigned long	tsize  = jsaTCacheTextureSize(texture_info->format, texture_info->width, texture_info->height);
 
-	if (tsize <= m_vram_free)
+	texture_address = (unsigned long)jsaVRAMManager::jsaVRAMManagerMalloc(tsize);
+
+	if (texture_address)
 	{
 		/* Add texture to list */
 		Texture.ID	= ID;
 		Texture.format	= texture_info->format;
 		Texture.width	= texture_info->width;
 		Texture.height	= texture_info->height;
-		Texture.offset	= m_vram_offset;
+		Texture.offset	= texture_address;
 		m_TextureList.push_back(Texture);
 
 		/* Upload texture to VRAM */
-/*		Why doesn't this work ???
-		sceGuCopyImage(	texture_info->format,
-				texture_info->x,
-				texture_info->y,
-				texture_info->width,
-				texture_info->height,
-				texture_info->source_width,
-				tbuffer,
-				0,
-				0,
-				texture_info->width,
-				(void*)(m_vram_offset));
-*/
-		memcpy((void *)m_vram_offset, tbuffer, tsize);
-//		sceGuTexFlush();
-//		sceGuTexSync();
-
-		/* Update internal VRAM pointers */
-		m_vram_offset	+= tsize;
-		m_vram_free 	-= tsize;
+		memcpy((void *)texture_address, tbuffer, tsize);
 		ret_value 	= true;
 	}
 	return ret_value;

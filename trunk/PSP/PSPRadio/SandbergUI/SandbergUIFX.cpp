@@ -120,7 +120,7 @@ void CSandbergUI::InitFX(char *strCWD)
 	current_fx = fx_list[0];
 
 	sprintf(filename, "%s/SandbergUI/%s", strCWD, "heart.p3o");
-	return_value = p3oloader.jsaP3OLoadFile(filename, &object_info);
+	return_value = p3oloader.jsaP3OLoadFile(filename, &object_info, false);
 	if (return_value != jsaP3OLoad::JSAP3O_ERROR_OK)
 	{
 		Log(LOG_ERROR, "JSA:Error loading!!");

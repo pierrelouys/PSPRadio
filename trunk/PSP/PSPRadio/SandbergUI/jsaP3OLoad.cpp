@@ -24,7 +24,7 @@
 #include "jsaP3OLoad.h"
 
 
-int jsaP3OLoad::jsaP3OLoadFile(char *objectfile, jsaP3OLoad::jsaP3OInfo *object)
+int jsaP3OLoad::jsaP3OLoadFile(char *objectfile, jsaP3OLoad::jsaP3OInfo *object, bool vram_load)
 {
 	int		return_value = JSAP3O_ERROR_LOAD;
 	FILE		*fhandle;
@@ -44,8 +44,16 @@ int jsaP3OLoad::jsaP3OLoadFile(char *objectfile, jsaP3OLoad::jsaP3OInfo *object)
 
 		if (bytes == sizeof(jsaP3OHeader))
 		{
-			object->vertices = (jsaP3OVertex *)memalign(16, vsize);
-			object->faces = (jsaP3OFace *)memalign(16, fsize);
+			if (vram_load)
+			{
+				object->vertices = (jsaP3OVertex *)jsaVRAMManager::jsaVRAMManagerMalloc(vsize);
+				object->faces = (jsaP3OFace *)jsaVRAMManager::jsaVRAMManagerMalloc(fsize);
+			}
+			else
+			{
+				object->vertices = (jsaP3OVertex *)memalign(16, vsize);
+				object->faces = (jsaP3OFace *)memalign(16, fsize);
+			}
 			if (object->vertices && object->faces)
 			{
 				bytes = fread(object->vertices, 1, vsize, fhandle);

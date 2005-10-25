@@ -21,7 +21,11 @@
 #define _JSATEXTURECACHE_
 
 #include <list>
+#include <jsaVRAMManager.h>
+
 using namespace std;
+
+class jsaVRAMManager;
 
 class jsaTextureCache
 {
@@ -37,10 +41,9 @@ public:
 	};
 
 public:
-	jsaTextureCache();
-	~jsaTextureCache();
+	jsaTextureCache() {};
+	~jsaTextureCache() {};
 
-	void jsaTCacheInit(unsigned long buffersize);
 	bool jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info, void *tbuffer);
 	bool jsaTCacheSetTexture(int ID);
 
@@ -59,13 +62,6 @@ private:
 
 private:
 	list<jsaTextureItem> m_TextureList;
-
-	bool m_initialized;
-	unsigned long m_vram_start;
-	unsigned long m_vram_size;
-	unsigned long m_vram_free;
-	unsigned long m_vram_offset;
-	unsigned long m_systemoffset;
 };
 
 #endif

@@ -158,7 +158,7 @@ int CSandbergUI::Initialize(char *strCWD)
 	Log(LOG_LOWLEVEL, "Initialize:");
 
 	/* Allocate space in VRAM for 2 displaybuffer and the Zbuffer */
-	tcache.jsaTCacheInit((unsigned long)0x154000);
+	jsaVRAMManager::jsaVRAMManagerInit((unsigned long)0x154000);
 
 	/*  Load all textures to VRAM */
 	LoadTextures(strCWD);

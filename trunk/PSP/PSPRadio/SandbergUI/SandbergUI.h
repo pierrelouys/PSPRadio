@@ -22,6 +22,7 @@
 #define _PSPRADIOSANDBERGUI_
 
 #include "IPSPRadio_UI.h"
+#include "jsaVRAMManager.h"
 #include "jsaTextureCache.h"
 #include "jsaP3OLoad.h"
 

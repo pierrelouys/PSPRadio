@@ -20,7 +20,11 @@
 #define _JSAP3OLOAD_
 
 #include <list>
+#include <jsaVRAMManager.h>
+
 using namespace std;
+
+class jsaVRAMManager;
 
 class jsaP3OLoad
 {
@@ -65,7 +69,7 @@ public:
 	jsaP3OLoad() {};
 	~jsaP3OLoad() {};
 
-	int jsaP3OLoadFile(char *objectfile, jsaP3OLoad::jsaP3OInfo *object);
+	int jsaP3OLoadFile(char *objectfile, jsaP3OLoad::jsaP3OInfo *object, bool vram_load);
 
 private:
 	typedef struct
