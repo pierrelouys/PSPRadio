@@ -56,7 +56,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre2")
+	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre3")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
