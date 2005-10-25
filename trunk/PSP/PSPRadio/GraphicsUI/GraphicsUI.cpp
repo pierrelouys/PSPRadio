@@ -316,7 +316,7 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 			bHighlight = true;
 		}
 		
-		m_theme.DisplayString(dataIter->strURI, OA_PLAYLIST, nLineNumber+1, bHighlight);
+		m_theme.DisplayString(basename(dataIter->strURI), OA_PLAYLIST, nLineNumber+1, bHighlight);
 
 		
 		nLineNumber++;
