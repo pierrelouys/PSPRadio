@@ -82,7 +82,12 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 	if (m_UI)
 	{
 		if (wasPolling)
+		{
+			/** If PSPRadio was running, then notify it that we're switching UIs */
+			Log(LOG_LOWLEVEL, "Notifying PSPRadio That we're switching UIs");
+			pPSPApp->SendEvent(EID_NEW_UI_POINTER, NULL, SID_SCREENHANDLER);
 			pPSPApp->StopPolling();
+		}
 			
 		Log(LOG_INFO, "StartUI: Destroying current UI");
 		m_UI->Terminate();
@@ -109,9 +114,15 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 	m_CurrentUI = UI;
 	m_UI->Initialize("./");//strCurrentDir); /* Initialize takes cwd */ ///FIX!!!
 	StartScreen(m_CurrentScreen);
-	
+
 	if (wasPolling)
+	{	
+		/** If PSPRadio was running, then notify it of the new address of the UI */
+		Log(LOG_LOWLEVEL, "Notifying PSPRadio of new UI's address (0x%x)", m_UI );
+		pPSPApp->SendEvent(EID_NEW_UI_POINTER, m_UI, SID_SCREENHANDLER);
 		pPSPApp->StartPolling();
+	}
+		
 	
 	return m_UI;
 }
@@ -461,6 +472,48 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 		{
 			Log(LOG_VERYLOW, "Calling Stop() at InputHandler, [] pressed.");
 			m_Sound->Stop();
+		}
+	}
+}
+
+void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
+{
+	Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
+	if (m_Sound)
+	{
+		CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
+
+		if (iHPRMMask & PSP_HPRM_BACK)
+		{
+			m_CurrentPlayList->Prev();
+			m_UI->DisplayPLEntries(m_CurrentPlayList);
+		}
+		else if (iHPRMMask & PSP_HPRM_FORWARD)
+		{
+			m_CurrentPlayList->Next();
+			m_UI->DisplayPLEntries(m_CurrentPlayList);
+		}
+
+		else if (iHPRMMask & PSP_HPRM_PLAYPAUSE) 
+		{
+			switch(playingstate)
+			{
+				case CPSPSound::STOP:
+				case CPSPSound::PAUSE:
+					CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
+					m_UI->DisplayActiveCommand(CPSPSound::PLAY);
+					m_Sound->Play();
+					/** Populate m_CurrentMetaData */
+					m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
+					//CurrentSoundStream->SetURI(m_CurrentPlayList->GetURI());
+					m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
+					break;
+				case CPSPSound::PLAY:
+					m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					Log(LOG_VERYLOW, "Calling Stop() on HPRM PLAY/PAUSE pressed; currently Playing.");
+					m_Sound->Stop();
+					break;
+			}
 		}
 	}
 };

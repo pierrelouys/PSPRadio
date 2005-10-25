@@ -8,7 +8,18 @@
 	#include <list>
 	using namespace std;
 
+
+	/** Messages from PSPSound to decode thread */
+	enum EventIDsFromScreenHandlerToPSPRadio
+	{
+		EID_NEW_UI_POINTER,
+	};
+
+	/** Sender IDs */
+	#define SID_SCREENHANDLER		0x00000001
+
 	class IPSPRadio_UI;
+
 	
 	class CScreenHandler
 	{
@@ -76,6 +87,7 @@
 					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
 		void StartScreen(Screen screen);
 		void CommonInputHandler(int iButtonMask);
+		void OnHPRMReleased(u32 iHPRMMask);
 
 		int  Start_Network(int iNewProfile = -1);
 		int  Stop_Network();

@@ -179,18 +179,16 @@ public:
 		
 		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
 		{
-			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_GRAPHICS);//m_UI = new CGraphicsUI();
+			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_GRAPHICS);
 		}
 		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
 		{
-			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_3D);//m_UI = new CSandbergUI();
+			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_3D);
 		}
 		else
 		{
-			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_TEXT);//m_UI = new CTextUI();
+			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_TEXT);
 		}
-		
-		//m_UI->Initialize(strCurrentDir); /* Initialize takes cwd */
 		
 		return 0;
 	}
@@ -284,48 +282,6 @@ public:
 		Log(LOG_VERYLOW, "Exiting. The end.");
 	}
 
-	void OnHPRMReleased(u32 iHPRMMask)
-	{
-		Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
-		if (m_Sound)
-		{
-			CPSPSound::pspsound_state playingstate = m_Sound->GetPlayState();
-
-			if (iHPRMMask & PSP_HPRM_BACK)
-			{
-				m_CurrentPlayList->Prev();
-				m_UI->DisplayPLEntries(m_CurrentPlayList);
-			}
-			else if (iHPRMMask & PSP_HPRM_FORWARD)
-			{
-				m_CurrentPlayList->Next();
-				m_UI->DisplayPLEntries(m_CurrentPlayList);
-			}
-
-			else if (iHPRMMask & PSP_HPRM_PLAYPAUSE) 
-			{
-				switch(playingstate)
-				{
-					case CPSPSound::STOP:
-					case CPSPSound::PAUSE:
-						CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
-						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
-						m_Sound->Play();
-						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
-						//CurrentSoundStream->SetURI(m_CurrentPlayList->GetURI());
-						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
-						break;
-					case CPSPSound::PLAY:
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
-						Log(LOG_VERYLOW, "Calling Stop() on HPRM PLAY/PAUSE pressed; currently Playing.");
-						m_Sound->Stop();
-						break;
-				}
-			}
-		}
-	};
-
 	int ProcessEvents()
 	{
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
@@ -338,31 +294,36 @@ public:
 			if ( m_EventToPSPApp->Size() > 100 )
 			{
 				Log(LOG_ERROR, "ProcessEvents(): Too many events backed-up!: %d. Exiting!", m_EventToPSPApp->Size());
-				m_UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
+				if (m_UI)
+					m_UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
 				m_ExitSema->Down();
 				return 0;
 			}
 			rret = m_EventToPSPApp->Receive(event);
 			//Log(LOG_VERYLOW, "ProcessMessages()::Receive Ret=%d. eventid=0x%08x.", rret, event.EventId);
-			switch (event.EventId)
+			if (SID_PSPAPP == event.SenderId)
 			{
-			case MID_PSPAPP_EXITING:
-				if ( (SID_PSPAPP == event.SenderId) )
+				switch (event.EventId)
 				{
-					Log(LOG_INFO, "ProcessEvents(): MID_PSPAPP_EXITING received.");
-					m_ExitSema->Down();
-					return 0;
+				case MID_PSPAPP_EXITING:
+					if ( (SID_PSPAPP == event.SenderId) )
+					{
+						Log(LOG_INFO, "ProcessEvents(): MID_PSPAPP_EXITING received.");
+						m_ExitSema->Down();
+						return 0;
+					}
+					break;
+				
+				case MID_ERROR:
+					if (m_UI)
+						m_UI->DisplayErrorMessage((char*)event.pData);
+					Log(LOG_ERROR, (char*)event.pData);
+					free(event.pData);
+					continue;
+					break;
 				}
-				break;
-			
-			case MID_ERROR:
-				m_UI->DisplayErrorMessage((char*)event.pData);
-				Log(LOG_ERROR, (char*)event.pData);
-				free(event.pData);
-				continue;
-				break;
 			}
-			
+
 			switch (event.SenderId)
 			{
 			//case PSPAPP_SENDER_ID:
@@ -370,18 +331,24 @@ public:
 			//	[
 			//	case ERROR
 			//case SID_PSPSOUND:
+			case SID_SCREENHANDLER:
+				switch(event.EventId)
+				{
+				case EID_NEW_UI_POINTER:
+					m_UI = (IPSPRadio_UI *)event.pData;
+					Log(LOG_LOWLEVEL, "Received new UI address = 0x%x", m_UI );
+					break;
+				}
+				break;
 			default:
 				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", event.EventId, event.SenderId);
 				switch(event.EventId)
 				{
-				//case MID_THPLAY_BEGIN:
-				//	break;
-				//case MID_THPLAY_END:
-				//	break;
 				case MID_BUFF_PERCENT_UPDATE:
 					if (CPSPSound::PLAY == m_Sound->GetPlayState())
 					{
-						m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
+						if (m_UI)
+							m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
 					}
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
@@ -390,33 +357,37 @@ public:
 					break;
 					
 				case MID_THDECODE_DECODING:
-					m_UI->OnNewStreamStarted();
+					if (m_UI)
+						m_UI->OnNewStreamStarted();
 					break;
-				//case MID_THDECODE_ASLEEP:
-				//	break;
 					
 				case MID_DECODE_STREAM_OPENING:
-					m_UI->OnStreamOpening();
+					if (m_UI)
+						m_UI->OnStreamOpening();
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
 					OnPlayStateChange(CPSPSound::STOP);
-					m_UI->OnStreamOpeningError();
+					if (m_UI)
+						m_UI->OnStreamOpeningError();
 					break;
 				case MID_DECODE_STREAM_OPEN:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN received, calling OnPlayStateChange(PLAY)");
 					OnPlayStateChange(CPSPSound::PLAY);
-					m_UI->OnStreamOpeningSuccess();
+					if (m_UI)
+						m_UI->OnStreamOpeningSuccess();
 					break;
 					
 				//case MID_DECODE_DONE:
 				//	break;
 				case MID_NEW_METADATA_AVAILABLE:
-					m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
+					if (m_UI)
+						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
 					break;
 					
 				case MID_TCP_CONNECTING_PROGRESS:
-					m_UI->OnConnectionProgress();
+					if (m_UI)
+						m_UI->OnConnectionProgress();
 					break;
 					
 				case MID_ONBUTTON_PRESSED:
@@ -427,12 +398,13 @@ public:
 					break;
 					
 				case MID_ONHPRM_RELEASED:
-					OnHPRMReleased(*((u32*)event.pData));
+					m_ScreenHandler->OnHPRMReleased(*((u32*)event.pData));
 					break;
 
 				/** This is not used, vblank notification is done via 'callback' of OnVBlank from PSPApp */
 				case MID_ONVBLANK:
-					m_UI->OnVBlank();
+					if (m_UI)
+						m_UI->OnVBlank();
 					break;
 				
 				default:
@@ -449,7 +421,7 @@ public:
 	void OnVBlank()
 	{
 		m_ScreenHandler->OnVBlank();
-	};
+	}
 	
 	void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 	{
@@ -461,14 +433,17 @@ public:
 				switch(NewPlayState)
 				{
 					case CPSPSound::PLAY:
-						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
+						if (m_UI)
+							m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						/** Populate m_CurrentMetaData */
 						m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
-						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
+						if (m_UI)
+							m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
 						break;
 					
 					case CPSPSound::STOP:
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+						if (m_UI)
+							m_UI->DisplayActiveCommand(CPSPSound::STOP);
 						Log(LOG_VERYLOW, "Calling Stop() on OnPlayStateChange Old=STOP, New=STOP.");
 						m_Sound->Stop();
 						break;
@@ -482,7 +457,8 @@ public:
 				switch(NewPlayState)
 				{
 					case CPSPSound::STOP:
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+						if (m_UI)
+							m_UI->DisplayActiveCommand(CPSPSound::STOP);
 						//m_Sound->Stop();
 						
 						if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
