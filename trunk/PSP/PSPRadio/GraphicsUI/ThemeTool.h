@@ -1,13 +1,13 @@
 #ifndef __PSPTHEMEWRAPPER__
 #define __PSPTHEMEWRAPPER__
 
-#include "../GraphicsUITheme.h"
+#include "GraphicsUITheme.h"
 
-class CPSPWrapper
+class CPSPThemeTool
 {
 public:
-	CPSPWrapper(void);
-	~CPSPWrapper(void);
+	CPSPThemeTool(void);
+	~CPSPThemeTool(void);
 
 	bool Initialize(char *szThemeFileName);
 	bool Terminate(void);

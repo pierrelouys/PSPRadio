@@ -17,8 +17,8 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include "GraphicsUITheme.h"
-#include <Logging.h>
-#include <Tools.h>
+#include "Logging.h"
+//#include "Tools.h"
 
 
 #define CURRENT_VERSION "0.2"
@@ -68,7 +68,7 @@ CGraphicsUITheme::CGraphicsUITheme() : m_pIniTheme(NULL)
 	m_nColorDepth = 32;
 	m_nPSPResWidth = 480;
 	m_nPSPResHeight = 272;
-	m_nFlags = SDL_HWSURFACE | SDL_FULLSCREEN;
+	m_nFlags = SDL_HWSURFACE;
 	m_pPSPSurface = NULL;
 	m_pImageSurface = NULL;
 }
@@ -90,7 +90,7 @@ CGraphicsUITheme::~CGraphicsUITheme()
 //
 //
 //*****************************************************************************
-int CGraphicsUITheme::Initialize(char *szThemeFileName)
+int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 {	
 	// Check to see if we have already initialized INI
 	if(NULL != m_pIniTheme)
@@ -98,6 +98,11 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName)
 		Log(LOG_ERROR, "Initialize: ERROR m_pIniTheme already initiaized");
 		return -1;
 	}
+	
+	if(true == bFullScreen)
+	{
+ 		m_nFlags |= SDL_FULLSCREEN;
+	}	
 	
 	// Create INI object	
 	m_pIniTheme = new CIniParser(szThemeFileName);
@@ -1048,7 +1053,7 @@ void CGraphicsUITheme::DisplayStringSurface(char *szWord, StringPosType *pPos)
 		}
 
 		// Vertically align word;
-		dst.y = dst.y + (src.h / 2);
+		dst.y = dst.y + (src.h / 2) - 1;
 
 		// Justify Font
 		switch(pPos->fontJust)

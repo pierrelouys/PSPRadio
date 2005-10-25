@@ -1,17 +1,18 @@
-#include "PSPWrapper.h"
+#include "ThemeTool.h"
+#include "Logging.h"
 
-CPSPWrapper::CPSPWrapper(void)
+CPSPThemeTool::CPSPThemeTool(void)
 {
 }
 
-CPSPWrapper::~CPSPWrapper(void)
+CPSPThemeTool::~CPSPThemeTool(void)
 {
 	Terminate();
 }
 
-bool CPSPWrapper::Initialize(char *szThemeFileName)
+bool CPSPThemeTool::Initialize(char *szThemeFileName)
 {
-	if(0 != m_GUI.Initialize(szThemeFileName))
+	if(0 != m_GUI.Initialize(szThemeFileName, false))
 	{
 		return false;
 	}
@@ -19,23 +20,16 @@ bool CPSPWrapper::Initialize(char *szThemeFileName)
 	return true;
 }
 
-bool CPSPWrapper::Terminate(void)
+bool CPSPThemeTool::Terminate(void)
 {
 	m_GUI.Terminate();
 	return true;
 }
 
-bool CPSPWrapper::Run(void)
+bool CPSPThemeTool::Run(void)
 {
 	SDL_Event event;
 
-	static int count = 1;
-	
-	/* Ignore key events */
-//	SDL_EventState(SDL_KEYDOWN, SDL_IGNORE);
-//	SDL_EventState(SDL_KEYUP, SDL_IGNORE);
-
-	/* Loop waiting for ESC+Mouse_Button */
 	while(SDL_WaitEvent(&event) >= 0) 
 	{
 		switch (event.type) 
@@ -95,19 +89,17 @@ bool CPSPWrapper::Run(void)
 
 					case SDLK_7:
 					{
-						m_GUI.DisplayString("TEST 1", OA_PLAYLIST, count);
-						m_GUI.DisplayString("TEST 1", OA_PLAYLISTITEM, count);
-						count++;
+						m_GUI.DisplayButton(BP_BUFFER);
 					} break;
 
 					case SDLK_8:
 					{
-						m_GUI.DisplayString("TEST 1", OA_SETTINGS, count);
-						count++;
+						m_GUI.DisplayButton(BP_STREAM);
 					} break;
 
 					case SDLK_9:
 					{
+						m_GUI.DisplayButton(BP_NETWORK);
 					} break;
 
 					case SDLK_0:
@@ -117,68 +109,85 @@ bool CPSPWrapper::Run(void)
 
 					case SDLK_a:
 					{
-						m_GUI.DisplayString("SP_FILENAME", SP_FILENAME);
+						m_GUI.DisplayString("File Title", SP_META_FILETITLE);
+						m_GUI.DisplayString("Uri",SP_META_URI);
+						m_GUI.DisplayString("Url",SP_META_URL);
+						m_GUI.DisplayString("Sample Rate",SP_META_SAMPLERATE);
+						m_GUI.DisplayString("MPEG Layer",SP_META_MPEGLAYER);
+						m_GUI.DisplayString("Genre",SP_META_GENRE);
+						m_GUI.DisplayString("Author",SP_META_SONGAUTHOR);
+						m_GUI.DisplayString("Length",SP_META_LENGTH);
+						m_GUI.DisplayString("Bitrate",SP_META_BITRATE);
+						m_GUI.DisplayString("Channels",SP_META_CHANNELS);
+						m_GUI.DisplayString("Error",SP_ERROR);
+						
 					} break;
 
 					case SDLK_b:
 					{
-						m_GUI.DisplayString("SP_FILETITLE", SP_FILETITLE);
+						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 1);
+						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 2);
+						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 3);
+						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 4);
+						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 5);
+						m_GUI.DisplayString("OA_PLAYLIST", OA_PLAYLIST, 6);
 					} break;
 
 					case SDLK_c:
 					{
-						m_GUI.DisplayString("SP_URI", SP_URI);
+						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 1);
+						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 2);
+						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 3);
+						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 4);
+						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 5);
+						m_GUI.DisplayString("OA_PLAYLISTITEM", OA_PLAYLISTITEM, 6);
 					} break;
 
 					case SDLK_d:
 					{
-						m_GUI.DisplayString("SP_BUFFER", SP_BUFFER);
+						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 1);
+						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 2);
+						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 3);
+						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 4);
+						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 5);
+						m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, 6);
 					} break;
 
 					case SDLK_e:
 					{
-						m_GUI.DisplayString("SP_SAMPLERATE", SP_SAMPLERATE);
 					} break;
 
 					case SDLK_f:
 					{
-						m_GUI.DisplayString("SP_MPEGLAYER", SP_MPEGLAYER);
 					} break;
 
 					case SDLK_g:
 					{
-						m_GUI.DisplayString("SP_STREAM", SP_STREAM);
 					} break;
 
 					case SDLK_h:
 					{
-						m_GUI.DisplayString("SP_ERROR", SP_ERROR);
 					} break;
 
 					case SDLK_i:
 					{
-						m_GUI.DisplayString("SP_NETWORK", SP_NETWORK);
 					} break;
 
 					case SDLK_j:
 					{
-						m_GUI.DisplayString("SP_SONGTITLE", SP_SONGTITLE);
 					} break;
 
 					case SDLK_k:
 					{
-						m_GUI.DisplayString("SP_SONGAUTHOR", SP_SONGAUTHOR);
 					} break;
 
 					case SDLK_l:
 					{
 						
-						m_GUI.DisplayString("SP_LENGTH", SP_LENGTH);
 					} break;
 
 					case SDLK_m:
 					{
-						m_GUI.DisplayString("SP_BITRATE", SP_BITRATE);
 					} break;
 
 					case SDLK_n:
@@ -293,6 +302,8 @@ bool CPSPWrapper::Run(void)
 				return true;
 			} break;
 		}
+		
+		m_GUI.OnVBlank();
 	}
 
 	return false;
@@ -300,9 +311,11 @@ bool CPSPWrapper::Run(void)
 
 int main(int argc, char *argv[])
 {
-	CPSPWrapper psp;
+	CPSPThemeTool psp;
+	
+	Logging.Set("ThemeTool.log", LOG_VERYLOW);
 
-	if(false == psp.Initialize("PSPRadio_AllStates.theme"))
+	if(false == psp.Initialize("THEME/PSPRadio_AllStates.theme"))
 	{
 		printf("Error initializing PSPWrapper\n");
 	}

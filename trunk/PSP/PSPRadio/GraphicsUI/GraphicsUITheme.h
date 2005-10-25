@@ -2,7 +2,7 @@
 #define _PSPRADIOGRAPHICSUITHEME_
 
 #include <map>
-#include <iniparser.h>
+#include "iniparser.h"
 #include <SDL/SDL.h>
 #include "GraphicsUIDefines.h"
 
@@ -12,7 +12,7 @@ public:
 	CGraphicsUITheme();
 	~CGraphicsUITheme();
 	
-	int Initialize(char *szThemeFileName);
+	int Initialize(char *szThemeFileName, bool bFullScreen=true);
 	void Terminate();	
 
 	void DisplayMainScreen();
