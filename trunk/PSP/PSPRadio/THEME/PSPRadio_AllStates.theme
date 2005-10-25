@@ -125,7 +125,7 @@ lineSize=[0,0] [152,19];
 src=[0,114] [154,132];
 dst=[0,114] [154,132];
 selector=[485,42] [154,19];
-font=2;
+font=1;
 
 [playlistitem]
 lineCount=7;
@@ -133,11 +133,11 @@ lineSize=[0,0] [318,19];
 src=[162,114] [318,132];
 dst=[162,114] [318,132];
 selector=[485,66] [318,19];
-font=2;
+font=1;
 
 [settings]
 lineCount=7;
 lineSize=[0,0] [318,19];
 src=[82,387] [318,132];
 dst=[82,117] [318,132];
-font=2;
+font=1;
