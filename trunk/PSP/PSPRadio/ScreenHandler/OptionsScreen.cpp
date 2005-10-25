@@ -57,7 +57,7 @@ CScreenHandler::Options OptionsData[] =
 	{	OPTION_ID_NETWORK_PROFILES,	"Select Network Profile",	{"1","2","3","4","5"},			1,1,5		},
 	{	OPTION_ID_NETWORK_ENABLE,	"Start Network",			{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
-	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"222","266","333"},			1,1,3		},
+	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
 	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Download"},					0,1,1		},
@@ -124,14 +124,17 @@ void CScreenHandler::PopulateOptionsData()
 			case OPTION_ID_CPU_SPEED:
 				switch(scePowerGetCpuClockFrequency())
 				{
-					case 222:
+					case 111:
 						Option.iActiveState = 1;
 						break;
-					case 266:
+					case 222:
 						Option.iActiveState = 2;
 						break;
-					case 333:
+					case 266:
 						Option.iActiveState = 3;
+						break;
+					case 333:
+						Option.iActiveState = 4;
 						break;
 					default:
 						Log(LOG_ERROR, "CPU speed unrecognized: %dMHz", 
@@ -269,13 +272,16 @@ void CScreenHandler::OnOptionActivation()
 			int iRet = -1;
 			switch ((*m_CurrentOptionIterator).iSelectedState)
 			{
-				case 1: /* 222 */
+				case 1: /* 111 */
+					iRet = scePowerSetClockFrequency(111, 111, 55);
+					break;
+				case 2: /* 222 */
 					iRet = scePowerSetClockFrequency(222, 222, 111);
 					break;
-				case 2: /* 266 */
+				case 3: /* 266 */
 					iRet = scePowerSetClockFrequency(266, 266, 133);
 					break;
-				case 3: /* 333 */
+				case 4: /* 333 */
 					iRet = scePowerSetClockFrequency(333, 333, 166);
 					break;
 			}

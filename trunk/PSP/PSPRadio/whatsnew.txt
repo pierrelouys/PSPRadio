@@ -1,6 +1,8 @@
 What's New for PSPRadio 
 ========================
-0.36
+0.36-pre4
+(raf) Enabled the CPU speed change option.
+
 
 0.36-pre3 (r422)
 (raf) Started adding SHOUTcast support
