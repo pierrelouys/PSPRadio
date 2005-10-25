@@ -1,12 +1,12 @@
 CC=gcc
 PNAME=ThemeTool
 
-LIBS=-lSDL -lSDLmain -lstdc++
+LIBS=-lSDL -lSDLmain -lstdc++ ./SharedLibLinux/Logging.o ./SharedLibLinux/iniparser.o
 INC=-I. -I./SharedLibLinux
 
 CFLAGS=$(INC) -O1 -Wall -g -DLINUX
 
-OBJS=./SharedLibLinux/Logging.o ./SharedLibLinux/iniparser.o GraphicsUITheme.o ThemeTool.o
+OBJS = GraphicsUITheme.o ThemeTool.o
 
 all: $(OBJS)
 	$(CC) $(CFLAGS) $(LIBS) $(OBJS) -o $(PNAME)
@@ -15,5 +15,5 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) -c $*.cpp
 
 clean:
-	rm -f *.o
+	rm -f $(OBJS)
 	rm -f $(PNAME)
