@@ -2,7 +2,12 @@
 #define _PSPRADIOGRAPHICSUITHEME_
 
 #include <map>
-#include <SDL/SDL.h>
+#ifndef WIN32
+	#include <SDL/SDL.h>
+#else
+	#include <SDL.h>
+#endif
+
 #include <Logging.h>
 #include <iniparser.h>
 #include "GraphicsUIDefines.h"
@@ -48,8 +53,12 @@ private:
 	void DisplayStringSurface(char *szWord, StringPosType *pPos);
 	SDL_Surface *GetStringSurface(char *szWord, int nFontIndex);
 
+	void LogError(char *szFormat, ...);
+	void LogInfo(char *szFormat, ...);
+
 private:
 	CIniParser *m_pIniTheme;
+	char *m_szMsg;
 	int m_nColorDepth;
 	int m_nFlags;
 	int m_nPSPResWidth;

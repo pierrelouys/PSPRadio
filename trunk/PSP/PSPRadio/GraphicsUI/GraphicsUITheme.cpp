@@ -20,6 +20,10 @@
 //#include "Logging.h"
 //#include "Tools.h"
 
+#ifdef WIN32
+	#include <windows.h>
+#endif
+
 
 #define CURRENT_VERSION "0.2"
 
@@ -71,6 +75,7 @@ CGraphicsUITheme::CGraphicsUITheme() : m_pIniTheme(NULL)
 	m_nFlags = SDL_HWSURFACE;
 	m_pPSPSurface = NULL;
 	m_pImageSurface = NULL;
+	m_szMsg = (char *)malloc(256);
 }
 
 //*****************************************************************************
@@ -95,7 +100,7 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	// Check to see if we have already initialized INI
 	if(NULL != m_pIniTheme)
 	{
-		Log(LOG_ERROR, "Initialize: ERROR m_pIniTheme already initiaized");
+		LogError("Initialize: ERROR m_pIniTheme already initiaized");
 		return -1;
 	}
 	
@@ -110,14 +115,14 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	// Check to make sure it was created succesfully
 	if(NULL == m_pIniTheme)
 	{
-		Log(LOG_ERROR, "Initialize: ERROR unabled to allocate m_pIniTheme");
+		LogError("Initialize: ERROR unabled to allocate m_pIniTheme");
 		return -1;
 	}
 
 	// Initialize SDL
 	if(0 > SDL_Init(SDL_INIT_VIDEO))
 	{
-		Log(LOG_ERROR, "Initialize: ERROR Initializing SDL [%s]", SDL_GetError());
+		LogError("Initialize: ERROR Initializing SDL [%s]", SDL_GetError());
 		return -1;
 	}
 
@@ -139,43 +144,39 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	// Make sure the screen was created
 	if(NULL == m_pPSPSurface)
 	{
-		Log(LOG_ERROR, "Initialize: ERROR Initializing m_pPSPSurface [%s]", SDL_GetError());
+		LogError("Initialize: ERROR Initializing m_pPSPSurface [%s]", SDL_GetError());
 		return -1;
 	}
 
 	// TODO: Get Version and make sure it is compatable
 
 	// Get the base theme image
-//	char *szTemp = (char *)malloc(strlen(dirname(szThemeFileName)) +
-//									strlen(m_pIniTheme->GetString("main:themeimage", "--")) +10);
-//	sprintf(szTemp, "%s", dirname(szThemeFileName),m_pIniTheme->GetString("main:themeimage", "--"));
 	m_pImageSurface = SDL_LoadBMP(m_pIniTheme->GetString("main:themeimage", "--"));
-//	free(szTemp);
 
 	if(NULL == m_pImageSurface)
 	{
-		Log(LOG_ERROR, "Initialize: ERROR Initializing m_pImageSurface [%s]", SDL_GetError());
+		LogError("Initialize: ERROR Initializing m_pImageSurface [%s]", SDL_GetError());
 		return -1;
 	}
 
 	// Load the fonts
 	if(-1 == GetFonts())
 	{
-		Log(LOG_ERROR, "Initialize: ERROR Initializing fonts");
+		LogError("Initialize: ERROR Initializing fonts");
 		return -1;
 	}
 
 	// Load String Positions
 	if(-1 == GetStringPos())
 	{
-		Log(LOG_ERROR, "Initialize: ERROR Initializing string positions");
+		LogError("Initialize: ERROR Initializing string positions");
 		return -1;
 	}
 
 	// Get Button Positions
 	if(-1 == GetButtonPos())
 	{
-		Log(LOG_ERROR, "Initialize: ERROR Initializing button positions");
+		LogError("Initialize: ERROR Initializing button positions");
 		return -1;
 	}
 
@@ -218,6 +219,7 @@ void CGraphicsUITheme::Terminate()
 	SAFE_DELETE(m_pIniTheme);
 	SAFE_FREE_SURFACE(m_pImageSurface);
 	SAFE_FREE_SURFACE(m_pPSPSurface);
+	SAFE_FREE(m_szMsg);
 	SDL_Quit();
 }
 
@@ -308,7 +310,7 @@ int CGraphicsUITheme::GetIniRect(char *szIniTag, SDL_Rect *pRect)
 
 	if(NULL == pRect)
 	{
-		Log(LOG_ERROR, "GetIniRect: ERROR pRect is NULL [%s]", szIniTag);
+		LogError("GetIniRect: ERROR pRect is NULL [%s]", szIniTag);
 		return -1;
 	}
 
@@ -316,7 +318,7 @@ int CGraphicsUITheme::GetIniRect(char *szIniTag, SDL_Rect *pRect)
 
 	if(0 == strlen(szRect))
 	{
-		Log(LOG_ERROR, "GetIniRect: ERROR error getting ini tag [%s]", szIniTag);		
+		LogError("GetIniRect: ERROR error getting ini tag [%s]", szIniTag);		
 		return -1;
 	}
 
@@ -335,7 +337,7 @@ int CGraphicsUITheme::GetIniStringPos(char *szIniTag, StringPosType *pPos)
 
 	if(NULL == pPos)
 	{
-		Log(LOG_ERROR, "GetIniRect: ERROR pPos is NULL [%s]", szIniTag);
+		LogError("GetIniRect: ERROR pPos is NULL [%s]", szIniTag);
 		return -1;
 	}
 
@@ -343,7 +345,7 @@ int CGraphicsUITheme::GetIniStringPos(char *szIniTag, StringPosType *pPos)
 
 	if(0 == strlen(szPos))
 	{
-		Log(LOG_ERROR, "GetIniRect: ERROR error getting ini tag [%s]", szIniTag);		
+		LogError("GetIniRect: ERROR error getting ini tag [%s]", szIniTag);		
 		return -1;
 	}
 
@@ -364,7 +366,7 @@ int CGraphicsUITheme::GetIniColor(char *szIniTag, SDL_Color *pColor)
 
 	if(NULL == pColor)
 	{
-		Log(LOG_ERROR, "GetIniColor: ERROR pColor is NULL [%s]", szIniTag);
+		LogError("GetIniColor: ERROR pColor is NULL [%s]", szIniTag);
 		return -1;
 	}
 
@@ -372,13 +374,13 @@ int CGraphicsUITheme::GetIniColor(char *szIniTag, SDL_Color *pColor)
 
 	if(0 == strlen(szColor))
 	{
-		Log(LOG_ERROR, "GetIniColor: ERROR error getting ini tag [%s]", szIniTag);		
+		LogError("GetIniColor: ERROR error getting ini tag [%s]", szIniTag);		
 		return -1;
 	}
 	
 	if(-1 == StringToPoint(szColor, &r, &g, &b))
 	{
-		Log(LOG_ERROR, "GetIniColor: ERROR error parsing color [%s]", szIniTag);		
+		LogError("GetIniColor: ERROR error parsing color [%s]", szIniTag);		
 		return -1;
 	}
 	else
@@ -406,7 +408,7 @@ int CGraphicsUITheme::StringToPoint(char *szPair, int *pItem1, int *pItem2, int 
 	
 	if((NULL == pItem1) || (NULL == pItem2)|| (NULL == pItem3))
 	{
-		Log(LOG_ERROR, "StringToPoint: ERROR pItem1 or pItem2 is NULL [%s]", szPair);
+		LogError("StringToPoint: ERROR pItem1 or pItem2 is NULL [%s]", szPair);
 		return -1;
 	}
 	
@@ -422,7 +424,7 @@ int CGraphicsUITheme::StringToPoint(char *szPair, int *pItem1, int *pItem2, int 
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToPoint: sscanf failed [%s]", szPair);
+		LogError("StringToPoint: sscanf failed [%s]", szPair);
 	}
 	
 	return -1;
@@ -442,7 +444,7 @@ int CGraphicsUITheme::StringToPoint(char *szPair, int *pItem1, int *pItem2)
 	
 	if((NULL == pItem1) || (NULL == pItem2))
 	{
-		Log(LOG_ERROR, "StringToPoint: ERROR pItem1 or pItem2 is NULL [%s]", szPair);
+		LogError("StringToPoint: ERROR pItem1 or pItem2 is NULL [%s]", szPair);
 		return -1;
 	}
 	
@@ -456,7 +458,7 @@ int CGraphicsUITheme::StringToPoint(char *szPair, int *pItem1, int *pItem2)
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToPoint: sscanf failed [%s]", szPair);
+		LogError("StringToPoint: sscanf failed [%s]", szPair);
 	}
 	
 	return -1;
@@ -478,7 +480,7 @@ int CGraphicsUITheme::StringToRect(char *szRect, SDL_Rect *pSdlRect)
 	
 	if(NULL == pSdlRect)
 	{
-		Log(LOG_ERROR, "StringToRect: ERROR pSdlRect is NULL [%s]", szRect);
+		LogError("StringToRect: ERROR pSdlRect is NULL [%s]", szRect);
 		return -1;
 	}
 	
@@ -493,7 +495,7 @@ int CGraphicsUITheme::StringToRect(char *szRect, SDL_Rect *pSdlRect)
 		}	
 		else
 		{
-			Log(LOG_ERROR, "StringToRect: ERROR getting StringToPoint 1 for [%s]", szRect);
+			LogError("StringToRect: ERROR getting StringToPoint 1 for [%s]", szRect);
 		}
 		
 		token = strtok(NULL, "");
@@ -509,17 +511,17 @@ int CGraphicsUITheme::StringToRect(char *szRect, SDL_Rect *pSdlRect)
 			}	
 			else
 			{
-				Log(LOG_ERROR, "StringToRect: ERROR getting StringToPoint 2 for [%s]", szRect);
+				LogError("StringToRect: ERROR getting StringToPoint 2 for [%s]", szRect);
 			}
 		}	
 		else
 		{
-			Log(LOG_ERROR, "StringToRect: ERROR token is null 2 for [%s]", szRect);
+			LogError("StringToRect: ERROR token is null 2 for [%s]", szRect);
 		}
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToRect: ERROR token is null 1 for [%s]", szRect);
+		LogError("StringToRect: ERROR token is null 1 for [%s]", szRect);
 	}
 
 	if(2 == nCount)
@@ -545,7 +547,7 @@ int CGraphicsUITheme::StringToStringPos(char *szPos, StringPosType *pPos)
 	
 	if(NULL == pPos)
 	{
-		Log(LOG_ERROR, "StringToStringPos: ERROR pPos is NULL [%s]", szPos);
+		LogError("StringToStringPos: ERROR pPos is NULL [%s]", szPos);
 		return -1;
 	}
 	
@@ -561,13 +563,13 @@ int CGraphicsUITheme::StringToStringPos(char *szPos, StringPosType *pPos)
 		}	
 		else
 		{
-			Log(LOG_ERROR, "StringToStringPos: ERROR getting StringToPoint 1 for [%s]", szPos);
+			LogError("StringToStringPos: ERROR getting StringToPoint 1 for [%s]", szPos);
 			return -1;
 		}
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToRect: ERROR token is null 1 for [%s]", szPos);
+		LogError("StringToRect: ERROR token is null 1 for [%s]", szPos);
 		return -1;
 	}
 		
@@ -583,13 +585,13 @@ int CGraphicsUITheme::StringToStringPos(char *szPos, StringPosType *pPos)
 		}	
 		else
 		{
-			Log(LOG_ERROR, "StringToStringPos: ERROR getting StringToPoint 2 for [%s]", szPos);
+			LogError("StringToStringPos: ERROR getting StringToPoint 2 for [%s]", szPos);
 			return -1;
 		}
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToRect: ERROR token is null 2 for [%s]", szPos);
+		LogError("StringToRect: ERROR token is null 2 for [%s]", szPos);
 		return -1;
 	}
 
@@ -612,7 +614,7 @@ int CGraphicsUITheme::StringToStringPos(char *szPos, StringPosType *pPos)
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToStringPos: ERROR getting StringToPoint 2 for [%s]", szPos);
+		LogError("StringToStringPos: ERROR getting StringToPoint 2 for [%s]", szPos);
 		return -1;
 	}
 
@@ -624,7 +626,7 @@ int CGraphicsUITheme::StringToStringPos(char *szPos, StringPosType *pPos)
 	}
 	else
 	{
-		Log(LOG_ERROR, "StringToStringPos: ERROR getting StringToPoint 2 for [%s]", szPos);
+		LogError("StringToStringPos: ERROR getting StringToPoint 2 for [%s]", szPos);
 		return -1;
 	}
 
@@ -644,7 +646,7 @@ int CGraphicsUITheme::GetFonts()
 
 	if(-1 == nFontCount)
 	{
-		Log(LOG_ERROR, "GetFonts: ERROR no font items found");
+		LogError("GetFonts: ERROR no font items found");
 		return -1;
 	}
 
@@ -660,7 +662,7 @@ int CGraphicsUITheme::GetFonts()
 		
 		if(-1 == nLineCount)
 		{
-			Log(LOG_ERROR, "GetFonts: ERROR no lines found for %s", szFontTitle);
+			LogError("GetFonts: ERROR no lines found for %s", szFontTitle);
 			return -1;
 		}
 
@@ -676,7 +678,7 @@ int CGraphicsUITheme::GetFonts()
 
 			if(0 != GetIniRect(szFontItem, &fontSrcRect))
 			{
-				Log(LOG_ERROR, "GetFonts: ERROR getting ini rect [%s]", szValue);
+				LogError("GetFonts: ERROR getting ini rect [%s]", szValue);
 				return -1;
 			}
 
@@ -722,7 +724,7 @@ int CGraphicsUITheme::GetStringPos()
 
 		if(0 != GetIniStringPos(szIniTag, &tmpStringPos))
 		{
-			Log(LOG_ERROR, "GetFonts: WARNING string pos [%s] not found disabling", szIniTag);
+			LogError("GetFonts: WARNING string pos [%s] not found disabling", szIniTag);
 			g_StringPosArray[x].bEnabled = false;
 		}
 		else
@@ -764,7 +766,7 @@ int CGraphicsUITheme::GetButtonPos()
 			
 			if(-1 == g_ButtonPosArray[x].nButtonCount)
 			{
-				Log(LOG_ERROR, "GetButtonPos: ERROR unable to find state count for %s", szIniTag);
+				LogError("GetButtonPos: ERROR unable to find state count for %s", szIniTag);
 				g_ButtonPosArray[x].bEnabled = false;
 				continue;
 			}
@@ -780,7 +782,7 @@ int CGraphicsUITheme::GetButtonPos()
 			sprintf(szIniTag, "%s:src%d", g_ButtonPosArray[x].szIniName,y+1);
 			if(0 != GetIniRect(szIniTag, &tmpButtonPos))
 			{
-				Log(LOG_ERROR, "GetButtonPos: ERROR getting on pos [%s] disabling", szIniTag);
+				LogError("GetButtonPos: ERROR getting on pos [%s] disabling", szIniTag);
 				g_ButtonPosArray[x].bEnabled = false;
 				break;
 			}
@@ -794,7 +796,7 @@ int CGraphicsUITheme::GetButtonPos()
 			sprintf(szIniTag, "%s:dst", g_ButtonPosArray[x].szIniName);
 			if(0 != GetIniRect(szIniTag, &tmpButtonPos))
 			{
-				Log(LOG_ERROR, "GetButtonPos: ERROR getting dst pos [%s] disabling", szIniTag);
+				LogError("GetButtonPos: ERROR getting dst pos [%s] disabling", szIniTag);
 				g_ButtonPosArray[x].bEnabled = false;
 				continue;
 			}
@@ -826,7 +828,7 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		
 		if(-1 == g_OutputAreaArray[x].nLineCount)
 		{
-			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting %s", szIniTag);
+			LogError("GetOutputAreaPos: ERROR getting %s", szIniTag);
 			g_OutputAreaArray[x].bEnabled = false;
 			continue;
 		}
@@ -836,7 +838,7 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		
 		if(-1 == g_OutputAreaArray[x].nFontIndex)
 		{
-			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting %s", szIniTag);
+			LogError("GetOutputAreaPos: ERROR getting %s", szIniTag);
 			g_OutputAreaArray[x].bEnabled = false;
 			continue;
 		}
@@ -849,7 +851,7 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		sprintf(szIniTag, "%s:lineSize", g_OutputAreaArray[x].szIniName);
 		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
 		{
-			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting on pos [%s] disabling", szIniTag);
+			LogError("GetOutputAreaPos: ERROR getting on pos [%s] disabling", szIniTag);
 			g_OutputAreaArray[x].bEnabled = false;
 			continue;
 		}
@@ -860,7 +862,7 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		sprintf(szIniTag, "%s:src", g_OutputAreaArray[x].szIniName);
 		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
 		{
-			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting on pos [%s] disabling", szIniTag);
+			LogError("GetOutputAreaPos: ERROR getting on pos [%s] disabling", szIniTag);
 			g_OutputAreaArray[x].bEnabled = false;
 			continue;
 		}
@@ -870,7 +872,7 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		sprintf(szIniTag, "%s:dst", g_OutputAreaArray[x].szIniName);
 		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
 		{
-			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting on pos [%s] disabling", szIniTag);
+			LogError("GetOutputAreaPos: ERROR getting on pos [%s] disabling", szIniTag);
 			g_OutputAreaArray[x].bEnabled = false;
 			continue;
 		}
@@ -880,7 +882,7 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		sprintf(szIniTag, "%s:selector", g_OutputAreaArray[x].szIniName);
 		if(0 != GetIniRect(szIniTag, &tmpButtonPos))
 		{
-			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting selector pos [%s] disabling", szIniTag);
+			LogError("GetOutputAreaPos: ERROR getting selector pos [%s] disabling", szIniTag);
 			g_OutputAreaArray[x].bHasSelector = false;
 		}
 		else
@@ -1124,7 +1126,7 @@ SDL_Surface *CGraphicsUITheme::GetStringSurface(char *szWord, int nFontIndex)
 																		
 	if(NULL == pSurface)
 	{
-		Log(LOG_ERROR, "ERROR: GetStringSurface unable to allocate surface [%s]", SDL_GetError());
+		LogError("ERROR: GetStringSurface unable to allocate surface [%s]", SDL_GetError());
 		return NULL;
 	}
 	
@@ -1147,4 +1149,22 @@ SDL_Surface *CGraphicsUITheme::GetStringSurface(char *szWord, int nFontIndex)
 	}
 	
 	return pSurface;
+}
+
+void CGraphicsUITheme::LogError(char *szFormat, ...)
+{
+	va_list args;
+	va_start (args, szFormat);
+	vsprintf(m_szMsg, szFormat, args);
+	Log(LOG_ERROR, m_szMsg);
+	va_end (args);
+}
+
+void CGraphicsUITheme::LogInfo(char *szFormat, ...)
+{
+	va_list args;
+	va_start (args, szFormat);
+	vsprintf(m_szMsg, szFormat, args);
+	Log(LOG_INFO, m_szMsg);
+	va_end (args);
 }
