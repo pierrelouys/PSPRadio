@@ -2,8 +2,9 @@
 #define _PSPRADIOGRAPHICSUITHEME_
 
 #include <map>
-#include "iniparser.h"
 #include <SDL/SDL.h>
+#include <Logging.h>
+#include <iniparser.h>
 #include "GraphicsUIDefines.h"
 
 class CGraphicsUITheme
