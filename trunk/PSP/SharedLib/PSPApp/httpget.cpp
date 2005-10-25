@@ -53,7 +53,7 @@ void writestring (int fd, char *string)
 		string += result;
 		bytes -= result;
 		
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		if (true == pPSPApp->IsExiting())
 			break;
 	}
 }
@@ -80,7 +80,7 @@ void readstring (char *string, int maxlen, int sock)
 			ReportError ( "Connection closed by peer!\n");
 			break;
 		}
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		if (true == pPSPApp->IsExiting())
 			break;
 		//else if(errno != EINTR) 
 		//{
@@ -456,7 +456,7 @@ int CPSPSoundStream::http_open(char *url)
         sin.sin_port = htons(atoi( (char *) myport));
         
 		/** Bail out if app exiting */		
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		if (true == pPSPApp->IsExiting())
 		{
 			sock = -1;
 			return sock;
@@ -495,7 +495,7 @@ fail:
 		strcat (request, "\r\n");
 		
 		/** Bail out if app exiting */
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		if (true == pPSPApp->IsExiting())
 		{
 			sock = -1;
 			return sock;
@@ -511,7 +511,7 @@ fail:
 		purl[0] = '\0';
 		request[0] = 0;
 		/** Bail out if app exiting */
-		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+		if (true == pPSPApp->IsExiting())
 		{
 			sock = -1;
 			return sock;
@@ -543,7 +543,7 @@ fail:
 		do 
 		{
 			/** Bail out if app exiting */
-			if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == TRUE)
+			if (true == pPSPApp->IsExiting())
 			{
 				sock = -1;
 				return sock;
@@ -587,6 +587,17 @@ fail:
 				{
 					SetContentType(STREAM_CONTENT_PLAYLIST);
 					Log(LOG_INFO, "Content Type set to playlist");
+				}
+				else if (0 == strncmp(content, "text/html", strlen("text/html")))
+				{
+					SetContentType(STREAM_CONTENT_TEXT);
+					Log(LOG_INFO, "Content Type set to Text.");
+					free (purl);
+					free (request);
+					free(host);
+					free(proxyport);
+					free(myport);
+					return sock;
 				}
 			}
 		} while (request[0] != '\r' && request[0] != '\n');

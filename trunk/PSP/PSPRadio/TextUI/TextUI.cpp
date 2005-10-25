@@ -124,7 +124,7 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			c = GetConfigColor("COLORS:MAIN_COMMANDS");
 				
 			ClearRows(y);
-			uiPrintf(x, y, c, "X Play | [] Stop | ^ Options");
+			uiPrintf(x, y, c, "X Play | [] Stop | ^ Cycle Screens | START Options");
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			pspDebugScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));

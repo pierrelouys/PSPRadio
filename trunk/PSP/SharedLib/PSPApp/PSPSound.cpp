@@ -338,7 +338,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							strPlayListBuf[0]=0;
 							PLReader->Read((u8*)strPlayListBuf, 256);
 							strPlayListBuf[255] =0;
-							Log(LOG_INFO, "playlist contents: '%s'", strPlayListBuf);
+							Log(LOG_INFO, "ThDecode: playlist contents: '%s'", strPlayListBuf);
 							char *strURI = "";
 							if (strstr(strPlayListBuf, "File1="))
 							{
@@ -352,7 +352,12 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							delete (PLReader);
 							bDecoderCreated = false;
 							break;
-						}	
+						}
+						default:
+							Log(LOG_ERROR, "ThDecode:: Content type not recognized.");
+							bDecoderCreated = false;
+							break;
+						
 					}
 
 					if (true == bDecoderCreated)

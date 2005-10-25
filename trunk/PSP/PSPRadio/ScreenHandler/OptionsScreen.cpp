@@ -47,6 +47,7 @@ enum OptionIDs
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
 	OPTION_ID_UI,
+	OPTION_ID_SHOUTCAST_DN,
 };
 
 CScreenHandler::Options OptionsData[] = 
@@ -58,13 +59,15 @@ CScreenHandler::Options OptionsData[] =
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"222","266","333"},			1,1,3		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
+	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Download"},					0,1,1		},
 	
 	{  -1,  						"",							{""},							0,0,0		}
 };
 
 void CScreenHandler::PopulateOptionsData()
 {
-	Options 			Option;
+	Options Option;
+	
 	list<Options>::iterator		OptionIterator;
 
 	while(m_OptionsList.size())
@@ -80,8 +83,7 @@ void CScreenHandler::PopulateOptionsData()
 		}
 		m_OptionsList.pop_front();
 	}
-
-
+	
 	for (int iOptNo=0;; iOptNo++)
 	{
 		if (-1 == OptionsData[iOptNo].Id)
@@ -153,6 +155,7 @@ void CScreenHandler::PopulateOptionsData()
 	}
 	
 	m_CurrentOptionIterator = m_OptionsList.begin();
+
 }
 
 void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
@@ -205,6 +208,8 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 void CScreenHandler::OnOptionActivation()
 {
 	bool fOptionActivated = false;
+	static time_t	timeLastTime = 0;
+	time_t timeNow = clock() / (1000*1000); /** clock is in microseconds */
 	
 	switch ((*m_CurrentOptionIterator).Id)
 	{
@@ -266,6 +271,19 @@ void CScreenHandler::OnOptionActivation()
 		case OPTION_ID_UI:
 			StartUI((UIs)((*m_CurrentOptionIterator).iSelectedState - 1));
 			fOptionActivated = true;
+			break;
+		case OPTION_ID_SHOUTCAST_DN:
+			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
+			{
+				m_UI->DisplayMessage("downloading latest...");
+				DownloadSHOUTcastDB();
+				timeLastTime = timeNow;
+			}
+			else
+			{
+				m_UI->DisplayErrorMessage("Only once a minute!");
+			}		
+			fOptionActivated = false;
 			break;	
 	}
 	
@@ -273,5 +291,56 @@ void CScreenHandler::OnOptionActivation()
 	{
 		(*m_CurrentOptionIterator).iActiveState = (*m_CurrentOptionIterator).iSelectedState;
 		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+}
+
+#define SHOUTCAST_DB_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
+
+void CScreenHandler::DownloadSHOUTcastDB()
+{
+	CPSPSoundStream *connection = new CPSPSoundStream();
+	connection->SetURI(SHOUTCAST_DB_REQUEST_STRING);
+	connection->Open();
+
+	if (true == connection->IsOpen())
+	{
+		Log(LOG_LOWLEVEL, "DownloadSHOUTcastDB(): Connection open, downloading...");
+		FILE *fOut = fopen("SHOUTcast/db.xml", "w");
+		if (fOut)
+		{
+			int iRet = 0;
+			int iByteCnt = 0;
+			char *buffer = (char*)malloc(8192);
+			memset(buffer, 0, 8192);
+			for(;;)
+			{
+				iRet = recv(connection->GetSocketDescriptor(), buffer, 8192, 0);
+				if (0 == iRet)
+				{
+					connection->Close();
+					delete connection, connection = NULL;
+					fclose(fOut), fOut = NULL;
+					Log(LOG_LOWLEVEL, "DownloadSHOUTcastDB(): DB Retrieved. (%dbytes)", iByteCnt);
+					m_UI->DisplayMessage("DB Retrieved");
+					break;
+				}
+				if (iRet > 0)
+				{
+					iByteCnt+= iRet;
+					fwrite(buffer, iRet, 1, fOut);
+				}
+			}
+			free(buffer), buffer = NULL;
+		}
+		else
+		{
+			Log(LOG_ERROR, "DownloadSHOUTcastDB(): Error- Couldn't open file for write.");
+			m_UI->DisplayErrorMessage("Couldn't write file");
+		}
+	}
+	else
+	{
+		Log(LOG_ERROR, "DownloadSHOUTcastDB(): Error- Couldn't connect to SHOUTcast.");
+		m_UI->DisplayErrorMessage("Couldn't connect...");
 	}
 }

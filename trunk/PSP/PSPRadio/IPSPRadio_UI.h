@@ -22,6 +22,7 @@
 		virtual int DisplayMessage_NetworkSelection(int iProfileID, char *strProfileName){return 0;};
 		virtual int DisplayMainCommands(){return 0;};
 		virtual int DisplayActiveCommand(CPSPSound::pspsound_state playingstate){return 0;};
+		virtual int DisplayMessage(char *strMsg){return 0;};
 		virtual int DisplayErrorMessage(char *strMsg){return 0;};
 		virtual int DisplayBufferPercentage(int a){return 0;};
 	

@@ -138,6 +138,7 @@ int CPSPSoundStream::Open()
 			case STREAM_TYPE_URL:
 				//ReportError ("Opening URL '%s'\n", filename);
 				m_fdSocket = http_open(m_CurrentMetaData->strURI);
+				Log(LOG_LOWLEVEL, "Back from http_open(): socket=%d", m_fdSocket);
 				if (m_fdSocket < 0)
 				{
 					//Don't report again, because http_open will report.
