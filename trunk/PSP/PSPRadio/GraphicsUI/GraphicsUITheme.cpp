@@ -657,7 +657,7 @@ int CGraphicsUITheme::GetFonts()
 
 		sprintf(szFontItem, "%s:%s", szFontTitle, "lineCount");
 		int nLineCount = m_pIniTheme->GetInteger(szFontItem, -1);
-
+		
 		if(-1 == nLineCount)
 		{
 			Log(LOG_ERROR, "GetFonts: ERROR no lines found for %s", szFontTitle);
@@ -823,12 +823,26 @@ int CGraphicsUITheme::GetOutputAreaPos()
 		// Get Line Count
 		sprintf(szIniTag, "%s:lineCount", g_OutputAreaArray[x].szIniName);
 		g_OutputAreaArray[x].nLineCount = m_pIniTheme->GetInteger(szIniTag, -1);
-
+		
 		if(-1 == g_OutputAreaArray[x].nLineCount)
 		{
 			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting %s", szIniTag);
 			g_OutputAreaArray[x].bEnabled = false;
 			continue;
+		}
+		
+		sprintf(szIniTag, "%s:font", g_OutputAreaArray[x].szIniName);
+		g_OutputAreaArray[x].nFontIndex = m_pIniTheme->GetInteger(szIniTag, -1);		
+		
+		if(-1 == g_OutputAreaArray[x].nFontIndex)
+		{
+			Log(LOG_ERROR, "GetOutputAreaPos: ERROR getting %s", szIniTag);
+			g_OutputAreaArray[x].bEnabled = false;
+			continue;
+		}
+		else
+		{
+			g_OutputAreaArray[x].nFontIndex = g_OutputAreaArray[x].nFontIndex - 1;
 		}
 
 		// Get Line Size
