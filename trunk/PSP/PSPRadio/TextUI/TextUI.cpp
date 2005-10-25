@@ -366,8 +366,17 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 int CTextUI::DisplayErrorMessage(char *strMsg)
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
 	c = GetConfigColor("COLORS:ERROR_MESSAGE");
+	switch (m_CurrentScreen)
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+			GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
+			break;
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+			GetConfigPos("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
+			break;
+	}
 	
 	ClearErrorMessage();
 	/** If message is longer than 2 lines, then truncate;
@@ -385,16 +394,25 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 int CTextUI::DisplayMessage(char *strMsg)
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
 	c = GetConfigColor("COLORS:ERROR_MESSAGE");
+	switch (m_CurrentScreen)
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+			GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
+			break;
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+			GetConfigPos("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
+			break;
+	}
 	
 	ClearErrorMessage();
 	/** If message is longer than 2 lines, then truncate;
-	The -10 is to accomodate for the "Error: " plus a bit.
+	The -3 is just in case.
 	*/
 	if (strlen(strMsg)>(MAX_COL*2 - 10))
 	{
-		strMsg[MAX_COL*2 - 10] = 0;
+		strMsg[MAX_COL*2 - 3] = 0;
 	}
 	uiPrintf(x, y, c, "%s", strMsg);
 	
