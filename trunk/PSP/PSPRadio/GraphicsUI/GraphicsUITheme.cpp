@@ -17,15 +17,12 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include "GraphicsUITheme.h"
-//#include "Logging.h"
-//#include "Tools.h"
 
 #ifdef WIN32
 	#include <windows.h>
 #else
 	#include <stdarg.h>
 #endif
-
 
 #define CURRENT_VERSION "0.2"
 
@@ -151,6 +148,13 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	}
 
 	// TODO: Get Version and make sure it is compatable
+//	if(0 != strcmp(CURRENT_VERSION, m_pIniTheme->GetString("main:version", "NONE")))
+//	{
+//		LogError("Initialize: ERROR Version Missmatch [Version File = %s] [Current = %s]", 
+//					m_pIniTheme->GetString("main:version", "NONE"), 
+//					CURRENT_VERSION);
+//		return -1;
+//	}
 
 	// Get the base theme image
 	m_pImageSurface = SDL_LoadBMP(m_pIniTheme->GetString("main:themeimage", "--"));
@@ -260,6 +264,12 @@ void CGraphicsUITheme::DisplayMainScreen()
 	if(0 == GetIniRect("screens:main", &rectSrc))
 	{
 		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
+		
+		// Reload all the buttons to current state
+		for(int x = 0; x < BP_ITEM_COUNT; x++)
+		{
+			DisplayButton((ButtonPosEnum)x, g_ButtonPosArray[x].nCurrentState);
+		}
 	}
 }
 
@@ -276,6 +286,12 @@ void CGraphicsUITheme::DisplayShoutcastScreen()
 	if(0 == GetIniRect("screens:shoutcast", &rectSrc))
 	{
 		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
+
+		// Reload all the buttons to current state
+		for(int x = 0; x < BP_ITEM_COUNT; x++)
+		{
+			DisplayButton((ButtonPosEnum)x, g_ButtonPosArray[x].nCurrentState);
+		}
 	}
 }
 
