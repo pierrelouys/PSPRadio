@@ -30,9 +30,7 @@
 #undef ReportError
 
 PSP_MODULE_INFO("PSPAPP", 0x1000, 0, 1);
-/* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER);
-//extern SceModuleInfo module_info;
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
@@ -41,7 +39,6 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_Exit = false;
 	m_NetworkEnabled = false;
 	m_USBEnabled = false;
-	m_ExitSema = NULL;
 	m_EventToPSPApp = NULL;
 	m_thCallbackSetup = NULL; /** Callback thread */
 	m_thRun = NULL; /** Run Thread */
@@ -54,7 +51,6 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_Polling = false;
 	
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 1024, THREAD_ATTR_USER);
-	m_ExitSema = new CSema("PSPApp_Exit_Sema");
 
 	if (m_thCallbackSetup)
 	{
@@ -92,44 +88,38 @@ int CPSPApp::StartPolling()
 int CPSPApp::StopPolling()
 {
 	m_Polling = false;
-	sceKernelDelayThread(1000*50); /* Wait 50ms */
+	sceKernelDelayThread(50*1000); /* Wait 50ms */
 	return 0;
 }
 
 CPSPApp::~CPSPApp()
 {
-	Log(LOG_VERYLOW, "Destructor Called.");
+	Log(LOG_VERYLOW, "~CPSPApp(): Destructor Called.");
 	
 	if (true == IsUSBEnabled())
 	{
-		Log(LOG_VERYLOW, "Disabling USB.");
+		Log(LOG_VERYLOW, "~CPSPApp(): Disabling USB.");
 		DisableUSB();
 	}
 	
 	if (true == IsNetworkEnabled())
 	{
-		Log(LOG_VERYLOW, "Disabling Network.");
+		Log(LOG_VERYLOW, "~CPSPApp(): Disabling Network.");
 		DisableNetwork();
 	}
 	
-	if (m_ExitSema)
-	{
-		Log(LOG_VERYLOW, "deleting exitsema");
-		delete m_ExitSema;
-	}
-
 	if (m_EventToPSPApp)
 	{
-		Log(LOG_VERYLOW, "deleting eventtopspapp");
+		Log(LOG_VERYLOW, "~CPSPApp(): deleting eventtopspapp");
 		delete(m_EventToPSPApp), m_EventToPSPApp = NULL;
 	}
 
-	Log(LOG_VERYLOW, "freeing program name.");
+	Log(LOG_VERYLOW, "~CPSPApp(): freeing program name.");
 	free(m_strProgramName);
-	Log(LOG_VERYLOW, "freeing version number.");
+	Log(LOG_VERYLOW, "~CPSPApp(): freeing version number.");
 	free(m_strVersionNumber);
 	
-	Log(LOG_INFO, "Bye!.");
+	Log(LOG_INFO, "~CPSPApp(): Bye!.");
 	
 	sceKernelExitGame();
 
@@ -160,28 +150,21 @@ int CPSPApp::Run()
 		//SendEvent(MID_ONVBLANK);
  
 		sceCtrlReadLatch(&latch);
-		//printf("latch: uiMake=%d; uiBreak=%d; uiPress=%d; uiRelease=%d;\n",
-		//	latch.uiMake, latch.uiBreak, latch.uiPress, latch.uiRelease);
 		
 		if (latch.uiMake)
 		{
 			/** Button Pressed */
 			oldButtonMask = latch.uiPress;
-			//OnButtonPressed(oldButtonMask);
 			SendEvent(MID_ONBUTTON_PRESSED, &oldButtonMask);
 		}
 		else if (latch.uiBreak)
 		{
 			/** Button Released */
-			//OnButtonReleased(oldButtonMask);
 			SendEvent(MID_ONBUTTON_RELEASED, &oldButtonMask);
 		}
 		
 		if (oldAnalogue != (short)m_pad.Lx)
 		{
-			//pspDebugScreenSetXY(0,10);
-			//printf ("Analog Lx=%03d Ly=%03d     ", m_pad.Lx, m_pad.Ly);
-			//pspDebugScreenSetXY(0,5);
 			oldAnalogue = (short)m_pad.Lx;
 			OnAnalogueStickChange(m_pad.Lx, m_pad.Ly);
 		}
@@ -190,19 +173,13 @@ int CPSPApp::Run()
 		{
 			sceHprmReadLatch(&hprmlatch);
 			if (hprmlatch != 0x00)
-				{
+			{
 				SendEvent(MID_ONHPRM_RELEASED, &hprmlatch);
 				Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
-				}
+			}
 		}
 	}
 	
-	Log(LOG_VERYLOW, "Run:: Wait()");
-	m_ExitSema->Wait();
-	Log(LOG_VERYLOW, "Run:: Calling OnExit().");
-	OnExit();
-	SendEvent(MID_PSPAPP_EXITING);
-
 	Log(LOG_VERYLOW, "Run:: Right before calling sceKernelExitThread.");
 	sceKernelExitThread(0);
 	return 0;
@@ -221,10 +198,13 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 	return 0;
 }
 
-/** Note: OnAppExit is executed from the exit callback thread, which is running in USER MODE */
+/** When the user selects to exit, this is called */
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
+	/** We set m_Exit to true. This causes Run()'s loop to end, and start a controlled shutdown. */
 	m_Exit = true;
+	/** This notifies The APP to start destruction */
+	SendEvent(MID_PSPAPP_EXITING); 
 	return 0;
 }
 
@@ -233,6 +213,7 @@ int CPSPApp::ReportError(char *format, ...)
 	char *strMessage;
 	va_list args;
 
+	/** The pointer needs to be freed when the event is received */
 	strMessage   = (char *)malloc(4096);
 
 	va_start (args, format);         /* Initialize the argument list. */
@@ -256,7 +237,7 @@ int CPSPApp::powerCallback(int arg1, int pwrflags, void *common)
 	return pPSPApp->OnPowerEvent(pwrflags);
 }
 
-/* Callback thread */
+/* Thread statics */
 int CPSPApp::callbacksetupThread(SceSize args, void *argp) 
 {
 	return pPSPApp->CallbackSetupThread(args, argp);

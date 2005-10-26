@@ -18,9 +18,6 @@
 */
 #ifndef _PSPAPP_
 	#define _PSPAPP_
-	/* 
-	 PSPApp
-	*/
 	
 	#include <list>
 	#include <pspkernel.h>
@@ -56,9 +53,8 @@
 	#define MID_PSPAPP_EXITING				0x01000000
 	#define MID_ONBUTTON_PRESSED			0x01000010
 	#define MID_ONBUTTON_RELEASED			0x01000011
-	#define MID_ONHPRM_RELEASED			0x01000012
+	#define MID_ONHPRM_RELEASED				0x01000012
 	#define MID_ONVBLANK					0x01000020
-	
 	
 	class CPSPThread;
 	class CPSPApp;
@@ -68,21 +64,20 @@
 	class CPSPApp
 	{
 	public:
-		CLogging m_Log;
-
 		CPSPApp(char *strProgramName, char *strVersionNumber);
-
 		virtual ~CPSPApp();
+		
 		virtual int ProcessMessages(){return 0;};
-		void ExitApp() { m_Exit = TRUE; };
-		bool IsExiting() { return m_Exit; };
+		
+		//void ExitApp() { m_Exit = true; };
 		
 		/** Accessors */
+		bool IsExiting() { return m_Exit; };
 		SceCtrlData GetPadData() { return m_pad; };
-		char *GetMyIP() { return m_strMyIP; };
-		int GetResolverId() { return m_ResolverId; };
 		char *GetProgramName() { return m_strProgramName; };
 		char *GetProgramVersion() { return m_strVersionNumber; };
+		
+		/** Messaging */
 		int SendEvent(int iEventId, void *pData = NULL, int iSenderId = SID_PSPAPP)
 		{ 
 			CPSPEventQ::QEvent event = { iSenderId, iEventId, pData };
@@ -90,33 +85,34 @@
 		};
 		int ReportError(char *format, ...);
 		
-		void CantExit() { m_ExitSema->Up(); }
-		void CanExit() { m_ExitSema->Down(); }
-	
-		int EnableNetwork(int profile);
+		/** Control the Run() Thread. In charge of polling vblank and buttons */
+		int StartPolling(); /** Start polling buttons/vblank */
+		int StopPolling();
+		bool IsPolling(){ return m_Polling;}
+		
+		//void CantExit() { m_ExitSema->Up(); }
+		//void CanExit() { m_ExitSema->Down(); }
+		
+		/** Networking */
+		char *GetMyIP() { return m_strMyIP; };
+		int  GetResolverId() { return m_ResolverId; };
+		int  EnableNetwork(int profile);
 		void DisableNetwork();
 		bool IsNetworkEnabled() { return m_NetworkEnabled; };
-		int GetNumberOfNetworkProfiles()
-		{
-			int numNetConfigs = 1;
-			while (sceUtilityCheckNetParam(numNetConfigs++) == 0)
-			{};
-
-			return numNetConfigs-1;
-		}
-			
+		int  GetNumberOfNetworkProfiles();
+		
+		/** USB */
 		int  EnableUSB();
 		int  DisableUSB();
 		bool IsUSBEnabled() { return m_USBEnabled; }
 		
-		int StartPolling(); /** Start polling buttons/vblank */
-		int StopPolling();
-		bool IsPolling(){ return m_Polling;}
 	protected:
 		/** Helpers */
 	
-		virtual int CallbackSetupThread(SceSize args, void *argp);
-		virtual void OnExit(){};
+		int CallbackSetupThread(SceSize args, void *argp);
+		//virtual void OnExit(){};
+		
+		/** Threads */
 		int Run(); /** Thread */
 	
 		/** Event Handlers */
@@ -130,14 +126,16 @@
 		static int callbacksetupThread(SceSize args, void *argp);
 		static int runThread(SceSize args, void *argp);
 		
-		bool m_Exit;
-		bool m_NetworkEnabled;
-		bool m_USBEnabled;
-		CSema *m_ExitSema;
+		/** Data */
 		CPSPEventQ *m_EventToPSPApp;
 		
 	private:
 		/** Data */
+		CLogging m_Log;
+		bool m_Exit;
+		bool m_NetworkEnabled;
+		bool m_USBEnabled;
+		//CSema *m_ExitSema;
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
 		CPSPThread *m_thRun; /** Run Thread */
 		SceCtrlData m_pad; /** Buttons(Pad) data */
@@ -150,6 +148,7 @@
 		virtual int OnAppExit(int arg1, int arg2, void *common);
 		virtual int OnPowerEvent(int pwrflags){return 0;};
 
+		/** Networking */
 		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();
 		
