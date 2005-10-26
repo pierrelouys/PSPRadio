@@ -94,7 +94,7 @@
 		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
 		void PlayListScreenInputHandler(int iButtonMask);
 		
-		void DownloadSHOUTcastDB();
+		bool DownloadSHOUTcastDB();
 
 
 		Screen GetCurrentScreen(){return m_CurrentScreen;}

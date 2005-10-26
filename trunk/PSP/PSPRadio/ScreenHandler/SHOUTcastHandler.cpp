@@ -36,53 +36,60 @@
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
 
-#define SHOUTCAST_DB_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
+#define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
+#define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"
+#define SHOUTCAST_DB_COMPRESSED_FILENAME		"SHOUTcast/db.xml.gz"
+#define SHOUTCAST_DB_FILENAME					"SHOUTcast/db.xml"
 
-void CScreenHandler::DownloadSHOUTcastDB()
+bool UnCompress(char *strSourceFile, char *strDestFile);
+
+
+bool CScreenHandler::DownloadSHOUTcastDB()
 {
-	CPSPSoundStream *connection = new CPSPSoundStream();
-	connection->SetURI(SHOUTCAST_DB_REQUEST_STRING);
-	connection->Open();
-
-	if (true == connection->IsOpen())
+	bool success = false;
+	CPSPSoundStream *WebConnection = new CPSPSoundStream();
+	WebConnection->SetURI(SHOUTCAST_DB_COMPRESSED_REQUEST_STRING);
+	WebConnection->Open();
+	if (true == WebConnection->IsOpen())
 	{
-		Log(LOG_LOWLEVEL, "DownloadSHOUTcastDB(): Connection open, downloading...");
-		FILE *fOut = fopen("SHOUTcast/db.xml", "w");
-		if (fOut)
+		Log(LOG_INFO, "DownloadSHOUTcastDB(): Connected - Downloading '%s'", SHOUTCAST_DB_COMPRESSED_FILENAME);
+		bool bRet;
+		size_t bytes;
+		bRet = WebConnection->DownloadToFile(SHOUTCAST_DB_COMPRESSED_FILENAME, bytes);
+		
+		if (true == bRet)
 		{
-			int iRet = 0;
-			int iByteCnt = 0;
-			char *buffer = (char*)malloc(8192);
-			memset(buffer, 0, 8192);
-			for(;;)
+			WebConnection->Close();
+			delete WebConnection, WebConnection = NULL;
+			Log(LOG_INFO, "DownloadSHOUTcastDB(): DB Retrieved. (%dbytes)", bytes);
+			m_UI->DisplayMessage("Uncompressing . . .");
+			bRet = UnCompress(SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
+			if (true == bRet)
 			{
-				iRet = recv(connection->GetSocketDescriptor(), buffer, 8192, 0);
-				if (0 == iRet)
-				{
-					connection->Close();
-					delete connection, connection = NULL;
-					fclose(fOut), fOut = NULL;
-					Log(LOG_LOWLEVEL, "DownloadSHOUTcastDB(): DB Retrieved. (%dbytes)", iByteCnt);
-					m_UI->DisplayMessage("DB Retrieved");
-					break;
-				}
-				if (iRet > 0)
-				{
-					iByteCnt+= iRet;
-					fwrite(buffer, iRet, 1, fOut);
-				}
+				m_UI->DisplayMessage("SHOUTcast DataBase Retrieved");
+				Log(LOG_INFO, "SHOUTcast.com DB retrieved.");
+				success = true;
 			}
-			free(buffer), buffer = NULL;
-		}
-		else
-		{
-			Log(LOG_ERROR, "DownloadSHOUTcastDB(): Error- Couldn't open file for write.");
-			m_UI->DisplayErrorMessage("Couldn't write file");
+			else
+			{
+				Log(LOG_ERROR, "Error uncompressing '%s' to '%s'",SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
+				m_UI->DisplayMessage("Error Uncompressing . . .");
+			}
 		}
 	}
 	else
 	{
-		Log(LOG_ERROR, "DownloadSHOUTcastDB(): Error- Couldn't connect to SHOUTcast.");
-		m_UI->DisplayErrorMessage("Couldn't connect...");
+		Log(LOG_ERROR, "Error connecting to '%s'", SHOUTCAST_DB_COMPRESSED_REQUEST_STRING);
+		m_UI->DisplayErrorMessage("Couldn't connect to SHOUTcast.com ...");
 	}
+	
+	return success;
 }
+
+bool UnCompress(char *strSourceFile, char *strDestFile)
+{
+	bool success = false;
+	
+	return success;
+}
+

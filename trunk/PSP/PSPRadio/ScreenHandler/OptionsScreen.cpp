@@ -263,8 +263,15 @@ void CScreenHandler::OnOptionActivation()
 			}
 			else /** Disable */
 			{
-				pPSPApp->DisableUSB();
-				fOptionActivated = true;
+				int iRet = pPSPApp->DisableUSB();
+				if (-1 == iRet)
+				{
+					ReportError("USB Busy, try again later.");
+				}
+				if (false == pPSPApp->IsUSBEnabled())
+				{
+					fOptionActivated = true;
+				}
 			}
 			break;
 		case OPTION_ID_CPU_SPEED:
@@ -325,13 +332,15 @@ void CScreenHandler::OnOptionActivation()
 		case OPTION_ID_SHOUTCAST_DN:
 			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
 			{
-				m_UI->DisplayMessage("downloading latest...");
-				DownloadSHOUTcastDB();
-				timeLastTime = timeNow;
+				m_UI->DisplayMessage("Downloading latest SHOUTcast Database. . .");
+				if (true == DownloadSHOUTcastDB())
+				{
+					timeLastTime = timeNow; /** Only when successful */
+				}
 			}
 			else
 			{
-				m_UI->DisplayErrorMessage("Only once a minute!");
+				m_UI->DisplayErrorMessage("Wait a minute before re-downloading, thanks.");
 			}		
 			fOptionActivated = false;
 			break;	
