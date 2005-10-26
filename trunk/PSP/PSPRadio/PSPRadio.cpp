@@ -41,7 +41,6 @@ PSP_MAIN_THREAD_PRIORITY(80);
 //PSP_MAIN_THREAD_STACK_SIZE_KB(512);
 
 #define CFG_FILENAME "PSPRadio.cfg"
-#define ReportError pPSPApp->ReportError
 
 class myPSPApp : public CPSPApp
 {
@@ -54,7 +53,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre4")
+	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre5")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -71,8 +70,6 @@ public:
 		/** open config file */
 		char *strDir = NULL;
 		char strAppTitle[140];
-		
-		m_ExitSema->Up(); /** This to prevent the app from exiting while in this area */
 		
 		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) Version %s\n",
 			GetProgramName(),
@@ -126,8 +123,6 @@ public:
 		StartPolling();
 		
 		Log(LOG_LOWLEVEL, "Exiting Setup()");
-
-		m_ExitSema->Down();
 
 		return 0;
 	}
@@ -285,7 +280,6 @@ public:
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
 
-		m_ExitSema->Up();
 		for (;;)
 		{
 			//Log(LOG_VERYLOW, "ProcessMessages()::Calling Receive. %d Messages in Queue", m_EventToPSPApp->Size());
@@ -294,7 +288,8 @@ public:
 				Log(LOG_ERROR, "ProcessEvents(): Too many events backed-up!: %d. Exiting!", m_EventToPSPApp->Size());
 				if (m_UI)
 					m_UI->DisplayErrorMessage("Event Queue Backed-up, Exiting!");
-				m_ExitSema->Down();
+				OnExit();
+				/** Calling return causes the app to terminate */
 				return 0;
 			}
 			rret = m_EventToPSPApp->Receive(event);
@@ -307,7 +302,8 @@ public:
 					if ( (SID_PSPAPP == event.SenderId) )
 					{
 						Log(LOG_INFO, "ProcessEvents(): MID_PSPAPP_EXITING received.");
-						m_ExitSema->Down();
+						OnExit();
+						/** Calling return causes the app to terminate */
 						return 0;
 					}
 					break;
@@ -412,7 +408,6 @@ public:
 				}
 			}
 		}
-		m_ExitSema->Down();
 		return 0;
 	}
 	
