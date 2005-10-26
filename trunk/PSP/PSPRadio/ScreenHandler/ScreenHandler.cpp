@@ -151,8 +151,6 @@ int CScreenHandler::Start_Network(int iProfile)
 	}
 	if (sceWlanGetSwitchState() != 0)
 	{
-		pPSPApp->CantExit();
-
 		if (m_NetworkStarted)
 		{
 			m_UI->DisplayMessage_DisablingNetwork();
@@ -179,7 +177,6 @@ int CScreenHandler::Start_Network(int iProfile)
 		m_NetworkStarted = true;
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
 		
-		pPSPApp->CanExit();
 	}
 	else
 	{
