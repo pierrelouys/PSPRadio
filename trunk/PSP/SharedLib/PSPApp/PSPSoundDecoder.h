@@ -77,6 +77,8 @@
 		int Open();
 		void Close();
 		bool IsOpen();
+		bool DownloadToFile(char *strFilename, size_t &bytesDownloaded);
+		
 		void SetContentType(content_types Type) { m_ContentType = Type; }
 		void SetState(stream_states State) { m_State = State; }
 		

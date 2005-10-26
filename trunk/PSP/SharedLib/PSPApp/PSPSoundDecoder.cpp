@@ -91,6 +91,59 @@ void CPSPSoundStream::SetURI(char *strFile)
 	}
 }
 
+bool CPSPSoundStream::DownloadToFile(char *strFilename, size_t &bytesDownloaded)
+{
+	bool success = false;
+	
+	if (STREAM_TYPE_URL == GetType())
+	{
+		if (true == IsOpen())
+		{
+			FILE *fOut = fopen(strFilename, "w");
+			if (fOut)
+			{
+				int iRet = 0;
+				bytesDownloaded = 0;
+				char *buffer = (char*)malloc(8192);
+				memset(buffer, 0, 8192);
+				for(;;)
+				{
+					iRet = recv(m_fdSocket, buffer, 8192, 0);
+					if (0 == iRet)
+					{
+						fclose(fOut), fOut = NULL;
+						success = true;
+						break;
+					}
+					if (iRet > 0)
+					{
+						bytesDownloaded+= iRet;
+						fwrite(buffer, iRet, 1, fOut);
+					}
+				}
+				free(buffer), buffer = NULL;
+			}
+			else
+			{
+				Log(LOG_ERROR, "DownloadToFile(): Error- Couldn't open file for write.");
+				success = false;
+			}
+		}
+		else
+		{
+			Log(LOG_ERROR, "DownloadToFile(): Error- Couldn't connect");
+			success = false;
+		}
+	}
+	else
+	{
+		Log(LOG_ERROR, "DownloadToFile(): This is not a URL");
+		success = false;
+	}
+	
+	return success;
+}
+
 void CPSPSoundStream::SetSampleRate(int SampleRate)
 { 
 	m_CurrentMetaData->iSampleRate = SampleRate; 
