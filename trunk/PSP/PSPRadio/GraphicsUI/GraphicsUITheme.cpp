@@ -28,37 +28,37 @@
 
 StringPosType g_StringPosArray[] =
 {
-	{ "filetitle", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "uri", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "url", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "samplerate", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "mpeglayer", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "genre", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "songauthor", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "length", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "bitrate", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "channels", {0,0,0,0}, true, JUST_LEFT, 0 },
-	{ "error", {0,0,0,0}, true, JUST_LEFT, 0 },
+	{ "filetitle",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "uri",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "url",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "samplerate", NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "mpeglayer",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "genre",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "songauthor",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "length",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "bitrate",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "channels",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "error",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
 };
 
 ButtonPosType g_ButtonPosArray[] =
 {
-	{ "play", NULL, {0,0,0,0}, 0, true, 2 },
-	{ "pause", NULL, {0,0,0,0}, 0, true, 2  },
-	{ "stop", NULL, {0,0,0,0}, 0, true, 2  },
-	{ "load", NULL, {0,0,0,0}, 0, true, 2  },
-	{ "sound", NULL, {0,0,0,0}, 0, true, 2  },
-	{ "volume", NULL, {0,0,0,0}, 0, true, -1 },
-	{ "buffer", NULL, {0,0,0,0}, 0, true, -1 },
-	{ "network", NULL, {0,0,0,0}, 0, true, -1 },
-	{ "stream", NULL, {0,0,0,0}, 0, true, -1 }
+	{ "play",		NULL, {0,0,0,0}, 0, true,  2 },
+	{ "pause",		NULL, {0,0,0,0}, 0, true,  2 },
+	{ "stop",		NULL, {0,0,0,0}, 0, true,  2 },
+	{ "load",		NULL, {0,0,0,0}, 0, true,  2 },
+	{ "sound",		NULL, {0,0,0,0}, 0, true,  2 },
+	{ "volume",		NULL, {0,0,0,0}, 0, true, -1 },
+	{ "buffer",		NULL, {0,0,0,0}, 0, true, -1 },
+	{ "network",	NULL, {0,0,0,0}, 0, true, -1 },
+	{ "stream",		NULL, {0,0,0,0}, 0, true, -1 }
 };
 
 OutputAreaType g_OutputAreaArray[] =
 {
-	{ "playlist", -1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 },
-	{ "playlistitem", -1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 },
-	{ "settings", 1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 }
+	{ "playlist",		-1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 },
+	{ "playlistitem",	-1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 },
+	{ "settings",		-1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 }
 };
 
 //*****************************************************************************
@@ -119,7 +119,7 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	}
 
 	// Initialize SDL
-	if(0 > SDL_Init(SDL_INIT_VIDEO))
+	if(0 > SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER))
 	{
 		LogError("Initialize: ERROR Initializing SDL [%s]", SDL_GetError());
 		return -1;
@@ -222,6 +222,13 @@ void CGraphicsUITheme::Terminate()
 		SAFE_FREE(g_ButtonPosArray[x].pSrcRect);
 	}
 
+	// Free up the allocated strings
+	for(int x = 0; x < SP_ITEM_COUNT; x++)
+	{
+		SAFE_FREE(g_StringPosArray[x].szStringValue);
+		SAFE_FREE_SURFACE(g_StringPosArray[x].pSurface);
+	}
+
 	SAFE_DELETE(m_pIniTheme);
 	SAFE_FREE_SURFACE(m_pImageSurface);
 	SAFE_FREE_SURFACE(m_pPSPSurface);
@@ -270,6 +277,13 @@ void CGraphicsUITheme::DisplayMainScreen()
 		{
 			DisplayButton((ButtonPosEnum)x, g_ButtonPosArray[x].nCurrentState);
 		}
+
+		// Reload all the strings to current state
+		for(int x = 0; x < SP_ITEM_COUNT; x++)
+		{
+			DisplayStringSurface(&g_StringPosArray[x]);
+		}
+
 	}
 }
 
@@ -292,6 +306,12 @@ void CGraphicsUITheme::DisplayShoutcastScreen()
 		{
 			DisplayButton((ButtonPosEnum)x, g_ButtonPosArray[x].nCurrentState);
 		}
+
+		// Reload all the strings to current state
+		for(int x = 0; x < SP_ITEM_COUNT; x++)
+		{
+			DisplayStringSurface(&g_StringPosArray[x]);
+		}
 	}
 }
 
@@ -311,8 +331,30 @@ void CGraphicsUITheme::DisplaySettingScreen()
 	}
 }
 
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
 void CGraphicsUITheme::OnVBlank()
 {
+
+	for(int x = 0; x != SP_ITEM_COUNT; x++)
+	{
+		if(true == g_StringPosArray[x].bRotate)
+		{
+			g_StringPosArray[x].nCurrentXPos--;			
+
+			if(g_StringPosArray[x].rectPos.x > (g_StringPosArray[x].nCurrentXPos + g_StringPosArray[x].pSurface->w))
+			{
+				g_StringPosArray[x].nCurrentXPos = g_StringPosArray[x].rectPos.x  + g_StringPosArray[x].rectPos.w;
+			}
+
+			UpdateStringSurface(&g_StringPosArray[x]);
+		}
+	}
+
 	SDL_Flip(m_pPSPSurface);
 }
 
@@ -714,7 +756,7 @@ int CGraphicsUITheme::GetFonts()
 				memcpy(&rectItem, &fontSrcRect, sizeof(SDL_Rect));
 
 				// Update XPos for current font
-				rectItem.x = fontSrcRect.x + (fontSrcRect.w * z);
+				rectItem.x = fontSrcRect.x + (fontSrcRect.w * (int)z);
 
 				// Add to font map
 				m_FontMap[x][szValue[z]] = rectItem;                
@@ -919,17 +961,6 @@ int CGraphicsUITheme::GetOutputAreaPos()
 //
 //
 //*****************************************************************************
-void CGraphicsUITheme::DisplayString(char *szWord, StringPosEnum posEnum)
-{
-	DisplayStringSurface(szWord, &g_StringPosArray[posEnum]);
-}
-
-//*****************************************************************************
-// 
-//*****************************************************************************
-//
-//
-//*****************************************************************************
 void CGraphicsUITheme::ResetOutputArea(OutputAreaEnum posEnum)
 {
 	if(false == g_OutputAreaArray[posEnum].bEnabled)
@@ -1059,63 +1090,138 @@ void CGraphicsUITheme::DisplayButton(ButtonPosEnum posEnum, int nState)
 //
 //
 //*****************************************************************************
-void CGraphicsUITheme::DisplayStringSurface(char *szWord, StringPosType *pPos)
+void CGraphicsUITheme::DisplayString(char *szWord, StringPosEnum posEnum)
 {
-	SDL_Rect dst;
-	SDL_Rect src;
+	bool bUpdate = false;
 
+	if(false == g_StringPosArray[posEnum].bEnabled)
+	{
+		return;
+	}
+
+	if(NULL == g_StringPosArray[posEnum].szStringValue)
+	{
+		bUpdate = true;
+		g_StringPosArray[posEnum].szStringValue = strdup(szWord);
+	}
+	else if(0 != (strcmp(szWord, g_StringPosArray[posEnum].szStringValue)))
+	{
+		bUpdate = true;
+		SAFE_FREE(g_StringPosArray[posEnum].szStringValue);
+		g_StringPosArray[posEnum].szStringValue = strdup(szWord);
+	}
+
+	if(true == bUpdate)
+	{
+		DisplayStringSurface(&g_StringPosArray[posEnum]);
+	}
+}
+
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
+void CGraphicsUITheme::DisplayStringSurface(StringPosType *pPos)
+{
 	if(false == pPos->bEnabled)
 	{
 		return;
 	}
 
-	SDL_Surface *pSurface = GetStringSurface(szWord, pPos->nFontIndex);
-
-	if(NULL != pSurface)
+	if(NULL == pPos->szStringValue)
 	{
-		memcpy(&dst, &pPos->rectPos, sizeof(SDL_Rect));
+		return;
+	}
 
-		src.x = 0;
-		src.y = 0;
-		src.w = pSurface->w;
-		src.h = pSurface->h;
+	SAFE_FREE_SURFACE(pPos->pSurface);
 
+	pPos->pSurface = GetStringSurface(pPos->szStringValue, pPos->nFontIndex);
+
+	if(NULL != pPos->pSurface)
+	{
 		// Crop Lines that are too long
-		if(src.w > dst.w)
+		if(pPos->pSurface->w > pPos->rectPos.w)
 		{
-			src.w = dst.w;
+//			pPos->bRotate = true;
+			pPos->pSurface->w = pPos->rectPos.w;
+		}
+		else
+		{
+			pPos->bRotate = false;
 		}
 
 		// Vertically align word;
-		dst.y = dst.y + (src.h / 2) - 1;
+		pPos->nCurrentYPos = (pPos->rectPos.y + (pPos->rectPos.h/2)) - (pPos->pSurface->h/2);
 
-		// Justify Font
-		switch(pPos->fontJust)
+		if(false == pPos->bRotate)
 		{
-			case JUST_CENTER:
+			// Justify Font
+			switch(pPos->fontJust)
 			{
-				dst.x = pPos->rectPos.x + (pPos->rectPos.w/2 - src.w/2);
-			}break;
+				case JUST_CENTER:
+				{
+					pPos->nCurrentXPos = pPos->rectPos.x + (pPos->rectPos.w/2 - pPos->pSurface->w/2);
+				}break;
 
-			case JUST_RIGHT:
-			{
-				dst.x = pPos->rectPos.x + pPos->rectPos.w - src.w;
-			}break;
+				case JUST_RIGHT:
+				{
+					pPos->nCurrentXPos = pPos->rectPos.x + pPos->rectPos.w - pPos->pSurface->w;
+				}break;
 
-			case JUST_LEFT:
-			default:
-			{
-				// Dont need to do anything
-			}break;
-
+				case JUST_LEFT:
+				default:
+				{
+					// Dont need to do anything
+				}break;
+			}
 		}
-		
-		// Clear out area before repaint
-		SDL_BlitSurface(m_pImageSurface, &pPos->rectPos, m_pPSPSurface, &pPos->rectPos);
+		else
+		{
+			if(-1 == pPos->nCurrentXPos)
+			{
+				pPos->nCurrentXPos = pPos->rectPos.x + (pPos->rectPos.w);
+			}
+		}
 
-		SDL_BlitSurface(pSurface, &src, m_pPSPSurface, &dst);
-		SDL_FreeSurface(pSurface);
+		UpdateStringSurface(pPos);		
 	}
+}
+
+void CGraphicsUITheme::UpdateStringSurface(StringPosType *pPos)
+{
+	SDL_Rect src, dst;
+
+	dst.x = pPos->nCurrentXPos;
+	dst.y = pPos->nCurrentYPos;
+
+	src.x = 0;
+	src.y = 0;
+	src.w = (pPos->rectPos.x + pPos->rectPos.w) - pPos->nCurrentXPos;
+	src.h = pPos->pSurface->h;
+
+
+	if(dst.x < pPos->rectPos.x)
+	{
+		dst.x = pPos->rectPos.x;
+		src.x = pPos->rectPos.x - pPos->nCurrentXPos;
+		src.w = src.w - src.x;
+	}
+	else
+	{
+		src.x = 0;
+	}
+
+
+	src.y = 0;
+	src.w = (pPos->rectPos.x + pPos->rectPos.w) - dst.x;
+	src.h = pPos->pSurface->h;
+
+	// Clear out area before repaint
+	SDL_BlitSurface(m_pImageSurface, &pPos->rectPos, m_pPSPSurface, &pPos->rectPos);
+
+	SDL_BlitSurface(pPos->pSurface, &src, m_pPSPSurface, &dst);
 }
 
 //*****************************************************************************

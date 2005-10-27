@@ -35,6 +35,9 @@ public:
 	int GetLineCount(OutputAreaEnum posEnum);
 	int GetButtonStateCount(ButtonPosEnum posEnum);
 
+	void LogError(char *szFormat, ...);
+	void LogInfo(char *szFormat, ...);
+
 private:
 	int GetFonts();
 	int GetStringPos();
@@ -50,11 +53,9 @@ private:
 	int StringToPoint(char *szPair, int *pItem1, int *pItem2, int *pItem3);
 	int StringToStringPos(char *szPos, StringPosType *pPos);
 
-	void DisplayStringSurface(char *szWord, StringPosType *pPos);
+	void DisplayStringSurface(StringPosType *pPos);
+	void UpdateStringSurface(StringPosType *pPos);
 	SDL_Surface *GetStringSurface(char *szWord, int nFontIndex);
-
-	void LogError(char *szFormat, ...);
-	void LogInfo(char *szFormat, ...);
 
 private:
 	CIniParser *m_pIniTheme;
