@@ -7,7 +7,7 @@ OBJS = PSPRadio.o  DirList.o PlayList.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
 		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
-		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o ./SandbergUI/SandbergUIOptions.o ./SandbergUI/jsaVRAMManager.o ./SandbergUI/jsaTextureCache.o ./SandbergUI/jsaP3OLoad.o
+		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o ./SandbergUI/SandbergUIOptions.o ./SandbergUI/jsaVRAMManager.o ./SandbergUI/jsaTextureCache.o ./SandbergUI/jsaP3OLoad.o ./SandbergUI/jsaParticleSystem.o
 
 INCDIR = ../
 

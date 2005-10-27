@@ -107,7 +107,8 @@ static struct CSandbergUI::NVertex __attribute__((aligned(16))) vertices[12*3] =
 static int __attribute__((aligned(16))) fx_list[] =
 {
 	CSandbergUI::FX_CUBES,
-	CSandbergUI::FX_HEART
+	CSandbergUI::FX_HEART,
+	CSandbergUI::FX_PARTICLES,
 };
 
 void CSandbergUI::InitFX(char *strCWD)
@@ -125,6 +126,9 @@ void CSandbergUI::InitFX(char *strCWD)
 	{
 		Log(LOG_ERROR, "JSA:Error loading!!");
 	}
+	
+	psystem.jsaParticleSystemInit(500);
+
 //TEST
 	#include <jsaP3OLoad.h>
 	jsaP3OLoad::jsaP3OVertex *current = object_info.vertices;
@@ -153,13 +157,19 @@ void CSandbergUI::RenderFX(void)
 			RenderFX_1();
 		}
 		break;
+
 		case	FX_HEART:
 		{
 			RenderFX_2();
 		}
 		break;
-	}
 
+		case	FX_PARTICLES:
+		{
+			RenderFX_3();
+		}
+		break;
+	}
 }
 
 void CSandbergUI::RenderFX_1(void)
@@ -210,6 +220,46 @@ void CSandbergUI::RenderFX_2(void)
 		/* Draw heart */
 		sceGumDrawArray(GU_TRIANGLES, GU_COLOR_8888|GU_NORMAL_32BITF|GU_VERTEX_32BITF|GU_INDEX_16BIT|GU_TRANSFORM_3D, object_info.face_count*3, object_info.faces, object_info.vertices);
 		}
+
+  	val++;
+}
+
+void CSandbergUI::RenderFX_3(void)
+{
+	static int val = 0;
+
+	sceGuEnable(GU_TEXTURE_2D);
+
+	sceGuAlphaFunc(GU_ALWAYS,0x80,0xff);
+	sceGuEnable(GU_ALPHA_TEST);
+	sceGuBlendFunc(GU_ADD, GU_SRC_COLOR, GU_DST_COLOR, 0, 0);
+	sceGuEnable(GU_BLEND);
+	sceGuDepthFunc(GU_ALWAYS);
+	sceGuTexEnvColor(0x88FFFFFF);
+
+	// setup texture
+	(void)tcache.jsaTCacheSetTexture(TEX_PARTICLE_01);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+
+	// setup matrices for heart
+	sceGumMatrixMode(GU_MODEL);
+	sceGumLoadIdentity();
+		{
+		ScePspFVector3 pos = { 0, 0, -4.5f };
+		ScePspFVector3 rot = { 	0 * 0.59f * (GU_PI/180.0f) / 2.0f,
+					0 * 0.78f * (GU_PI/180.0f) / 2.0f, 
+					val * 0.8f * (GU_PI/180.0f) / 2.0f};
+		sceGumTranslate(&pos);
+		sceGumRotateXYZ(&rot);
+
+		/* Draw particle system */
+		psystem.jsaParticleSystemRender();
+		psystem.jsaParticleSystemUpdate();
+		}
+	sceGuDepthFunc(GU_GEQUAL);
+	sceGuDisable(GU_BLEND);
+	sceGuDisable(GU_ALPHA_TEST);
+	sceGuDisable(GU_TEXTURE_2D);
 
   	val++;
 }

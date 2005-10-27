@@ -1,5 +1,5 @@
 /* 
-	Texture cache manager for the Sony PSP.
+	VRAM manager for the Sony PSP.
 	Copyright (C) 2005 Jesper Sandberg
 
 

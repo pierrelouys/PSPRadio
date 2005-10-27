@@ -25,7 +25,7 @@
 #include "jsaVRAMManager.h"
 #include "jsaTextureCache.h"
 #include "jsaP3OLoad.h"
-
+#include "jsaParticleSystem.h"
 
 
 class CSandbergUI : public IPSPRadio_UI
@@ -43,13 +43,15 @@ public:
 		TEX_NETWORK,
 		TEX_LOAD,
 		TEX_SOUND,
-		TEX_OPTIONS
+		TEX_OPTIONS,
+		TEX_PARTICLE_01
 	};
 
 	enum fx_list_enum
 	{
 		FX_CUBES,
-		FX_HEART
+		FX_HEART,
+		FX_PARTICLES,
 	};
 
 	typedef struct texture_file
@@ -199,6 +201,7 @@ private:
 	void RenderFX(void);
 	void RenderFX_1(void);
 	void RenderFX_2(void);
+	void RenderFX_3(void);
 	void RenderLogo(void);
 	void RenderCommands(void);
 	void RenderPL(void);
@@ -220,6 +223,7 @@ private:
 private:
 	jsaTextureCache		tcache;
 	jsaP3OLoad		p3oloader;
+	jsaParticleSystem	psystem;
 	list<StoredOptionItem>	OptionsItems;
 
 	void* 	framebuffer;
