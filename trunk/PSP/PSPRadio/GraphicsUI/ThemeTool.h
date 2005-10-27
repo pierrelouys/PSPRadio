@@ -15,6 +15,7 @@ public:
 
 private:
 	CGraphicsUITheme m_GUI;
+	SDL_TimerID m_TimerID;
 };
 
 #endif

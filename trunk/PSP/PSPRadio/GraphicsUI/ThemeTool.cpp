@@ -1,8 +1,11 @@
 #include "ThemeTool.h"
 #include "Logging.h"
 
+Uint32 OnVBlank_TimerCallback(Uint32 interval, void *param);
+
 CPSPThemeTool::CPSPThemeTool(void)
 {
+	m_TimerID = 0;
 }
 
 CPSPThemeTool::~CPSPThemeTool(void)
@@ -14,6 +17,15 @@ bool CPSPThemeTool::Initialize(char *szThemeFileName)
 {
 	if(0 != m_GUI.Initialize(szThemeFileName, false))
 	{
+		m_GUI.LogError("Error initilizing theme");
+		return false;
+	}
+
+	m_TimerID = SDL_AddTimer(10, OnVBlank_TimerCallback, NULL);
+
+	if(0 == m_TimerID)
+	{
+		m_GUI.LogError("Error initilizing timer [%s]", SDL_GetError());
 		return false;
 	}
 
@@ -22,6 +34,8 @@ bool CPSPThemeTool::Initialize(char *szThemeFileName)
 
 bool CPSPThemeTool::Terminate(void)
 {
+	SDL_RemoveTimer(m_TimerID);
+
 	m_GUI.Terminate();
 	return true;
 }
@@ -34,6 +48,11 @@ bool CPSPThemeTool::Run(void)
 	{
 		switch (event.type) 
 		{
+			case SDL_USEREVENT:
+			{
+				m_GUI.OnVBlank();
+			} break;
+
 			case SDL_ACTIVEEVENT: 
 			{
 			} break;
@@ -109,7 +128,7 @@ bool CPSPThemeTool::Run(void)
 
 					case SDLK_a:
 					{
-						m_GUI.DisplayString("File Title", SP_META_FILETITLE);
+						m_GUI.DisplayString("-- -- -- -- -- -- -- -- -- -- -- -- File Title -- -- -- -- -- -- -- -- -- -- -- --", SP_META_FILETITLE);
 						m_GUI.DisplayString("Uri",SP_META_URI);
 						m_GUI.DisplayString("Url",SP_META_URL);
 						m_GUI.DisplayString("Sample Rate",SP_META_SAMPLERATE);
@@ -119,7 +138,7 @@ bool CPSPThemeTool::Run(void)
 						m_GUI.DisplayString("Length",SP_META_LENGTH);
 						m_GUI.DisplayString("Bitrate",SP_META_BITRATE);
 						m_GUI.DisplayString("Channels",SP_META_CHANNELS);
-						m_GUI.DisplayString("Error",SP_ERROR);
+						m_GUI.DisplayString("This Is A Sample Error Message",SP_ERROR);
 						
 					} break;
 
@@ -164,11 +183,26 @@ bool CPSPThemeTool::Run(void)
 			{
 			} break;
 		}
-		
-		m_GUI.OnVBlank();
 	}
 
 	return false;
+}
+
+Uint32 OnVBlank_TimerCallback(Uint32 interval, void *param)
+{
+	SDL_Event event;
+	SDL_UserEvent userevent;
+
+	userevent.type = SDL_USEREVENT;
+	userevent.code = 0;
+	userevent.data1 = NULL;
+	userevent.data2 = NULL;
+
+	event.type = SDL_USEREVENT;
+	event.user = userevent;
+
+	SDL_PushEvent(&event);
+	return(interval);
 }
 
 int main(int argc, char *argv[])
