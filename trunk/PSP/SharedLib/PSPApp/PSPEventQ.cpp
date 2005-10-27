@@ -84,7 +84,13 @@ int CPSPEventQ::Send(QEvent &Event)
 
 	if (Size() > 512)
 	{
-		Log(LOG_ERROR,"Send.. queue filling up... EventId=0x%x", Event.EventId);
+		char *pData = (char*)Event.pData;
+		Log(LOG_ERROR,"Send.. queue filling up... SenderId=0x%x, EventId=0x%x", Event.SenderId, Event.EventId);
+		if (pData != NULL)
+		{
+			Log(LOG_ERROR,"Send.. queue filling up... Data=0x%x '%c%c%c%c'...", 
+				pData, pData[0], pData[1], pData[2], pData[3]);
+		}
 	}
 	
 	//Log(LOG_VERYLOW, "Send(): Calling Push_Back(mid=%x)", Event.EventId);
