@@ -106,20 +106,39 @@ bool CPSPSoundStream::DownloadToFile(char *strFilename, size_t &bytesDownloaded)
 				bytesDownloaded = 0;
 				char *buffer = (char*)malloc(8192);
 				memset(buffer, 0, 8192);
-				for(;;)
+				
+				/** Get all /r /n before we start download */
+				char c = 0;
+				do
 				{
-					iRet = recv(m_fdSocket, buffer, 8192, 0);
-					if (0 == iRet)
+					iRet = recv(m_fdSocket, &c, 1, 0);
+				} while (iRet == 1 && ( (0x0d == c) || (0x0a == c) ));
+				
+				if (iRet == 1)
+				{
+					/** The last chr recv'd was diff than /r /n, so it needs to be written... */
+					fwrite(&c, 1, 1, fOut);
+					
+					for(;;)
 					{
-						fclose(fOut), fOut = NULL;
-						success = true;
-						break;
+						iRet = recv(m_fdSocket, buffer, 8192, 0);
+						if (0 == iRet)
+						{
+							fclose(fOut), fOut = NULL;
+							success = true;
+							break;
+						}
+						if (iRet > 0)
+						{
+							bytesDownloaded+= iRet;
+							fwrite(buffer, iRet, 1, fOut);
+						}
 					}
-					if (iRet > 0)
-					{
-						bytesDownloaded+= iRet;
-						fwrite(buffer, iRet, 1, fOut);
-					}
+				}
+				else
+				{
+					Log(LOG_ERROR, "Error downloading..");
+					success = false;
 				}
 				free(buffer), buffer = NULL;
 			}

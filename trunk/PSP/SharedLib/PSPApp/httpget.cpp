@@ -68,12 +68,15 @@ void readstring (char *string, int maxlen, int sock)
 	for(;;)
 	{
 		bytesread = recv(sock, string+pos, 1, 0);
-		if(bytesread  == 1) {
-			pos++;
-			if(string[pos-1] == '\n') {
+		if(1 == bytesread) 
+		{
+			if(string[pos] == 0x0d ||  /** CR */
+			   string[pos] == 0x0a)	   /** LF */
+			{
 				string[pos] = 0;
 				break;
 			}
+			pos++;
 		}
 		else if (bytesread == 0)
 		{
@@ -615,9 +618,7 @@ fail:
 	return sock;
 }
 
-/* EOF */
-
-/** Based on Code from VNC for PSP*/
+/** Based on Code from PspPet */
 int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in s */) 
 {
 	u32 err = 0;
