@@ -42,7 +42,7 @@
 #define SHOUTCAST_DB_FILENAME					"SHOUTcast/db.xml"
 
 bool UnCompress(char *strSourceFile, char *strDestFile);
-
+int inf(FILE *source, FILE *dest);
 
 bool CScreenHandler::DownloadSHOUTcastDB()
 {
@@ -86,10 +86,130 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 	return success;
 }
 
+
+/** Raf: Thanks to echto for the uncompression routines! */
+#include "zlib.h"
+
+#define CHUNK 16384
+
 bool UnCompress(char *strSourceFile, char *strDestFile)
 {
 	bool success = false;
+	FILE *infile  = NULL;
+	FILE *outfile = NULL;
+		
+	srand(sceKernelLibcTime(NULL)); // seeded with time
+
+	infile  = fopen(strSourceFile,"r");
 	
+	if (infile)
+	{
+		outfile = fopen(strDestFile,"w");
+		if (outfile)
+		{
+			/* do decompression */
+			int ret = inf(infile, outfile);
+			if (ret == Z_OK)
+			{
+				Log(LOG_LOWLEVEL, "UnCompress(): File '%s' decompressed successfully", strSourceFile);
+				success = true;
+			}
+			else
+			{
+				/* report a zlib or i/o error */
+				switch (ret) 
+				{
+					case Z_ERRNO:
+						if (ferror(stdin))
+							Log(LOG_ERROR, "UnCompress(): zlib error: error reading file");
+						if (ferror(stdout))
+							Log(LOG_ERROR, "UnCompress(): zlib error: error writing file");
+						break;
+					case Z_STREAM_ERROR:
+						Log(LOG_ERROR, "UnCompress(): zlib error: invalid compression level");
+						break;
+					case Z_DATA_ERROR:
+						Log(LOG_ERROR, "UnCompress(): zlib error: invalid or incomplete deflate data");
+						break;
+					case Z_MEM_ERROR:
+						Log(LOG_ERROR, "UnCompress(): zlib error: out of memory");
+						break;
+					case Z_VERSION_ERROR:
+						Log(LOG_ERROR, "UnCompress(): zlib error: zlib version mismatch!");
+				}
+				success = false;
+			}
+			fclose(outfile);
+		}
+		else
+		{
+			Log(LOG_ERROR, "UnCompress(): Unable to open file for writing '%s'", strDestFile);
+		}
+		fclose(infile);
+	}
+	else
+	{
+		Log(LOG_ERROR, "UnCompress(): Unable to open file for reading '%s'", strSourceFile);
+	}
+
 	return success;
 }
 
+int inf(FILE *source, FILE *dest)
+{
+    int ret;
+    unsigned have;
+    z_stream strm;
+    Bytef in[CHUNK];
+    Bytef out[CHUNK];
+
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit(&strm);
+    if (ret != Z_OK)
+        return ret;
+
+    /* decompress until deflate stream ends or end of file */
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, source);
+        if (ferror(source)) {
+            (void)inflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
+
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;     /* and fall through */
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                (void)inflateEnd(&strm);
+                return ret;
+            }
+            have = CHUNK - strm.avail_out;
+            if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
+                (void)inflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);     /* all input will be used */
+
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
+}
