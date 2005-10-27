@@ -1,10 +1,16 @@
 #ifndef _PSPRADIOGRAPHICSUIDEFINES_
 #define _PSPRADIOGRAPHICSUIDEFINES_
 
+//*****************************************************************************
+// DEFINES
+//*****************************************************************************
 #define SAFE_FREE_SURFACE(surface) if(NULL != surface) { SDL_FreeSurface(surface); surface = NULL; }
 #define SAFE_DELETE(obj) if(NULL != obj) { delete obj; obj = NULL; }
 #define SAFE_FREE(obj) if(NULL != obj) { free(obj); obj = NULL; }
 
+//*****************************************************************************
+// ENUMERATIONS
+//*****************************************************************************
 enum ScreenTypeEnum
 {
 	ST_MAINSCREEN = 0,
@@ -64,13 +70,21 @@ enum ButtonPosEnum
 	BP_ITEM_COUNT
 };
 
+//*****************************************************************************
+// Structures
+//*****************************************************************************
 struct StringPosType
 {
 	char szIniName[50];
+	char *szStringValue;
 	SDL_Rect rectPos;
 	bool bEnabled;
 	StringJustEnum fontJust;
 	int nFontIndex;
+	bool bRotate;
+	int nCurrentXPos;
+	int nCurrentYPos;
+	SDL_Surface *pSurface;
 };
 
 struct ButtonPosType
