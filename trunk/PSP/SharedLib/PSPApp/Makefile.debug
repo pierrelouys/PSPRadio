@@ -7,7 +7,7 @@ OBJS = PSPApp.o PSPApp_Network.o PSPEventQ.o \
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging -I../libsamplerate
-CFLAGS = -g2 -DDEBUG -Wall -D__PSP__ $(INCLUDES)
+CFLAGS = -O0 -G0 -ggdb -DDEBUG -Wall -D__PSP__ $(INCLUDES)
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
