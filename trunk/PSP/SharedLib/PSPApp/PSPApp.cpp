@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <pspnet.h>
+#include <pspkernel.h>
 #include <psphprm.h>
 #include <psppower.h>
 #include "PSPApp.h"

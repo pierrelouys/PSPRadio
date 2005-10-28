@@ -16,11 +16,15 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#include <pspkernel.h>
+#ifdef DEBUG
+	#include <pspdebug.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <pspnet.h>
+#include "../libpspnet/pspnet.h"
 #include <pspusb.h>
 #include <pspusbstor.h>
 #include "PSPApp.h"
@@ -28,6 +32,11 @@
 #undef ReportError
 extern SceModuleInfo module_info;
 u32 LoadStartModule(char *path);
+
+
+#ifdef DEBUG
+	volatile bool flagGdbStubReady = false;
+#endif
 
 /** Network */
 
@@ -46,10 +55,22 @@ int DriverLoadThread(SceSize args, void *argp)
 	LoadStartModule("flash0:/kd/usbstorms.prx");
 	LoadStartModule("flash0:/kd/usbstorboot.prx");
 
+	#ifdef DEBUG
+		pspDebugScreenPrintf("Initialising GDB stub...\n");
+		pspDebugGdbStubInit();
+	    flagGdbStubReady = true;
+		pspDebugScreenPrintf("Ready.\n");
+	#endif
+
+	
 	sceKernelSleepThreadCB();
 
 	return 0;
 }
+
+
+/** Driver Loader Thread handle */
+int handleDriverLoaderThread = 0;
 
 /**
  * Function that is called from _init in kernelmode before the
@@ -61,13 +82,18 @@ int DriverLoadThread(SceSize args, void *argp)
 __attribute__ ((constructor))
 void loaderInit()
 {
-	int thid = 0;
+	//int thid = 0;
+	
+	#ifdef DEBUG
+		pspDebugScreenInit();
+		pspDebugScreenPrintf("loaderInit(): Starting DriverLoader Thread...\n");
+	#endif
 	
 	pspKernelSetKernelPC();
-	thid = sceKernelCreateThread("driverloader_thread", DriverLoadThread, 0x11, 0xFA0, 0, 0);
-	if (thid >= 0) 
+	handleDriverLoaderThread = sceKernelCreateThread("driverloader_thread", DriverLoadThread, 0x11, 0xFA0, 0, 0);
+	if (handleDriverLoaderThread >= 0) 
 	{
-		sceKernelStartThread(thid, 0, 0);
+		sceKernelStartThread(handleDriverLoaderThread, 0, 0);
 	}
 }
 

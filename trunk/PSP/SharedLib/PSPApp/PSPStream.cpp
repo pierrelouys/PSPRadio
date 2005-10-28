@@ -26,6 +26,7 @@
 #include <mad.h>
 #include <malloc.h>
 #include <errno.h>
+#include "../libpspnet/pspnet.h"
 #include <sys/socket.h>
 #include "PSPSound.h"
 #include "PSPStream.h"

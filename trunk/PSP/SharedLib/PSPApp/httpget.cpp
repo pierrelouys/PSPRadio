@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pspnet.h>
+#include "../libpspnet/pspnet.h"
 #include <netdb.h>
 #include <sys/param.h>
 #include <sys/types.h>
