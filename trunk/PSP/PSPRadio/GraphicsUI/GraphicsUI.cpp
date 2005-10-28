@@ -257,7 +257,7 @@ int CGraphicsUI::OnVBlank()
 	return 0;
 }
 
-int CGraphicsUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
+int CGraphicsUI::OnNewSongData(MetaData *pData)
 {
 	char szTmp[25];
 
@@ -329,7 +329,7 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 {
 	int nLineCount = m_theme.GetLineCount(OA_PLAYLISTITEM);
 	
-	list<CPSPSoundStream::MetaData>::iterator dataIter = *PlayList->GetCurrentElementIterator();
+	list<MetaData>::iterator dataIter = *PlayList->GetCurrentElementIterator();
 			
 	for (int i = 0; i < nLineCount/2; i++)
 	{

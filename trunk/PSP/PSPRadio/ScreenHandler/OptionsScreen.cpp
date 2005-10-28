@@ -43,7 +43,6 @@
 enum OptionIDs
 {
 	OPTION_ID_NETWORK_PROFILES,
-	OPTION_ID_NETWORK_ENABLE,
 	OPTION_ID_USB_ENABLE,
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
@@ -54,8 +53,7 @@ enum OptionIDs
 CScreenHandler::Options OptionsData[] = 
 {
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
-	{	OPTION_ID_NETWORK_PROFILES,	"Select Network Profile",	{"1","2","3","4","5"},			1,1,5		},
-	{	OPTION_ID_NETWORK_ENABLE,	"Start Network",			{"OFF","ON"},					1,1,2		},
+	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",	{"Off","1","2","3","4"},			1,1,5		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
@@ -102,21 +100,25 @@ void CScreenHandler::PopulateOptionsData()
 		{
 			case OPTION_ID_NETWORK_PROFILES:
 			{
-				Option.iNumberOfStates = pPSPApp->GetNumberOfNetworkProfiles() - 1;
+				Option.iNumberOfStates = pPSPApp->GetNumberOfNetworkProfiles();
 				char *NetworkName = NULL;
 				for (int i = 0; i < Option.iNumberOfStates; i++)
 				{
 					NetworkName = (char*)malloc(128);
-					GetNetworkProfileName(i+1, NetworkName, 128);
+					if (0 == i)
+					{
+						sprintf(NetworkName, "Off");
+					}
+					else
+					{
+						GetNetworkProfileName(i, NetworkName, 128);
+					}
 					Option.strStates[i] = NetworkName;
 				}
+				Option.iActiveState = (pPSPApp->IsNetworkEnabled()==true)?(m_iNetworkProfile+1):1;
 				break;
 			}
 				
-			case OPTION_ID_NETWORK_ENABLE:
-				Option.iActiveState = (pPSPApp->IsNetworkEnabled()==true)?2:1;
-				break;
-			
 			case OPTION_ID_USB_ENABLE:
 				Option.iActiveState = (pPSPApp->IsUSBEnabled()==true)?2:1;
 				break;
@@ -130,6 +132,7 @@ void CScreenHandler::PopulateOptionsData()
 					case 222:
 						Option.iActiveState = 2;
 						break;
+					case 265:
 					case 266:
 						Option.iActiveState = 3;
 						break;
@@ -234,11 +237,12 @@ void CScreenHandler::OnOptionActivation()
 	switch ((*m_CurrentOptionIterator).Id)
 	{
 		case OPTION_ID_NETWORK_PROFILES:
-			m_iNetworkProfile = (*m_CurrentOptionIterator).iSelectedState;
-			fOptionActivated = true;
-			break;
-		case OPTION_ID_NETWORK_ENABLE:
-			if ((*m_CurrentOptionIterator).iSelectedState == 2) /** Enable */
+			m_iNetworkProfile = (*m_CurrentOptionIterator).iSelectedState - 1;
+//			fOptionActivated = true;
+//			break;
+//		case OPTION_ID_NETWORK_ENABLE:
+		
+			if (m_iNetworkProfile > 0) /** Enable */
 			{
 				Start_Network();
 				if (true == pPSPApp->IsNetworkEnabled())

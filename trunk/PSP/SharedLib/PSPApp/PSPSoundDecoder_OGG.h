@@ -27,36 +27,27 @@
 	class CPSPSoundStream;
 	class CPSPSoundBuffer;
 	
-	class COGGStreamReader : public CPSPSoundStreamReader
+	class CPSPSoundDecoder_OGG : public IPSPSoundDecoder
 	{
 	public:
+		CPSPSoundDecoder_OGG(CPSPSoundBuffer *OutputBuffer, CPSPStream *InputStream) : IPSPSoundDecoder(OutputBuffer, InputStream) { Initialize(); }
+		~CPSPSoundDecoder_OGG();
 		
-		COGGStreamReader();
-		~COGGStreamReader();
+		bool Decode();
 		
-		void Close();
-		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
+		void Initialize();
+
+		void CloseVorbis();
+		bool OpenVorbis();
+
+		size_t ReadVorbis(unsigned char *pBuffer, size_t SizeInBytes);
 		void ReadComments(); /** Retrieve/Process metadata from the stream */
-		void COGGStreamReader::ProcessInfo(); /** Get/Process Stream info */
+		void ProcessInfo(); /** Get/Process Stream info */
 		
 	private:
 		OggVorbis_File m_vf;
 		int m_last_section;
 		CLock *m_lock;
-	};
-	
-	class CPSPSoundDecoder_OGG : public IPSPSoundDecoder
-	{
-	public:
-		CPSPSoundDecoder_OGG(CPSPSoundBuffer *OutputBuffer) : IPSPSoundDecoder(OutputBuffer)
-			{ Initialize(); }
-		~CPSPSoundDecoder_OGG();
-		
-		void Initialize();
-			
-		bool Decode();
-
-	private:
 		unsigned char	*m_pInputBuffer;
 		unsigned char	*m_GuardPtr;
 		unsigned long	m_FrameCount;

@@ -359,7 +359,7 @@ void CSandbergUI::RenderPlayScreen(void)
 	RenderSound();
 }
 
-int CSandbergUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
+int CSandbergUI::OnNewSongData(MetaData *pData)
 {
 	char	strBuf[MAXPATHLEN];
 

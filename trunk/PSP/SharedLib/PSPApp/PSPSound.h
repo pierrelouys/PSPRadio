@@ -92,8 +92,7 @@
 		void  Done();
 		bool  IsDone();
 		
-		//void  SetSampleRate(size_t samplerate);
-		void SampleRateChange();
+		void SampleRateChange(int newRate);
 		
 	private:
 		Frame 	*ringbuf_start, *pspbuf; /** Buffers */
@@ -119,6 +118,7 @@
 		
 	protected:
 		CPSPSoundBuffer   Buffer;
+		CPSPStream *m_CurrentStream;
 		
 	private:
 		void Initialize();
@@ -144,6 +144,8 @@
 		int Stop();
 		pspsound_state GetPlayState() { return m_CurrentState; };
 		
+		CPSPStream *GetCurrentStream(){ return m_CurrentStream; }
+		
 		int SendEvent(int iEventId, void *pData = NULL, int iSenderId = SID_PSPSOUND)
 		{ 
 			CPSPEventQ::QEvent event = { iSenderId, iEventId, pData };
@@ -159,7 +161,7 @@
 		int GetEventToDecThSize() { return m_EventToDecTh->Size(); }
 		int GetEventToPlayThSize() { return m_EventToPlayTh->Size(); }
 		
-		void SampleRateChange() { Buffer.SampleRateChange(); }
+		void SampleRateChange() { Buffer.SampleRateChange(m_CurrentStream->GetSampleRate()); }
 		
 		/** Threads */
 		static int ThPlayAudio(SceSize args, void *argp);

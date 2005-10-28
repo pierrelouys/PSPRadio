@@ -82,11 +82,20 @@ void readstring (char *string, int maxlen, int sock)
 		}
 		if (true == pPSPApp->IsExiting())
 			break;
-		//else if(errno != EINTR) 
-		//{
-		//	ReportError ( "Error reading from socket or unexpected EOF.\n");
-		//	break;
-		//}
+		else if(bytesread < 0)
+		{
+			errno = sceNetInetGetErrno();
+			if (11 == errno)
+			{
+				/** Timeout! */
+				continue;
+			}
+			else
+			{
+				ReportError ( "Error reading from socket or unexpected EOF.\n");
+				break;
+			}
+		}	
 	}
 }
 
@@ -233,7 +242,7 @@ unsigned char *proxyport;
 char *httpauth = NULL;
 char httpauth1[256];
 
-int CPSPSoundStream::http_open(char *url)
+int CPSPStream::http_open(char *url)
 {
 	char *purl = NULL, 
 		 *host = NULL, 
@@ -433,9 +442,9 @@ int CPSPSoundStream::http_open(char *url)
 		if (sock < 0)
 			goto fail;
 		
-		struct timeval  timeo;
-		timeo.tv_sec  = 3; //sec
-		timeo.tv_usec = 0; //usec
+		/** Modified following PspPet's wifi_03 sample a bit */
+		u32  timeo;
+		timeo = 3 *1000*1000; /** timeout is in microseconds */
 		Log(LOG_LOWLEVEL, "http_connect(): Calling Setsockopt()");
 		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
 		{
@@ -527,10 +536,14 @@ fail:
 		sptr = strchr(request, ' ');
 		if (sptr != NULL) 
 		{
-			switch (sptr[1]) {
+			switch (sptr[1]) 
+			{
 				case '3':
+					Log(LOG_LOWLEVEL, "Setting relocate to true");
 					relocate = TRUE;
+					break;
 				case '2': /** OK */
+					Log(LOG_LOWLEVEL, "Good.");
 					break;
 				default:
 					Log (LOG_ERROR, "HTTP request failed: %s",
@@ -570,42 +583,47 @@ fail:
 				Log(LOG_VERYLOW, "Parsing content:%s",content);
 				if (0 == strncmp(content, "audio/mpeg", strlen("audio/mpeg")))
 				{
-					SetContentType(STREAM_CONTENT_AUDIO_MPEG);
+					SetContentType(MetaData::CONTENT_AUDIO_MPEG);
 					Log(LOG_INFO, "Content Type set to audio/mpeg");
 				}
 				else if (0 == strncmp(content, "application/ogg", strlen("application/ogg")))
 				{
-					SetContentType(STREAM_CONTENT_AUDIO_OGG);
+					SetContentType(MetaData::CONTENT_AUDIO_OGG);
 					Log(LOG_INFO, "Content Type set to application/ogg");
 				}
 				else if (0 == strncmp(content, "audio/aac", strlen("audio/aac")))
 				{
-					SetContentType(STREAM_CONTENT_AUDIO_AAC);
+					SetContentType(MetaData::CONTENT_AUDIO_AAC);
 					Log(LOG_INFO, "Content Type set to audio/aac");
 				}
 				else if (0 == strncmp(content, "audio/x-scpls", strlen("audio/x-scpls")))
 				{
-					SetContentType(STREAM_CONTENT_PLAYLIST);
+					SetContentType(MetaData::CONTENT_PLAYLIST);
 					Log(LOG_INFO, "Content Type set to playlist");
 				}
 				else if (0 == strncmp(content, "text/html", strlen("text/html")))
 				{
-					SetContentType(STREAM_CONTENT_TEXT);
+					SetContentType(MetaData::CONTENT_TEXT);
 					Log(LOG_INFO, "Content Type set to Text.");
+					#if 0
 					free (purl);
 					free (request);
 					free(host);
 					free(proxyport);
 					free(myport);
 					return sock;
+					#endif
 				}
 			}
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
-	if (relocate) {
+
+	if (relocate) 
+	{
 		ReportError ( "Too many HTTP relocations.\n");
 		return -1;
 	}
+
 	free (purl);
 	free (request);
 	free(host);

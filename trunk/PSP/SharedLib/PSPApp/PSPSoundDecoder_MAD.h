@@ -29,8 +29,7 @@
 	class CPSPSoundDecoder_MAD : public IPSPSoundDecoder
 	{
 	public:
-		CPSPSoundDecoder_MAD(CPSPSoundBuffer *OutputBuffer)
-			:IPSPSoundDecoder(OutputBuffer){ Initialize();}
+		CPSPSoundDecoder_MAD(CPSPSoundBuffer *OutputBuffer, CPSPStream *InputStream) : IPSPSoundDecoder(OutputBuffer, InputStream){ Initialize();}
 		~CPSPSoundDecoder_MAD();
 		
 		void Initialize();
@@ -47,9 +46,9 @@
 		unsigned long		m_FrameCount;
 
 		
-		static signed int scale(mad_fixed_t &sample);
-		static int PrintFrameInfo(struct mad_header *Header);
-		static signed short MadFixedToSshort(mad_fixed_t Fixed);
+		signed int scale(mad_fixed_t &sample);
+		int PrintFrameInfo(struct mad_header *Header);
+		signed short MadFixedToSshort(mad_fixed_t Fixed);
 	};
 	
 	#include "PSPSound.h"

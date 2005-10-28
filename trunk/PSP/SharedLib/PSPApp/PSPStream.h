@@ -8,48 +8,34 @@
 	/** Fixed */
 	#define MAX_METADATA_SIZE		4080
 	
-	
+	struct MetaData
+	{
+		enum content_types
+		{
+			CONTENT_NOT_DEFINED,
+			CONTENT_AUDIO_MPEG,
+			CONTENT_AUDIO_OGG,
+			CONTENT_AUDIO_AAC,
+			CONTENT_PLAYLIST,
+			CONTENT_TEXT,
+		};
+		char strURI[MAXPATHLEN];
+		char strTitle[300];
+		char strURL[MAXPATHLEN];
+		char strArtist[300];
+		char strGenre[128];
+		int iLength;
+		int iSampleRate;
+		int iBitRate;
+		int iNumberOfChannels;
+		int iMPEGLayer;
+		content_types ContentType;
+		int iItemIndex; /** JPF added to be used as a unique id for each item in list */
+	};
+			
 	class CPSPStream
 	{
 	public:
-		struct MetaData
-		{
-			char strURI[MAXPATHLEN]; /** Filename/URL -- 'user' populated */
-			/** Decoder/playlist/xml populated */
-			char strTitle[300];
-			char strURL[MAXPATHLEN];
-			char strArtist[300];
-			char strGenre[128];
-			int iLength;
-			int iSampleRate;
-			int iBitRate;
-			int iNumberOfChannels;
-			int iMPEGLayer;
-			int iItemIndex; /** JPF added to be used as a unique id for each item in list */
-		} *m_CurrentMetaData;
-		/** MetaData Accessors */
-		void SetURI(char *NewURI);
-		char *GetURI(){ return m_CurrentMetaData->strURI; }
-		
-		void ClearMetadata();
-		void SetTitle(char *Title) { strcpy(m_CurrentMetaData->strTitle, Title); }
-		char *GetTitle(){ return m_CurrentMetaData->strTitle; }
-		void SetURL(char *URL) { strcpy(m_CurrentMetaData->strURL, URL); }
-		char *GetURL(){ return m_CurrentMetaData->strURL; }
-		void SetArtist(char *Artist) { strcpy(m_CurrentMetaData->strArtist, Artist); }
-		char *GetArtist(){ return m_CurrentMetaData->strArtist; }
-		
-		void SetLength(int Length){ m_CurrentMetaData->iLength = Length; }
-		int  GetLength(){ return m_CurrentMetaData->iLength; }
-		void SetSampleRate(int SampleRate);
-		int  GetSampleRate(){ return m_CurrentMetaData->iSampleRate; }
-		void SetBitRate(int BitRate){ m_CurrentMetaData->iBitRate = BitRate; }
-		int  GetBitRate(){ return m_CurrentMetaData->iBitRate; }
-		void SetNumberOfChannels(int NumberOfChannels){ m_CurrentMetaData->iNumberOfChannels = NumberOfChannels; }
-		int  GetNumberOfChannels(){ return m_CurrentMetaData->iNumberOfChannels; }
-		void SetMPEGLayer(int MPEGLayer){ m_CurrentMetaData->iMPEGLayer = MPEGLayer; }
-		int  GetMPEGLayer(){ return m_CurrentMetaData->iMPEGLayer; }
-		
 		enum stream_types
 		{
 			STREAM_TYPE_NONE,
@@ -61,104 +47,70 @@
 			STREAM_STATE_CLOSED,
 			STREAM_STATE_OPEN
 		};
-		enum content_types
-		{
-			STREAM_CONTENT_NOT_DEFINED,
-			STREAM_CONTENT_AUDIO_MPEG,
-			STREAM_CONTENT_AUDIO_OGG,
-			STREAM_CONTENT_AUDIO_AAC,
-			STREAM_CONTENT_PLAYLIST,
-			STREAM_CONTENT_TEXT,
-		};
 		
-		CPSPSoundStream();
-		~CPSPSoundStream();
+		CPSPStream();
+		~CPSPStream();
 		
 		int Open();
-		void Close();
 		bool IsOpen();
-		void SetContentType(content_types Type) { m_ContentType = Type; }
-		void SetState(stream_states State) { m_State = State; }
+		void Close();
+		
+		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
+		bool IsEOF();
+		bool DownloadToFile(char *strFilename, size_t &bytesDownloaded);
 		
 		int GetMetaDataInterval() { return m_iMetaDataInterval; }
-		content_types GetContentType() { return m_ContentType; }
 		FILE *GetFileDescriptor() { return m_pfd; }
 		int GetSocketDescriptor() { return m_fdSocket; }
+		
 		stream_types GetType() { return m_Type; }
 		stream_states GetState() { return m_State; }
-	private:
+		
+		/** MetaData Accessors/Mutators */
+		MetaData *GetMetaData(){ return m_MetaData; }
+		void ClearMetadata();
+		void SetURI(char *NewURI);
+		char *GetURI(){ return m_MetaData->strURI; }
+		void SetTitle(char *Title) { strcpy(m_MetaData->strTitle, Title); }
+		char *GetTitle(){ return m_MetaData->strTitle; }
+		void SetURL(char *URL) { strcpy(m_MetaData->strURL, URL); }
+		char *GetURL(){ return m_MetaData->strURL; }
+		void SetArtist(char *Artist) { strcpy(m_MetaData->strArtist, Artist); }
+		char *GetArtist(){ return m_MetaData->strArtist; }
+		void SetLength(int Length){ m_MetaData->iLength = Length; }
+		int  GetLength(){ return m_MetaData->iLength; }
+		void SetSampleRate(int SampleRate);
+		int  GetSampleRate(){ return m_MetaData->iSampleRate; }
+		void SetBitRate(int BitRate){ m_MetaData->iBitRate = BitRate; }
+		int  GetBitRate(){ return m_MetaData->iBitRate; }
+		void SetNumberOfChannels(int NumberOfChannels){ m_MetaData->iNumberOfChannels = NumberOfChannels; }
+		int  GetNumberOfChannels(){ return m_MetaData->iNumberOfChannels; }
+		void SetMPEGLayer(int MPEGLayer){ m_MetaData->iMPEGLayer = MPEGLayer; }
+		int  GetMPEGLayer(){ return m_MetaData->iMPEGLayer; }
+		void SetContentType(MetaData::content_types Type) { m_MetaData->ContentType = Type; }
+		MetaData::content_types GetContentType() { return m_MetaData->ContentType; }
+		
+		/** Move to protected when integrated with sound stream reader */
+		void SetState(stream_states State) { m_State = State; }
+	protected:
 		int http_open(char *url);
 		
+		MetaData *m_MetaData;
 		size_t m_iMetaDataInterval;
-		enum content_types m_ContentType;
 		FILE *m_pfd;
 		int   m_fdSocket; /** Socket */		
-		enum stream_types  m_Type;
-		enum stream_states m_State;
-	};
-	
-	extern CPSPSoundStream *CurrentSoundStream;
-	
-	class CPSPSoundStreamReader
-	{
-	public:
-		
-		CPSPSoundStreamReader();
-		virtual ~CPSPSoundStreamReader();
-		
-		virtual void Close();
-		virtual size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
-		virtual bool IsEOF();
+		stream_types  m_Type;
+		stream_states m_State;
 	
 	protected:
 		int SocketRead(char *pBuffer, size_t LengthInBytes);
 		char *GetMetadataValue(char *strMetadata, char *strTag);
-		
 		bstdfile_t *m_BstdFile; /** For MAD */
 		bool m_eof;
 		size_t m_iRunningCountModMetadataInterval;
 		char bMetaData[MAX_METADATA_SIZE];
 		char bPrevMetaData[MAX_METADATA_SIZE];
 		
-		/** Copied from CurrentSoundStream con contstruction: */
-		size_t m_iMetaDataInterval;
-		FILE *m_pfd;
-		int   m_fdSocket; /** Socket */		
 	};
 
-	class CPSPSoundBuffer; /** Declared in PSPSound.h */
-	
-	class IPSPSoundDecoder
-	{
-	public:
-		IPSPSoundDecoder(CPSPSoundBuffer *OutputBuffer)
-			{	m_Buffer = OutputBuffer; }
-			
-		virtual ~IPSPSoundDecoder()
-		{
-			if (m_InputStreamReader)
-			{
-				Log(LOG_VERYLOW, "~IPSPSoundDecoder(): Destroying input stream object. ");
-				delete(m_InputStreamReader); m_InputStreamReader = NULL;
-			}
-		}
-	
-		virtual void Initialize()
-		{			
-			m_InputStreamReader = new CPSPSoundStreamReader();
-
-			if (!m_InputStreamReader)
-			{
-				Log(LOG_ERROR, "IPSPSoundDecoder::Memory allocation error instantiating m_InputStream");
-				ReportError("IPSPSoundDecoder::Decoder Initialization Error");
-			}
-		}
-		
-		virtual bool Decode(){return true;} /** Returns true on end-of-stream or unrecoverable error */
-
-	protected:
-		CPSPSoundStreamReader *m_InputStreamReader;
-		CPSPSoundBuffer *m_Buffer;
-	};
-	
 #endif
