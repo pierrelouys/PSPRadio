@@ -48,8 +48,8 @@
 	int nlhInit();
 	int nlhTerm();
 	
-	int sceNetInit(SceSize poolsize, int callout_tpl, SceSize callout_stack, int netintr_tpl, SceSize netintr_stack); 
-	int sceNetTerm();
+	//int sceNetInit(SceSize poolsize, int callout_tpl, SceSize callout_stack, int netintr_tpl, SceSize netintr_stack); 
+	//int sceNetTerm();
 	
 	int sceNetGetLocalEtherAddr(u8* addr);
 	
