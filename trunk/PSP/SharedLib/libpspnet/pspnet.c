@@ -16,8 +16,6 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 ////////////////////////////////////////////////////////////////////
-// Must be linked with KMEM memory access
-
 #include <stdio.h>
 #include <pspkernel.h>
 #include "pspnet.h"
@@ -29,10 +27,6 @@
 
 // SLIME NOTE: symbols exported from standard 'startup.s'
 extern char __lib_stub_top[], __lib_stub_bottom[];
-
-// SYSTEM ENTRY: sceKernelModuleFromUID
-// 1.0 ->	88014318:	27bdffd0	addiu sp,sp,#0xffffffd0
-// 1.50 ->	88017308:	27bdffd0	addiu sp,sp,#0xffffffd0
 
 static u32 FindProcEntry(u32 oid, u32 nid)
 {
@@ -58,7 +52,7 @@ static u32 FindProcEntry(u32 oid, u32 nid)
 	if ((modPtr[18] - modPtr[16]) < 40)
         return 0;
 
-	// assume standard library order
+	/* assume standard library order */
     {
 		u32* modPtr2 = (u32*)modPtr[16];
 		int count = (modPtr2[6] >> 16) & 0xFFFF;
@@ -79,9 +73,6 @@ static u32 FindProcEntry(u32 oid, u32 nid)
 
 static int PatchMyLibraryEntries(SceModuleInfo * modInfoPtr, u32 oid)
 {
-	//REVIEW: should match single module name
-    // this version is dumb and walks all of them (assumes NIDs are unique)
-
     int nPatched = 0;
 
     int* stubPtr; // 20 byte structure
@@ -116,9 +107,6 @@ static int PatchMyLibraryEntries(SceModuleInfo * modInfoPtr, u32 oid)
 	                    
 		                nPatched++;
 	                }
-#if 0
-                        printf("PATCH 0x%x jump_to 0x%x\n", (u32)procPtr, proc);
-#endif
 	            }
 	        }
 	        idPtr++;
@@ -128,14 +116,13 @@ static int PatchMyLibraryEntries(SceModuleInfo * modInfoPtr, u32 oid)
     return nPatched;
 }
 
+/* return oid or error code */
 u32 LoadAndStartAndPatch(SceModuleInfo * modInfoPtr, const char* szFile)
-    // return oid or error code
 {
 	u32 oid;
 
 	oid = sceKernelLoadModule(szFile, 0, NULL);
 
-//REVIEW: if already loaded - assume ok
 	if (oid == 0x80020146)
 	{
 		printf("Not allowed to load module!");
@@ -146,32 +133,22 @@ u32 LoadAndStartAndPatch(SceModuleInfo * modInfoPtr, const char* szFile)
         return oid; // error code
     }
 
-    // Start it
-    {
-        u32 err;
-        s32 fake = 0;
-        //printf("  +start : ");
-        err = sceKernelStartModule(oid, 0, 0, &fake, 0);
-		//printf("%i\n", err);
+    /* Start it */
+	u32 err;
+	s32 fake = 0;
+	err = sceKernelStartModule(oid, 0, 0, &fake, 0);
 
-        if (err != oid)
-        {
-            printf(" -- DID NOT START\n");
-            return err;
-        }
-    }
+	if (err != oid)
+	{
+		printf(" -- DID NOT START\n");
+		return err;
+	}
 
-    // Patch it
-    {
-		/*int n = */PatchMyLibraryEntries(modInfoPtr, oid);
-		//printf("  +patch : %i\n", n);
-    }
+	PatchMyLibraryEntries(modInfoPtr, oid);
+	
     return oid;
 }
 
-// SYSTEM ENTRY: sceKernelIcacheInvalidateAll:
-// 1.0 -> 	88054618:	40088000	mfc0 r8,cop0[16]
-// 1.50 ->	880584f0:	40088000	mfc0 r8,cop0[16]
 static void FlushCaches()
 {
 	typedef void (*VOID_PROC)(void);
@@ -192,42 +169,38 @@ static void FlushCaches()
     (*pfnFlush)();
 }
 
+/** This function loads and starts the network drivers.
+ *  It is called from a kernel level thread on startup.
+ */
 int nlhLoadDrivers(SceModuleInfo * modInfoPtr)
 {
 	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/ifhandle.prx"); // kernel
-
-	// wipeout list
-	// LoadAndStartAndPatch("flash0:/kd/memab.prx");
-	// LoadAndStartAndPatch("flash0:/kd/pspnet_adhoc_auth.prx");
 	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet.prx");
-	// LoadAndStartAndPatch("flash0:/kd/pspnet_adhoc.prx");
-	// LoadAndStartAndPatch("flash0:/kd/pspnet_adhocctl.prx");
 	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_inet.prx");
 	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_apctl.prx");
 	LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_resolver.prx");
-	// LoadAndStartAndPatch("flash0:/kd/pspnet_ap_dialog_dummy.prx");
 
     // jumps have been patched - flush DCache and ICache
     FlushCaches();
 
-    //REVIEW: add error checks
     return 0;
 }
 
+/** This function inializes the Network Drivers.
+ *  It needs to be called only once. It has to be called
+ *  from a userlevel thread.
+ */
 int nlhInit()
 {
-    u32 err;
-    // jumps have been patched - flush DCache and ICache
-//    FlushCaches();
-    
+    u32 err = 0;
     
     err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
-    //err = sceNetInit(0x20000, 0x10, 16384, 0x10, 16384);
     if (err != 0)
     {
     	printf("nlhInit(): sceNetInit returns %i\n", err);
         return err;
     }
+	
 	err = sceNetInetInit();
 	if (err != 0)
 	{
@@ -248,22 +221,13 @@ int nlhInit()
         return err;
     }
 
-    return 0;   // it worked!
+    return 0;
 }
 
 int nlhTerm()
 {
-    u32 err;
-#if 0
-	err = sceNetApctlDelHandler(g_handlerHandle);
-	if (err & 0x80000000)
-	{
-		printf("sceNetApctlDelHandler returns %i\n", err);
-	}
-#endif
-
-//REVIEW: we need to do something first to stop the connection
-//REVIEW: -- sceNetApctlTerm returns 80410A04 ??
+    u32 err = 0;
+	
 	err = sceNetApctlTerm();
 	if (err & 0x80000000)
 	{
@@ -288,18 +252,21 @@ int nlhTerm()
 		printf("sceNetTerm returns %i\n", err);
 	}
 	
-    return 0; // assume it worked
+    return 0;
 }
 
 
-//
-// inet_ntoa
-// By Raf
-//
+/**
+ * inet_ntoa
+ * By Raf
+ *
+ * This implementation is not thread safe.
+ * Be sure to protect the call using semaphores/mutexes
+ * If working with multiple threads.
+ */
 char *sceNetInetInetNtoa(struct in_addr in)
 {
-  //char *buf = gettib()->hostbuf;
-  static char buf[256]; //this implementation is not thread safe!
+  static char buf[256]; 
   struct in_addr_b *inb = (struct in_addr_b*)&in;
   sprintf(buf, "%d.%d.%d.%d", inb->b1, inb->b2, inb->b3, inb->b4);
   return buf;

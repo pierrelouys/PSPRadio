@@ -556,14 +556,17 @@ int	__cmsg_alignbytes(void);
 #ifndef	_KERNEL
 
 //__BEGIN_DECLS
-int	accept(int, struct sockaddr * __restrict, socklen_t * __restrict);
-int	bind(int, const struct sockaddr *, socklen_t);
+int	sceNetInetAccept(int, struct sockaddr * __restrict, socklen_t * __restrict);
+#define accept sceNetInetAccept
+int	sceNetInetBind(int, const struct sockaddr *, socklen_t);
+#define bind sceNetInetBind
 int	sceNetInetConnect(int, const struct sockaddr *, socklen_t);
 #define connect sceNetInetConnect 
 int	getpeername(int, struct sockaddr * __restrict, socklen_t * __restrict);
 int	getsockname(int, struct sockaddr * __restrict, socklen_t * __restrict);
 int	getsockopt(int, int, int, void * __restrict, socklen_t * __restrict);
-int	listen(int, int);
+int	sceNetInetListen(int, int);
+#define listen sceNetInetListen
 ssize_t	sceNetInetRecv(int, void *, size_t, int);
 #define recv sceNetInetRecv
 ssize_t	recvfrom(int, void * __restrict, size_t, int,
