@@ -29,6 +29,7 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
+#include "../libpspnet/pspnet.h"
 #include "ScreenHandler.h"
 #include "DirList.h"
 #include "PlayList.h"

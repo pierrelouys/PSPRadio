@@ -16,6 +16,16 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#ifdef DEBUG
+	#include <pspdebug.h>
+	#include <pspkernel.h>
+	#include <pspdebug.h>
+	#include <pspdisplay.h>
+	extern volatile bool flagGdbStubReady;
+	/** Driver Loader Thread handle */
+	extern int handleDriverLoaderThread;
+	
+#endif
 #include <PSPApp.h>
 #include <PSPSound.h>
 #include <stdio.h>
@@ -520,7 +530,17 @@ public:
 /** main */
 int main(int argc, char **argv) 
 {
-	myPSPApp *PSPApp  = new myPSPApp();
+	#ifdef DEBUG
+		/** Wait for GdbStub to be ready */
+		while(!flagGdbStubReady)
+		   sceKernelDelayThread(5000000);
+		sceKernelWaitThreadEnd(handleDriverLoaderThread, NULL);
+		pspDebugScreenPrintf("After sceKernelWaitThreadEnd. Generating breakpoint.\n");
+		/* Generate a breakpoint to trap into GDB */
+		pspDebugBreakpoint();
+	#endif
+
+	myPSPApp *PSPApp = new myPSPApp();
 	if (PSPApp)
 	{
 		PSPApp->Setup(argc, argv);

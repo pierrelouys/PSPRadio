@@ -25,7 +25,7 @@ ASFLAGS = $(CFLAGS)
 LIBDIR = 
 LDFLAGS = 
 
-LIBS =  -lpspgdb -lpspgdb_user \
+LIBS =  -lpspgdb -lpspgdb_user -lpsphprm_driver \
 		-lPSPApp_debug -lsupc++ -lstdc++ -lpspnet \
 		-lvorbisidec -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
