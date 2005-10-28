@@ -87,17 +87,17 @@ static CSandbergUI::IconStr __attribute__((aligned(16))) icon_list[] =
 
 static CSandbergUI::texture_file __attribute__((aligned(16))) texture_list[] =
 	{
-	{CSandbergUI::TEX_LOGO,		GU_PSM_8888, 256, 64, "ui_logo.raw"},
+	{CSandbergUI::TEX_LOGO,		GU_PSM_5551, 256, 64, "ui_logo.raw"},
 	{CSandbergUI::TEX_COMMANDS,	GU_PSM_8888,  64, 64, "commands.raw"},
 	{CSandbergUI::TEX_PLATE,	GU_PSM_8888,  64, 64, "plate.raw"},
-	{CSandbergUI::TEX_FONT_SMALL,	GU_PSM_8888, 512, 16, "font_small.raw"},
+	{CSandbergUI::TEX_FONT_SMALL,	GU_PSM_5551, 512, 16, "font_small.raw"},
 	{CSandbergUI::TEX_PLAY,		GU_PSM_8888,  32, 32, "play.raw"},
 	{CSandbergUI::TEX_STOP,		GU_PSM_8888,  32, 32, "stop.raw"},
 	{CSandbergUI::TEX_NETWORK,	GU_PSM_8888,  32, 32, "network.raw"},
 	{CSandbergUI::TEX_LOAD,		GU_PSM_8888,  32, 32, "load.raw"},
 	{CSandbergUI::TEX_SOUND,	GU_PSM_8888,  32, 32, "sound.raw"},
-	{CSandbergUI::TEX_OPTIONS,	GU_PSM_8888, 128, 64, "options.raw"},
-	{CSandbergUI::TEX_PARTICLE_01,	GU_PSM_8888,  16, 16, "particle_01.raw"},
+	{CSandbergUI::TEX_OPTIONS,	GU_PSM_5551, 128, 64, "options.raw"},
+	{CSandbergUI::TEX_PARTICLE_01,	GU_PSM_5551,  16, 16, "particle_01.raw"},
 	};
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(CSandbergUI::texture_file))
@@ -349,9 +349,9 @@ int CSandbergUI::OnVBlank()
 
 void CSandbergUI::RenderPlayScreen(void)
 {
+	RenderFX();
 	RenderLogo();
 	RenderCommands();
-	RenderFX();
 	RenderPL();
 	RenderState();
 	RenderNetwork();
