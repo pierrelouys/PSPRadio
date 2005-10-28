@@ -115,42 +115,21 @@ bool CPSPStream::DownloadToFile(char *strFilename, size_t &bytesDownloaded)
 				char *buffer = (char*)malloc(8192);
 				memset(buffer, 0, 8192);
 				
-				#if 0
-				/** Get all /r /n before we start download */
-				char c = 0;
-				do
+				for(;;)
 				{
-					iRet = recv(m_fdSocket, &c, 1, 0);
-				} while (iRet == 1 && ( (0x0d == c) || (0x0a == c) ));
-				
-				if (iRet == 1)
-				{
-					/** The last chr recv'd was diff than /r /n, so it needs to be written... */
-					fwrite(&c, 1, 1, fOut);
-				#endif	
-					for(;;)
+					iRet = recv(m_fdSocket, buffer, 8192, 0);
+					if (0 == iRet)
 					{
-						iRet = recv(m_fdSocket, buffer, 8192, 0);
-						if (0 == iRet)
-						{
-							fclose(fOut), fOut = NULL;
-							success = true;
-							break;
-						}
-						if (iRet > 0)
-						{
-							bytesDownloaded+= iRet;
-							fwrite(buffer, iRet, 1, fOut);
-						}
+						fclose(fOut), fOut = NULL;
+						success = true;
+						break;
 					}
-				#if 0
+					if (iRet > 0)
+					{
+						bytesDownloaded+= iRet;
+						fwrite(buffer, iRet, 1, fOut);
+					}
 				}
-				else
-				{
-					Log(LOG_ERROR, "Error downloading..");
-					success = false;
-				}
-				#endif
 				free(buffer), buffer = NULL;
 			}
 			else
@@ -197,9 +176,6 @@ void CPSPStream::Close()
 						BstdFileDestroy(m_BstdFile);
 						m_BstdFile = NULL;
 					}
-					m_iRunningCountModMetadataInterval = 0;
-					memset(bMetaData, 0, MAX_METADATA_SIZE);
-					memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
 					fclose(m_pfd);
 				}
 				m_pfd = NULL;
@@ -219,8 +195,10 @@ void CPSPStream::Close()
 				break;
 		}
 	}
-	//Content type is still defined!
-	//m_ContentType = MetaData::CONTENT_NOT_DEFINED;
+	m_iRunningCountModMetadataInterval = 0;
+	m_iMetaDataInterval = 0;
+	memset(bMetaData, 0, MAX_METADATA_SIZE);
+	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
 }
 
 int CPSPStream::Open()
