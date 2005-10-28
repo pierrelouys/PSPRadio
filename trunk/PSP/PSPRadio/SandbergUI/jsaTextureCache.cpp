@@ -34,7 +34,11 @@ bool jsaTextureCache::jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info
 	bool		ret_value = false;
 	unsigned long	texture_address;
 	jsaTextureItem	Texture;
-	unsigned long	tsize  = jsaTCacheTextureSize(texture_info->format, texture_info->width, texture_info->height);
+	unsigned long	tsize;
+	float		bytes_pr_pixel;
+
+	bytes_pr_pixel	= jsaTCacheTexturePixelSize(texture_info->format);
+	tsize		= (unsigned long)(bytes_pr_pixel * texture_info->width * texture_info->height);
 
 	texture_address = (unsigned long)jsaVRAMManager::jsaVRAMManagerMalloc(tsize);
 
@@ -46,10 +50,18 @@ bool jsaTextureCache::jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info
 		Texture.width	= texture_info->width;
 		Texture.height	= texture_info->height;
 		Texture.offset	= texture_address;
+		Texture.swizzle	= texture_info->swizzle;
 		m_TextureList.push_back(Texture);
 
 		/* Upload texture to VRAM */
-		memcpy((void *)texture_address, tbuffer, tsize);
+		if (texture_info->swizzle)
+		{
+			jsaTCacheSwizzleUpload((unsigned char *)texture_address, (unsigned char *)tbuffer, (int)(texture_info->width * bytes_pr_pixel), texture_info->height);
+		}
+		else
+		{
+			memcpy((void *)texture_address, tbuffer, tsize);
+		}
 		ret_value 	= true;
 	}
 	return ret_value;
@@ -67,7 +79,14 @@ bool jsaTextureCache::jsaTCacheSetTexture(int ID)
 			if ((*TextureIterator).ID == ID)
 			{
 				/* setup texture */
-				sceGuTexMode((*TextureIterator).format,0,0,0);
+				if ((*TextureIterator).swizzle)
+				{
+					sceGuTexMode((*TextureIterator).format,0,0,GU_TRUE);
+				}
+				else
+				{
+					sceGuTexMode((*TextureIterator).format,0,0,GU_FALSE);
+				}
 				sceGuTexImage(0,(*TextureIterator).width, (*TextureIterator).height,(*TextureIterator).width, (void *)((*TextureIterator).offset));
 				found = true;
 			}
@@ -76,7 +95,7 @@ bool jsaTextureCache::jsaTCacheSetTexture(int ID)
 	return found;
 }
 
-unsigned long jsaTextureCache::jsaTCacheTextureSize(int format, int width, int height)
+float jsaTextureCache::jsaTCacheTexturePixelSize(int format)
 {
 	float	size;
 
@@ -105,5 +124,28 @@ unsigned long jsaTextureCache::jsaTCacheTextureSize(int format, int width, int h
 			break;
 		}
 
-	return (int)(size*width*height);
+	return size;
+}
+
+/* This code is originally done by chp from ps2dev.org. */
+void jsaTextureCache::jsaTCacheSwizzleUpload(unsigned char *dest, unsigned char *source, int width, int height)
+{
+	int i,j;
+	int rowblocks = (width / 16);
+ 
+	for (j = 0; j < height; ++j)
+	{
+		for (i = 0; i < width; ++i)
+		{
+			unsigned int blockx = i / 16;
+			unsigned int blocky = j / 8;
+ 
+			unsigned int x = (i - blockx*16);
+			unsigned int y = (j - blocky*8);
+			unsigned int block_index = blockx + ((blocky) * rowblocks);
+			unsigned int block_address = block_index * 16 * 8;
+ 
+			dest[block_address + x + y * 16] = source[i+j*width];
+		}
+	}
 }

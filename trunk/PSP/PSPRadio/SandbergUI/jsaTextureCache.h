@@ -32,12 +32,11 @@ class jsaTextureCache
 public:
 	typedef struct jsaTextureInfo
 	{
-		int	format;
-		int	x;
-		int	y;
-		int	width;
-		int	height;
-		int	source_width;
+		int	format;			/* The format of the texture (i.e. GU_PSM_8888)		*/
+		int	width;			/* Width of the texture.				*/
+		int	height;			/* Height of the texture.				*/
+		int	swizzle;		/* If this is true the texture will be swizzled when	*/
+						/* being loaded to VRAM					*/
 	};
 
 public:
@@ -55,10 +54,12 @@ private:
 		int		width;		/* Width of the texture.				*/
 		int		height;		/* Height of the texture.				*/
 		unsigned long	offset;		/* Offset into VRAM where the texture is loaded.	*/
+		bool		swizzle;	/* If this is true the texture is swizzled              */
 	};
 
 private:
-	unsigned long jsaTCacheTextureSize(int format, int width, int height);
+	float jsaTCacheTexturePixelSize(int format);
+	void jsaTCacheSwizzleUpload(unsigned char *dest, unsigned char *source, int width, int height);
 
 private:
 	list<jsaTextureItem> m_TextureList;

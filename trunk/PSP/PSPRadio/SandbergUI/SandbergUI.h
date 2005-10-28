@@ -60,6 +60,7 @@ public:
 		int	format;
 		int	width;
 		int	height;
+		bool	swizzle;
 		char	filename[MAXPATHLEN];
 	};
 
