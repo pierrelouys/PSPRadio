@@ -11,6 +11,7 @@ What's New for PSPRadio
 (raf) Added 111MHz; which is not useful for MP3, but works for OGGs in the text ui, and can save battery.
 (raf) Refactored PSPApp/PSPRadio so that it runs in USERMODE. The drivers for the network and USB are now started from a kernel thread during app construction.
 This allows for DHCP to work! (thanks to PspPet and 'benji' for figuring this out.)
+(raf) L and R now navigate like Page UP/Down.
 
 0.36-pre3 (r422)
 (raf) Started adding SHOUTcast support
