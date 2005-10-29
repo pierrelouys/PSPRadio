@@ -97,7 +97,7 @@ static CSandbergUI::texture_file __attribute__((aligned(16))) texture_list[] =
 	{CSandbergUI::TEX_LOAD,		GU_PSM_8888,  32, 32, true,	"load.raw"},
 	{CSandbergUI::TEX_SOUND,	GU_PSM_8888,  32, 32, true,	"sound.raw"},
 	{CSandbergUI::TEX_OPTIONS,	GU_PSM_5551, 128, 64, true,	"options.raw"},
-	{CSandbergUI::TEX_PARTICLE_01,	GU_PSM_5551,  16, 16, true,	"particle_01.raw"},
+	{CSandbergUI::TEX_PARTICLE_01,	GU_PSM_8888,  32, 32, true,	"particle_01.raw"},
 	};
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(CSandbergUI::texture_file))

@@ -38,6 +38,7 @@ protected:
 	typedef struct
 	{
 		unsigned int	color;
+		unsigned int	orig_color;
 		float		power;
 		float		fading;
 		float		x;
@@ -54,8 +55,9 @@ protected:
 
 	typedef struct
 	{
-		float	u,v;
-		float	x,y,z;
+		float		u,v;
+		unsigned int	color;
+		float		x,y,z;
 	} jsaParticleVertex;
 
 protected:

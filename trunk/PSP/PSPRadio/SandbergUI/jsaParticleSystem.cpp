@@ -73,12 +73,15 @@ void jsaParticleSystem::jsaParticleSystemUpdate()
 		}
 		else
 		{
+			unsigned char	a = (particle_buffer[i].orig_color >> 24) & 0xFF;
 			particle_buffer[i].x	+= particle_buffer[i].vx;
 			particle_buffer[i].y	+= particle_buffer[i].vy;
 			particle_buffer[i].z	+= particle_buffer[i].vz;
 			particle_buffer[i].vx	+= particle_buffer[i].gx;
 			particle_buffer[i].vy	+= particle_buffer[i].gy;
 			particle_buffer[i].vz	+= particle_buffer[i].gz;
+			particle_buffer[i].color	= particle_buffer[i].orig_color & 0x00FFFFFF;
+			particle_buffer[i].color	|= (unsigned long)((unsigned long)(particle_buffer[i].power * a) << 24);
 		}
     	}
 }
@@ -86,63 +89,41 @@ void jsaParticleSystem::jsaParticleSystemUpdate()
 void jsaParticleSystem::jsaParticleResetParticle(jsaParticle *particle)
 {
 	particle->power	= 1.0f;
-	particle->mass	= float((rand()%50))/2000.0+0.01;
-	particle->color	= 0x44FFFFFF;
-	particle->x	= 0.0f;
-	particle->y	= 0.0f;
+	particle->mass	= float((rand()%50))/5000.0 + 0.01;
+	particle->color	= 0xFFFFFFFF;
+	particle->orig_color	= 0xFFFFFFFF;
+	particle->x	= 240.0f;
+	particle->y	= 160.0f;
 	particle->z	= 0.0f;
-	particle->vx	= float((rand()%50)-25.0f)/2000.0;
-	particle->vy	= float((rand()%50)-25.0f)/2000.0;
-	particle->vz	= float((rand()%50)-25.0f)/2000.0;
+	particle->vx	= float((rand()%50)-25.0f)/50.0;
+	particle->vy	= float((rand()%50)-25.0f)/50.0;
+	particle->vz	= float((rand()%50)-25.0f)/50.0;
 	particle->gx	= 0.0f;
-	particle->gy	= -float(rand()%10)/8000.0f+0.001;
+	particle->gy	= -(float((rand()%50))/5000.0 + 0.005);
 	particle->gz	= 0.0f;
 }
 
 void jsaParticleSystem::jsaParticleSystemRender()
 {
+	jsaParticleVertex* l_vertices = (jsaParticleVertex*)sceGuGetMemory(m_particle_count * 2 * sizeof(jsaParticleVertex));
+
 	for (int i = 0; i < m_particle_count ;  i++)
 	{
-		sceGuColor(particle_buffer[i].color);
+		jsaParticleVertex *index = &l_vertices[i<<1]; 
 
-		jsaParticleVertex* l_vertices = (jsaParticleVertex*)sceGuGetMemory(2 * 3 * sizeof(jsaParticleVertex));
+		index[0].u = 0;
+		index[0].v = 0;
+		index[0].color = particle_buffer[i].color;
+		index[0].x = particle_buffer[i].x - 9.9f;
+		index[0].y = particle_buffer[i].y - 9.9f;
+		index[0].z = particle_buffer[i].z;
 
-		l_vertices[0].x = particle_buffer[i].x - 0.2f;
-		l_vertices[0].y = particle_buffer[i].y - 0.2f;
-		l_vertices[0].z = particle_buffer[i].z;
-		l_vertices[0].u = 0;
-		l_vertices[0].v = 0;
-
-		l_vertices[1].x = particle_buffer[i].x - 0.2f;
-		l_vertices[1].y = particle_buffer[i].y + 0.2f;
-		l_vertices[1].z = particle_buffer[i].z;
-		l_vertices[1].u = 0;
-		l_vertices[1].v = 1;
-
-		l_vertices[2].x = particle_buffer[i].x + 0.2f;
-		l_vertices[2].y = particle_buffer[i].y + 0.2f;
-		l_vertices[2].z = particle_buffer[i].z;
-		l_vertices[2].u = 1;
-		l_vertices[2].v = 1;
-
-		l_vertices[3].x = particle_buffer[i].x - 0.2f;
-		l_vertices[3].y = particle_buffer[i].y - 0.2f;
-		l_vertices[3].z = particle_buffer[i].z;
-		l_vertices[3].u = 0;
-		l_vertices[3].v = 0;
-
-		l_vertices[4].x = particle_buffer[i].x + 0.2f;
-		l_vertices[4].y = particle_buffer[i].y + 0.2f;
-		l_vertices[4].z = particle_buffer[i].z;
-		l_vertices[4].u = 1;
-		l_vertices[4].v = 1;
-
-		l_vertices[5].x = particle_buffer[i].x + 0.2f;
-		l_vertices[5].y = particle_buffer[i].y - 0.2f;
-		l_vertices[5].z = particle_buffer[i].z;
-		l_vertices[5].u = 1;
-		l_vertices[5].v = 0;
-
-		sceGumDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF | GU_VERTEX_32BITF | GU_TRANSFORM_3D,2*3,0,l_vertices);
+		index[1].u = 32;
+		index[1].v = 32;
+		index[1].color = particle_buffer[i].color;
+		index[1].x = particle_buffer[i].x + 9.9f;
+		index[1].y = particle_buffer[i].y + 9.9f;
+		index[1].z = particle_buffer[i].z;
     	}
+	sceGuDrawArray(GU_SPRITES, GU_COLOR_8888 | GU_TEXTURE_32BITF | GU_VERTEX_32BITF | GU_TRANSFORM_2D,2 * m_particle_count,0,l_vertices);
 }

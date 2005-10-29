@@ -39,6 +39,7 @@
 #include <pspgum.h>
 
 #include "SandbergUI.h"
+#include <jsaP3OLoad.h>
 
 #define		CUBE_COUNT	7
 #define		COLOR_LIGHT	0xFFE8709C
@@ -127,10 +128,8 @@ void CSandbergUI::InitFX(char *strCWD)
 		Log(LOG_ERROR, "JSA:Error loading!!");
 	}
 	
-	psystem.jsaParticleSystemInit(500);
+	psystem.jsaParticleSystemInit(1000);
 
-//TEST
-	#include <jsaP3OLoad.h>
 	jsaP3OLoad::jsaP3OVertex *current = object_info.vertices;
 	for (int i = 0  ; i < object_info.vertice_count  ; i++)
 	{
@@ -226,40 +225,33 @@ void CSandbergUI::RenderFX_2(void)
 
 void CSandbergUI::RenderFX_3(void)
 {
-	static int val = 0;
-
 	sceGuEnable(GU_TEXTURE_2D);
 
-	sceGuAlphaFunc(GU_ALWAYS,0x80,0xff);
+	sceGuAlphaFunc(GU_GREATER,0x00,0xff);
 	sceGuEnable(GU_ALPHA_TEST);
-	sceGuBlendFunc(GU_ADD, GU_SRC_COLOR, GU_DST_COLOR, 0, 0);
-	sceGuEnable(GU_BLEND);
-	sceGuDepthFunc(GU_ALWAYS);
-	sceGuTexEnvColor(0x88FFFFFF);
 
 	// setup texture
 	(void)tcache.jsaTCacheSetTexture(TEX_PARTICLE_01);
 	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 
+	sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_DST_COLOR, 0, 0);
+	sceGuEnable(GU_BLEND);
+	sceGuDepthFunc(GU_ALWAYS);
+	sceGuTexEnvColor(0xFFFFFFFF);
+
+
 	// setup matrices for heart
 	sceGumMatrixMode(GU_MODEL);
 	sceGumLoadIdentity();
 		{
-		ScePspFVector3 pos = { 0, 0, -4.5f };
-		ScePspFVector3 rot = { 	0 * 0.59f * (GU_PI/180.0f) / 2.0f,
-					0 * 0.78f * (GU_PI/180.0f) / 2.0f, 
-					val * 0.8f * (GU_PI/180.0f) / 2.0f};
+		ScePspFVector3 pos = {	0, 0, -4.5f };
 		sceGumTranslate(&pos);
-		sceGumRotateXYZ(&rot);
-
-		/* Draw particle system */
-		psystem.jsaParticleSystemRender();
-		psystem.jsaParticleSystemUpdate();
 		}
+
+	psystem.jsaParticleSystemRender();
+	psystem.jsaParticleSystemUpdate();
 	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-
-  	val++;
 }
