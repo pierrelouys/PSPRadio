@@ -29,7 +29,7 @@ public:
 	int OnConnectionProgress();
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
-	int OnNewSongData(MetaData *pData);
+	int OnNewSongData(CPSPSoundStream::MetaData *pData);
 	
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);

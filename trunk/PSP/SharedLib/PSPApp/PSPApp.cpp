@@ -22,7 +22,7 @@
 #include <string.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <pspnet.h>
+#include <PSPNet.h>
 #include <pspkernel.h>
 #include <psphprm.h>
 #include <psppower.h>

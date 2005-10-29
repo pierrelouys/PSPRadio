@@ -24,7 +24,7 @@
 #include <string.h>
 #include <limits.h>
 #include <stdarg.h>
-#include "../libpspnet/pspnet.h"
+#include <PSPNet.h>
 #include <pspusb.h>
 #include <pspusbstor.h>
 #include "PSPApp.h"

@@ -25,7 +25,7 @@ ASFLAGS = $(CFLAGS)
 LIBDIR = 
 LDFLAGS = 
 
-LIBS = -lPSPApp -lsupc++ -lstdc++ -lpspnet \
+LIBS = -lPSPApp -lsupc++ -lstdc++ -lPSPNet \
 		-lvorbisidec -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \

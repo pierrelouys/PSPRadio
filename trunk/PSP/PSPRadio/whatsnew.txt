@@ -4,7 +4,6 @@ What's New for PSPRadio
 (raf) Lots of cleanup / refactoring
 (raf) Now downloads a compressed version of SHOUTcast.com's database instead.
 (sandberg) Added a particle system as a new background effect for the 3D UI.
-(raf) Simplified wifi selection. One option to select profile or turn off.
 
 0.36-pre4 (r427)
 (raf) Enabled the CPU speed change option.

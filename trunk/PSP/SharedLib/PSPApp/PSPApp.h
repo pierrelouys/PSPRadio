@@ -23,7 +23,7 @@
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>
 	#include <psppower.h>
-	#include <pspnet.h>
+	#include <PSPNet.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
@@ -154,7 +154,7 @@
 		
 	friend class CPSPSound;
 	friend class CPSPSoundBuffer;
-	friend class CPSPStream;
+	friend class CPSPSoundStream;
 
 	};
 	

@@ -47,7 +47,7 @@ int inf(FILE *source, FILE *dest);
 bool CScreenHandler::DownloadSHOUTcastDB()
 {
 	bool success = false;
-	CPSPStream *WebConnection = new CPSPStream();
+	CPSPSoundStream *WebConnection = new CPSPSoundStream();
 	WebConnection->SetURI(SHOUTCAST_DB_COMPRESSED_REQUEST_STRING);
 	WebConnection->Open();
 	if (true == WebConnection->IsOpen())

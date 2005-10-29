@@ -29,49 +29,41 @@
 #include "../libpspnet/pspnet.h"
 #include <sys/socket.h>
 #include "PSPSound.h"
-#include "PSPStream.h"
+#include "PSPSoundDecoder.h"
 
 #define METADATA_STREAMURL_TAG "StreamUrl='"
 #define METADATA_STREAMTITLE_TAG "StreamTitle='"
 
-/** class CPSPStream */
-CPSPStream::CPSPStream()
+CPSPSoundStream *CurrentSoundStream = NULL;
+
+/** class CPSPSoundStream */
+CPSPSoundStream::CPSPSoundStream()
 {
 	m_Type = STREAM_TYPE_NONE;
 	m_State = STREAM_STATE_CLOSED;
 	m_pfd = NULL;
 	m_fdSocket = -1;
-	m_MetaData = new MetaData;
+	m_ContentType = STREAM_CONTENT_NOT_DEFINED;
+	m_CurrentMetaData = new MetaData;
 	ClearMetadata();
-
-	/** reader part */
-	m_BstdFile = NULL;
-	m_eof = false;
-	m_iMetaDataInterval = 0;
-	m_iRunningCountModMetadataInterval = 0;
-	memset(bMetaData, 0, MAX_METADATA_SIZE);
-	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
 	
 }
 
-CPSPStream::~CPSPStream()
+CPSPSoundStream::~CPSPSoundStream()
 {
-	if (IsOpen())
-		Close();
-	
-	if (m_MetaData)
+	if (m_CurrentMetaData)
 	{
-		delete(m_MetaData);
+		delete(m_CurrentMetaData);
 	}
 }
 
-void CPSPStream::ClearMetadata()
+void CPSPSoundStream::ClearMetadata()
 {
-	memset(m_MetaData, 0, sizeof(m_MetaData));
+	memset(m_CurrentMetaData, 0, sizeof(m_CurrentMetaData));
 }
 
 /** Accessors */
-void CPSPStream::SetURI(char *strFile)
+void CPSPSoundStream::SetURI(char *strFile)
 {
 	if (strFile)
 	{
@@ -79,27 +71,28 @@ void CPSPStream::SetURI(char *strFile)
 		{
 			/** New URI, clear Metadata */
 			ClearMetadata();
-			strncpy(m_MetaData->strURI, strFile, MAXPATHLEN);
-			if (memcmp(m_MetaData->strURI, "http://", strlen("http://")) == 0)
+			strncpy(m_CurrentMetaData->strURI, strFile, MAXPATHLEN);
+			if (memcmp(m_CurrentMetaData->strURI, "http://", strlen("http://")) == 0)
 			{
-				Log(LOG_LOWLEVEL, "CPSPStream::SetFile(%s) <URL> called", m_MetaData->strURI);
+				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <URL> called", m_CurrentMetaData->strURI);
 				m_Type = STREAM_TYPE_URL;
 			}
 			else // It's a file!
 			{
-				Log(LOG_LOWLEVEL, "CPSPStream::SetFile(%s) <FILE> called", m_MetaData->strURI);
+				Log(LOG_LOWLEVEL, "CPSPSoundStream::SetFile(%s) <FILE> called", m_CurrentMetaData->strURI);
 				m_Type = STREAM_TYPE_FILE;
 			}
 		}
 		else
 		{
-			Log(LOG_ERROR, "CPSPStream::SetFile(%s) BAD.", strFile);
-			ReportError("CPSPStream::OpenFile-Invalid filename '%s'", strFile);
+			Log(LOG_ERROR, "CPSPSoundStream::SetFile(%s) BAD.", strFile);
+			ReportError("CPSPSoundStream::OpenFile-Invalid filename '%s'", strFile);
 		}
 		
 	}
 }
 
+<<<<<<< .working
 bool CPSPStream::DownloadToFile(char *strFilename, size_t &bytesDownloaded)
 {
 	bool success = false;
@@ -152,18 +145,15 @@ bool CPSPStream::DownloadToFile(char *strFilename, size_t &bytesDownloaded)
 	}
 	
 	return success;
+=======
+void CPSPSoundStream::SetSampleRate(int SampleRate)
+{ 
+	m_CurrentMetaData->iSampleRate = SampleRate; 
+	pPSPSound->SampleRateChange();
+>>>>>>> .merge-right.r471
 }
 
-void CPSPStream::SetSampleRate(int SampleRate)
-{
-	if (m_MetaData->iSampleRate != SampleRate)
-	{
-		m_MetaData->iSampleRate = SampleRate; 
-		pPSPSound->SampleRateChange();
-	}
-}
-
-void CPSPStream::Close()
+void CPSPSoundStream::Close()
 {
 	if (STREAM_STATE_OPEN == m_State)
 	{
@@ -172,11 +162,14 @@ void CPSPStream::Close()
 			case STREAM_TYPE_FILE:
 				if (m_pfd)
 				{
+<<<<<<< .working
 					if (m_BstdFile)
 					{
 						BstdFileDestroy(m_BstdFile);
 						m_BstdFile = NULL;
 					}
+=======
+>>>>>>> .merge-right.r471
 					fclose(m_pfd);
 				}
 				m_pfd = NULL;
@@ -189,83 +182,73 @@ void CPSPStream::Close()
 				}
 				m_fdSocket = -1;
 				m_State = STREAM_STATE_CLOSED;
-				m_eof = true;
 				break;
 			case STREAM_TYPE_NONE:
 				Log(LOG_ERROR, "SoundStream::Close(): Invalid State.");
 				break;
 		}
 	}
+<<<<<<< .working
 	m_iRunningCountModMetadataInterval = 0;
 	m_iMetaDataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
+=======
+	//Content type is still defined!
+	//m_ContentType = STREAM_CONTENT_NOT_DEFINED;
+>>>>>>> .merge-right.r471
 }
 
-int CPSPStream::Open()
+int CPSPSoundStream::Open()
 {
-	SetContentType(MetaData::CONTENT_NOT_DEFINED);
+	SetContentType(STREAM_CONTENT_NOT_DEFINED);
 	if (STREAM_STATE_CLOSED == m_State)
 	{
 		switch(m_Type)
 		{
 			case STREAM_TYPE_URL:
 				//ReportError ("Opening URL '%s'\n", filename);
-				m_iMetaDataInterval = 0;
-				m_iRunningCountModMetadataInterval = 0;
-				m_fdSocket = http_open(m_MetaData->strURI);
+				m_fdSocket = http_open(m_CurrentMetaData->strURI);
 				Log(LOG_LOWLEVEL, "Back from http_open(): socket=%d", m_fdSocket);
 				if (m_fdSocket < 0)
 				{
 					//Don't report again, because http_open will report.
-					//ReportError("CPSPStream::OpenFile-Error opening URL.\n");
+					//ReportError("CPSPSoundStream::OpenFile-Error opening URL.\n");
 					m_State = STREAM_STATE_CLOSED;
 				}
 				else
 				{
-					//ReportError("CPSPStream::OpenFile-URL Opened. (handle=%d)\n", m_fdSocket);
+					//ReportError("CPSPSoundStream::OpenFile-URL Opened. (handle=%d)\n", m_fdSocket);
 					//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
 					m_State = STREAM_STATE_OPEN;
 				}
 				break;
 			
 			case STREAM_TYPE_FILE:
-				m_pfd = fopen(m_MetaData->strURI, "rb");
+				m_pfd = fopen(m_CurrentMetaData->strURI, "rb");
 				if(m_pfd)
 				{
-					char *ext = strrchr(m_MetaData->strURI, '.') + 1;
+					char *ext = strrchr(m_CurrentMetaData->strURI, '.') + 1;
 					if (strlen(ext) >= 3)
 					{
 						if (0 == strncasecmp(ext, "mp", 2))
 						{
-							SetContentType(MetaData::CONTENT_AUDIO_MPEG);
+							m_ContentType = STREAM_CONTENT_AUDIO_MPEG;
 						}
 						else if (0 == strncasecmp(ext, "ogg", 3))
 						{
-							SetContentType(MetaData::CONTENT_AUDIO_OGG);
+							m_ContentType = STREAM_CONTENT_AUDIO_OGG;
 						}
 					}
-					m_BstdFile=NewBstdFile(m_pfd);
-					if(m_BstdFile)
-					{
-						m_State = STREAM_STATE_OPEN;
-					}
-					else
-					{
-						ReportError("CPSPStream::OpenFile-Can't create a new bstdfile_t (%s).",
-								strerror(errno));
-						m_State = STREAM_STATE_CLOSED;
-						Close();
-					}
-					
+					m_State = STREAM_STATE_OPEN;
 				}
 				else
 				{
-					ReportError("Unable to open %s", m_MetaData->strURI);
+					ReportError("Unable to open %s", m_CurrentMetaData->strURI);
 				}
 				break;
 			case STREAM_TYPE_NONE:
-				ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_MetaData->strURI);
+				ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_CurrentMetaData->strURI);
 				break;
 		}
 	}
@@ -277,88 +260,127 @@ int CPSPStream::Open()
 	return m_State!=STREAM_STATE_CLOSED?0:-1;
 }
 
-bool CPSPStream::IsOpen()
+bool CPSPSoundStream::IsOpen()
 {
 	return (m_State==STREAM_STATE_CLOSED)?false:true;
 }
 
 /** ----------------------------------------------------------------------------------- */
-size_t CPSPStream::Read(unsigned char *pBuffer, size_t SizeInBytes)
+CPSPSoundStreamReader::CPSPSoundStreamReader()
+{
+	m_BstdFile = NULL;
+	//m_eof = true;
+	m_eof = false;
+	m_iMetaDataInterval = CurrentSoundStream->GetMetaDataInterval();
+	m_iRunningCountModMetadataInterval = 0;
+	memset(bMetaData, 0, MAX_METADATA_SIZE);
+ 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
+	m_pfd = CurrentSoundStream->GetFileDescriptor();
+	m_fdSocket = CurrentSoundStream->GetSocketDescriptor();
+	if(m_pfd)
+	{
+		m_BstdFile=NewBstdFile(m_pfd);
+		if(m_BstdFile)
+		{
+			//CurrentSoundStream->SetState(STREAM_STATE_OPEN);
+		}
+		else
+		{
+			ReportError("CPSPSoundStream::OpenFile-Can't create a new bstdfile_t (%s).",
+					strerror(errno));
+			//m_State = STREAM_STATE_CLOSED;
+			CurrentSoundStream->Close();
+		}
+	}
+}
+
+CPSPSoundStreamReader::~CPSPSoundStreamReader()
+{
+	Close();
+}
+
+void CPSPSoundStreamReader::Close()
+{
+	CurrentSoundStream->Close();
+	//if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+	{
+		if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
+		{
+			if (m_BstdFile)
+			{
+				BstdFileDestroy(m_BstdFile);
+				m_BstdFile = NULL;
+			}
+		}
+	}	
+	m_iRunningCountModMetadataInterval = 0;
+	memset(bMetaData, 0, MAX_METADATA_SIZE);
+	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
+}
+
+
+size_t CPSPSoundStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 {
 	size_t size = 0;
 	char bMetaDataSize = 0;
 	int iReadRet = -1;
 	
-	if (STREAM_STATE_OPEN == GetState())
+	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		switch(GetType())
+		switch(CurrentSoundStream->GetType())
 		{
-			case STREAM_TYPE_FILE:
+			case CPSPSoundStream::STREAM_TYPE_FILE:
 				size = BstdRead(pBuffer, 1, SizeInBytes, m_BstdFile);
 				break;
-			case STREAM_TYPE_URL:
-				if (m_iMetaDataInterval != 0)
+			case CPSPSoundStream::STREAM_TYPE_URL:
+				if (m_iMetaDataInterval)
 				{
 					m_iRunningCountModMetadataInterval = (m_iRunningCountModMetadataInterval % m_iMetaDataInterval);
-
-					if (SizeInBytes + m_iRunningCountModMetadataInterval > m_iMetaDataInterval)
+				}
+				if (SizeInBytes + m_iRunningCountModMetadataInterval > m_iMetaDataInterval)
+				{
+					size = SocketRead((char*)pBuffer, m_iMetaDataInterval - m_iRunningCountModMetadataInterval);
+					if (size != (m_iMetaDataInterval - m_iRunningCountModMetadataInterval))
 					{
-						size = SocketRead((char*)pBuffer, m_iMetaDataInterval - m_iRunningCountModMetadataInterval);
-						if (size != (m_iMetaDataInterval - m_iRunningCountModMetadataInterval))
-						{
-							Close();
-							m_eof = true;
-						}
-						iReadRet = SocketRead(&bMetaDataSize, 1);
-						if (iReadRet > 0)
-						{
-							iReadRet = SocketRead(bMetaData, bMetaDataSize * 16);
-						}
-						if (iReadRet != bMetaDataSize * 16)
-						{
-							Close();
-							m_eof = true;
-						}
-						else
-						{
-							/** If new data is received */
-							if (memcmp(bPrevMetaData, bMetaData, MAX_METADATA_SIZE) != 0)
-							{
-								Log(LOG_INFO, "MetaData='%s'", bMetaData);
-								memcpy(bPrevMetaData, bMetaData, MAX_METADATA_SIZE);
-								
-								/** GetMetadataValue() modifies the metadata, so call it
-								with the last tag first */
-								char *tempMData = (char*)malloc(MAX_METADATA_SIZE);
-								if (tempMData)
-								{
-									char *strURL= "", *strTitle= "";
-									memcpy(tempMData, bMetaData, MAX_METADATA_SIZE);
-									strURL   = GetMetadataValue(tempMData, METADATA_STREAMURL_TAG);
-									strTitle = GetMetadataValue(tempMData, METADATA_STREAMTITLE_TAG);
-									
-									SetURL(strURL);
-									SetTitle(strTitle);
-									
-									free(tempMData), tempMData = NULL;
-									
-									pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
-								}
-							}
-						}
+						Close();
+						m_eof = true;
+					}
+					iReadRet = SocketRead(&bMetaDataSize, 1);
+					if (iReadRet > 0)
+					{
+						iReadRet = SocketRead(bMetaData, bMetaDataSize * 16);
+					}
+					if (iReadRet != bMetaDataSize * 16)
+					{
+						Close();
+						m_eof = true;
 					}
 					else
 					{
-						size = SocketRead((char*)pBuffer, SizeInBytes);
-						if (size != SizeInBytes)
+						/** If new data is received */
+						if (memcmp(bPrevMetaData, bMetaData, MAX_METADATA_SIZE) != 0)
 						{
-							Close();
-							m_eof = true;
+							Log(LOG_INFO, "MetaData='%s'", bMetaData);
+							memcpy(bPrevMetaData, bMetaData, MAX_METADATA_SIZE);
+							
+							/** GetMetadataValue() modifies the metadata, so call it
+							with the last tag first */
+							char *tempMData = (char*)malloc(MAX_METADATA_SIZE);
+							if (tempMData)
+							{
+								char *strURL= "", *strTitle= "";
+								memcpy(tempMData, bMetaData, MAX_METADATA_SIZE);
+								strURL   = GetMetadataValue(tempMData, METADATA_STREAMURL_TAG);
+								strTitle = GetMetadataValue(tempMData, METADATA_STREAMTITLE_TAG);
+								
+								CurrentSoundStream->SetURL(strURL);
+								CurrentSoundStream->SetTitle(strTitle);
+								
+								free(tempMData), tempMData = NULL;
+								
+								pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
+							}
 						}
-					}
-					if (size > 0)
-					{
-						m_iRunningCountModMetadataInterval+=size;
 					}
 				}
 				else
@@ -370,8 +392,12 @@ size_t CPSPStream::Read(unsigned char *pBuffer, size_t SizeInBytes)
 						m_eof = true;
 					}
 				}
+				if (size > 0)
+				{
+					m_iRunningCountModMetadataInterval+=size;
+				}
 				break;
-			case CPSPStream::STREAM_TYPE_NONE:
+			case CPSPSoundStream::STREAM_TYPE_NONE:
 				Log(LOG_ERROR, "Read() Called, but no stream set up.");
 				break;
 		}
@@ -384,21 +410,21 @@ size_t CPSPStream::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	return size;
 }
 
-bool CPSPStream::IsEOF()
+bool CPSPSoundStreamReader::IsEOF()
 {
 	int iseof = 0;
 	
-	if (STREAM_STATE_OPEN == GetState())
+	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		switch(GetType())
+		switch(CurrentSoundStream->GetType())
 		{
-			case STREAM_TYPE_FILE:
+			case CPSPSoundStream::STREAM_TYPE_FILE:
 				iseof = BstdFileEofP(m_BstdFile);
 				break;
-			case STREAM_TYPE_URL:
+			case CPSPSoundStream::STREAM_TYPE_URL:
 				iseof = m_eof;
 				break;
-			case STREAM_TYPE_NONE:
+			case CPSPSoundStream::STREAM_TYPE_NONE:
 				Log(LOG_ERROR, "IsEOF() Called but stream not setup");
 				iseof = 1; /** Make them stop! */
 				break;
@@ -413,52 +439,37 @@ bool CPSPStream::IsEOF()
 	return iseof?true:false;
 }
 
-int CPSPStream::SocketRead(char *pBuffer, size_t LengthInBytes)
+int CPSPSoundStreamReader::SocketRead(char *pBuffer, size_t LengthInBytes)
 {
 	size_t bytesread = 0, bytestoread = 0;
 	size_t size = 0;
-
-	if (true == IsOpen())
+	for(;;) 
 	{
-		for(;;) 
+		bytestoread = LengthInBytes-size;
+		bytesread = recv(m_fdSocket, pBuffer+size, bytestoread, 0);
+		if (bytesread > 0)
+			size += bytesread;
+		if(bytesread == bytestoread) 
 		{
-			if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == true)
-				break;
-			
-			bytestoread = LengthInBytes-size;
-			bytesread = recv(m_fdSocket, pBuffer+size, bytestoread, 0);
-			if (bytesread > 0)
-				size += bytesread;
-			if(bytesread == bytestoread) 
-			{
-				//done
-				break;
-			}
-			else if (bytesread == 0)
-			{
-				ReportError("SocketRead(): Connection reset by peer!");
-				Close();
-				//m_eof = true;
-				break;
-			}
-			else if(bytesread < 0)
-			{
-				errno = sceNetInetGetErrno();
-				if (11 == errno)
-				{
-					/** Timeout! */
-					continue;
-				}
-				else
-				{
-					ReportError ( "Error reading from socket or unexpected EOF.");
-					//m_eof = true;
-					Close();
-					break;
-				}
-			}	
-	
+			//done
+			break;
 		}
+		else if (bytesread == 0)
+		{
+			ReportError("SocketRead(): Connection reset by peer!\n");
+			//Close();
+			//m_eof = true;
+			break;
+		}
+		if (pPSPSound->GetPlayState() == CPSPSound::STOP || pPSPApp->IsExiting() == true)
+			break;
+		//else if(error = sceNetInetGetErrno() && sceNetInetGetErrno() != EINTR) 
+		//{
+		//	ReportMessage ( "Error reading from socket or unexpected EOF.(0x%x, %d)\n",error, errno);
+		//	m_eof = true;
+		//	Close();
+		//	break;
+		//}
 	}
 	return size;
 }
@@ -466,7 +477,7 @@ int CPSPStream::SocketRead(char *pBuffer, size_t LengthInBytes)
 /** Raw metadata looks like this:
  *  "StreamTitle='title of the song';StreamUrl='url address';"
  */
-char *CPSPStream::GetMetadataValue(char *strMetadata, char *strTag)
+char *CPSPSoundStreamReader::GetMetadataValue(char *strMetadata, char *strTag)
 {
 	char *ret = "Parse Error";
 	

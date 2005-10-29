@@ -32,6 +32,7 @@ using namespace std;
 void CPSPSoundDecoder_MAD::Initialize()
 {
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize - Start"); 
+	IPSPSoundDecoder::Initialize(); /** For MAD we can use the default StreamReader */
 	
 	/* First the structures used by libmad must be initialized. */
 	mad_stream_init(&m_Stream);
@@ -97,7 +98,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 				ReadStart=m_pInputBuffer,
 				Remaining=0;
 
-		ReadSize = m_InputStream->Read(ReadStart,ReadSize);
+		ReadSize = m_InputStreamReader->Read(ReadStart,ReadSize);
 		if(ReadSize<=0)
 		{
 			ReportError("(End of stream)...");
@@ -106,7 +107,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 			return bRet;
 		}
 
-		if(m_InputStream->IsEOF())
+		if(m_InputStreamReader->IsEOF())
 		{
 			m_GuardPtr=ReadStart+ReadSize;
 			memset(m_GuardPtr,0,MAD_BUFFER_GUARD);
@@ -162,7 +163,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 			ReportError("Error in m_Frame info.");
 			return bRet;
 		}
-		m_Buffer->SampleRateChange(m_Frame.header.samplerate);
+		m_Buffer->SampleRateChange();
 	}
 
 	/* Accounting. The computed frame duration is in the frame
@@ -318,10 +319,10 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
-	m_InputStream->SetBitRate(Header->bitrate);
-	m_InputStream->SetSampleRate(Header->samplerate);
-	m_InputStream->SetNumberOfChannels(Header->mode);
-	m_InputStream->SetMPEGLayer(Header->layer);
+	CurrentSoundStream->SetBitRate(Header->bitrate);
+	CurrentSoundStream->SetSampleRate(Header->samplerate);
+	CurrentSoundStream->SetNumberOfChannels(Header->mode);
+	CurrentSoundStream->SetMPEGLayer(Header->layer);
 	pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 	
 	return(0);

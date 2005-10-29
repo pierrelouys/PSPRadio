@@ -12,8 +12,8 @@ PSPSDK		= $(shell psp-config --pspsdk-path)
 CFLAGS		=-march=allegrex -O0 -G0 -Wall -g -mgp32 -mlong32 -I. -I$(PSPSDK)/include
 ASFLAGS		=-march=allegrex -g -O2 -G0 -Wall -I.
 
-LIB =../lib/libpspnet.a
-OBJS  = pspnet.o
+LIB =../lib/libPSPNet.a
+OBJS  = PSPNet.o
 OBJS += sceNet.o sceNetAdhocctl.o sceNetInet.o
 OBJS += sceNetAdhoc.o sceNetApctl.o sceNetResolver.o
 

@@ -289,7 +289,7 @@ int CTextUI::DisplayMessage_EnablingNetwork()
 	GetConfigPos("TEXT_POS:NETWORK_ENABLING", &x, &y);
 	c = GetConfigColor("COLORS:NETWORK_ENABLING");
 	
-	//ClearErrorMessage();
+	ClearErrorMessage();
 	ClearRows(y);
 	uiPrintf(x, y, c, "Enabling Network");
 	
@@ -416,7 +416,7 @@ int CTextUI::DisplayMessage(char *strMsg)
 	{
 		strMsg[MAX_COL*2 - 3] = 0;
 	}
-	uiPrintf(-1, y, c, "%s", strMsg);
+	uiPrintf(x, y, c, "%s", strMsg);
 	
 	return 0;
 }
@@ -487,7 +487,7 @@ int CTextUI::OnStreamOpeningSuccess()
 	return 0;
 }
 
-int CTextUI::OnNewSongData(MetaData *pData)
+int CTextUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	int r1,r2;
 	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
@@ -600,9 +600,9 @@ int CTextUI::DisplayPLList(CDirList *plList)
 int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 {
 	int x,y,c,r1,r2,ct,cs;
-	list<MetaData>::iterator ListIterator;
-	list<MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
-	list<MetaData> *List = PlayList->GetList();
+	list<CPSPSoundStream::MetaData>::iterator ListIterator;
+	list<CPSPSoundStream::MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
+	list<CPSPSoundStream::MetaData> *List = PlayList->GetList();
 	char *text;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
 	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);

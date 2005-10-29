@@ -30,7 +30,7 @@
 		CPlayList();
 		~CPlayList();
 		
-		int GetCurrentSong(MetaData *pData);
+		int GetCurrentSong(CPSPSoundStream::MetaData *pData);
 		char *GetCurrentURI() { return (*m_songiterator).strURI?(*m_songiterator).strURI:(char*)""; };
 		int GetCurrentIndex() { return (*m_songiterator).iItemIndex; };
 	
@@ -43,12 +43,12 @@
 		void Clear();
 		
 		/** Accessors */
-		list<MetaData> *GetList() { return &m_playlist; }
-		list<MetaData>::iterator *GetCurrentElementIterator() { return &m_songiterator; }
+		list<CPSPSoundStream::MetaData> *GetList() { return &m_playlist; }
+		list<CPSPSoundStream::MetaData>::iterator *GetCurrentElementIterator() { return &m_songiterator; }
 		
 	private:
-		list<MetaData> m_playlist; 
-		list<MetaData>::iterator m_songiterator;
+		list<CPSPSoundStream::MetaData> m_playlist; 
+		list<CPSPSoundStream::MetaData>::iterator m_songiterator;
 	};
 
 #endif

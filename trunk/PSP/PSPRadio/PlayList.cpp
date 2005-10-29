@@ -41,8 +41,6 @@
 #define SHOUTXML_URI_TAG 					"<entry Playstring=\""
 #define SHOUTXML_TITLE_TAG					"<Name>"
 #define SHOUTXML_GENRE_TAG					"<Genre>"
-#define XML_END_TAG						"</"
-
 
 CPlayList::CPlayList()
 {
@@ -77,7 +75,7 @@ int CPlayList::GetNumberOfSongs()
 	return m_playlist.size();
 }
 
-int CPlayList::GetCurrentSong(MetaData *pData)
+int CPlayList::GetCurrentSong(CPSPSoundStream::MetaData *pData)
 { 
 	if (m_playlist.size())
 	{
@@ -92,9 +90,9 @@ int CPlayList::GetCurrentSong(MetaData *pData)
 
 void CPlayList::InsertURI(char *strFileName)
 {
-	MetaData *songdata;
+	CPSPSoundStream::MetaData *songdata;
 	
-	songdata = new MetaData;
+	songdata = new CPSPSoundStream::MetaData;
 	
 	Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 	memset(songdata, 0, sizeof(songdata));
@@ -112,7 +110,7 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 	FILE *fd = NULL;
 	char strLine[256];
 	int iLines = 0;
-	MetaData *songdata;
+	CPSPSoundStream::MetaData *songdata;
 	char strURI[256];
 	char strTitle[256];
 	char strGenre[128];
@@ -124,13 +122,13 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 		WAITING_FOR_GENRE,
 	} shoutxml_state = WAITING_FOR_URI;
 	
-	songdata = new MetaData;
+	songdata = new CPSPSoundStream::MetaData;
 	
 	fd = fopen(strFileName, "r");
 	
 	if(fd != NULL)
 	{
-		while ( !feof(fd) )
+		while ( (!feof(fd)) )
 		{
 			strLine[0] = 0;
 			fgets(strLine, 256, fd);
@@ -156,15 +154,13 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 			/** We have a line with data here */
 			
 			//Log(LOG_VERYLOW, "line(%d) strLine='%s'", iLines, strLine);
-			char *Tag;
 			switch(shoutxml_state)
 			{
 			/* ie '<entry Playstring="http://www.shoutcast.com/sbin/tunein-station.pls?id=3281&amp;filename=playlist.pls">'*/
 				case WAITING_FOR_URI: 
-					Tag = strstr(strLine, SHOUTXML_URI_TAG);
-					if (Tag)
+					if (strstr(strLine, SHOUTXML_URI_TAG))
 					{
-						strcpy(strURI, Tag + strlen(SHOUTXML_URI_TAG));
+						strcpy(strURI, strstr(strLine, SHOUTXML_URI_TAG) + strlen(SHOUTXML_URI_TAG));
 				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strURI = '%s'", iLines, strLine, strURI);
 						if(strchr(strURI, '"'))
 						{
@@ -175,37 +171,59 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 					break;
 			/* ie '     <Name>CLUB 977 The Hitz Channel (HIGH BANDWIDTH)</Name>' */
 				case WAITING_FOR_TITLE: 
-					Tag = strstr(strLine, SHOUTXML_TITLE_TAG);
-					if (Tag)
+					if (strstr(strLine, SHOUTXML_TITLE_TAG))
 					{
-						strcpy(strTitle, Tag + strlen(SHOUTXML_TITLE_TAG));
+						strcpy(strTitle, strstr(strLine, SHOUTXML_TITLE_TAG) + strlen(SHOUTXML_TITLE_TAG));
 				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strURI);
 						
+						char *endTag = strTitle;
 						/* Terminate the string where the end tag is */
-						Tag = strstr(strTitle, XML_END_TAG);
-						if (Tag)
+						for(;;)
 						{
-							Tag[0] = 0;
+							endTag = strchr(endTag, '<');
+							if(endTag) 
+							{
+								if ('/' == endTag[1])
+								{
+									endTag = 0;
+									break;
+								}
+							}
+							else
+							{
+								break;
+							}
 						}
 						shoutxml_state = WAITING_FOR_GENRE;
 					}
 					break;
 			/* i.e '     <Genre>Pop Rock Top 40</Genre>' */
 				case WAITING_FOR_GENRE: 
-					Tag = strstr(strLine, SHOUTXML_GENRE_TAG);
-					if (Tag)
+					if (strstr(strLine, SHOUTXML_GENRE_TAG))
 					{
-						strcpy(strGenre, Tag + strlen(SHOUTXML_GENRE_TAG));
+						strcpy(strGenre, strstr(strLine, SHOUTXML_GENRE_TAG) + strlen(SHOUTXML_GENRE_TAG));
 				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strURI);
 						
-						Tag = strstr(strGenre, XML_END_TAG);
-						if (Tag)
+						char *endTag = strGenre;
+						/* Terminate the string where the end tag is */
+						for(;;)
 						{
-							Tag[0] = 0;
+							endTag = strchr(endTag, '<');
+							if(endTag) 
+							{
+								if ('/' == endTag[1])
+								{
+									endTag = 0;
+									break;
+								}
+							}
+							else
+							{
+								break;
+							}
 						}
-
 						/** Good!, all fields for this entry aquired, let's insert in the list! */
-						memset(songdata, 0, sizeof(MetaData));
+						memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
 						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' Genre='%s' to the list.", 
 							strURI, strTitle, strGenre);
 						memcpy(songdata->strURI,  strURI,  256);
@@ -242,7 +260,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 	char strLine[256];
 	int iLines = 0;
 	int iFormatVersion = 1;
-	MetaData *songdata;
+	CPSPSoundStream::MetaData *songdata;
 	bool fStopParsing = false;
 	
 	int iV2_numberofentries = 0;
@@ -260,7 +278,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 		WAITING_FOR_LENGTH,
 	} v2_state = WAITING_FOR_FILE;//WAITING_FOR_NUM_OF_ENTRIES;
 	
-	songdata = new MetaData;
+	songdata = new CPSPSoundStream::MetaData;
 	
 	fd = fopen(strFileName, "r");
 	
@@ -295,7 +313,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 			switch(iFormatVersion)
 			{
 				case 1:
-					memset(songdata, 0, sizeof(MetaData));
+					memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
 					memcpy(songdata->strURI, strLine, 256);
 					songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */					
 					m_playlist.push_back(*songdata);
@@ -376,7 +394,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 								if (2 == iV2_ParsingTemp)
 								{
 									/** Good!, all fields for this entry aquired, let's insert in the list! */
-									memset(songdata, 0, sizeof(MetaData));
+									memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
 									Log(LOG_INFO, "Adding V2 Entry: File='%s' Title='%s' Length='%i' to the list.", 
 										strV2_File, strV2_Title, iV2_Length);
 									memcpy(songdata->strURI,  strV2_File,  256);
