@@ -41,6 +41,8 @@
 #define SHOUTXML_URI_TAG 					"<entry Playstring=\""
 #define SHOUTXML_TITLE_TAG					"<Name>"
 #define SHOUTXML_GENRE_TAG					"<Genre>"
+#define XML_END_TAG						"</"
+
 
 CPlayList::CPlayList()
 {
@@ -128,7 +130,7 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 	
 	if(fd != NULL)
 	{
-		while ( (!feof(fd)) )
+		while ( !feof(fd) )
 		{
 			strLine[0] = 0;
 			fgets(strLine, 256, fd);
@@ -154,13 +156,15 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 			/** We have a line with data here */
 			
 			//Log(LOG_VERYLOW, "line(%d) strLine='%s'", iLines, strLine);
+			char *Tag;
 			switch(shoutxml_state)
 			{
 			/* ie '<entry Playstring="http://www.shoutcast.com/sbin/tunein-station.pls?id=3281&amp;filename=playlist.pls">'*/
 				case WAITING_FOR_URI: 
-					if (strstr(strLine, SHOUTXML_URI_TAG))
+					Tag = strstr(strLine, SHOUTXML_URI_TAG);
+					if (Tag)
 					{
-						strcpy(strURI, strstr(strLine, SHOUTXML_URI_TAG) + strlen(SHOUTXML_URI_TAG));
+						strcpy(strURI, Tag + strlen(SHOUTXML_URI_TAG));
 				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strURI = '%s'", iLines, strLine, strURI);
 						if(strchr(strURI, '"'))
 						{
@@ -171,56 +175,33 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 					break;
 			/* ie '     <Name>CLUB 977 The Hitz Channel (HIGH BANDWIDTH)</Name>' */
 				case WAITING_FOR_TITLE: 
-					if (strstr(strLine, SHOUTXML_TITLE_TAG))
+					Tag = strstr(strLine, SHOUTXML_TITLE_TAG);
+					if (Tag)
 					{
-						strcpy(strTitle, strstr(strLine, SHOUTXML_TITLE_TAG) + strlen(SHOUTXML_TITLE_TAG));
+						strcpy(strTitle, Tag + strlen(SHOUTXML_TITLE_TAG));
 				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strURI);
 						
-						char *endTag = strTitle;
 						/* Terminate the string where the end tag is */
-						for(;;)
+						Tag = strstr(strTitle, XML_END_TAG);
+						if (Tag)
 						{
-							endTag = strchr(endTag, '<');
-							if(endTag) 
-							{
-								if ('/' == endTag[1])
-								{
-									endTag = 0;
-									break;
-								}
-							}
-							else
-							{
-								break;
-							}
+							Tag[0] = 0;
 						}
 						shoutxml_state = WAITING_FOR_GENRE;
 					}
 					break;
 			/* i.e '     <Genre>Pop Rock Top 40</Genre>' */
 				case WAITING_FOR_GENRE: 
-					if (strstr(strLine, SHOUTXML_GENRE_TAG))
+					Tag = strstr(strLine, SHOUTXML_GENRE_TAG);
+					if (Tag)
 					{
-						strcpy(strGenre, strstr(strLine, SHOUTXML_GENRE_TAG) + strlen(SHOUTXML_GENRE_TAG));
+						strcpy(strGenre, Tag + strlen(SHOUTXML_GENRE_TAG));
 				//		Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strURI);
 						
-						char *endTag = strGenre;
-						/* Terminate the string where the end tag is */
-						for(;;)
+						Tag = strstr(strGenre, XML_END_TAG);
+						if (Tag)
 						{
-							endTag = strchr(endTag, '<');
-							if(endTag) 
-							{
-								if ('/' == endTag[1])
-								{
-									endTag = 0;
-									break;
-								}
-							}
-							else
-							{
-								break;
-							}
+							Tag[0] = 0;
 						}
 						/** Good!, all fields for this entry aquired, let's insert in the list! */
 						memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
