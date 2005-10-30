@@ -82,11 +82,21 @@ void readstring (char *string, int maxlen, int sock)
 		}
 		if (true == pPSPApp->IsExiting())
 			break;
-		//else if(errno != EINTR) 
-		//{
-		//	ReportError ( "Error reading from socket or unexpected EOF.\n");
-		//	break;
-		//}
+		else if(bytesread < 0)
+		{
+			errno = sceNetInetGetErrno();
+			if (11 == errno)
+			{
+				/** Timeout! */
+				Log(LOG_INFO, "Socket Timeout.");
+				continue;
+			}
+			else
+			{
+				ReportError ( "Error reading from socket or unexpected EOF.\n");
+				break;
+			}
+		}	
 	}
 }
 
@@ -433,9 +443,9 @@ int CPSPSoundStream::http_open(char *url)
 		if (sock < 0)
 			goto fail;
 		
-		struct timeval  timeo;
-		timeo.tv_sec  = 3; //sec
-		timeo.tv_usec = 0; //usec
+		/** Modified following PspPet's wifi_03 sample a bit */
+		u32  timeo;
+		timeo = 3 *1000*1000; /** timeout is in microseconds */
 		Log(LOG_LOWLEVEL, "http_connect(): Calling Setsockopt()");
 		if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeo, sizeof(timeo)) < 0) 
 		{
@@ -445,7 +455,7 @@ int CPSPSoundStream::http_open(char *url)
 		{
 			ReportError("setsockopt SO_SNDTIMEO Failed");
 		}
-		
+
 		
 		memset(&sin, 0, sizeof(struct sockaddr_in));
 		sin.sin_family = AF_INET;
@@ -527,10 +537,14 @@ fail:
 		sptr = strchr(request, ' ');
 		if (sptr != NULL) 
 		{
-			switch (sptr[1]) {
+			switch (sptr[1]) 
+			{
 				case '3':
+					Log(LOG_LOWLEVEL, "Setting relocate to true");
 					relocate = TRUE;
+					break;
 				case '2': /** OK */
+					Log(LOG_LOWLEVEL, "Good.");
 					break;
 				default:
 					Log (LOG_ERROR, "HTTP request failed: %s",
@@ -592,17 +606,13 @@ fail:
 				{
 					SetContentType(STREAM_CONTENT_TEXT);
 					Log(LOG_INFO, "Content Type set to Text.");
-					free (purl);
-					free (request);
-					free(host);
-					free(proxyport);
-					free(myport);
-					return sock;
 				}
 			}
 		} while (request[0] != '\r' && request[0] != '\n');
 	} while (relocate && purl[0] && numrelocs++ < 5);
-	if (relocate) {
+
+	if (relocate) 
+	{
 		ReportError ( "Too many HTTP relocations.\n");
 		return -1;
 	}
