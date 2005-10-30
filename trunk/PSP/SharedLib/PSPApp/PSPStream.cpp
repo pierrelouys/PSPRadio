@@ -29,12 +29,10 @@
 #include <sys/socket.h>
 #include <PSPNet.h>
 #include "PSPSound.h"
-#include "PSPSoundDecoder.h"
+#include "PSPStream.h"
 
 #define METADATA_STREAMURL_TAG "StreamUrl='"
 #define METADATA_STREAMTITLE_TAG "StreamTitle='"
-
-CPSPStream *CurrentSoundStream = NULL;
 
 /** class CPSPStream */
 CPSPStream::CPSPStream()
@@ -268,30 +266,31 @@ bool CPSPStream::IsOpen()
 }
 
 /** ----------------------------------------------------------------------------------- */
-CPSPStreamReader::CPSPStreamReader()
+CPSPStreamReader::CPSPStreamReader(CPSPStream *CurrentStream)
 {
 	m_BstdFile = NULL;
 	//m_eof = true;
 	m_eof = false;
-	m_iMetaDataInterval = CurrentSoundStream->GetMetaDataInterval();
+	m_CurrentStream = CurrentStream;
+	m_iMetaDataInterval = m_CurrentStream->GetMetaDataInterval();
 	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
  	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
-	m_pfd = CurrentSoundStream->GetFileDescriptor();
-	m_fdSocket = CurrentSoundStream->GetSocketDescriptor();
+	m_pfd = m_CurrentStream->GetFileDescriptor();
+	m_fdSocket = m_CurrentStream->GetSocketDescriptor();
 	if(m_pfd)
 	{
 		m_BstdFile=NewBstdFile(m_pfd);
 		if(m_BstdFile)
 		{
-			//CurrentSoundStream->SetState(STREAM_STATE_OPEN);
+			//m_CurrentStream->SetState(STREAM_STATE_OPEN);
 		}
 		else
 		{
 			ReportError("CPSPStream::OpenFile-Can't create a new bstdfile_t (%s).",
 					strerror(errno));
 			//m_State = STREAM_STATE_CLOSED;
-			CurrentSoundStream->Close();
+			m_CurrentStream->Close();
 		}
 	}
 }
@@ -303,10 +302,10 @@ CPSPStreamReader::~CPSPStreamReader()
 
 void CPSPStreamReader::Close()
 {
-	CurrentSoundStream->Close();
-	//if (CPSPStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+	m_CurrentStream->Close();
+	//if (CPSPStream::STREAM_STATE_OPEN == m_CurrentStream->GetState())
 	{
-		if (CPSPStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
+		if (CPSPStream::STREAM_TYPE_FILE == m_CurrentStream->GetType())
 		{
 			if (m_BstdFile)
 			{
@@ -327,9 +326,9 @@ size_t CPSPStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	char bMetaDataSize = 0;
 	int iReadRet = -1;
 	
-	if (CPSPStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+	if (CPSPStream::STREAM_STATE_OPEN == m_CurrentStream->GetState())
 	{
-		switch(CurrentSoundStream->GetType())
+		switch(m_CurrentStream->GetType())
 		{
 			case CPSPStream::STREAM_TYPE_FILE:
 				size = BstdRead(pBuffer, 1, SizeInBytes, m_BstdFile);
@@ -375,8 +374,8 @@ size_t CPSPStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 								strURL   = GetMetadataValue(tempMData, METADATA_STREAMURL_TAG);
 								strTitle = GetMetadataValue(tempMData, METADATA_STREAMTITLE_TAG);
 								
-								CurrentSoundStream->SetURL(strURL);
-								CurrentSoundStream->SetTitle(strTitle);
+								m_CurrentStream->SetURL(strURL);
+								m_CurrentStream->SetTitle(strTitle);
 								
 								free(tempMData), tempMData = NULL;
 								
@@ -416,9 +415,9 @@ bool CPSPStreamReader::IsEOF()
 {
 	int iseof = 0;
 	
-	if (CPSPStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+	if (CPSPStream::STREAM_STATE_OPEN == m_CurrentStream->GetState())
 	{
-		switch(CurrentSoundStream->GetType())
+		switch(m_CurrentStream->GetType())
 		{
 			case CPSPStream::STREAM_TYPE_FILE:
 				iseof = BstdFileEofP(m_BstdFile);

@@ -101,13 +101,11 @@
 		stream_states m_State;
 	};
 	
-	extern CPSPStream *CurrentSoundStream;
-	
 	class CPSPStreamReader
 	{
 	public:
 		
-		CPSPStreamReader();
+		CPSPStreamReader(CPSPStream *CurrentSoundStream);
 		virtual ~CPSPStreamReader();
 		
 		virtual void Close();
@@ -125,6 +123,7 @@
 		char bPrevMetaData[MAX_METADATA_SIZE];
 		
 		/** Copied from CurrentSoundStream con contstruction: */
+		CPSPStream *m_CurrentStream;
 		size_t m_iMetaDataInterval;
 		FILE *m_pfd;
 		int   m_fdSocket; /** Socket */		

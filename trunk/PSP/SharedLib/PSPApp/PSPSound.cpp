@@ -68,8 +68,7 @@ void CPSPSound::Initialize()
 		ReportError("Unable to aquire sound channel");
 	}
 	
-	/** Global */
-	CurrentSoundStream = new CPSPStream();
+	m_CurrentStream = new CPSPStream();
 	
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
@@ -137,7 +136,7 @@ int CPSPSound::Play()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
 	Log(LOG_LOWLEVEL, "Play('%s'): m_CurrentState=%s", 
-		CurrentSoundStream->GetURI(),
+		m_CurrentStream->GetURI(),
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
@@ -298,13 +297,13 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				
 				pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
 				Log(LOG_INFO, "ThDecode:: Calling Open For '%s'", 
-					CurrentSoundStream->GetURI());
-				CurrentSoundStream->Open();
+					pPSPSound->m_CurrentStream->GetURI());
+				pPSPSound->m_CurrentStream->Open();
 				
-				if (true == CurrentSoundStream->IsOpen())
+				if (true == pPSPSound->m_CurrentStream->IsOpen())
 				{
 					bool bDecoderCreated = false;
-					switch (CurrentSoundStream->GetContentType())
+					switch (pPSPSound->m_CurrentStream->GetContentType())
 					{
 						case MetaData::CONTENT_NOT_DEFINED:
 							Log(LOG_INFO, "ThDecode:: Content type not defined. Defaulting to MPEG.");
@@ -315,13 +314,13 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						case MetaData::CONTENT_AUDIO_MPEG:
 							Log(LOG_INFO, "ThDecode:: MPEG Stream Opened Successfully.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
-							Decoder = new CPSPSoundDecoder_MAD(&pPSPSound->Buffer);
+							Decoder = new CPSPSoundDecoder_MAD(&pPSPSound->Buffer, pPSPSound->m_CurrentStream);
 							bDecoderCreated = true;
 							break;
 						case MetaData::CONTENT_AUDIO_OGG:
 							Log(LOG_INFO, "ThDecode:: OGG Stream Opened Successfully.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
-							Decoder = new CPSPSoundDecoder_OGG(&pPSPSound->Buffer);
+							Decoder = new CPSPSoundDecoder_OGG(&pPSPSound->Buffer, pPSPSound->m_CurrentStream);
 							bDecoderCreated = true;
 							break;
 						case MetaData::CONTENT_AUDIO_AAC:
@@ -333,7 +332,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						case MetaData::CONTENT_PLAYLIST:
 						{
 							Log(LOG_INFO, "ThDecode: This is a playlist.. downloading..");
-							CPSPStreamReader *PLReader = new CPSPStreamReader();
+							CPSPStreamReader *PLReader = new CPSPStreamReader(pPSPSound->m_CurrentStream);
 							char strPlayListBuf[256];
 							strPlayListBuf[0]=0;
 							PLReader->Read((u8*)strPlayListBuf, 256);
@@ -344,7 +343,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							{
 								strURI = strstr(strPlayListBuf, "File1=")+strlen("File1=");
 								*strchr(strURI, 0xA) = 0;
-								CurrentSoundStream->SetURI(strURI);
+								pPSPSound->m_CurrentStream->SetURI(strURI);
 								/** We send an event to ourselves */
 								event.EventId = MID_DECODER_START;
 								m_EventToDecTh->Send(event);
@@ -386,12 +385,12 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 					else
 					{
 						/** Close if no decoder instantiated */
-						CurrentSoundStream->Close();
+						pPSPSound->m_CurrentStream->Close();
 					}
 				}
 				else
 				{
-					Log(LOG_ERROR, "ThDecode:: Unable to open stream '%s'.", CurrentSoundStream->GetURI());
+					Log(LOG_ERROR, "ThDecode:: Unable to open stream '%s'.", pPSPSound->m_CurrentStream->GetURI());
 					pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 				}
 				
@@ -403,7 +402,6 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				Log(LOG_VERYLOW, "ThDecode:: Thread Exit message received.");
 				pPSPSound->SendEvent(MID_THDECODE_END);
 				m_EventToDecTh->SendReceiveOK();
-///				pPSPApp->CanExit(); /** OK, App can exit now. */
 				sceKernelExitThread(0);
 				break;
 		}
@@ -482,15 +480,13 @@ size_t CPSPSoundBuffer::GetBufferFillPercentage()
 	return 100*m_FrameCount/(PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
 };
 		
-void CPSPSoundBuffer::SampleRateChange()
+void CPSPSoundBuffer::SampleRateChange(int newRate)
 {
-	int samplerate = CurrentSoundStream->GetSampleRate();
-	if (samplerate > 0)
+	if (newRate > 0)
 	{
-		Empty();
-		//m_samplerate = samplerate;
+		//Empty();
 		m_mult = 1, m_div = 1;
-		switch(samplerate)
+		switch(newRate)
 		{
 		case 8000:
 			m_mult=11;
@@ -527,7 +523,6 @@ void CPSPSoundBuffer::SampleRateChange()
 			m_div=12;
 			break;
 		}
-		//Log(LOG_VERYLOW, "Allocated m_bUpsamplingTemp, samplerate=%dHz.", samplerate);
 	}
 }
 

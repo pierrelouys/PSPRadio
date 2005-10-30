@@ -1,15 +1,15 @@
 #ifndef __PSPSOUND_DECODER__
 	#define __PSPSOUND_DECODER__
 	
-	#include "PSPStream.h"	
+	#include "PSPStream.h"
 
 	class CPSPSoundBuffer; /** Declared in PSPSound.h */
 	
 	class IPSPSoundDecoder
 	{
 	public:
-		IPSPSoundDecoder(CPSPSoundBuffer *OutputBuffer)
-			{	m_Buffer = OutputBuffer; }
+		IPSPSoundDecoder(CPSPSoundBuffer *OutputBuffer, CPSPStream *InputStream)
+			{	m_Buffer = OutputBuffer; m_InputStream = InputStream; }
 			
 		virtual ~IPSPSoundDecoder()
 		{
@@ -22,7 +22,7 @@
 	
 		virtual void Initialize()
 		{			
-			m_InputStreamReader = new CPSPStreamReader();
+			m_InputStreamReader = new CPSPStreamReader(m_InputStream);
 
 			if (!m_InputStreamReader)
 			{
@@ -34,6 +34,7 @@
 		virtual bool Decode(){return true;} /** Returns true on end-of-stream or unrecoverable error */
 
 	protected:
+		CPSPStream *m_InputStream;
 		CPSPStreamReader *m_InputStreamReader;
 		CPSPSoundBuffer *m_Buffer;
 	};

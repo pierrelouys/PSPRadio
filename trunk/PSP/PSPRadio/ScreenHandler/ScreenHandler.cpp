@@ -250,7 +250,7 @@ void CScreenHandler::StartScreen(Screen screen)
 						/** Populate m_CurrentMetaData */
 						//don't until user starts it!
 						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						m_UI->OnNewSongData(CurrentSoundStream->GetMetaData());
+						m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
 					}
 				}
 			}
@@ -287,7 +287,7 @@ void CScreenHandler::StartScreen(Screen screen)
 						/** Populate m_CurrentMetaData */
 						//don't until user starts it!
 						//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-						m_UI->OnNewSongData(CurrentSoundStream->GetMetaData());
+						m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
 					}
 				}
 			}
@@ -395,13 +395,13 @@ void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
 			{
 				case CPSPSound::STOP:
 				case CPSPSound::PAUSE:
-					CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
+					m_Sound->GetCurrentStream()->SetURI(m_CurrentPlayList->GetCurrentURI());
 					m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 					m_Sound->Play();
 					/** Populate m_CurrentMetaData */
-					m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->GetMetaData());
-					//CurrentSoundStream->SetURI(m_CurrentPlayList->GetURI());
-					m_UI->OnNewSongData(CurrentSoundStream->GetMetaData());
+					m_CurrentPlayList->GetCurrentSong(m_Sound->GetCurrentStream()->GetMetaData());
+					//m_Sound->GetCurrentStream()->SetURI(m_CurrentPlayList->GetURI());
+					m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
 					break;
 				case CPSPSound::PLAY:
 					m_UI->DisplayActiveCommand(CPSPSound::STOP);

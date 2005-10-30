@@ -55,22 +55,23 @@ long ogg_socket_tell_wrapper(void *datasource)
 	return sg_lBytesReadFromStream;
 }
 
-COGGStreamReader::COGGStreamReader()
+COGGStreamReader::COGGStreamReader(CPSPStream *InputStream):CPSPStreamReader(InputStream)
 {
 	sg_lBytesReadFromStream = 0; /** Reset number of bytes read from stream */
 	m_last_section = -1;
 	m_lock = new CLock("OggReaderLock");
 	m_eof = false;
-	m_iMetaDataInterval = CurrentSoundStream->GetMetaDataInterval();
+	m_InputStream = InputStream;
+	m_iMetaDataInterval = m_InputStream->GetMetaDataInterval();
 	m_iRunningCountModMetadataInterval = 0;
 	memset(bMetaData, 0, MAX_METADATA_SIZE);
  	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
-	m_pfd = CurrentSoundStream->GetFileDescriptor();
-	m_fdSocket = CurrentSoundStream->GetSocketDescriptor();
+	m_pfd = m_InputStream->GetFileDescriptor();
+	m_fdSocket = m_InputStream->GetSocketDescriptor();
 	
 	int iRet  = -1;
 	m_lock->Lock(); /** Vorbis is not thread safe */
-	switch (CurrentSoundStream->GetType())
+	switch (m_InputStream->GetType())
 	{
 		case CPSPStream::STREAM_TYPE_FILE:
 			iRet = ov_open(m_pfd, &m_vf, NULL /*char *initial*/, 0 /*long ibytes*/);
@@ -120,7 +121,7 @@ COGGStreamReader::COGGStreamReader()
 	 *  Stream needs to be closed with ov_clear! */
 	if (iRet < 0)
 	{
-		CurrentSoundStream->Close();
+		m_InputStream->Close();
 	}
 }
 
@@ -137,11 +138,11 @@ void COGGStreamReader::ProcessInfo()
 	vorbis_info *vi=ov_info(&m_vf,-1);
 	Log(LOG_INFO, "ProcessInfo(): Bitstream is %d channel, %ldHz",vi->channels,vi->rate);
 	Log(LOG_INFO, "ProcessInfo(): Decoded length: %ld samples", (long)ov_pcm_total(&m_vf,-1));
-	CurrentSoundStream->SetLength(ov_pcm_total(&m_vf,-1));
+	m_InputStream->SetLength(ov_pcm_total(&m_vf,-1));
 	Log(LOG_INFO, "ProcessInfo(): Encoded by: %s",ov_comment(&m_vf,-1)->vendor);
-	CurrentSoundStream->SetBitRate(vi->bitrate_nominal);
-	CurrentSoundStream->SetSampleRate(vi->rate);
-	CurrentSoundStream->SetNumberOfChannels(vi->channels);
+	m_InputStream->SetBitRate(vi->bitrate_nominal);
+	m_InputStream->SetSampleRate(vi->rate);
+	m_InputStream->SetNumberOfChannels(vi->channels);
 }
 
 void COGGStreamReader::ReadComments()
@@ -152,11 +153,11 @@ void COGGStreamReader::ReadComments()
 		Log(LOG_INFO, "%s",*ptr);
 		if (strstr(*ptr, "TITLE="))
 		{
-			CurrentSoundStream->SetTitle((*ptr)+strlen("TITLE="));
+			m_InputStream->SetTitle((*ptr)+strlen("TITLE="));
 		}
 		else if (strstr(*ptr, "ARTIST="))
 		{
-			CurrentSoundStream->SetArtist((*ptr)+strlen("ARTIST="));
+			m_InputStream->SetArtist((*ptr)+strlen("ARTIST="));
 		}
 		++ptr;
 	}
@@ -164,15 +165,15 @@ void COGGStreamReader::ReadComments()
 
 void COGGStreamReader::Close()
 {
-	//CurrentSoundStream->Close();
-	if (CPSPStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+	//m_InputStream->Close();
+	if (CPSPStream::STREAM_STATE_OPEN == m_InputStream->GetState())
 	{
-		//if (CPSPStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
+		//if (CPSPStream::STREAM_TYPE_FILE == m_InputStream->GetType())
 		{
 			m_lock->Lock(); /** Vorbis is not thread safe */
 			ov_clear(&m_vf);
 			m_lock->Unlock(); /** Vorbis is not thread safe */
-			CurrentSoundStream->SetState(CPSPStream::STREAM_STATE_CLOSED);
+			m_InputStream->SetState(CPSPStream::STREAM_STATE_CLOSED);
 		}
 	}	
 }
@@ -237,7 +238,7 @@ void CPSPSoundDecoder_OGG::Initialize()
 {
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_OGG Initialize"); 
 
-	m_InputStreamReader = new COGGStreamReader();
+	m_InputStreamReader = new COGGStreamReader(m_InputStream);
 
 	if (!m_InputStreamReader)
 	{
@@ -275,7 +276,7 @@ bool CPSPSoundDecoder_OGG::Decode()
 	
 	long lRet = 0;
 	
-	int iNumberOfChannels = CurrentSoundStream->GetNumberOfChannels();
+	int iNumberOfChannels = m_InputStream->GetNumberOfChannels();
 	
 	lRet = m_InputStreamReader->Read(m_pInputBuffer, 4096);
 	

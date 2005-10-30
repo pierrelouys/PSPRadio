@@ -616,6 +616,7 @@ fail:
 		ReportError ( "Too many HTTP relocations.\n");
 		return -1;
 	}
+
 	free (purl);
 	free (request);
 	free(host);

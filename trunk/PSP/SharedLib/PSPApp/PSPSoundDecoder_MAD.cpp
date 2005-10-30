@@ -163,7 +163,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 			ReportError("Error in m_Frame info.");
 			return bRet;
 		}
-		m_Buffer->SampleRateChange();
+		m_Buffer->SampleRateChange(m_Frame.header.samplerate);
 	}
 
 	/* Accounting. The computed frame duration is in the frame
@@ -319,10 +319,10 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
-	CurrentSoundStream->SetBitRate(Header->bitrate);
-	CurrentSoundStream->SetSampleRate(Header->samplerate);
-	CurrentSoundStream->SetNumberOfChannels(Header->mode);
-	CurrentSoundStream->SetMPEGLayer(Header->layer);
+	m_InputStream->SetBitRate(Header->bitrate);
+	m_InputStream->SetSampleRate(Header->samplerate);
+	m_InputStream->SetNumberOfChannels(Header->mode);
+	m_InputStream->SetMPEGLayer(Header->layer);
 	pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 	
 	return(0);

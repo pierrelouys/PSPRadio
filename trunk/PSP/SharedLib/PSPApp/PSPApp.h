@@ -154,7 +154,7 @@
 		
 	friend class CPSPSound;
 	friend class CPSPSoundBuffer;
-	friend class CPSPSoundStream;
+	friend class CPSPStream;
 
 	};
 	
