@@ -386,7 +386,7 @@ public:
 				//	break;
 				case MID_NEW_METADATA_AVAILABLE:
 					if (m_UI)
-						m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
+						m_UI->OnNewSongData(CurrentSoundStream->GetMetaData());
 					break;
 					
 				case MID_TCP_CONNECTING_PROGRESS:
@@ -439,9 +439,9 @@ public:
 						if (m_UI)
 							m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
+						m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->GetMetaData());
 						if (m_UI)
-							m_UI->OnNewSongData(CurrentSoundStream->m_CurrentMetaData);
+							m_UI->OnNewSongData(CurrentSoundStream->GetMetaData());
 						break;
 					
 					case CPSPSound::STOP:
@@ -469,7 +469,7 @@ public:
 							CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
 							
 							/** Populate m_CurrentMetaData */
-							m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->m_CurrentMetaData);
+							m_CurrentPlayList->GetCurrentSong(CurrentSoundStream->GetMetaData());
 							
 							m_Sound->Play();
 						}

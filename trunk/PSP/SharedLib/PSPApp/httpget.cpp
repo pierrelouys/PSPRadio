@@ -243,7 +243,7 @@ unsigned char *proxyport;
 char *httpauth = NULL;
 char httpauth1[256];
 
-int CPSPSoundStream::http_open(char *url)
+int CPSPStream::http_open(char *url)
 {
 	char *purl = NULL, 
 		 *host = NULL, 
@@ -584,27 +584,27 @@ fail:
 				Log(LOG_VERYLOW, "Parsing content:%s",content);
 				if (0 == strncmp(content, "audio/mpeg", strlen("audio/mpeg")))
 				{
-					SetContentType(STREAM_CONTENT_AUDIO_MPEG);
+					SetContentType(MetaData::CONTENT_AUDIO_MPEG);
 					Log(LOG_INFO, "Content Type set to audio/mpeg");
 				}
 				else if (0 == strncmp(content, "application/ogg", strlen("application/ogg")))
 				{
-					SetContentType(STREAM_CONTENT_AUDIO_OGG);
+					SetContentType(MetaData::CONTENT_AUDIO_OGG);
 					Log(LOG_INFO, "Content Type set to application/ogg");
 				}
 				else if (0 == strncmp(content, "audio/aac", strlen("audio/aac")))
 				{
-					SetContentType(STREAM_CONTENT_AUDIO_AAC);
+					SetContentType(MetaData::CONTENT_AUDIO_AAC);
 					Log(LOG_INFO, "Content Type set to audio/aac");
 				}
 				else if (0 == strncmp(content, "audio/x-scpls", strlen("audio/x-scpls")))
 				{
-					SetContentType(STREAM_CONTENT_PLAYLIST);
+					SetContentType(MetaData::CONTENT_PLAYLIST);
 					Log(LOG_INFO, "Content Type set to playlist");
 				}
 				else if (0 == strncmp(content, "text/html", strlen("text/html")))
 				{
-					SetContentType(STREAM_CONTENT_TEXT);
+					SetContentType(MetaData::CONTENT_TEXT);
 					Log(LOG_INFO, "Content Type set to Text.");
 				}
 			}

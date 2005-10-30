@@ -129,7 +129,7 @@ public:
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
 	int OnVBlank();
-	int OnNewSongData(CPSPSoundStream::MetaData *pData);
+	int OnNewSongData(MetaData *pData);
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
 	int OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection);

@@ -77,7 +77,7 @@ int CPlayList::GetNumberOfSongs()
 	return m_playlist.size();
 }
 
-int CPlayList::GetCurrentSong(CPSPSoundStream::MetaData *pData)
+int CPlayList::GetCurrentSong(MetaData *pData)
 { 
 	if (m_playlist.size())
 	{
@@ -92,9 +92,9 @@ int CPlayList::GetCurrentSong(CPSPSoundStream::MetaData *pData)
 
 void CPlayList::InsertURI(char *strFileName)
 {
-	CPSPSoundStream::MetaData *songdata;
+	MetaData *songdata;
 	
-	songdata = new CPSPSoundStream::MetaData;
+	songdata = new MetaData;
 	
 	Log(LOG_INFO, "Adding '%s' to the list.", strFileName);
 	memset(songdata, 0, sizeof(songdata));
@@ -112,7 +112,7 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 	FILE *fd = NULL;
 	char strLine[256];
 	int iLines = 0;
-	CPSPSoundStream::MetaData *songdata;
+	MetaData *songdata;
 	char strURI[256];
 	char strTitle[256];
 	char strGenre[128];
@@ -124,7 +124,7 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 		WAITING_FOR_GENRE,
 	} shoutxml_state = WAITING_FOR_URI;
 	
-	songdata = new CPSPSoundStream::MetaData;
+	songdata = new MetaData;
 	
 	fd = fopen(strFileName, "r");
 	
@@ -204,7 +204,7 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 							Tag[0] = 0;
 						}
 						/** Good!, all fields for this entry aquired, let's insert in the list! */
-						memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
+						memset(songdata, 0, sizeof(MetaData));
 						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' Genre='%s' to the list.", 
 							strURI, strTitle, strGenre);
 						memcpy(songdata->strURI,  strURI,  256);
@@ -241,7 +241,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 	char strLine[256];
 	int iLines = 0;
 	int iFormatVersion = 1;
-	CPSPSoundStream::MetaData *songdata;
+	MetaData *songdata;
 	bool fStopParsing = false;
 	
 	int iV2_numberofentries = 0;
@@ -259,7 +259,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 		WAITING_FOR_LENGTH,
 	} v2_state = WAITING_FOR_FILE;//WAITING_FOR_NUM_OF_ENTRIES;
 	
-	songdata = new CPSPSoundStream::MetaData;
+	songdata = new MetaData;
 	
 	fd = fopen(strFileName, "r");
 	
@@ -294,7 +294,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 			switch(iFormatVersion)
 			{
 				case 1:
-					memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
+					memset(songdata, 0, sizeof(MetaData));
 					memcpy(songdata->strURI, strLine, 256);
 					songdata->iItemIndex = m_playlist.size(); /** jpf added unique id for list item */					
 					m_playlist.push_back(*songdata);
@@ -375,7 +375,7 @@ void CPlayList::LoadPlayListURI(char *strFileName)
 								if (2 == iV2_ParsingTemp)
 								{
 									/** Good!, all fields for this entry aquired, let's insert in the list! */
-									memset(songdata, 0, sizeof(CPSPSoundStream::MetaData));
+									memset(songdata, 0, sizeof(MetaData));
 									Log(LOG_INFO, "Adding V2 Entry: File='%s' Title='%s' Length='%i' to the list.", 
 										strV2_File, strV2_Title, iV2_Length);
 									memcpy(songdata->strURI,  strV2_File,  256);

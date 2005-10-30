@@ -151,7 +151,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 						break;
 					case CPSPSound::PLAY:
 						/** No pausing for URLs, only for Files(local) */
-						if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
+						if (CPSPStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
 						{
 							CurrentSoundStream->SetURI(m_CurrentPlayList->GetCurrentURI());
 							m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
@@ -163,7 +163,7 @@ void CScreenHandler::PlayListScreenInputHandler(int iButtonMask)
 							currently selected stream! */
 							/** We do this by stopping the stream, and asking the handler to start playing
 							when the stream stops. */
-							if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+							if (CPSPStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 							{
 								/** If the new stream is different than the current, only then stop-"restart" */
 								if (0 != strcmp(CurrentSoundStream->GetURI(), m_CurrentPlayList->GetCurrentURI()))

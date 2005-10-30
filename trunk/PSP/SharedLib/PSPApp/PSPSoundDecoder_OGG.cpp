@@ -72,11 +72,11 @@ COGGStreamReader::COGGStreamReader()
 	m_lock->Lock(); /** Vorbis is not thread safe */
 	switch (CurrentSoundStream->GetType())
 	{
-		case CPSPSoundStream::STREAM_TYPE_FILE:
+		case CPSPStream::STREAM_TYPE_FILE:
 			iRet = ov_open(m_pfd, &m_vf, NULL /*char *initial*/, 0 /*long ibytes*/);
 			break;
 		
-		case CPSPSoundStream::STREAM_TYPE_URL:
+		case CPSPStream::STREAM_TYPE_URL:
 			ov_callbacks ogg_callbacks;
 			ogg_callbacks.read_func  = ogg_socket_read_wrapper;
 			ogg_callbacks.seek_func  = ogg_socket_seek_wrapper;
@@ -165,14 +165,14 @@ void COGGStreamReader::ReadComments()
 void COGGStreamReader::Close()
 {
 	//CurrentSoundStream->Close();
-	if (CPSPSoundStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
+	if (CPSPStream::STREAM_STATE_OPEN == CurrentSoundStream->GetState())
 	{
-		//if (CPSPSoundStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
+		//if (CPSPStream::STREAM_TYPE_FILE == CurrentSoundStream->GetType())
 		{
 			m_lock->Lock(); /** Vorbis is not thread safe */
 			ov_clear(&m_vf);
 			m_lock->Unlock(); /** Vorbis is not thread safe */
-			CurrentSoundStream->SetState(CPSPSoundStream::STREAM_STATE_CLOSED);
+			CurrentSoundStream->SetState(CPSPStream::STREAM_STATE_CLOSED);
 		}
 	}	
 }

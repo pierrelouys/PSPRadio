@@ -69,7 +69,7 @@ void CPSPSound::Initialize()
 	}
 	
 	/** Global */
-	CurrentSoundStream = new CPSPSoundStream();
+	CurrentSoundStream = new CPSPStream();
 	
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
@@ -306,34 +306,34 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 					bool bDecoderCreated = false;
 					switch (CurrentSoundStream->GetContentType())
 					{
-						case CPSPSoundStream::STREAM_CONTENT_NOT_DEFINED:
+						case MetaData::CONTENT_NOT_DEFINED:
 							Log(LOG_INFO, "ThDecode:: Content type not defined. Defaulting to MPEG.");
 							//pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 							//bDecoderCreated = false;
 							//break;
 							//fall through (some servers don't define stream type - asume MPEG)
-						case CPSPSoundStream::STREAM_CONTENT_AUDIO_MPEG:
+						case MetaData::CONTENT_AUDIO_MPEG:
 							Log(LOG_INFO, "ThDecode:: MPEG Stream Opened Successfully.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
 							Decoder = new CPSPSoundDecoder_MAD(&pPSPSound->Buffer);
 							bDecoderCreated = true;
 							break;
-						case CPSPSoundStream::STREAM_CONTENT_AUDIO_OGG:
+						case MetaData::CONTENT_AUDIO_OGG:
 							Log(LOG_INFO, "ThDecode:: OGG Stream Opened Successfully.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
 							Decoder = new CPSPSoundDecoder_OGG(&pPSPSound->Buffer);
 							bDecoderCreated = true;
 							break;
-						case CPSPSoundStream::STREAM_CONTENT_AUDIO_AAC:
+						case MetaData::CONTENT_AUDIO_AAC:
 							Log(LOG_INFO, "ThDecode:: AAC Stream Not supported.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 							bDecoderCreated = false;
 							break;
 						
-						case CPSPSoundStream::STREAM_CONTENT_PLAYLIST:
+						case MetaData::CONTENT_PLAYLIST:
 						{
 							Log(LOG_INFO, "ThDecode: This is a playlist.. downloading..");
-							CPSPSoundStreamReader *PLReader = new CPSPSoundStreamReader();
+							CPSPStreamReader *PLReader = new CPSPStreamReader();
 							char strPlayListBuf[256];
 							strPlayListBuf[0]=0;
 							PLReader->Read((u8*)strPlayListBuf, 256);

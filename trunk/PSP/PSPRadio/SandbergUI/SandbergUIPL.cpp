@@ -203,9 +203,9 @@ int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
 	int		first_entry;
 	char		strTemp[MAX_CHARS+1];
 
-	list<CPSPSoundStream::MetaData>::iterator ListIterator;
-	list<CPSPSoundStream::MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
-	list<CPSPSoundStream::MetaData> *List = PlayList->GetList();
+	list<MetaData>::iterator ListIterator;
+	list<MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
+	list<MetaData> *List = PlayList->GetList();
 
 	list_cnt = List->size();
 

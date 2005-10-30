@@ -487,7 +487,7 @@ int CTextUI::OnStreamOpeningSuccess()
 	return 0;
 }
 
-int CTextUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
+int CTextUI::OnNewSongData(MetaData *pData)
 {
 	int r1,r2;
 
@@ -605,9 +605,9 @@ int CTextUI::DisplayPLList(CDirList *plList)
 int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 {
 	int x,y,c,r1,r2,ct,cs;
-	list<CPSPSoundStream::MetaData>::iterator ListIterator;
-	list<CPSPSoundStream::MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
-	list<CPSPSoundStream::MetaData> *List = PlayList->GetList();
+	list<MetaData>::iterator ListIterator;
+	list<MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
+	list<MetaData> *List = PlayList->GetList();
 	char *text;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
 	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);

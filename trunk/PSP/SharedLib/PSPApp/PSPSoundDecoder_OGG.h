@@ -27,7 +27,7 @@
 	class CPSPSoundStream;
 	class CPSPSoundBuffer;
 	
-	class COGGStreamReader : public CPSPSoundStreamReader
+	class COGGStreamReader : public CPSPStreamReader
 	{
 	public:
 		
