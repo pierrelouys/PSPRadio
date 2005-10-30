@@ -289,7 +289,7 @@ int CTextUI::DisplayMessage_EnablingNetwork()
 	GetConfigPos("TEXT_POS:NETWORK_ENABLING", &x, &y);
 	c = GetConfigColor("COLORS:NETWORK_ENABLING");
 	
-	ClearErrorMessage();
+	//ClearErrorMessage();
 	ClearRows(y);
 	uiPrintf(x, y, c, "Enabling Network");
 	
@@ -416,7 +416,7 @@ int CTextUI::DisplayMessage(char *strMsg)
 	{
 		strMsg[MAX_COL*2 - 3] = 0;
 	}
-	uiPrintf(x, y, c, "%s", strMsg);
+	uiPrintf(-1, y, c, "%s", strMsg);
 	
 	return 0;
 }
@@ -490,40 +490,45 @@ int CTextUI::OnStreamOpeningSuccess()
 int CTextUI::OnNewSongData(CPSPSoundStream::MetaData *pData)
 {
 	int r1,r2;
-	GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
-	ClearRows(r1, r2);
-	
-	if (strlen(pData->strTitle) >= 59)
-		pData->strTitle[59] = 0;
+
+	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
+	{
+
+		GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+		ClearRows(r1, r2);
 		
-	if (strlen(pData->strURL) >= 59)
-		pData->strURL[59] = 0;
-	
-	if (0 != pData->iSampleRate)
-	{
-		uiPrintf(0,r1, COLOR_WHITE, "%lukbps %dHz (%d channels) stream",
-				pData->iBitRate/1000, 
-				pData->iSampleRate,
-				pData->iNumberOfChannels);
-				//pData->strMPEGLayer);
+		if (strlen(pData->strTitle) >= 59)
+			pData->strTitle[59] = 0;
+			
+		if (strlen(pData->strURL) >= 59)
+			pData->strURL[59] = 0;
+		
+		if (0 != pData->iSampleRate)
+		{
+			uiPrintf(0,r1, COLOR_WHITE, "%lukbps %dHz (%d channels) stream",
+					pData->iBitRate/1000, 
+					pData->iSampleRate,
+					pData->iNumberOfChannels);
+					//pData->strMPEGLayer);
+			r1++;
+		}
+		uiPrintf(0 , r1,	COLOR_WHITE,	"Stream: ");
+		uiPrintf(8 , r1,	COLOR_CYAN,		"%s ", pData->strURI);
 		r1++;
-	}
-	uiPrintf(0 , r1,	COLOR_WHITE,	"Stream: ");
-	uiPrintf(8 , r1,	COLOR_CYAN,		"%s ", pData->strURI);
-	r1++;
-	uiPrintf(0 , r1,	COLOR_WHITE,	"Title : ");
-	uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
-	r1++;
-	if (pData->strArtist && strlen(pData->strArtist))
-	{
-		uiPrintf(0 , r1,	COLOR_WHITE,	"Artist: ");
-		uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
+		uiPrintf(0 , r1,	COLOR_WHITE,	"Title : ");
+		uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
 		r1++;
-	}
-	if (pData->strURL && strlen(pData->strURL))
-	{
-		uiPrintf(0, r1, COLOR_WHITE,	"URL   : ");
-		uiPrintf(8, r1, COLOR_CYAN,	"%s ", pData->strURL);
+		if (pData->strArtist && strlen(pData->strArtist))
+		{
+			uiPrintf(0 , r1,	COLOR_WHITE,	"Artist: ");
+			uiPrintf(8 , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
+			r1++;
+		}
+		if (pData->strURL && strlen(pData->strURL))
+		{
+			uiPrintf(0, r1, COLOR_WHITE,	"URL   : ");
+			uiPrintf(8, r1, COLOR_CYAN,	"%s ", pData->strURL);
+		}
 	}
 	return 0;
 }
