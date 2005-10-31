@@ -1,37 +1,28 @@
+include Makefile
+
 TARGET = RadioDbg
 KXPLOIT_PRIMARY_DIR = "RadioDbg"
 KXPLOIT_SECONDARY_DIR = "RadioDbg%"
 
-OBJS = PSPRadio.o  DirList.o PlayList.o \
-		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastHandler.o ./ScreenHandler/PlayListHandler.o \
-		./IPSPRadio_UI.o \
-		./TextUI/TextUI.o \
-		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
-		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o ./SandbergUI/SandbergUIOptions.o ./SandbergUI/jsaVRAMManager.o ./SandbergUI/jsaTextureCache.o ./SandbergUI/jsaP3OLoad.o ./SandbergUI/jsaParticleSystem.o
-
-INCDIR = ../
-
-CFLAGS = -O0 -G0 -ggdb -DDEBUG -Wall -Werror -I../SharedLib/PSPApp -L../SharedLib/lib \
-		 -I../SharedLib/libpspnet -I../SharedLib/libiniparser \
-		 -I../SharedLib/Tools -I../SharedLib/Logging \
-		 -I./ScreenHandler \
-		 -I./TextUI \
-		 -I./GraphicsUI \
-		 -I./SandbergUI
+CFLAGS = -O0 -G0 -ggdb -DDEBUG -Wall -Werror $(INCLUDES)
 		 
-CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+CXXFLAGS = $(CFLAGS)
+#-fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
 LIBDIR = 
 LDFLAGS = 
 
-LIBS =  -lpspgdb -lpspgdb_user -lpsphprm_driver \
-		-lPSPApp_debug -lsupc++ -lstdc++ -lpspnet \
+LIBS = -lPSPApp_debug -lsupc++ -lstdc++ -lPSPNet \
 		-lvorbisidec -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
 		-lm -lpsppower -lz
+
+LIBS +=  -lpspgdb -lpspgdb_user -lpsphprm_driver
+		
+
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = RadioDbg
