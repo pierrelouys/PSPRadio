@@ -6,6 +6,9 @@ What's New for PSPRadio
 (sandberg) Added a particle system as a new background effect for the 3D UI.
 (raf) Simplified wifi selection. One option to select profile or turn off.
 (raf) Screens are classes now. If going back and forth between screens, they will retain their state.
+(sandberg) Added support for taking screenshots. Use the Hold button to take a screenshot. When the LED
+stops flashing the screenshot is stored in the Screenshots folder (you need to create that folder, if you
+don't have it already).
 
 0.36-pre4 (r427)
 (raf) Enabled the CPU speed change option.

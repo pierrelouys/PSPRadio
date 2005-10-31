@@ -59,4 +59,5 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	cp -vf SandbergUI/Graphics/*.raw $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	cp -vf SandbergUI/Graphics/*.p3o $(KXPLOIT_PRIMARY_DIR)/SandbergUI
+	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Screenshots
 
