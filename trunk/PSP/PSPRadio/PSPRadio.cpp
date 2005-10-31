@@ -40,6 +40,8 @@
 #include <pspwlan.h> 
 #include <psphprm.h>
 #include "ScreenHandler.h"
+#include "PlayListScreen.h"
+#include "SHOUTcastScreen.h"
 #include "DirList.h"
 #include "PlayList.h"
 #include "TextUI.h"
@@ -57,8 +59,6 @@ class myPSPApp : public CPSPApp
 private:
 	CIniParser *m_Config;
 	CPSPSound *m_Sound;
-	CPlayList *m_CurrentPlayList;
-	CDirList  *m_CurrentPlayListDir;
 	IPSPRadio_UI *m_UI;
 	CScreenHandler *m_ScreenHandler;
 		
@@ -68,8 +68,6 @@ public:
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
 		m_Sound = NULL;
-		m_CurrentPlayList = NULL;
-		m_CurrentPlayListDir = NULL;
 		m_UI = NULL;
 		m_ScreenHandler = NULL;
 	};
@@ -106,9 +104,7 @@ public:
 			sceKernelChangeThreadPriority(sceKernelGetThreadId(), m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
 		}
 		
-		Setup_PlayLists();
-	
-		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
+		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound);
 		Setup_UI(strDir);
 	
 		m_UI->SetTitle(strAppTitle);
@@ -235,22 +231,6 @@ public:
 		return 0;
 	}
 	
-	int Setup_PlayLists()
-	{
-		m_CurrentPlayList = new CPlayList();
-		
-		if (m_CurrentPlayList)
-		{
-			m_CurrentPlayListDir = new CDirList();
-		}
-		else
-		{
-			Log(LOG_ERROR, "Error creating CPlaylist object.");
-		}
-		
-		return 0;
-	}
-	
 	void OnExit()
 	{
 		Log(LOG_VERYLOW, "PSPRadio::OnExit()");
@@ -264,16 +244,6 @@ public:
 		{
 			Log(LOG_VERYLOW, "Exiting. Destroying m_Config object");
 			delete(m_Config);
-		}
-		if (m_CurrentPlayListDir)
-		{
-			Log(LOG_VERYLOW, "Exiting. Destroying m_CurrentPlayListDir object");
-			delete(m_CurrentPlayListDir);
-		}
-		if (m_CurrentPlayList)
-		{
-			Log(LOG_VERYLOW, "Exiting. Destroying m_CurrentPlayList object");
-			delete(m_CurrentPlayList);
 		}
 		if (m_ScreenHandler)
 		{
@@ -356,7 +326,19 @@ public:
 					break;
 				case MID_THPLAY_DONE: /** Done with the current stream! */
 					Log(LOG_VERYLOW, "MID_THPLAY_DONE received, calling OnPlayStateChange(STOP)");
-					OnPlayStateChange(CPSPSound::STOP);
+					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
+					{
+						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::STOP);
+							break;
+						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::STOP);
+							break;
+						default:
+							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
+								m_ScreenHandler->GetCurrentScreen()->GetId());
+							break;
+					}
 					break;
 					
 				case MID_THDECODE_DECODING:
@@ -370,13 +352,36 @@ public:
 					break;
 				case MID_DECODE_STREAM_OPEN_ERROR:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
-					OnPlayStateChange(CPSPSound::STOP);
+					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
+					{
+						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::STOP);
+							break;
+						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::STOP);
+							break;
+						default:
+							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
+								m_ScreenHandler->GetCurrentScreen()->GetId());
+							break;
+					}
 					if (m_UI)
 						m_UI->OnStreamOpeningError();
 					break;
 				case MID_DECODE_STREAM_OPEN:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN received, calling OnPlayStateChange(PLAY)");
-					OnPlayStateChange(CPSPSound::PLAY);
+					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
+					{
+						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::PLAY);
+							break;
+						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::PLAY);							break;
+						default:
+							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
+								m_ScreenHandler->GetCurrentScreen()->GetId());
+							break;
+					}
 					if (m_UI)
 						m_UI->OnStreamOpeningSuccess();
 					break;
@@ -424,72 +429,6 @@ public:
 	{
 		m_ScreenHandler->OnVBlank();
 	}
-	
-	void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
-	{
-		static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
-		
-		switch(OldPlayState)
-		{
-			case CPSPSound::STOP:
-				switch(NewPlayState)
-				{
-					case CPSPSound::PLAY:
-						if (m_UI)
-							m_UI->DisplayActiveCommand(CPSPSound::PLAY);
-						/** Populate m_CurrentMetaData */
-						m_CurrentPlayList->GetCurrentSong(m_Sound->GetCurrentStream()->GetMetaData());
-						if (m_UI)
-							m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
-						break;
-					
-					case CPSPSound::STOP:
-						if (m_UI)
-							m_UI->DisplayActiveCommand(CPSPSound::STOP);
-						Log(LOG_VERYLOW, "Calling Stop() on OnPlayStateChange Old=STOP, New=STOP.");
-						m_Sound->Stop();
-						break;
-					case CPSPSound::PAUSE:
-					default:
-						break;
-				}
-				break;
-			
-			case CPSPSound::PLAY:
-				switch(NewPlayState)
-				{
-					case CPSPSound::STOP:
-						if (m_UI)
-							m_UI->DisplayActiveCommand(CPSPSound::STOP);
-						//m_Sound->Stop();
-						
-						if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
-						{
-							m_Sound->GetCurrentStream()->SetURI(m_CurrentPlayList->GetCurrentURI());
-							
-							/** Populate m_CurrentMetaData */
-							m_CurrentPlayList->GetCurrentSong(m_Sound->GetCurrentStream()->GetMetaData());
-							
-							m_Sound->Play();
-						}
-						break;
-						
-					case CPSPSound::PLAY:
-					case CPSPSound::PAUSE:
-					default:
-						break;
-				}
-				break;
-			
-			case CPSPSound::PAUSE:
-			default:
-				break;
-		}
-		
-		m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
-		
-		OldPlayState = NewPlayState;
-	}
 
 	int OnPowerEvent(int pwrflags)
 	{
@@ -530,7 +469,7 @@ public:
 int main(int argc, char **argv) 
 {
 	#ifdef DEBUG
-		/** Wait for GdbStub to be ready */
+		/** Wait for GdbStub to be ready -- Thanks to bengarney for gdb wifi! */
 		while(!flagGdbStubReady)
 		   sceKernelDelayThread(5000000);
 		sceKernelWaitThreadEnd(handleDriverLoaderThread, NULL);

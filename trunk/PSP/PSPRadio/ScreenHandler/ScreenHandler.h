@@ -74,7 +74,7 @@
 		};
 		
 		
-		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
+		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound);
 		~CScreenHandler();
 		IPSPRadio_UI *StartUI(UIs UI);
 		
@@ -102,7 +102,6 @@
 		CIniParser *m_Config;
 		CPSPSound *m_Sound;
 		char *m_strCWD;
-		//bool m_NetworkStarted;
 		IScreen *Screens[PSPRADIO_SCREEN_LIST_END];
 	};
 #endif

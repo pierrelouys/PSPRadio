@@ -37,10 +37,9 @@
 #include "SandbergUI.h" 
 
 SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
-	:PlayListScreen(Id, ScreenHandler, NULL, NULL)
+	:PlayListScreen(Id, ScreenHandler)
 {
 	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
-	LoadLists();
 }
 
 void SHOUTcastScreen::LoadLists()

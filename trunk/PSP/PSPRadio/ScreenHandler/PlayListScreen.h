@@ -12,7 +12,7 @@
 				PLAYLIST_ENTRIES
 			};
 
-			PlayListScreen(int Id, CScreenHandler *ScreenHandler, CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
+			PlayListScreen(int Id, CScreenHandler *ScreenHandler);
 			virtual ~PlayListScreen();
 			
 			virtual void LoadLists();
@@ -22,6 +22,8 @@
 			virtual void InputHandler(int iButtonMask);
 
 			virtual void OnHPRMReleased(u32 iHPRMMask);
+			
+			virtual void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState);
 
 		protected:
 			CPlayList *m_CurrentPlayList;

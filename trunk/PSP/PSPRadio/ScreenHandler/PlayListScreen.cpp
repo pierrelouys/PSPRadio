@@ -36,28 +36,27 @@
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
 
-PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler, CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir):IScreen(Id, ScreenHandler)
+PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)
 {
 	Log(LOG_VERYLOW,"PlayListScreen Ctor.");
-	if (CurrentPlayList)
-	{
-		m_CurrentPlayList = CurrentPlayList;
-	}
-	else
-	{
-		m_CurrentPlayList = new CPlayList();
-	}
-
-	if (CurrentPlayListDir)
-	{
-		m_CurrentPlayListDir = CurrentPlayListDir;
-	}
-	else
-	{
-		m_CurrentPlayListDir = new CDirList();
-	}
+	m_CurrentPlayList = new CPlayList();
+	m_CurrentPlayListDir = new CDirList();
 
 	LoadLists();
+}
+
+PlayListScreen::~PlayListScreen()
+{
+	if (m_CurrentPlayListDir)
+	{
+		Log(LOG_VERYLOW, "~PlayListScreen(). Destroying m_CurrentPlayListDir object");
+		delete(m_CurrentPlayListDir);
+	}
+	if (m_CurrentPlayList)
+	{
+		Log(LOG_VERYLOW, "~PlayListScreen(). Destroying m_CurrentPlayList object");
+		delete(m_CurrentPlayList);
+	}
 }
 
 void PlayListScreen::LoadLists()
@@ -82,10 +81,6 @@ void PlayListScreen::LoadLists()
 		m_CurrentPlayListSideSelection = PlayListScreen::PLAYLIST_LIST;
 
 	}
-}
-
-PlayListScreen::~PlayListScreen()
-{
 }
 
 void PlayListScreen::Activate(IPSPRadio_UI *UI)
@@ -305,4 +300,70 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 				break;
 		}
 	}
+}
+
+void PlayListScreen::OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
+{
+	static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
+	
+	switch(OldPlayState)
+	{
+		case CPSPSound::STOP:
+			switch(NewPlayState)
+			{
+				case CPSPSound::PLAY:
+					if (m_UI)
+						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
+					/** Populate m_CurrentMetaData */
+					m_CurrentPlayList->GetCurrentSong(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
+					if (m_UI)
+						m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
+					break;
+				
+				case CPSPSound::STOP:
+					if (m_UI)
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					Log(LOG_VERYLOW, "Calling Stop() on OnPlayStateChange Old=STOP, New=STOP.");
+					m_ScreenHandler->GetSound()->Stop();
+					break;
+				case CPSPSound::PAUSE:
+				default:
+					break;
+			}
+			break;
+		
+		case CPSPSound::PLAY:
+			switch(NewPlayState)
+			{
+				case CPSPSound::STOP:
+					if (m_UI)
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					//m_Sound->Stop();
+					
+					if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
+					{
+						m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI(m_CurrentPlayList->GetCurrentURI());
+						
+						/** Populate m_CurrentMetaData */
+						m_CurrentPlayList->GetCurrentSong(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
+						
+						m_ScreenHandler->GetSound()->Play();
+					}
+					break;
+					
+				case CPSPSound::PLAY:
+				case CPSPSound::PAUSE:
+				default:
+					break;
+			}
+			break;
+		
+		case CPSPSound::PAUSE:
+		default:
+			break;
+	}
+	
+	m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
+	
+	OldPlayState = NewPlayState;
 }

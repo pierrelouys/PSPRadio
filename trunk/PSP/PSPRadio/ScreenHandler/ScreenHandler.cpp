@@ -42,22 +42,18 @@
 
 #define ReportError pPSPApp->ReportError
 
-CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir)
+CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound)
 {
-	//m_CurrentScreen = PSPRADIO_SCREEN_PLAYLIST;
-	//m_PreviousScreen = PSPRADIO_SCREEN_PLAYLIST;
 	m_RequestOnPlayOrStop = NOTHING;
 	m_CurrentUI = UI_TEXT;
 	m_UI = NULL;
 	m_strCWD = strdup(strCWD);
 	m_Config = Config;
 	m_Sound = Sound;
-//	m_CurrentPlayList = CurrentPlayList;
-//	m_CurrentPlayListDir = CurrentPlayListDir;
 
 	/** Create Screens... */
 	Screens[PSPRADIO_SCREEN_PLAYLIST] = 
-		new PlayListScreen(PSPRADIO_SCREEN_PLAYLIST, this, CurrentPlayList, CurrentPlayListDir);
+		new PlayListScreen(PSPRADIO_SCREEN_PLAYLIST, this);
 
 	Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER] = 
 		new SHOUTcastScreen(PSPRADIO_SCREEN_SHOUTCAST_BROWSER, this);
