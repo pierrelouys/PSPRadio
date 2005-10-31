@@ -114,6 +114,7 @@ public:
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
 				m_Config->GetInteger("WIFI:PROFILE", 1));
+			m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS)->Activate(m_UI);
 			((OptionsScreen *)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
 		}
 		else
