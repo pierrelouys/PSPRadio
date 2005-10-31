@@ -1,5 +1,3 @@
-include Makefile
-
 TARGET_LIB = ../lib/libPSPApp_debug.a
 
 CFLAGS = -O0 -G0 -ggdb -DDEBUG -Wall -D__PSP__ $(INCLUDES)
@@ -7,6 +5,17 @@ CFLAGS = -O0 -G0 -ggdb -DDEBUG -Wall -D__PSP__ $(INCLUDES)
 CXXFLAGS = $(CFLAGS) 
 #-fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
+
+OBJS = PSPApp.o PSPApp_Network.o PSPEventQ.o \
+		PSPStream.o httpget.o bstdfile.o \
+		PSPSound.o PSPSoundDecoder.o \
+		PSPSoundDecoder_MAD.o \
+		PSPSoundDecoder_OGG.o
+
+INCDIR =
+INCLUDES= -I../libpspnet -I../Logging -I../libsamplerate
+LDFLAGS = -lpspaudiolib -lpspaudio -lPSPNet -llogging
+LIBS = 
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

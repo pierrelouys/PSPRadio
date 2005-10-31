@@ -109,10 +109,31 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 {
 	int x,y,c;
 	m_CurrentScreen = screen;
+	#if 0
+	u16* vram16;
+	u32* vram32;
+	int bufferwidth;
+	int unusedPixelformat;
+	int unknown;
+	#endif
+	
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+
+			#if 0
+			sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
+			sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &unusedPixelformat, &unknown);
+			vram16 = (u16*) vram32;
+			fillLine(vram32, bufferwidth, 0, 255, 0, 0);
+			fillLine(vram32, bufferwidth, 16, 0, 255, 0);
+			fillLine(vram32, bufferwidth, 32, 0, 0, 255);
+			fillLine(vram32, bufferwidth, 48, 255, 255, 255);
+			showImage("screenshot8888.png");
+			//sleep(1);
+			#endif
+			
 			pspDebugScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
 			pspDebugScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
 			pspDebugScreenClear(); 
