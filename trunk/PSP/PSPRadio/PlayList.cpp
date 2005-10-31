@@ -203,6 +203,7 @@ void CPlayList::LoadPlayListFromSHOUTcastXML(char *strFileName)
 						{
 							Tag[0] = 0;
 						}
+
 						/** Good!, all fields for this entry aquired, let's insert in the list! */
 						memset(songdata, 0, sizeof(MetaData));
 						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' Genre='%s' to the list.", 

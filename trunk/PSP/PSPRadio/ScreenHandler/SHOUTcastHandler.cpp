@@ -40,6 +40,7 @@
 #define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"
 #define SHOUTCAST_DB_COMPRESSED_FILENAME		"SHOUTcast/db.xml.gz"
 #define SHOUTCAST_DB_FILENAME					"SHOUTcast/db.xml"
+#define SHOUTCAST_DB_FILENAME_BACKUP			"SHOUTcast/db.xml.bk"
 
 bool UnCompress(char *strSourceFile, char *strDestFile);
 int inf(FILE *source, FILE *dest);
@@ -48,6 +49,11 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 {
 	bool success = false;
 	CPSPStream *WebConnection = new CPSPStream();
+
+	/** First, we back-up the db in case the download fails.. */
+	int iRet = rename(SHOUTCAST_DB_FILENAME, SHOUTCAST_DB_FILENAME_BACKUP);
+
+
 	WebConnection->SetURI(SHOUTCAST_DB_COMPRESSED_REQUEST_STRING);
 	WebConnection->Open();
 	if (true == WebConnection->IsOpen())
@@ -83,6 +89,16 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 		m_UI->DisplayErrorMessage("Couldn't connect to SHOUTcast.com ...");
 	}
 	
+	/** The compressed file is not needed anymore */
+	remove (SHOUTCAST_DB_COMPRESSED_FILENAME);
+
+	if (false == success)
+	{
+		/** We restore the back-up of the db, as the download failed.. */
+		iRet = rename(SHOUTCAST_DB_FILENAME_BACKUP, SHOUTCAST_DB_FILENAME);
+
+	}
+
 	return success;
 }
 
