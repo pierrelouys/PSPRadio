@@ -108,8 +108,7 @@ public:
 		
 		Setup_PlayLists();
 	
-		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound);
-		m_ScreenHandler->SetUp(m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
+		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound, m_CurrentPlayList, m_CurrentPlayListDir);
 		Setup_UI(strDir);
 	
 		m_UI->SetTitle(strAppTitle);
@@ -118,8 +117,8 @@ public:
 		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
-				m_ScreenHandler->GetCurrentNetworkProfile());
-			m_ScreenHandler->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
+				m_Config->GetInteger("WIFI:PROFILE", 1));
+			((OptionsScreen *)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
 		}
 		else
 		{

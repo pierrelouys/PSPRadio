@@ -20,7 +20,27 @@
 
 	class IPSPRadio_UI;
 
+	class CScreenHandler;
 	
+	class IScreen
+	{
+		public:
+			IScreen(int Id, CScreenHandler *ScreenHandler)
+				{m_ScreenHandler = ScreenHandler, m_Id = Id;}
+			virtual ~IScreen(){}
+			
+			int GetId(){ return m_Id; }
+
+			virtual void Activate(IPSPRadio_UI *UI);
+
+			virtual void InputHandler(int iButtonMask){};
+		
+		protected:
+			int m_Id;
+			IPSPRadio_UI *m_UI;
+			CScreenHandler *m_ScreenHandler;
+	};
+
 	class CScreenHandler
 	{
 	public:
@@ -53,69 +73,36 @@
 			STOP
 		};
 		
-		enum PlayListSide
-		{
-			PLAYLIST_LIST,
-			PLAYLIST_ENTRIES
-		};
 		
-		#define MAX_OPTION_LENGTH 60
-		#define MAX_NUM_OF_OPTIONS 20
-		
-		/** Options screen */
-		struct Options
-		{
-			int	 Id;
-			char strName[MAX_OPTION_LENGTH];
-			char *strStates[MAX_NUM_OF_OPTIONS];
-			int  iActiveState;		/** indicates the currently active state -- user pressed X on this state */
-			int  iSelectedState;	/** selection 'box' around option; not active until user presses X */
-			int  iNumberOfStates;
-		};
-		list<Options> m_OptionsList;
-		list<Options>::iterator m_CurrentOptionIterator;
-		void OptionsScreenInputHandler(int iButtonMask);
-		void OnOptionActivation();
-		void PopulateOptionsData();
-		/** Options screen */
-		
-		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound);
+		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
 		~CScreenHandler();
 		IPSPRadio_UI *StartUI(UIs UI);
 		
-		void SetUp(CIniParser *Config, CPSPSound *Sound, 
-					CPlayList *CurrentPlayList, CDirList  *CurrentPlayListDir);
-		void StartScreen(Screen screen);
 		void CommonInputHandler(int iButtonMask);
 		void OnHPRMReleased(u32 iHPRMMask);
 
-		int  Start_Network(int iNewProfile = -1);
-		int  Stop_Network();
-		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
-		void PlayListScreenInputHandler(int iButtonMask);
-		
 		bool DownloadSHOUTcastDB();
 
 
-		Screen GetCurrentScreen(){return m_CurrentScreen;}
-		int 	GetCurrentNetworkProfile() { return m_iNetworkProfile; }
-		
+		IScreen *GetCurrentScreen(){return m_CurrentScreen;}
+		UIs GetCurrentUI(){return m_CurrentUI;}
+		char *GetCWD(){return m_strCWD;}
+		CPSPSound *GetSound(){return m_Sound;}
+		IScreen *GetScreen(int Id){return Screens[Id];}
+
 		void OnVBlank();
 		
 		request_on_play_stop m_RequestOnPlayOrStop;
 		
 	private:
-		Screen m_CurrentScreen;
-		Screen m_PreviousScreen;
+		IScreen *m_CurrentScreen;
+		IScreen *m_PreviousScreen;
 		UIs m_CurrentUI;
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;
 		CPSPSound *m_Sound;
 		char *m_strCWD;
-		int m_iNetworkProfile;
-		bool m_NetworkStarted;
-		CPlayList *m_CurrentPlayList;
-		CDirList  *m_CurrentPlayListDir;
-		PlayListSide m_CurrentPlayListSideSelection;
+		//bool m_NetworkStarted;
+		IScreen *Screens[PSPRADIO_SCREEN_LIST_END];
 	};
 #endif

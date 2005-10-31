@@ -138,11 +138,11 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	}
 }
 
-void CTextUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
-								list<CScreenHandler::Options>::iterator &CurrentOptionIterator)
+void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
+										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator)
 {
-	list<CScreenHandler::Options>::iterator OptionIterator;
-	CScreenHandler::Options	Option;
+	list<OptionsScreen::Options>::iterator OptionIterator;
+	OptionsScreen::Options	Option;
 	
 	int x=-1,y=5,c=0xFFFFFF;
 	
@@ -677,7 +677,7 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	return 0;
 }
 
-int CTextUI::OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection)
+int CTextUI::OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection)
 {
 	int r1,r2, ct, iListX, iEntryX, y;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &iEntryX, &y);
@@ -689,12 +689,12 @@ int CTextUI::OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide C
 	
 	switch (CurrentPlayListSideSelection)
 	{
-		case CScreenHandler::PLAYLIST_LIST:
+		case PlayListScreen::PLAYLIST_LIST:
 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
 			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
 			break;
 		
-		case CScreenHandler::PLAYLIST_ENTRIES:
+		case PlayListScreen::PLAYLIST_ENTRIES:
 			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
 			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
 			break;

@@ -2,6 +2,8 @@
 	#define _UI_I_
 	
 	#include "ScreenHandler.h"
+	#include "PlayListScreen.h"
+	#include "OptionsScreen.h"
 	#include "PSPSound.h"
 	#include "PlayList.h"
 	#include "DirList.h"
@@ -37,12 +39,12 @@
 		
 		virtual int DisplayPLList(CDirList *plList){return 0;};
 		virtual	int DisplayPLEntries(CPlayList *PlayList){return 0;};
-		virtual int OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection){return 0;};
+		virtual int OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection){return 0;};
 		
 		/** Screen Handling */
 		virtual void Initialize_Screen(CScreenHandler::Screen screen){};
-		virtual void UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
-										 list<CScreenHandler::Options>::iterator &CurrentOptionIterator){};
+		virtual void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
+										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator){};
 	
 	};
 

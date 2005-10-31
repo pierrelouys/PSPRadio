@@ -27,10 +27,9 @@
 #include <iniparser.h>
 #include <Tools.h>
 #include <Logging.h>
+#include <pspwlan.h> 
 #include <psppower.h>
-
-
-#include "ScreenHandler.h"
+#include "OptionsScreen.h"
 #include "DirList.h"
 #include "PlayList.h"
 #include "TextUI.h"
@@ -50,7 +49,7 @@ enum OptionIDs
 	OPTION_ID_SHOUTCAST_DN,
 };
 
-CScreenHandler::Options OptionsData[] = 
+OptionsScreen::Options OptionsData[] = 
 {
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
 	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",	{"Off","1","2","3","4"},			1,1,5		},
@@ -63,7 +62,23 @@ CScreenHandler::Options OptionsData[] =
 	{  -1,  						"",							{""},							0,0,0		}
 };
 
-void CScreenHandler::PopulateOptionsData()
+void OptionsScreen::Activate(IPSPRadio_UI *UI)
+{
+	IScreen::Activate(UI);
+
+	// Update network and UI options.  This is necesary the first time */
+	UpdateOptionsData();
+	m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+}
+
+OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, ScreenHandler)
+{
+	m_iNetworkProfile = 1;
+//	m_NetworkStarted  = false;
+}
+
+
+void OptionsScreen::UpdateOptionsData()
 {
 	Options Option;
 	
@@ -170,7 +185,7 @@ void CScreenHandler::PopulateOptionsData()
 				break;
 			
 			case OPTION_ID_UI:
-				Option.iActiveState = m_CurrentUI + 1;
+				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
 				break;
 		}
 		
@@ -181,7 +196,7 @@ void CScreenHandler::PopulateOptionsData()
 
 }
 
-void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
+void OptionsScreen::InputHandler(int iButtonMask)
 {
 	if (iButtonMask & PSP_CTRL_UP)
 	{
@@ -228,7 +243,7 @@ void CScreenHandler::OptionsScreenInputHandler(int iButtonMask)
 //	OPTION_ID_NETWORK_ENABLE,
 //	OPTION_ID_USB_ENABLE,
 //	OPTION_ID_CPU_SPEED
-void CScreenHandler::OnOptionActivation()
+void OptionsScreen::OnOptionActivation()
 {
 	bool fOptionActivated = false;
 	static time_t	timeLastTime = 0;
@@ -326,14 +341,14 @@ void CScreenHandler::OnOptionActivation()
 			fOptionActivated = true;
 			break;
 		case OPTION_ID_UI:
-			StartUI((UIs)((*m_CurrentOptionIterator).iSelectedState - 1));
+			m_ScreenHandler->StartUI((CScreenHandler::UIs)((*m_CurrentOptionIterator).iSelectedState - 1));
 			fOptionActivated = true;
 			break;
 		case OPTION_ID_SHOUTCAST_DN:
 			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
 			{
 				m_UI->DisplayMessage("Downloading latest SHOUTcast Database. . .");
-				if (true == DownloadSHOUTcastDB())
+				if (true == m_ScreenHandler->DownloadSHOUTcastDB())
 				{
 					timeLastTime = timeNow; /** Only when successful */
 				}
@@ -351,4 +366,77 @@ void CScreenHandler::OnOptionActivation()
 		(*m_CurrentOptionIterator).iActiveState = (*m_CurrentOptionIterator).iSelectedState;
 		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
+}
+
+int OptionsScreen::Start_Network(int iProfile)
+{
+	if (-1 != iProfile)
+	{
+		m_iNetworkProfile = abs(iProfile);
+	}
+
+	if (0 == iProfile)
+	{
+		m_iNetworkProfile = 1;
+		Log(LOG_ERROR, "Network Profile in is invalid. Network profiles start from 1.");
+	}
+	if (sceWlanGetSwitchState() != 0)
+	{
+		if (pPSPApp->IsNetworkEnabled())
+		{
+			m_UI->DisplayMessage_DisablingNetwork();
+
+			Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+			pPSPApp->DisableNetwork();
+			sceKernelDelayThread(500000);  
+		}
+		
+		m_UI->DisplayMessage_EnablingNetwork();
+
+		if (pPSPApp->EnableNetwork(abs(m_iNetworkProfile)) == 0)
+		{
+			m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		}
+		else
+		{
+			m_UI->DisplayMessage_DisablingNetwork();
+		}
+
+		m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
+		
+		//m_NetworkStarted = true;
+		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
+		
+	}
+	else
+	{
+		ReportError("The Network Switch is OFF, Cannot Start Network.");
+	}
+	
+	return 0;
+}	
+
+int OptionsScreen::Stop_Network()
+{
+	if (pPSPApp->IsNetworkEnabled())
+	{
+		m_UI->DisplayMessage_DisablingNetwork();
+
+		Log(LOG_INFO, "Disabling network...");
+		pPSPApp->DisableNetwork();
+		sceKernelDelayThread(500000);  
+	}
+	return 0;
+}
+
+void OptionsScreen::GetNetworkProfileName(int iProfile, char *buf, size_t size)
+{
+	netData data;
+	memset(&data, 0, sizeof(netData));
+	data.asUint = 0xBADF00D;
+	memset(&data.asString[4], 0, 124);
+	sceUtilityGetNetParam(iProfile, 0/**Profile Name*/, &data);
+	
+	strncpy(buf, data.asString, size);
 }

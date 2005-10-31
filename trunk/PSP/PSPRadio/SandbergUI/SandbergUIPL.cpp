@@ -291,15 +291,15 @@ int CSandbergUI::FindFirstEntry(int list_cnt, int current)
 	return first_entry;
 }
 
-int CSandbergUI::OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection)
+int CSandbergUI::OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection)
 {
 
 	switch (CurrentPlayListSideSelection)
 	{
-		case	CScreenHandler::PLAYLIST_LIST:
+		case	PlayListScreen::PLAYLIST_LIST:
 			select_target = 0;
 			break;
-		case	CScreenHandler::PLAYLIST_ENTRIES:
+		case	PlayListScreen::PLAYLIST_ENTRIES:
 			select_target = SIN_COUNT-1;
 			break;
 		default:

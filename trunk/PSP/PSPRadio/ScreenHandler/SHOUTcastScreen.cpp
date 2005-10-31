@@ -29,12 +29,68 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
-#include "ScreenHandler.h"
+#include "SHOUTcastScreen.h"
 #include "DirList.h"
 #include "PlayList.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
+
+SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
+	:PlayListScreen(Id, ScreenHandler, NULL, NULL)
+{
+	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
+	LoadLists();
+}
+
+void SHOUTcastScreen::LoadLists()
+{
+	if (m_CurrentPlayListDir && m_CurrentPlayList)
+	{
+		Log(LOG_LOWLEVEL, "StartScreen::PSPRADIO_SCREEN_SHOUTCAST_BROWSER");
+		m_CurrentPlayListDir->Clear();
+		char *strFileName = NULL;
+		strFileName = (char *)malloc(strlen(m_ScreenHandler->GetCWD()) + strlen("SHOUTcast") + 10);
+		sprintf(strFileName, "%s/SHOUTcast", m_ScreenHandler->GetCWD());
+		m_CurrentPlayListDir->LoadDirectory(strFileName); //**//
+		free(strFileName),strFileName = NULL;
+		if (m_CurrentPlayListDir->Size() > 0)
+		{
+			Log(LOG_LOWLEVEL, "Loading xml file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
+			m_CurrentPlayList->Clear();
+			m_CurrentPlayList->LoadPlayListFromSHOUTcastXML(m_CurrentPlayListDir->GetCurrentURI());
+		}
+		
+		m_CurrentPlayListSideSelection = PlayListScreen::PLAYLIST_LIST;
+
+	}
+}
+
+void SHOUTcastScreen::Activate(IPSPRadio_UI *UI)
+{
+	IScreen::Activate(UI);
+	m_UI->DisplayPLList(m_CurrentPlayListDir);
+	/** tell ui of m_CurrentPlayListSideSelection change. */
+	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
+	if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+	{
+		m_UI->DisplayPLEntries(m_CurrentPlayList);
+	}
+
+	if (CPSPSound::PLAY == m_ScreenHandler->GetSound()->GetPlayState())
+	{
+		/** Populate m_CurrentMetaData */
+		//don't until user starts it!
+		//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
+		m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
+	}
+}
+
+void SHOUTcastScreen::InputHandler(int iButtonMask)
+{
+	PlayListScreen::InputHandler(iButtonMask);
+}
+
 
 #define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
 #define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"

@@ -76,11 +76,11 @@ void CGraphicsUI::Initialize_Screen(CScreenHandler::Screen screen)
 	}
 }
 
-void CGraphicsUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
-								list<CScreenHandler::Options>::iterator &CurrentOptionIterator)
+void CGraphicsUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
+										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator)
 {
-	list<CScreenHandler::Options>::iterator OptionIterator;
-	CScreenHandler::Options	Option;
+	list<OptionsScreen::Options>::iterator OptionIterator;
+	OptionsScreen::Options	Option;
 	
 	
 	if (OptionsList.size() > 0)

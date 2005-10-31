@@ -132,12 +132,12 @@ public:
 	int OnNewSongData(MetaData *pData);
 	int DisplayPLList(CDirList *plList);
 	int DisplayPLEntries(CPlayList *PlayList);
-	int OnCurrentPlayListSideSelectionChange(CScreenHandler::PlayListSide CurrentPlayListSideSelection);
+	int OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection);
 
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);
-	void UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, 
-							list<CScreenHandler::Options>::iterator &CurrentOptionIterator);
+	void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
+										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator);
 
 private:
 	enum screen_state_enum

@@ -85,12 +85,13 @@ void CSandbergUI::RenderOptionLogo(void)
 	sceGuDisable(GU_TEXTURE_2D);
 }
 
-void CSandbergUI::UpdateOptionsScreen(list<CScreenHandler::Options> &OptionsList, list<CScreenHandler::Options>::iterator &CurrentOptionIterator)
+void CSandbergUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
+										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator)
 {
 	bool active_item;
 	int y = 6;
-	list<CScreenHandler::Options>::iterator OptionIterator;
-	CScreenHandler::Options	Option;
+	list<OptionsScreen::Options>::iterator OptionIterator;
+	OptionsScreen::Options	Option;
 
 	while(OptionsItems.size())
 	{
