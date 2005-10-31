@@ -397,10 +397,15 @@ public:
 					if (m_UI)
 						m_UI->OnConnectionProgress();
 					break;
-					
+
 				case MID_ONBUTTON_PRESSED:
+					if (*((int*)event.pData) & PSP_CTRL_HOLD)
+					{
+						// Generic screenshot method, which works for all UI classes
+						m_ScreenHandler->Screenshot();
+					}
 					break;
-					
+
 				case MID_ONBUTTON_RELEASED:
 					m_ScreenHandler->CommonInputHandler(*((int*)event.pData));
 					break;

@@ -45,7 +45,7 @@
 		virtual void Initialize_Screen(CScreenHandler::Screen screen){};
 		virtual void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator){};
-	
+		virtual void OnScreenshot(CScreenHandler::ScreenShotState state){};
 	};
 
 #endif

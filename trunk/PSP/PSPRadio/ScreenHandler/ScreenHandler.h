@@ -93,7 +93,22 @@
 		void OnVBlank();
 		
 		request_on_play_stop m_RequestOnPlayOrStop;
-		
+
+		/** Screenshot functionality */
+
+		#define SCREEN_WIDTH 480
+		#define SCREEN_HEIGHT 272
+
+		enum ScreenShotState
+		{
+			PSPRADIO_SCREENSHOT_ACTIVE,
+			PSPRADIO_SCREENSHOT_NOT_ACTIVE
+		};
+
+		void Screenshot();
+		char *ScreenshotName(char *path);
+		void ScreenshotStore(char *filename);
+
 	private:
 		IScreen *m_CurrentScreen;
 		IScreen *m_PreviousScreen;

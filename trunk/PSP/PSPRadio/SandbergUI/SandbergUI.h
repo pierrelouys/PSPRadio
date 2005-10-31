@@ -138,6 +138,7 @@ public:
 	void Initialize_Screen(CScreenHandler::Screen screen);
 	void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator);
+	void OnScreenshot(CScreenHandler::ScreenShotState state);
 
 private:
 	enum screen_state_enum
@@ -222,10 +223,11 @@ private:
 	void RenderOptions(int render_option);
 
 private:
-	jsaTextureCache		tcache;
-	jsaP3OLoad		p3oloader;
-	jsaParticleSystem	psystem;
-	list<StoredOptionItem>	OptionsItems;
+	jsaTextureCache				tcache;
+	jsaP3OLoad				p3oloader;
+	jsaParticleSystem			psystem;
+	list<StoredOptionItem>			OptionsItems;
+	CScreenHandler::ScreenShotState 	m_state;
 
 	void* 	framebuffer;
 	float 	start, curr;

@@ -111,6 +111,7 @@ CSandbergUI::CSandbergUI()
 	screen_state	= SCREEN_PLAYING;
 	select_state	= 0;
 	select_target	= 0;
+	m_state		= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 }
 
 CSandbergUI::~CSandbergUI()
@@ -296,52 +297,60 @@ int CSandbergUI::OnStreamOpeningSuccess()
 	return 0;
 }
 
+void CSandbergUI::OnScreenshot(CScreenHandler::ScreenShotState state)
+{
+	m_state = state;
+}
+
 int CSandbergUI::OnVBlank()
 {
-	sceGuStart(GU_DIRECT,::gu_list);
-
-	sceGuClearColor(0xFFAA6633);
-	sceGuClearDepth(0);
-	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
-
+	if (m_state == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		ScePspFVector3 pos = { 0, 0, 1.0f };
-		sceGuLight(0,GU_DIRECTIONAL,GU_DIFFUSE_AND_SPECULAR,&pos);
-		sceGuLightColor(0,GU_DIFFUSE,0xffffffff);
-		sceGuLightColor(0,GU_SPECULAR,0xffffffff);
-		sceGuLightAtt(0,1.0f,1.0f,0.0f);
+		sceGuStart(GU_DIRECT,::gu_list);
+
+		sceGuClearColor(0xFFAA6633);
+		sceGuClearDepth(0);
+		sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+
+		{
+			ScePspFVector3 pos = { 0, 0, 1.0f };
+			sceGuLight(0,GU_DIRECTIONAL,GU_DIFFUSE_AND_SPECULAR,&pos);
+			sceGuLightColor(0,GU_DIFFUSE,0xffffffff);
+			sceGuLightColor(0,GU_SPECULAR,0xffffffff);
+			sceGuLightAtt(0,1.0f,1.0f,0.0f);
+		}
+		sceGuSpecular(1.0f);
+		sceGuAmbient(0x202020);
+
+		sceGumMatrixMode(GU_PROJECTION);
+		sceGumLoadIdentity();
+		sceGumPerspective(75.0f,16.0f/9.0f,0.5f,1000.0f);
+
+		sceGumMatrixMode(GU_VIEW);
+		sceGumLoadIdentity();
+
+		switch (screen_state)
+		{
+			case SCREEN_PLAYING:
+			{
+				RenderPlayScreen();
+			}
+			break;
+			case SCREEN_OPTIONS:
+			{
+				RenderOptionScreen();
+			}
+			break;
+			default:
+			{
+			}
+			break;
+		}
+		sceGuFinish();
+		sceGuSync(0,0);
+
+		framebuffer = sceGuSwapBuffers();
 	}
-	sceGuSpecular(1.0f);
-	sceGuAmbient(0x202020);
-
-	sceGumMatrixMode(GU_PROJECTION);
-	sceGumLoadIdentity();
-	sceGumPerspective(75.0f,16.0f/9.0f,0.5f,1000.0f);
-
-	sceGumMatrixMode(GU_VIEW);
-	sceGumLoadIdentity();
-
-	switch (screen_state)
-	{
-		case SCREEN_PLAYING:
-		{
-			RenderPlayScreen();
-		}
-		break;
-		case SCREEN_OPTIONS:
-		{
-			RenderOptionScreen();
-		}
-		break;
-		default:
-		{
-		}
-		break;
-	}
-	sceGuFinish();
-	sceGuSync(0,0);
-
-	framebuffer = sceGuSwapBuffers();
 	return 0;
 }
 
