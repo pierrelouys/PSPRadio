@@ -39,9 +39,6 @@
 		#define siglongjmp(a,b) longjmp(a,b)
 		//#define jabort 1
 		
-		/* Define printf, just to make typing easier */
-		#define printf	pspDebugScreenPrintf
-		
 		//#define getpass(a) "password" //Need to implement!
 		
 		/** BSD Style seek macros */
