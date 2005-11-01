@@ -131,9 +131,8 @@ CPSPApp::~CPSPApp()
 int CPSPApp::Run()
 {
 	short oldAnalogue = 0;
-	int   oldButtonMask = 0;
-	SceCtrlLatch latch; 
 	u32 hprmlatch = 0;
+	CPSPKeyHandler::KeyEvent event;
 	
 	Log(LOG_INFO, "Run(): Going into main loop.");
 	
@@ -150,20 +149,12 @@ int CPSPApp::Run()
 		OnVBlank();
 		//SendEvent(MID_ONVBLANK);
  
-		sceCtrlReadLatch(&latch);
-		
-		if (latch.uiMake)
+		// If a key event was detected notify the application
+		if (KeyHandler.KeyHandler(event))
 		{
-			/** Button Pressed */
-			oldButtonMask = latch.uiPress;
-			SendEvent(MID_ONBUTTON_PRESSED, &oldButtonMask);
+			SendEvent(event.event, (void *)&(event.key_state));
 		}
-		else if (latch.uiBreak)
-		{
-			/** Button Released */
-			SendEvent(MID_ONBUTTON_RELEASED, &oldButtonMask);
-		}
-		
+
 		if (oldAnalogue != (short)m_pad.Lx)
 		{
 			oldAnalogue = (short)m_pad.Lx;

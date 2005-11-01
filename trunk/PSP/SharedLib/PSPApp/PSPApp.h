@@ -27,6 +27,7 @@
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
+	#include "PSPKeyHandler.h"
 	#include "PSPEventQ.h"
 
 	/** Sender IDs */
@@ -52,10 +53,12 @@
 	#define MID_TCP_CONNECTING_SUCCESS		0x000000C2
 	#define MID_PSPAPP_EXITING				0x01000000
 	#define MID_ONBUTTON_PRESSED			0x01000010
-	#define MID_ONBUTTON_RELEASED			0x01000011
-	#define MID_ONHPRM_RELEASED				0x01000012
+	#define MID_ONBUTTON_REPEAT				0x01000013
+	#define MID_ONBUTTON_LONG_PRESS			0x01000012
+	#define MID_ONBUTTON_RELEASED			0x01000013
+	#define MID_ONHPRM_RELEASED				0x01000014
 	#define MID_ONVBLANK					0x01000020
-	
+
 	class CPSPThread;
 	class CPSPApp;
 	
@@ -132,6 +135,7 @@
 	private:
 		/** Data */
 		CLogging m_Log;
+		CPSPKeyHandler KeyHandler;
 		bool m_Exit;
 		bool m_NetworkEnabled;
 		bool m_USBEnabled;

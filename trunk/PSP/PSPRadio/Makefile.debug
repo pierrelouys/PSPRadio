@@ -17,7 +17,7 @@ LIBS = -lPSPApp_debug -lsupc++ -lstdc++ -lPSPNet \
 		-lvorbisidec -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
-		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
+		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
 		-lpng -lm -lpsppower -lz -lTools
 
 LIBS +=  -lpspgdb -lpspgdb_user -lpsphprm_driver

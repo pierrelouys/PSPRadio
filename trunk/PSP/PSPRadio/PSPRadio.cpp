@@ -400,17 +400,20 @@ public:
 					break;
 
 				case MID_ONBUTTON_PRESSED:
-					if (*((int*)event.pData) & PSP_CTRL_HOLD)
+					break;
+
+				case MID_ONBUTTON_RELEASED:
+					m_ScreenHandler->CommonInputHandler(*((int*)event.pData));
+					break;
+
+				case MID_ONBUTTON_LONG_PRESS:
+					if (*((int*)event.pData) & PSP_CTRL_SELECT)
 					{
 						// Generic screenshot method, which works for all UI classes
 						m_ScreenHandler->Screenshot();
 					}
 					break;
 
-				case MID_ONBUTTON_RELEASED:
-					m_ScreenHandler->CommonInputHandler(*((int*)event.pData));
-					break;
-					
 				case MID_ONHPRM_RELEASED:
 					m_ScreenHandler->OnHPRMReleased(*((u32*)event.pData));
 					break;

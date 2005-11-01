@@ -31,7 +31,7 @@ LIBS = -lPSPApp -lsupc++ -lstdc++ -lPSPNet \
 		-lvorbisidec -lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
-		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
+		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
 		-lpsppower -lpng -lz -lm -lTools
 
 EXTRA_TARGETS = EBOOT.PBP
