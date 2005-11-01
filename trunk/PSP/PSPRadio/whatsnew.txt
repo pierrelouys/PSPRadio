@@ -9,6 +9,10 @@ What's New for PSPRadio
 (sandberg) Added support for taking screenshots. Use the Hold button to take a screenshot. When the LED
 stops flashing the screenshot is stored in the Screenshots folder (you need to create that folder, if you
 don't have it already).
+(sandberg) Added support repeated and long key presses. The repeated key presses are usefull when navigating
+the playlists.
+(sandberg) Moved the screenshot function to be activated on a long key press on Select (appr. 1 second). The
+screenshot will be taken when releasing the button.
 
 0.36-pre4 (r427)
 (raf) Enabled the CPU speed change option.
