@@ -22,6 +22,7 @@ public:
 	int DisplayErrorMessage(char *strMsg);
 	int DisplayMessage(char *strMsg);
 	int DisplayBufferPercentage(int a);
+	int OnVBlank();
 
 	/** these are listed in sequential order */
 	int OnNewStreamStarted();
@@ -42,6 +43,7 @@ public:
 
 	
 private:
+	bool  m_isdirty;
 	CLock *m_lockprint;
 	CLock *m_lockclear;
 	CIniParser *m_Config;

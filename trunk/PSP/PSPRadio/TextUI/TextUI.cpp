@@ -17,7 +17,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <list>
-#include <pspdebug.h>
+//#include <pspdebug.h>
 #include <pspdisplay.h>
 #include <PSPApp.h>
 #include <PSPSound.h>
@@ -31,11 +31,12 @@
 #include <Tools.h>
 #include <stdarg.h>
 #include <Logging.h>
+#include <Print.h>
 #include "TextUI.h"
 
 	
 /* Define printf, just to make typing easier */
-#define printf	pspDebugScreenPrintf
+#define printf	ScreenPrintf
 
 #define MAX_ROWS 34
 #define MAX_COL  68
@@ -54,6 +55,7 @@ CTextUI::CTextUI()
 	m_lockprint = new CLock("Print_Lock");
 	m_lockclear = new CLock("Clear_Lock");
 
+	m_isdirty = false;
 }
 
 CTextUI::~CTextUI()
@@ -83,7 +85,7 @@ int CTextUI::Initialize(char *strCWD)
 	
 	free (strCfgFile), strCfgFile = NULL;
 	
-	pspDebugScreenInit();
+	ScreenInit();
 	
 	return 0;
 }
@@ -109,34 +111,16 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 {
 	int x,y,c;
 	m_CurrentScreen = screen;
-	#if 0
-	u16* vram16;
-	u32* vram32;
-	int bufferwidth;
-	int unusedPixelformat;
-	int unknown;
-	#endif
 	
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 
-			#if 0
-			sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
-			sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &unusedPixelformat, &unknown);
-			vram16 = (u16*) vram32;
-			fillLine(vram32, bufferwidth, 0, 255, 0, 0);
-			fillLine(vram32, bufferwidth, 16, 0, 255, 0);
-			fillLine(vram32, bufferwidth, 32, 0, 0, 255);
-			fillLine(vram32, bufferwidth, 48, 255, 255, 255);
-			showImage("screenshot8888.png");
-			//sleep(1);
-			#endif
-			
-			pspDebugScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
-			pspDebugScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
-			pspDebugScreenClear(); 
+			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
+			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
+			//ScreenSetBackgroundImage("pumpkin.png");
+			ScreenClear(); 
 			if (m_strTitle)
 			{
 				GetConfigPos("TEXT_POS:TITLE", &x, &y);
@@ -150,13 +134,23 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			uiPrintf(x, y, c, "X Play | [] Stop | ^ Cycle Screens | START Options");
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			pspDebugScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
-			pspDebugScreenSetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
-			pspDebugScreenClear(); 
+			ScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
+			ScreenSetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
+			ScreenClear(); 
 			uiPrintf(-1,0, GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"), "PSPRadio OPTIONS:");
 			break;
 	
 	}
+}
+
+int CTextUI::OnVBlank()
+{
+	if (m_isdirty)
+	{
+		//flip
+		m_isdirty = false;
+	}
+	return 0;
 }
 
 void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
@@ -248,8 +242,8 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 	{
 		x = 67/2 - strlen(msg)/2;
 	}
-	pspDebugScreenSetXY(x,y);
-	pspDebugScreenSetTextColor(color);
+	ScreenSetXY(x,y);
+	ScreenSetTextColor(color);
 	printf(msg);
 	
 	va_end (args);                  /* Clean up. */
@@ -265,8 +259,9 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		pspDebugScreenSetXY(0,iRow);
-		printf("%67c", ' ');
+		//ScreenSetXY(0,iRow);
+		//printf("%67c", ' ');
+		ScreenClearLine(iRow);
 	}
 	m_lockclear->Unlock();
 }
@@ -279,7 +274,7 @@ void CTextUI::ClearHalfRows(int iColStart, int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		pspDebugScreenSetXY(iColStart,iRow);
+		ScreenSetXY(iColStart,iRow);
 		printf("%33c", ' ');
 	}
 	m_lockclear->Unlock();
