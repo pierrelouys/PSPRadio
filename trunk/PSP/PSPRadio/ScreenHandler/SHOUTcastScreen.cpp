@@ -40,6 +40,7 @@ SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 	:PlayListScreen(Id, ScreenHandler)
 {
 	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
+	LoadLists();
 }
 
 void SHOUTcastScreen::LoadLists()
