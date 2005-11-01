@@ -69,13 +69,16 @@ void SHOUTcastScreen::LoadLists()
 void SHOUTcastScreen::Activate(IPSPRadio_UI *UI)
 {
 	IScreen::Activate(UI);
-	m_UI->DisplayPLList(m_CurrentPlayListDir);
+	if (m_CurrentPlayListDir->GetList()->size() > 0)
+	{
+		m_UI->DisplayPLList(m_CurrentPlayListDir);
+	}
 	/** tell ui of m_CurrentPlayListSideSelection change. */
-	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
-	if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+	if(m_CurrentPlayList->GetList()->size() > 0)
 	{
 		m_UI->DisplayPLEntries(m_CurrentPlayList);
 	}
+	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 
 	if (CPSPSound::PLAY == m_ScreenHandler->GetSound()->GetPlayState())
 	{

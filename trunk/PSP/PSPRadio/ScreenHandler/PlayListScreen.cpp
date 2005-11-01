@@ -87,13 +87,16 @@ void PlayListScreen::Activate(IPSPRadio_UI *UI)
 {
 	IScreen::Activate(UI);
 
-	m_UI->DisplayPLList(m_CurrentPlayListDir);
+	if (m_CurrentPlayListDir->GetList()->size() > 0)
+	{
+		m_UI->DisplayPLList(m_CurrentPlayListDir);
+	}
 	/** tell ui of m_CurrentPlayListSideSelection change. */
-	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
-	if(m_CurrentPlayList->GetNumberOfSongs() > 0)
+	if(m_CurrentPlayList->GetList()->size() > 0)
 	{
 		m_UI->DisplayPLEntries(m_CurrentPlayList);
 	}
+	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 
 	if (CPSPSound::PLAY == m_ScreenHandler->GetSound()->GetPlayState())
 	{
@@ -121,19 +124,25 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		switch(m_CurrentPlayListSideSelection)
 		{
 			case PlayListScreen::PLAYLIST_LIST:
-				for (int i = 0; i < 10; i++)
+				if (m_CurrentPlayListDir->GetList()->size() > 0)
 				{
-					m_CurrentPlayListDir->Prev();
+					for (int i = 0; i < 10; i++)
+					{
+						m_CurrentPlayListDir->Prev();
+					}
+					m_UI->DisplayPLList(m_CurrentPlayListDir);
 				}
-				m_UI->DisplayPLList(m_CurrentPlayListDir);
 				break;
 			
 			case PlayListScreen::PLAYLIST_ENTRIES:
-				for (int i = 0; i < 10; i++)
+				if (m_CurrentPlayList->GetList()->size() > 0)
 				{
-					m_CurrentPlayList->Prev();
+					for (int i = 0; i < 10; i++)
+					{
+						m_CurrentPlayList->Prev();
+					}
+					m_UI->DisplayPLEntries(m_CurrentPlayList);
 				}
-				m_UI->DisplayPLEntries(m_CurrentPlayList);
 				break;
 		}
 	}
@@ -142,19 +151,25 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		switch(m_CurrentPlayListSideSelection)
 		{
 			case PlayListScreen::PLAYLIST_LIST:
-				for (int i = 0; i < 10; i++)
+				if (m_CurrentPlayListDir->GetList()->size() > 0)
 				{
-					m_CurrentPlayListDir->Next();
+					for (int i = 0; i < 10; i++)
+					{
+						m_CurrentPlayListDir->Next();
+					}
+					m_UI->DisplayPLList(m_CurrentPlayListDir);
 				}
-				m_UI->DisplayPLList(m_CurrentPlayListDir);
 				break;
 			
 			case PlayListScreen::PLAYLIST_ENTRIES:
-				for (int i = 0; i < 10; i++)
+				if (m_CurrentPlayList->GetList()->size() > 0)
 				{
-					m_CurrentPlayList->Next();
+					for (int i = 0; i < 10; i++)
+					{
+						m_CurrentPlayList->Next();
+					}
+					m_UI->DisplayPLEntries(m_CurrentPlayList);
 				}
-				m_UI->DisplayPLEntries(m_CurrentPlayList);
 				break;
 		}
 	}
@@ -193,60 +208,66 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		switch(m_CurrentPlayListSideSelection)
 		{
 			case PlayListScreen::PLAYLIST_LIST:
-				m_CurrentPlayList->Clear();
-				if (CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER == m_ScreenHandler->GetCurrentScreen()->GetId())
+				if (m_CurrentPlayListDir->GetList()->size() > 0)
 				{
-					m_CurrentPlayList->LoadPlayListFromSHOUTcastXML(m_CurrentPlayListDir->GetCurrentURI());
+					m_CurrentPlayList->Clear();
+					if (CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER == m_ScreenHandler->GetCurrentScreen()->GetId())
+					{
+						m_CurrentPlayList->LoadPlayListFromSHOUTcastXML(m_CurrentPlayListDir->GetCurrentURI());
+					}
+					else
+					{
+						m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
+					}
+					m_UI->DisplayPLEntries(m_CurrentPlayList);
+					m_CurrentPlayListSideSelection = PlayListScreen::PLAYLIST_ENTRIES;
+					/** Notify the UI of m_CurrentPlayListSideSelection change. */
+					m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 				}
-				else
-				{
-					m_CurrentPlayList->LoadPlayListURI(m_CurrentPlayListDir->GetCurrentURI());
-				}
-				m_UI->DisplayPLEntries(m_CurrentPlayList);
-				m_CurrentPlayListSideSelection = PlayListScreen::PLAYLIST_ENTRIES;
-				/** Notify the UI of m_CurrentPlayListSideSelection change. */
-				m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
 				break;
 			
 			case PlayListScreen::PLAYLIST_ENTRIES:
-				switch(playingstate)
+				if (m_CurrentPlayList->GetList()->size() > 0)
 				{
-					case CPSPSound::STOP:
-					case CPSPSound::PAUSE:
-						m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI(m_CurrentPlayList->GetCurrentURI());
-						Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
-						m_ScreenHandler->GetSound()->Play();
-						break;
-					case CPSPSound::PLAY:
-						/** No pausing for URLs, only for Files(local) */
-						if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
-						{
+					switch(playingstate)
+					{
+						case CPSPSound::STOP:
+						case CPSPSound::PAUSE:
 							m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI(m_CurrentPlayList->GetCurrentURI());
-							m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
-							m_ScreenHandler->GetSound()->Pause();
-						}
-						else
-						{
-							/** If currently playing a stream, and the user presses play, then start the 
-							currently selected stream! */
-							/** We do this by stopping the stream, and asking the handler to start playing
-							when the stream stops. */
-							if (CPSPStream::STREAM_STATE_OPEN == m_ScreenHandler->GetSound()->GetCurrentStream()->GetState())
+							Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
+							m_ScreenHandler->GetSound()->Play();
+							break;
+						case CPSPSound::PLAY:
+							/** No pausing for URLs, only for Files(local) */
+							if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
 							{
-								/** If the new stream is different than the current, only then stop-"restart" */
-								if (0 != strcmp(m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI(), m_CurrentPlayList->GetCurrentURI()))
+								m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI(m_CurrentPlayList->GetCurrentURI());
+								m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+								m_ScreenHandler->GetSound()->Pause();
+							}
+							else
+							{
+								/** If currently playing a stream, and the user presses play, then start the 
+								currently selected stream! */
+								/** We do this by stopping the stream, and asking the handler to start playing
+								when the stream stops. */
+								if (CPSPStream::STREAM_STATE_OPEN == m_ScreenHandler->GetSound()->GetCurrentStream()->GetState())
 								{
-									Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
-									m_ScreenHandler->GetSound()->Stop();
-									m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::PLAY;
-								}
-								else
-								{
-									Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
+									/** If the new stream is different than the current, only then stop-"restart" */
+									if (0 != strcmp(m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI(), m_CurrentPlayList->GetCurrentURI()))
+									{
+										Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
+										m_ScreenHandler->GetSound()->Stop();
+										m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::PLAY;
+									}
+									else
+									{
+										Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
+									}
 								}
 							}
-						}
-						break;
+							break;
+					}
 				}
 				break;
 			
