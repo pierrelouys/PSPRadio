@@ -39,32 +39,6 @@ char *dirname (char *strPath)
 	
 	return strPath;
 }
-//#endif
-#if 0
-char *psp_dirname (char *strPath)
-{
-	char *s = NULL;
-	
-	if (strPath[0] == '/' && strPath[1] == 0)
-		return strPath;
-	
-	s=strPath+strlen(strPath)-1;
-	while (s && *s == '/') {
-		*s = '\0';
-		s=strPath+strlen(strPath)-1;
-	}
-	s = strrchr(strPath, '/');
-	if (s && *s)
-		*s = '\0';
-		
-	if (s)
-		return strPath;
-	else
-		strcpy(strPath, ".");
-	
-	return strPath;	
-}
-#endif
 
 char *basename (char *strPath)
 {

@@ -16,7 +16,7 @@
 
 #define RGB(r,g,b) ((((b>>3) & 0x1F)<<10)|(((g>>3) & 0x1F)<<5)|(((r>>3) & 0x1F)<<0)|0x8000)
 
-int analog_x, analog_y;
+//int analog_x, analog_y;
  
 typedef struct {
 	u16 x, y;	// origin
@@ -41,6 +41,8 @@ void pgBitBltR(bltrect *sr, u16 dx, u16 dy);
 void pgBitBlt(u32 x,u32 y,u32 w,u32 h,u32 mag,const u16 *d);
 void pgPutChar(u32 x,u32 y,u32 color,u32 bgcolor,u8 ch,char drawfg,char drawbg,char mag);
 void pgPrintCursor(int* xRef, int* yRef, u32 color, const char *str);
+void pgFillBox(unsigned long x1, unsigned long y1, unsigned long x2, unsigned long y2, unsigned long color);
+
 
 #define SCREEN_WIDTH  480
 #define SCREEN_HEIGHT 272

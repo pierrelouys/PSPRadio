@@ -9,7 +9,7 @@
 #include "fonts/fontNaga10.c"
 #include "fonts/font_ega.c_" // Classic EGA font - mixed case
 
-int analog_x=0, analog_y=0;
+//int analog_x=0, analog_y=0;
 
 extern u16 _plugbmp[];
 

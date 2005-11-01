@@ -19,11 +19,6 @@
 #ifndef _TOOLS_
 	#define _TOOLS_
 	
-	#ifdef __cplusplus
-		extern "C" {
-	#endif
-	
-	
 	char *dirname (char *strPath);
 	char *basename (char *strPath);
 	
@@ -33,10 +28,6 @@
 			#define __PSP__
 		#endif
 		
-		//typedef signed long long   int64_t;
-		//typedef signed int         int32_t;
-		//typedef signed short       int16_t;
-		//typedef signed char        int8_t;
 		typedef unsigned long long u_int64_t;
 		typedef unsigned int       u_int32_t;
 		typedef unsigned short     u_int16_t;
@@ -63,10 +54,6 @@
 		
 		#define PATH_MAX MAXPATHLEN
 		//#define SO_DEBUG 1
-		
-		#ifdef __cplusplus
-			}
-		#endif
-	
+			
 	#endif
 #endif

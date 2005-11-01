@@ -2,7 +2,7 @@
 ## PSP Tools library makefile
 ###
 TARGET_LIB = ../lib/libTools.a
-OBJS = Tools.o pg.o
+OBJS = pg.o Tools.o
 
 INCDIR = 
 CFLAGS = -O2 -Wall -D__PSP__
