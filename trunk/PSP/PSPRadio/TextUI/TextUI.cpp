@@ -17,7 +17,6 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <list>
-//#include <pspdebug.h>
 #include <pspdisplay.h>
 #include <PSPApp.h>
 #include <PSPSound.h>
@@ -33,10 +32,6 @@
 #include <Logging.h>
 #include <Print.h>
 #include "TextUI.h"
-
-	
-/* Define printf, just to make typing easier */
-#define printf	ScreenPrintf
 
 #define MAX_ROWS 34
 #define MAX_COL  68
@@ -117,7 +112,10 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
 			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
-			ScreenSetBackgroundImage("TextUI/red.png");
+			if (m_Config->GetString("IMAGES:SHOUTCAST_SCREEN_BACKGROUND", NULL))
+			{
+				ScreenSetBackgroundImage(m_Config->GetStr("IMAGES:SHOUTCAST_SCREEN_BACKGROUND"));
+			}
 			ScreenClear(); 
 			if (m_strTitle)
 			{
@@ -131,11 +129,14 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			ClearRows(y);
 			uiPrintf(x, y, c, "X Play | [] Stop | ^ Cycle Screens | START Options");
 			break;
+		
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-
 			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
 			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
-			ScreenSetBackgroundImage("TextUI/blue.png");
+			if (m_Config->GetString("IMAGES:MAIN_SCREEN_BACKGROUND", NULL))
+			{
+				ScreenSetBackgroundImage(m_Config->GetStr("IMAGES:MAIN_SCREEN_BACKGROUND"));
+			}
 			ScreenClear(); 
 			if (m_strTitle)
 			{
@@ -149,10 +150,14 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			ClearRows(y);
 			uiPrintf(x, y, c, "X Play | [] Stop | ^ Cycle Screens | START Options");
 			break;
+		
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			ScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
 			ScreenSetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
-			ScreenSetBackgroundImage("TextUI/green.png");
+			if (m_Config->GetString("IMAGES:OPTIONS_SCREEN_BACKGROUND", NULL))
+			{
+				ScreenSetBackgroundImage(m_Config->GetStr("IMAGES:OPTIONS_SCREEN_BACKGROUND"));
+			}
 			ScreenClear(); 
 			uiPrintf(-1,0, GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"), "PSPRadio OPTIONS:");
 			break;
@@ -261,7 +266,7 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 	}
 	ScreenSetXY(x,y);
 	ScreenSetTextColor(color);
-	printf(msg);
+	ScreenPrintf(msg);
 	
 	va_end (args);                  /* Clean up. */
 
@@ -276,8 +281,6 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		//ScreenSetXY(0,iRow);
-		//printf("%67c", ' ');
 		ScreenClearLine(iRow);
 	}
 	m_lockclear->Unlock();
@@ -291,8 +294,6 @@ void CTextUI::ClearHalfRows(int iColStart, int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		//ScreenSetXY(iColStart,iRow);
-		//printf("%33c", ' ');
 		ScreenClearNChars(iColStart, iRow, 33);
 	}
 	m_lockclear->Unlock();
@@ -569,7 +570,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 
 int CTextUI::OnConnectionProgress()
 {
-	printf(".");
+	ScreenPrintf(".");
 	return 0;
 }
 

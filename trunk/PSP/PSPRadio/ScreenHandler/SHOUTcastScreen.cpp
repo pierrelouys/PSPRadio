@@ -154,8 +154,14 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 	if (false == success)
 	{
 		/** We restore the back-up of the db, as the download failed.. */
+		Log(LOG_ERROR, "Error, so restoring from backup '%s'", SHOUTCAST_DB_FILENAME_BACKUP);
 		iRet = rename(SHOUTCAST_DB_FILENAME_BACKUP, SHOUTCAST_DB_FILENAME);
 
+	}
+	else
+	{
+		Log(LOG_LOWLEVEL, "Success, so removing backup '%s'", SHOUTCAST_DB_FILENAME_BACKUP);
+		remove(SHOUTCAST_DB_FILENAME_BACKUP);
 	}
 
 	return success;
