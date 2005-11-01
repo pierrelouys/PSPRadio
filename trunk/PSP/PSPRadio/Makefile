@@ -32,7 +32,7 @@ LIBS = -lPSPApp -lsupc++ -lstdc++ -lPSPNet \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor \
-		-lm -lpsppower -lpng -lz
+		-lpsppower -lpng -lz -lm -lTools
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio
@@ -62,4 +62,5 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 	cp -vf SandbergUI/Graphics/*.raw $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	cp -vf SandbergUI/Graphics/*.p3o $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Screenshots
+	cp *.png $(KXPLOIT_PRIMARY_DIR)/
 
