@@ -17,6 +17,7 @@
 	int ScreenGetX();
 	int ScreenGetY();
 	void ScreenClear();
+	void ScreenClearNChars(int X, int Y, int N);
 	void ScreenClearLine(int Y);
 	
 	

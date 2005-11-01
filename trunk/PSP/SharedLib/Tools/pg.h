@@ -48,7 +48,7 @@ void pgFillBox(unsigned long x1, unsigned long y1, unsigned long x2, unsigned lo
 #define SCREEN_HEIGHT 272
 #define         PIXELSIZE       1                               //in short
 #define         LINESIZE        512                             //in short
-#define         FRAMESIZE       0x44000                 //in byte
+#define         FRAMESIZE       0x44000                 //in byte(278528=512*272*2?)
 #define CMAX_X 60
 #define CMAX_Y 34
 #define CMAX2_X 30

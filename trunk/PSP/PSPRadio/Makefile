@@ -52,7 +52,6 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 		$(PSP_EBOOT_ICON1) $(PSP_EBOOT_UNKPNG) $(PSP_EBOOT_PIC1)  \
 		$(PSP_EBOOT_SND0) NULL $(PSP_EBOOT_PSAR)
 	cp -vf *.cfg $(KXPLOIT_PRIMARY_DIR)
-	cp -vf ./TextUI/*.cfg $(KXPLOIT_PRIMARY_DIR)
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/THEME
 	cp -vf THEME/* $(KXPLOIT_PRIMARY_DIR)/THEME
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/PlayLists
@@ -62,5 +61,7 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 	cp -vf SandbergUI/Graphics/*.raw $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	cp -vf SandbergUI/Graphics/*.p3o $(KXPLOIT_PRIMARY_DIR)/SandbergUI
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Screenshots
-	cp *.png $(KXPLOIT_PRIMARY_DIR)/
+	mkdir -p $(KXPLOIT_PRIMARY_DIR)/TextUI
+	cp -vf ./TextUI/*.cfg $(KXPLOIT_PRIMARY_DIR)/TextUI
+	cp -vf ./TextUI/*.png $(KXPLOIT_PRIMARY_DIR)/TextUI
 

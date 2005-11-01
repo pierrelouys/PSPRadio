@@ -40,6 +40,8 @@ static bool init = false;
 char *m_strImage = NULL;
 u32  *m_ImageBuffer = NULL;
 
+void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2);
+
 /** PNG Stuff **/
 /** From pspsdk's libpng example. (Copyright (c) 2005 Frank Buss <fb@frank-buss.de> (aka Shine)) */
 void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
@@ -144,9 +146,13 @@ void ScreenSetBackgroundImage(char *strImage)
 	{
 		free(m_ImageBuffer), m_ImageBuffer = NULL;
 	}
-	m_strImage = strdup(strImage);
-	m_ImageBuffer = (u32*)malloc(PSP_SCREEN_WIDTH*PSP_SCREEN_WIDTH*sizeof(u32));
-	LoadImage(m_strImage, m_ImageBuffer);
+	
+	if (strImage)
+	{
+		m_strImage = strdup(strImage);
+		m_ImageBuffer = (u32*)malloc(PSP_SCREEN_WIDTH*PSP_SCREEN_WIDTH*sizeof(u32));
+		LoadImage(m_strImage, m_ImageBuffer);
+	}
 }
 
 void ScreenSetBackColor(u32 colour)
@@ -164,49 +170,94 @@ extern u8 msx[];
 
 void ScreenPutChar( int x, int y, u32 color, u8 ch)
 {
-   int 	i,j, l;
-   u8	*font;
-   u32  pixel;
-   u32 *vram_ptr;
-   u32 *vram;
-
-   if(false == init)
-   {
-	   return;
-   }
-
-   vram = g_vram_base + x;
-   vram += (y * PSP_LINE_SIZE);
-   
-   font = &msx[ (int)ch * 8];
-   for (i=l=0; i < 8; i++, l+= 8, font++)
-   {
-      vram_ptr  = vram;
-      for (j=0; j < 8; j++)
+	int 	i,j, l;
+	u8	*font;
+	u32  pixel;
+	u32 *vram_ptr;
+	u32 *vram;
+	
+	if(false == init)
 	{
-          if ((*font & (128 >> j)))
-              pixel = color;
-          else
-              pixel = bg_col;
-
-          *vram_ptr++ = pixel; 
+	   return;
 	}
-      vram += PSP_LINE_SIZE;
-   }
+	
+	vram = g_vram_base + x;
+	vram += (y * PSP_LINE_SIZE);
+	
+	font = &msx[ (int)ch * 8];
+	for (i=l=0; i < 8; i++, l+= 8, font++)
+	{
+		vram_ptr  = vram;
+		for (j=0; j < 8; j++)
+		{
+			if (m_ImageBuffer)
+			{
+				if ((*font & (128 >> j)))
+					*vram_ptr++ = color;
+				else
+					*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
+			}
+			else
+			{
+				if ((*font & (128 >> j)))
+					pixel = color;
+				else
+					pixel = bg_col;
+				*vram_ptr++ = pixel; 
+			}
+			
+		}
+		vram += PSP_LINE_SIZE;
+	}
+}
+
+void ScreenPutEraseChar( int x, int y, u32 color)
+{
+	int 	i,j, l;
+	u32 *vram_ptr;
+	u32 *vram;
+	
+	if(false == init)
+	{
+	   return;
+	}
+	
+	vram = g_vram_base + x;
+	vram += (y * PSP_LINE_SIZE);
+	
+	for (i=l=0; i < 8; i++, l+= 8)
+	{
+		vram_ptr  = vram;
+		for (j=0; j < 8; j++)
+		{
+			*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
+		}
+		vram += PSP_LINE_SIZE;
+	}
 }
 
 void ScreenClearLine(int Y)
 {
-	if (NULL == m_strImage)
+	ScreenClearNChars(0, Y, MX);
+}
+
+void ScreenClearNChars(int X, int Y, int N)
+{
+	if (NULL == m_ImageBuffer)
 	{
-		for (int i=0; i < MX; i++)
+		for (int i=X; i < X+N; i++)
 		{
 			ScreenPutChar( i*7 , Y * 8, bg_col, 219);
 		}
 	}
 	else
 	{
-	//Get Line from bg image..
+		//Get Line from bg image..
+		//BlitImage(X*8,Y*8, (X+N)*8, ((Y+1)*8));
+		for (int i=X; i < X+N; i++)
+		{
+			ScreenPutEraseChar( i*7 , Y * 8, bg_col);
+		}
 	}
 }
 
@@ -285,7 +336,7 @@ int ScreenGetY()
 	return Y;
 }
 
-void BlitWholeImage()
+void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2)
 {
 	u16* vram16;
 	int bufferwidth;
@@ -297,8 +348,8 @@ void BlitWholeImage()
 	sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, &unknown); 
 	//vram32 = g_vram_base;//
 	vram16 = (u16*) vram32;
-	for (y = 0; y < PSP_SCREEN_HEIGHT; y++) {
-		for (x = 0; x < PSP_SCREEN_WIDTH; x++) {
+	for (y = y1; y < y2; y++) {
+		for (x = x1; x < x2; x++) {
 			u32 color32 = m_ImageBuffer[y*PSP_SCREEN_WIDTH+x];
 			u16 color16;
 			int r = color32 & 0xff;
@@ -337,7 +388,7 @@ void ScreenClear()
 
 	if (m_strImage)
 	{
-		BlitWholeImage();
+		BlitImage(0,0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 		ScreenSetXY(0,0);
 	}
 	else

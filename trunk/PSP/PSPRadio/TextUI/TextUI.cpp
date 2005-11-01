@@ -41,7 +41,7 @@
 #define MAX_ROWS 34
 #define MAX_COL  68
 
-#define TEXT_UI_CFG_FILENAME "TextUI.cfg"
+#define TEXT_UI_CFG_FILENAME "TextUI/TextUI.cfg"
 
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 
@@ -115,11 +115,27 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
+			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
+			ScreenSetBackgroundImage("TextUI/red.png");
+			ScreenClear(); 
+			if (m_strTitle)
+			{
+				GetConfigPos("TEXT_POS:TITLE", &x, &y);
+				c = GetConfigColor("COLORS:TITLE");
+				uiPrintf(x,y, c, m_strTitle);
+			}
+			GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+			c = GetConfigColor("COLORS:MAIN_COMMANDS");
+				
+			ClearRows(y);
+			uiPrintf(x, y, c, "X Play | [] Stop | ^ Cycle Screens | START Options");
+			break;
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 
 			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
 			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
-			//ScreenSetBackgroundImage("pumpkin.png");
+			ScreenSetBackgroundImage("TextUI/blue.png");
 			ScreenClear(); 
 			if (m_strTitle)
 			{
@@ -136,6 +152,7 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			ScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
 			ScreenSetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
+			ScreenSetBackgroundImage("TextUI/green.png");
 			ScreenClear(); 
 			uiPrintf(-1,0, GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"), "PSPRadio OPTIONS:");
 			break;
@@ -274,8 +291,9 @@ void CTextUI::ClearHalfRows(int iColStart, int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		ScreenSetXY(iColStart,iRow);
-		printf("%33c", ' ');
+		//ScreenSetXY(iColStart,iRow);
+		//printf("%33c", ' ');
+		ScreenClearNChars(iColStart, iRow, 33);
 	}
 	m_lockclear->Unlock();
 }
