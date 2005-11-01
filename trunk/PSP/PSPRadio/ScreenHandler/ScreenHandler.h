@@ -108,6 +108,10 @@
 		void Screenshot();
 		char *ScreenshotName(char *path);
 		void ScreenshotStore(char *filename);
+		
+	protected:
+		friend class IScreen;
+		void SetCurrentScreen(IScreen *pScreen){m_CurrentScreen = pScreen;}
 
 	private:
 		IScreen *m_CurrentScreen;

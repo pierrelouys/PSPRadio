@@ -224,6 +224,7 @@ void IScreen::Activate(IPSPRadio_UI *UI)
 {
 	m_UI = UI; 
 	m_UI->Initialize_Screen((CScreenHandler::Screen)m_Id);
+	m_ScreenHandler->SetCurrentScreen(this);
 }
 
 void CScreenHandler::Screenshot()
