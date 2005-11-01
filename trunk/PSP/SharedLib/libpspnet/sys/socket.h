@@ -63,7 +63,7 @@
 #ifndef _SYS_SOCKET_H_
 #define	_SYS_SOCKET_H_
 
-#include <pspnet.h>
+#include <PSPNet.h>
 #include <sys/featuretest.h>
 
 /*
