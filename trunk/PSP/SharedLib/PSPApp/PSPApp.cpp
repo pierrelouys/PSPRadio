@@ -180,9 +180,10 @@ int CPSPApp::Run()
 int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 {
 	int cbid;
-
+	#if 0
 	cbid = sceKernelCreateCallback("Exit Callback", CPSPApp::exitCallback, NULL);
 	sceKernelRegisterExitCallback(cbid);
+	#endif
     cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
     scePowerRegisterCallback(0, cbid);
 	sceKernelSleepThreadCB();

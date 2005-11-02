@@ -13,6 +13,7 @@
 	enum EventIDsFromScreenHandlerToPSPRadio
 	{
 		EID_NEW_UI_POINTER,
+		EID_EXIT_SELECTED
 	};
 
 	/** Sender IDs */

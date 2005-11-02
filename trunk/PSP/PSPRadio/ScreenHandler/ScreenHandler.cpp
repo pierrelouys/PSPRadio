@@ -147,71 +147,46 @@ void CScreenHandler::OnVBlank()
 
 void CScreenHandler::CommonInputHandler(int iButtonMask)
 {
-	static bool fOnExitMenu = false;
-	
-	if (false == fOnExitMenu) /** Not in home menu */
+	switch (m_CurrentScreen->GetId())
 	{
-		if (iButtonMask & PSP_CTRL_HOME)
-		{
-			Log(LOG_VERYLOW, "Entering HOME menu, ignoring buttons..");
-			fOnExitMenu = true;
-			return;
-		}
-		else
-		{
-			switch (m_CurrentScreen->GetId())
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+			if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
 			{
-				case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-				case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-					if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
-					{
-						// Enter option menu and store the current screen
-						m_PreviousScreen = m_CurrentScreen;
-						m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
-						m_CurrentScreen->Activate(m_UI);
-					}
-					else if (iButtonMask & PSP_CTRL_TRIANGLE) /** Cycle through screens (except options) */
-					{
-						m_CurrentScreen = Screens[m_CurrentScreen->GetId()+1];
-						/** Don't go to options screen with triangle;
-							Also, as options screen is the last one in the list
-							we cycle back to the first one */
-						if (m_CurrentScreen->GetId() == PSPRADIO_SCREEN_OPTIONS)
-						{
-							m_CurrentScreen = Screens[PSPRADIO_SCREEN_LIST_BEGIN];
-						}
-						m_CurrentScreen->Activate(m_UI);
-					}
-					else
-					{
-						m_CurrentScreen->InputHandler(iButtonMask);
-					}
-					break;
-				case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-					if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
-					{
-						// Go back to where we were before entering the options menu
-						m_CurrentScreen = m_PreviousScreen;
-						m_CurrentScreen->Activate(m_UI);
-					}
-					else
-					{
-						m_CurrentScreen->InputHandler(iButtonMask);
-					}
-					break;
+				// Enter option menu and store the current screen
+				m_PreviousScreen = m_CurrentScreen;
+				m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
+				m_CurrentScreen->Activate(m_UI);
 			}
-		}
-	}
-	else /** In the home menu */
-	{
-		if ( (iButtonMask & PSP_CTRL_HOME)		||
-				(iButtonMask & PSP_CTRL_CROSS)	||
-				(iButtonMask & PSP_CTRL_CIRCLE)
-			)
-		{
-			fOnExitMenu = false;
-			Log(LOG_VERYLOW, "Exiting HOME menu");
-		}
+			else if (iButtonMask & PSP_CTRL_TRIANGLE) /** Cycle through screens (except options) */
+			{
+				m_CurrentScreen = Screens[m_CurrentScreen->GetId()+1];
+				/** Don't go to options screen with triangle;
+					Also, as options screen is the last one in the list
+					we cycle back to the first one */
+				if (m_CurrentScreen->GetId() == PSPRADIO_SCREEN_OPTIONS)
+				{
+					m_CurrentScreen = Screens[PSPRADIO_SCREEN_LIST_BEGIN];
+				}
+				m_CurrentScreen->Activate(m_UI);
+			}
+			else
+			{
+				m_CurrentScreen->InputHandler(iButtonMask);
+			}
+			break;
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+			if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
+			{
+				// Go back to where we were before entering the options menu
+				m_CurrentScreen = m_PreviousScreen;
+				m_CurrentScreen->Activate(m_UI);
+			}
+			else
+			{
+				m_CurrentScreen->InputHandler(iButtonMask);
+			}
+			break;
 	}
 }
 

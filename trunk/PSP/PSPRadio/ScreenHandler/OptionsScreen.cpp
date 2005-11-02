@@ -47,6 +47,7 @@ enum OptionIDs
 	OPTION_ID_LOG_LEVEL,
 	OPTION_ID_UI,
 	OPTION_ID_SHOUTCAST_DN,
+	OPTION_ID_EXIT,
 };
 
 OptionsScreen::Options OptionsData[] = 
@@ -58,6 +59,7 @@ OptionsScreen::Options OptionsData[] =
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
 	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Download"},					0,1,1		},
+	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{"Exit"},						0,1,1		},
 	
 	{  -1,  						"",							{""},							0,0,0		}
 };
@@ -359,6 +361,10 @@ void OptionsScreen::OnOptionActivation()
 			}		
 			fOptionActivated = false;
 			break;	
+		case OPTION_ID_EXIT:
+			Log(LOG_ALWAYS, "User selected to Exit.");
+			pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
+			break;
 	}
 	
 	if (true == fOptionActivated)	

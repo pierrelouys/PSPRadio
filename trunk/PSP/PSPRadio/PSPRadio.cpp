@@ -312,8 +312,14 @@ public:
 					m_UI = (IPSPRadio_UI *)event.pData;
 					Log(LOG_LOWLEVEL, "Received new UI address = 0x%x", m_UI );
 					break;
+				case EID_EXIT_SELECTED:
+						Log(LOG_INFO, "ProcessEvents(): EID_EXIT_SELECTED received.");
+						OnExit();
+						/** Calling return causes the app to terminate */
+						return 0;
 				}
 				break;
+	
 			default:
 				//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", event.EventId, event.SenderId);
 				switch(event.EventId)
