@@ -33,13 +33,6 @@ halfastII-iconset, handojin-iconset, harbringer-iconset and mrpochi-iconset.
 3-Copy the contents of the version directory ("PSPRadio" for v1.0 or
 "PSPRadio" and "PSPRadio%" for v1.5) to your PSP under "\PSP\GAME\".
 
-
-Note:
------
-This application doesn't support DHCP (automatic IP) for the PSP. You will need to
-set up your PSP to use a static IP. (See the guides in the forum).
-
-
 Thanks
 ------
 The author would like to thank all the users that have donated to this project.
