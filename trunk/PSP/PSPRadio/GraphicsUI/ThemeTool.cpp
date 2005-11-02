@@ -162,7 +162,7 @@ bool CPSPThemeTool::Run(void)
 					{
 						for(int x = 0; x < m_GUI.GetLineCount(OA_SETTINGS); x++)
 						{
-							m_GUI.DisplayString("OA_SETTINGS", OA_SETTINGS, x+1);
+							m_GUI.DisplayString("OA_SETTINGS Settings go here", OA_SETTINGS, x+1);
 						}
 					} break;
 					
