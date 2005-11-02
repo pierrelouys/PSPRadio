@@ -35,6 +35,9 @@ public:
 	int GetLineCount(OutputAreaEnum posEnum);
 	int GetButtonStateCount(ButtonPosEnum posEnum);
 
+	
+	void UpdateStringSurface(StringPosType *pPos);
+	
 	void LogError(char *szFormat, ...);
 	void LogInfo(char *szFormat, ...);
 
@@ -54,7 +57,6 @@ private:
 	int StringToStringPos(char *szPos, StringPosType *pPos);
 
 	void DisplayStringSurface(StringPosType *pPos);
-	void UpdateStringSurface(StringPosType *pPos);
 	SDL_Surface *GetStringSurface(char *szWord, int nFontIndex);
 
 private:

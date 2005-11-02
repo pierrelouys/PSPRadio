@@ -26,19 +26,22 @@
 
 #define CURRENT_VERSION "0.2"
 
+Uint32 OnUpdateString_TimerCallback(Uint32 interval, void *param);
+
+
 StringPosType g_StringPosArray[] =
 {
-	{ "filetitle",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "uri",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "url",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "samplerate", NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "mpeglayer",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "genre",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "songauthor",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "length",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "bitrate",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "channels",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
-	{ "error",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL },
+	{ "filetitle",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "uri",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "url",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "samplerate", NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "mpeglayer",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "genre",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "songauthor",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "length",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "bitrate",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "channels",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "error",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
 };
 
 ButtonPosType g_ButtonPosArray[] =
@@ -61,6 +64,8 @@ OutputAreaType g_OutputAreaArray[] =
 	{ "settings",		-1, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, false, true, 0 }
 };
 
+CGraphicsUITheme *g_pTheme = NULL;
+
 //*****************************************************************************
 // 
 //*****************************************************************************
@@ -71,10 +76,11 @@ CGraphicsUITheme::CGraphicsUITheme() : m_pIniTheme(NULL)
 	m_nColorDepth = 32;
 	m_nPSPResWidth = 480;
 	m_nPSPResHeight = 272;
-	m_nFlags = SDL_HWSURFACE;
+	m_nFlags = SDL_HWSURFACE /*| SDL_DOUBLEBUF*/;
 	m_pPSPSurface = NULL;
 	m_pImageSurface = NULL;
 	m_szMsg = (char *)malloc(256);
+	g_pTheme = this;
 }
 
 //*****************************************************************************
@@ -138,14 +144,14 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	m_pPSPSurface = SDL_SetVideoMode(m_nPSPResWidth,
 										m_nPSPResHeight,
 										m_nColorDepth,
-										m_nFlags);
+										m_nFlags);										
 
 	// Make sure the screen was created
 	if(NULL == m_pPSPSurface)
 	{
 		LogError("Initialize: ERROR Initializing m_pPSPSurface [%s]", SDL_GetError());
 		return -1;
-	}
+	}	
 
 	// TODO: Get Version and make sure it is compatable
 //	if(0 != strcmp(CURRENT_VERSION, m_pIniTheme->GetString("main:version", "NONE")))
@@ -158,12 +164,21 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 
 	// Get the base theme image
 	m_pImageSurface = SDL_LoadBMP(m_pIniTheme->GetString("main:themeimage", "--"));
-
+	
 	if(NULL == m_pImageSurface)
 	{
 		LogError("Initialize: ERROR Initializing m_pImageSurface [%s]", SDL_GetError());
 		return -1;
 	}
+	
+	m_pImageSurface = SDL_DisplayFormat( m_pImageSurface );		
+	
+	if(NULL == m_pImageSurface)
+	{
+		LogError("Initialize: ERROR Initializing SDL_DisplayFormat [%s]", SDL_GetError());
+		return -1;
+	}
+
 
 	// Load the fonts
 	if(-1 == GetFonts())
@@ -225,6 +240,7 @@ void CGraphicsUITheme::Terminate()
 	// Free up the allocated strings
 	for(int x = 0; x < SP_ITEM_COUNT; x++)
 	{
+		REMOVE_TIMER(g_StringPosArray[x].nTimerID);		
 		SAFE_FREE(g_StringPosArray[x].szStringValue);
 		SAFE_FREE_SURFACE(g_StringPosArray[x].pSurface);
 	}
@@ -271,19 +287,6 @@ void CGraphicsUITheme::DisplayMainScreen()
 	if(0 == GetIniRect("screens:main", &rectSrc))
 	{
 		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
-		
-		// Reload all the buttons to current state
-		for(int x = 0; x < BP_ITEM_COUNT; x++)
-		{
-			DisplayButton((ButtonPosEnum)x, g_ButtonPosArray[x].nCurrentState);
-		}
-
-		// Reload all the strings to current state
-		for(int x = 0; x < SP_ITEM_COUNT; x++)
-		{
-			DisplayStringSurface(&g_StringPosArray[x]);
-		}
-
 	}
 }
 
@@ -300,18 +303,6 @@ void CGraphicsUITheme::DisplayShoutcastScreen()
 	if(0 == GetIniRect("screens:shoutcast", &rectSrc))
 	{
 		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
-
-		// Reload all the buttons to current state
-		for(int x = 0; x < BP_ITEM_COUNT; x++)
-		{
-			DisplayButton((ButtonPosEnum)x, g_ButtonPosArray[x].nCurrentState);
-		}
-
-		// Reload all the strings to current state
-		for(int x = 0; x < SP_ITEM_COUNT; x++)
-		{
-			DisplayStringSurface(&g_StringPosArray[x]);
-		}
 	}
 }
 
@@ -339,23 +330,7 @@ void CGraphicsUITheme::DisplaySettingScreen()
 //*****************************************************************************
 void CGraphicsUITheme::OnVBlank()
 {
-
-	for(int x = 0; x != SP_ITEM_COUNT; x++)
-	{
-		if(true == g_StringPosArray[x].bRotate)
-		{
-			g_StringPosArray[x].nCurrentXPos--;			
-
-			if(g_StringPosArray[x].rectPos.x > (g_StringPosArray[x].nCurrentXPos + g_StringPosArray[x].pSurface->w))
-			{
-				g_StringPosArray[x].nCurrentXPos = g_StringPosArray[x].rectPos.x  + g_StringPosArray[x].rectPos.w;
-			}
-
-			UpdateStringSurface(&g_StringPosArray[x]);
-		}
-	}
-
-	SDL_Flip(m_pPSPSurface);
+	//SDL_Flip(m_pPSPSurface);
 }
 
 //*****************************************************************************
@@ -1136,6 +1111,7 @@ void CGraphicsUITheme::DisplayStringSurface(StringPosType *pPos)
 	}
 
 	SAFE_FREE_SURFACE(pPos->pSurface);
+	REMOVE_TIMER(pPos->nTimerID);
 
 	pPos->pSurface = GetStringSurface(pPos->szStringValue, pPos->nFontIndex);
 
@@ -1144,8 +1120,9 @@ void CGraphicsUITheme::DisplayStringSurface(StringPosType *pPos)
 		// Crop Lines that are too long
 		if(pPos->pSurface->w > pPos->rectPos.w)
 		{
-//			pPos->bRotate = true;
-			pPos->pSurface->w = pPos->rectPos.w;
+			pPos->nTimerID = SDL_AddTimer(75, OnUpdateString_TimerCallback, (void *)pPos);
+			pPos->bRotate = true;
+//			pPos->pSurface->w = pPos->rectPos.w;
 		}
 		else
 		{
@@ -1239,7 +1216,7 @@ SDL_Surface *CGraphicsUITheme::GetStringSurface(char *szWord, int nFontIndex)
 	
 	SDL_Surface *pSurface = NULL;
 	
-	pSurface = SDL_CreateRGBSurface(SDL_HWSURFACE | SDL_SRCCOLORKEY,
+	pSurface = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCCOLORKEY,
 									nFontWidth * (int)strlen(szWord),
 									nFontHeight,
 									m_pImageSurface->format->BitsPerPixel,
@@ -1253,6 +1230,8 @@ SDL_Surface *CGraphicsUITheme::GetStringSurface(char *szWord, int nFontIndex)
 		LogError("ERROR: GetStringSurface unable to allocate surface [%s]", SDL_GetError());
 		return NULL;
 	}
+	
+	pSurface = SDL_DisplayFormat(pSurface);
 	
 	SDL_SetColorKey(pSurface, SDL_SRCCOLORKEY, SDL_MapRGB(pSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
 	SDL_FillRect(pSurface, NULL, SDL_MapRGB(pSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b));
@@ -1291,4 +1270,20 @@ void CGraphicsUITheme::LogInfo(char *szFormat, ...)
 	vsprintf(m_szMsg, szFormat, args);
 	Log(LOG_INFO, m_szMsg);
 	va_end (args);
+}
+
+Uint32 OnUpdateString_TimerCallback(Uint32 interval, void *param)
+{
+	StringPosType *pStringPos = (StringPosType*)param;
+
+	pStringPos->nCurrentXPos--;			
+
+	if(pStringPos->rectPos.x > (pStringPos->nCurrentXPos + pStringPos->pSurface->w))
+	{
+		pStringPos->nCurrentXPos = pStringPos->rectPos.x  + pStringPos->rectPos.w;
+	}
+
+	g_pTheme->UpdateStringSurface(pStringPos);
+	
+	return(interval);
 }

@@ -7,6 +7,7 @@
 #define SAFE_FREE_SURFACE(surface) if(NULL != surface) { SDL_FreeSurface(surface); surface = NULL; }
 #define SAFE_DELETE(obj) if(NULL != obj) { delete obj; obj = NULL; }
 #define SAFE_FREE(obj) if(NULL != obj) { free(obj); obj = NULL; }
+#define REMOVE_TIMER(obj) if(0 != obj) { SDL_RemoveTimer(obj); obj = 0; }
 
 //*****************************************************************************
 // ENUMERATIONS
@@ -85,6 +86,7 @@ struct StringPosType
 	int nCurrentXPos;
 	int nCurrentYPos;
 	SDL_Surface *pSurface;
+	SDL_TimerID nTimerID;
 };
 
 struct ButtonPosType
