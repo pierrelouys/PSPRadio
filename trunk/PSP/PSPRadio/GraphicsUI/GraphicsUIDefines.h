@@ -87,6 +87,7 @@ struct StringPosType
 	int nCurrentYPos;
 	SDL_Surface *pSurface;
 	SDL_TimerID nTimerID;
+	int nCurrentMovement;
 };
 
 struct ButtonPosType
