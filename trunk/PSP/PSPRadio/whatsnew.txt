@@ -3,6 +3,7 @@ What's New for PSPRadio
 0.36-pre6
 (jpfouch48) Added scrolling text to metadata area. (Currently double buffering
 is not working so it may look alittle choppy)
+(sandberg) Added a radial blur effect as a background effect on the 3D UI.
 
 0.36-pre5
 (raf) Lots of cleanup / refactoring
