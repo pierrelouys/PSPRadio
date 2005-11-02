@@ -31,17 +31,17 @@ Uint32 OnUpdateString_TimerCallback(Uint32 interval, void *param);
 
 StringPosType g_StringPosArray[] =
 {
-	{ "filetitle",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "uri",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "url",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "samplerate", NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "mpeglayer",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "genre",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "songauthor",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "length",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "bitrate",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "channels",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
-	{ "error",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0 },
+	{ "filetitle",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "uri",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "url",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "samplerate", NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "mpeglayer",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "genre",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "songauthor",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "length",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "bitrate",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "channels",	NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
+	{ "error",		NULL, {0,0,0,0}, true, JUST_LEFT, 0, false, -1, -1, NULL, 0, 1 },
 };
 
 ButtonPosType g_ButtonPosArray[] =
@@ -330,7 +330,9 @@ void CGraphicsUITheme::DisplaySettingScreen()
 //*****************************************************************************
 void CGraphicsUITheme::OnVBlank()
 {
-	//SDL_Flip(m_pPSPSurface);
+#if defined WIN32 || defined LINUX
+	SDL_Flip(m_pPSPSurface);
+#endif
 }
 
 //*****************************************************************************
@@ -1120,8 +1122,9 @@ void CGraphicsUITheme::DisplayStringSurface(StringPosType *pPos)
 		// Crop Lines that are too long
 		if(pPos->pSurface->w > pPos->rectPos.w)
 		{
-			pPos->nTimerID = SDL_AddTimer(75, OnUpdateString_TimerCallback, (void *)pPos);
+			pPos->nTimerID = SDL_AddTimer(100, OnUpdateString_TimerCallback, (void *)pPos);
 			pPos->bRotate = true;
+			pPos->nCurrentXPos = pPos->rectPos.x + (pPos->rectPos.w/2 - pPos->pSurface->w/2);
 //			pPos->pSurface->w = pPos->rectPos.w;
 		}
 		else
@@ -1276,11 +1279,24 @@ Uint32 OnUpdateString_TimerCallback(Uint32 interval, void *param)
 {
 	StringPosType *pStringPos = (StringPosType*)param;
 
-	pStringPos->nCurrentXPos--;			
+	pStringPos->nCurrentXPos += pStringPos->nCurrentMovement;			
 
-	if(pStringPos->rectPos.x > (pStringPos->nCurrentXPos + pStringPos->pSurface->w))
+	/** Moving to the left */
+	if(pStringPos->nCurrentMovement < 0)
 	{
-		pStringPos->nCurrentXPos = pStringPos->rectPos.x  + pStringPos->rectPos.w;
+		/** If the right portion of the text is showing reverse direction */
+		if((pStringPos->nCurrentXPos + pStringPos->pSurface->w) < (pStringPos->rectPos.x + pStringPos->rectPos.w))
+		{
+			pStringPos->nCurrentMovement = 1;
+		}
+	}
+	else
+	{
+		/** If the left portion of the text is showing reverse direction */
+		if(pStringPos->nCurrentXPos > pStringPos->rectPos.x)
+		{
+			pStringPos->nCurrentMovement = -1;
+		}
 	}
 
 	g_pTheme->UpdateStringSurface(pStringPos);
