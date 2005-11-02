@@ -44,7 +44,8 @@ public:
 		TEX_LOAD,
 		TEX_SOUND,
 		TEX_OPTIONS,
-		TEX_PARTICLE_01
+		TEX_PARTICLE_01,
+		TEX_BLUR
 	};
 
 	enum fx_list_enum
@@ -52,6 +53,7 @@ public:
 		FX_CUBES,
 		FX_HEART,
 		FX_PARTICLES,
+		FX_BLUR
 	};
 
 	typedef struct texture_file
@@ -204,6 +206,7 @@ private:
 	void RenderFX_1(void);
 	void RenderFX_2(void);
 	void RenderFX_3(void);
+	void RenderFX_4(void);
 	void RenderLogo(void);
 	void RenderCommands(void);
 	void RenderPL(void);

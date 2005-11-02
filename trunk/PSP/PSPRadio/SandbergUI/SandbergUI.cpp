@@ -87,17 +87,18 @@ static CSandbergUI::IconStr __attribute__((aligned(16))) icon_list[] =
 
 static CSandbergUI::texture_file __attribute__((aligned(16))) texture_list[] =
 	{
-	{CSandbergUI::TEX_LOGO,		GU_PSM_5551, 256, 64, true,	"ui_logo.raw"},
-	{CSandbergUI::TEX_COMMANDS,	GU_PSM_8888,  64, 64, true,	"commands.raw"},
-	{CSandbergUI::TEX_PLATE,	GU_PSM_8888,  64, 64, true,	"plate.raw"},
+	{CSandbergUI::TEX_LOGO,			GU_PSM_5551, 256, 64, true,	"ui_logo.raw"},
+	{CSandbergUI::TEX_COMMANDS,		GU_PSM_8888,  64, 64, true,	"commands.raw"},
+	{CSandbergUI::TEX_PLATE,		GU_PSM_8888,  64, 64, true,	"plate.raw"},
 	{CSandbergUI::TEX_FONT_SMALL,	GU_PSM_5551, 512, 16, true,	"font_small.raw"},
-	{CSandbergUI::TEX_PLAY,		GU_PSM_8888,  32, 32, true,	"play.raw"},
-	{CSandbergUI::TEX_STOP,		GU_PSM_8888,  32, 32, true,	"stop.raw"},
-	{CSandbergUI::TEX_NETWORK,	GU_PSM_8888,  32, 32, true,	"network.raw"},
-	{CSandbergUI::TEX_LOAD,		GU_PSM_8888,  32, 32, true,	"load.raw"},
-	{CSandbergUI::TEX_SOUND,	GU_PSM_8888,  32, 32, true,	"sound.raw"},
-	{CSandbergUI::TEX_OPTIONS,	GU_PSM_5551, 128, 64, true,	"options.raw"},
+	{CSandbergUI::TEX_PLAY,			GU_PSM_8888,  32, 32, true,	"play.raw"},
+	{CSandbergUI::TEX_STOP,			GU_PSM_8888,  32, 32, true,	"stop.raw"},
+	{CSandbergUI::TEX_NETWORK,		GU_PSM_8888,  32, 32, true,	"network.raw"},
+	{CSandbergUI::TEX_LOAD,			GU_PSM_8888,  32, 32, true,	"load.raw"},
+	{CSandbergUI::TEX_SOUND,		GU_PSM_8888,  32, 32, true,	"sound.raw"},
+	{CSandbergUI::TEX_OPTIONS,		GU_PSM_5551, 128, 64, true,	"options.raw"},
 	{CSandbergUI::TEX_PARTICLE_01,	GU_PSM_8888,  32, 32, true,	"particle_01.raw"},
+	{CSandbergUI::TEX_BLUR,			GU_PSM_5551, 128, 32, true,	"blur.raw"},
 	};
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(CSandbergUI::texture_file))
