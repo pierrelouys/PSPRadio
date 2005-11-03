@@ -63,7 +63,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.36-pre5")
+	myPSPApp(): CPSPApp("PSPRadio", "0.37-pre1")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -116,6 +116,8 @@ public:
 				m_Config->GetInteger("WIFI:PROFILE", 1));
 			m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS)->Activate(m_UI);
 			((OptionsScreen *)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
+			/** Go back to main screen */
+			m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST)->Activate(m_UI);
 		}
 		else
 		{

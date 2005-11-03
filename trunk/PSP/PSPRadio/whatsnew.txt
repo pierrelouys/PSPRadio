@@ -1,38 +1,32 @@
 What's New for PSPRadio 
 ========================
-0.36-pre6
+
+0.37-pre1
 (jpfouch48) Added scrolling text to metadata area. (Currently double buffering
 is not working so it may look alittle choppy)
 (sandberg) Added a radial blur effect as a background effect on the 3D UI.
 
-0.36-pre5
+0.36-final (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.36/)
+(raf) If AUTOSTART set to 1 in config file, App starts in Options screen, starts the network, then goes back to main screen.
 (raf) Lots of cleanup / refactoring
-(raf) Now downloads a compressed version of SHOUTcast.com's database instead.
+(raf) Now downloads a compressed version of SHOUTcast.com's database instead. Thanks to echto again for providing the routines to do the zlib uncompression, and SHOUTcast.com db download URL service setup, etc!!
 (sandberg) Added a particle system as a new background effect for the 3D UI.
 (raf) Simplified wifi selection. One option to select profile or turn off.
 (raf) Screens are classes now. If going back and forth between screens, they will retain their state.
-(sandberg) Added support for taking screenshots. Use the Hold button to take a screenshot. When the LED
-stops flashing the screenshot is stored in the Screenshots folder (you need to create that folder, if you
-don't have it already).
+(sandberg) Added support for taking screenshots. Use the Hold button to take a screenshot. When the LED stops flashing the screenshot is stored in the Screenshots folder (you need to create that folder, if you don't have it already).
 (raf) Modified the pspsdk's text rendering system to allow for png backgrounds and transparent text.
 (raf) Gave the TextUI a facelift by using backgrounds for the different screens.. This is configurable via the cfg file.
 (raf) Fixed bug where if the playlist was empty, garbage was being used when the user pressed X or O.
-(sandberg) Added support repeated and long key presses. The repeated key presses are usefull when navigating
-the playlists.
-(sandberg) Moved the screenshot function to be activated on a long key press on Select (appr. 1 second). The
-screenshot will be taken when releasing the button.
+(sandberg) Added support repeated and long key presses. The repeated key presses are usefull when navigating the playlists.
+(sandberg) Moved the screenshot function to be activated on a long key press on Select (appr. 1 second). The screenshot will be taken when releasing the button.
 (raf) Backup the db in case the download fails.
 (raf) Disabled the HOME menu button for now. To exit PSPRadio, go to Options and select Exit.
-
-0.36-pre4 (r427)
 (raf) Enabled the CPU speed change option.
 (raf) Added 111MHz; which is not useful for MP3, but works for OGGs in the text ui, and can save battery.
 (raf) Refactored PSPApp/PSPRadio so that it runs in USERMODE. The drivers for the network and USB are now started from a kernel thread during app construction.
 This allows for DHCP to work! (thanks to PspPet and 'benji' for figuring this out.)
 (raf) L and R now navigate like Page UP/Down.
-
-0.36-pre3 (r422)
-(raf) Started adding SHOUTcast support
+(raf) Started adding SHOUTcast.com support
 (sandberg) Implemented a VRAM memory manager, so all textures are now loaded from files
 into VRAM.
 (sandberg) Added full playlist and playlist entries support for the 3D UI.
@@ -47,13 +41,10 @@ The triangle button is only used for swapping between the playlist and Shoutcast
 (raf) Fixed crash on exit when logging is 80 or higher.
 (raf) Added logging level selection and UI selection in Options menu.
 (raf) Added option to download latest database from SHOUTcast.com (this is usable, but still work in progress. -- the app only lets you do this once a minute, not more often. (Shouldn't have to anyway))
-
-0.36-pre2 (r364)
 (sandberg) Added support for the option menu in the 3D UI.
 (jpfouch48) GraphicsUI playlist browser and playlist item browser is now functional
 (jpfouch48) Made the text display funtions more modulare to make future enhancments easier
-(jpfouch48) Added a unique ItemIndex to the MetaData structure and directorydata structure to make the
-			browsable playlist integration a little bit easier
+(jpfouch48) Added a unique ItemIndex to the MetaData structure and directorydata structure to make the browsable playlist integration a little bit easier
 (raf) Some more work on the OGG decoder.
 (raf) Now TextUI will display selectable lists for playlist and playlist entries
 (raf) Made the current selections more dynamic so they follow the list.
@@ -64,13 +55,11 @@ User can also use <- or -> to go back and forth between List and Entries. (need 
 (jpfouch48) Updated how playlist scrolls
 (jpfouch48) Fixed problem with theme clipping song filename in upper pannel
 (sandberg) Added support for displaying the MetaData in the 3D UI.
-
-0.36-pre1 (r336)
 ------------------------------------------------------------------------
 r320 | rafpsp | 2005-10-17 02:19:15 -0400 (Mon, 17 Oct 2005) | 38 lines
 
 svn merge -r305:319 branches/OGGSupportAddition to trunk/
-	----------------------------------------------------------------------
+----------------------------------------------------------------------
 	r319 | rafpsp | 2005-10-17 01:52:33 -0400 (Mon, 17 Oct 2005) | 1 line
 	
 	Now if content type is not defined, it defaults to MPEG. Also added case for AAC (not supported yet)

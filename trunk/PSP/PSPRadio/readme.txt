@@ -1,4 +1,4 @@
-PSPRadio by Raf 0.36-pre5 11/01/05
+PSPRadio by Raf 0.37-pre1 11/??/05
 ====================================
 
 *****************************************************************
@@ -6,7 +6,6 @@ THIS IS A PRE-RELEASE!!!
 FOR THE LATEST STABLE OFFICIAL RELEASE, GO TO:
 https://developer.berlios.de/project/showfiles.php?group_id=4862
 *****************************************************************
-
 
 -Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php
@@ -27,24 +26,32 @@ Use at your own risk.
 
 Installation
 -------------
-1-Download the correct package for your firmware: -f1.0 or -f1.5
-2-Choose an iconset directory, you can choose from: 
+1-Choose an iconset directory, you can choose from: 
 halfastII-iconset, handojin-iconset, harbringer-iconset and mrpochi-iconset.
-3-Copy the contents of the version directory ("PSPRadio" for v1.0 or
-"PSPRadio" and "PSPRadio%" for v1.5) to your PSP under "\PSP\GAME\".
+2-Copy the contents of that folder ("PSPRadio" and "PSPRadio%") to your PSP under "\PSP\GAME\".
+
+Credits
+-------
+Development:
+Raf:       Lead, Concept, Core, TextUI
+jpfouch48: GraphicsUI
+sandberg:  3D UI, enchancements
+
+Other Routines:
+echto:	SHOUTcast.com interface, zlib routines.
+
+Art:
+-halfastII:  Iconset
+-handojinUK: Iconset
+-harbringer: Iconset, default GraphicsUI theme
+-Mr Pochi:   Iconset
 
 Thanks
 ------
 The author would like to thank all the users that have donated to this project.
 --You keep me going! Thank you!!--
-The author would also like to thank (In no particular order):
+Raf would also like to thank (In no particular order, except the first one :) ):
 -my son and wife for putting up with me :)
--halfastII 
--handojinUK
--echto
--harbringer
--jpfouch48
--Mr Pochi
 -PSPDEV Team for their incredible work on the PSPSDK, toolchain, libraries, etc!
 -libMAD and libTremor teams.
 -mpg123 team.
