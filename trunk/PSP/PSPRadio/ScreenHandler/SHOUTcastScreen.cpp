@@ -30,11 +30,15 @@
 #include <pspwlan.h> 
 #include <psphprm.h>
 #include "SHOUTcastScreen.h"
-#include "DirList.h"
-#include "PlayList.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
+
+#define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
+#define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"
+#define SHOUTCAST_DB_COMPRESSED_FILENAME		"SHOUTcast/db.xml.gz"
+#define SHOUTCAST_DB_FILENAME					"SHOUTcast/db.xml"
+#define SHOUTCAST_DB_FILENAME_BACKUP			"SHOUTcast/db.xml.bk"
 
 SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 	:PlayListScreen(Id, ScreenHandler)
@@ -43,63 +47,26 @@ SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 	LoadLists();
 }
 
+
+SHOUTcastScreen::~SHOUTcastScreen()
+{
+
+}
+
 void SHOUTcastScreen::LoadLists()
 {
-	if (m_CurrentPlayListDir && m_CurrentPlayList)
+	if (m_Lists)
 	{
 		Log(LOG_LOWLEVEL, "StartScreen::PSPRADIO_SCREEN_SHOUTCAST_BROWSER");
-		m_CurrentPlayListDir->Clear();
-		char *strFileName = NULL;
-		strFileName = (char *)malloc(strlen(m_ScreenHandler->GetCWD()) + strlen("SHOUTcast") + 10);
-		sprintf(strFileName, "%s/SHOUTcast", m_ScreenHandler->GetCWD());
-		m_CurrentPlayListDir->LoadDirectory(strFileName); //**//
-		free(strFileName),strFileName = NULL;
-		if (m_CurrentPlayListDir->Size() > 0)
-		{
-			Log(LOG_LOWLEVEL, "Loading xml file '%s'.", m_CurrentPlayListDir->GetCurrentURI());
-			m_CurrentPlayList->Clear();
-			m_CurrentPlayList->LoadPlayListFromSHOUTcastXML(m_CurrentPlayListDir->GetCurrentURI());
-		}
+		m_Lists->Clear();
 		
-		m_CurrentPlayListSideSelection = PlayListScreen::PLAYLIST_LIST;
+		Log(LOG_LOWLEVEL, "Loading xml file '%s'.", SHOUTCAST_DB_FILENAME);
+		m_Lists->LoadSHOUTcastXML(SHOUTCAST_DB_FILENAME);
+
+		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 
 	}
 }
-
-void SHOUTcastScreen::Activate(IPSPRadio_UI *UI)
-{
-	IScreen::Activate(UI);
-	if (m_CurrentPlayListDir->GetList()->size() > 0)
-	{
-		m_UI->DisplayPLList(m_CurrentPlayListDir);
-	}
-	/** tell ui of m_CurrentPlayListSideSelection change. */
-	if(m_CurrentPlayList->GetList()->size() > 0)
-	{
-		m_UI->DisplayPLEntries(m_CurrentPlayList);
-	}
-	m_UI->OnCurrentPlayListSideSelectionChange(m_CurrentPlayListSideSelection); 
-
-	if (CPSPSound::PLAY == m_ScreenHandler->GetSound()->GetPlayState())
-	{
-		/** Populate m_CurrentMetaData */
-		//don't until user starts it!
-		//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-		m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
-	}
-}
-
-void SHOUTcastScreen::InputHandler(int iButtonMask)
-{
-	PlayListScreen::InputHandler(iButtonMask);
-}
-
-
-#define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
-#define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"
-#define SHOUTCAST_DB_COMPRESSED_FILENAME		"SHOUTcast/db.xml.gz"
-#define SHOUTCAST_DB_FILENAME					"SHOUTcast/db.xml"
-#define SHOUTCAST_DB_FILENAME_BACKUP			"SHOUTcast/db.xml.bk"
 
 bool UnCompress(char *strSourceFile, char *strDestFile);
 int inf(FILE *source, FILE *dest);
@@ -294,3 +261,4 @@ int inf(FILE *source, FILE *dest)
     (void)inflateEnd(&strm);
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
+

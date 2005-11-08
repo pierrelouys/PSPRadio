@@ -5,8 +5,7 @@
 	#include "PlayListScreen.h"
 	#include "OptionsScreen.h"
 	#include "PSPSound.h"
-	#include "PlayList.h"
-	#include "DirList.h"
+	#include "MetaDataContainer.h"
 	
 	/** UI class interface */ 
 	class IPSPRadio_UI
@@ -37,16 +36,16 @@
 		virtual int OnVBlank(){return 0;};
 		virtual int OnNewSongData(MetaData *pData){return 0;};
 		
-		virtual int DisplayPLList(CDirList *plList){return 0;};
-		virtual	int DisplayPLEntries(CPlayList *PlayList){return 0;};
-		virtual int OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection){return 0;};
-		
 		/** Screen Handling */
 		virtual void Initialize_Screen(CScreenHandler::Screen screen){};
 		virtual void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator){};
 		virtual void OnScreenshot(CScreenHandler::ScreenShotState state){};
-	};
+
+		virtual void DisplayContainers(CMetaDataContainer *Container){}
+		virtual void DisplayElements(CMetaDataContainer *Container){}
+		virtual void OnCurrentContainerSideChange(CMetaDataContainer *Container){}
+		};
 
 #endif
 	

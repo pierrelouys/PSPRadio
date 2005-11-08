@@ -285,15 +285,16 @@ int CGraphicsUI::OnNewSongData(MetaData *pData)
 	return 0;
 }
 
-int CGraphicsUI::DisplayPLList(CDirList *plList)
+void CGraphicsUI::DisplayContainers(CMetaDataContainer *Container)
 {
-	list<CDirList::directorydata>::iterator dataIter = *plList->GetCurrentElementIterator();
+	//list<CDirList::directorydata>::iterator dataIter = *plList->GetCurrentElementIterator();
+	map< string, list<MetaData>* >::iterator dataIter = *Container->GetCurrentContainerIterator();
 	
 	int nLineCount = m_theme.GetLineCount(OA_PLAYLIST);
 
 	for (int i = 0; i < nLineCount/2; i++)
 	{
-		if (dataIter == plList->GetList()->begin())
+		if (dataIter == Container->GetContainerList()->begin())
 			break;
 		dataIter--;
 	}
@@ -301,7 +302,7 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 	// Reset playlist area
 	m_theme.ResetOutputArea(OA_PLAYLIST);
 
-	for (int nLineNumber = 0; dataIter != plList->GetList()->end() ; dataIter++)
+	for (int nLineNumber = 0; dataIter != Container->GetContainerList()->end() ; dataIter++)
 	{
 		bool bHighlight = false;
 
@@ -311,29 +312,28 @@ int CGraphicsUI::DisplayPLList(CDirList *plList)
 		}
 
 		// Highling current item
-		if(dataIter == *plList->GetCurrentElementIterator())
+		if(dataIter == *Container->GetCurrentContainerIterator())
 		{
 			bHighlight = true;
 		}
 		
-		m_theme.DisplayString(basename(dataIter->strURI), OA_PLAYLIST, nLineNumber+1, bHighlight);
-
+		//m_theme.DisplayString(basename(dataIter->strURI), OA_PLAYLIST, nLineNumber+1, bHighlight);
+		m_theme.DisplayString((char *)dataIter->first.c_str(), OA_PLAYLIST, nLineNumber+1, bHighlight);
 		
 		nLineNumber++;
 	}	
 
-	return 0;
 }
 
-int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
+void CGraphicsUI::DisplayElements(CMetaDataContainer *Container)
 {
 	int nLineCount = m_theme.GetLineCount(OA_PLAYLISTITEM);
 	
-	list<MetaData>::iterator dataIter = *PlayList->GetCurrentElementIterator();
+	list<MetaData>::iterator dataIter = *Container->GetCurrentElementIterator();
 			
 	for (int i = 0; i < nLineCount/2; i++)
 	{
-		if (dataIter == PlayList->GetList()->begin())
+		if (dataIter == Container->GetElementList()->begin())
 			break;
 		dataIter--;
 	}
@@ -341,7 +341,7 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 	// Reset playlist area
 	m_theme.ResetOutputArea(OA_PLAYLISTITEM);
 	
-	for (int nLineNumber = 0; dataIter != PlayList->GetList()->end() ; dataIter++)
+	for (int nLineNumber = 0; dataIter != Container->GetElementList()->end() ; dataIter++)
 	{
 		bool bHighlight = false;
 
@@ -351,7 +351,7 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 		}
 
 		// Highlight item
-		if(dataIter == *PlayList->GetCurrentElementIterator())
+		if(dataIter == *Container->GetCurrentElementIterator())
 		{
 			bHighlight = true;
 		}
@@ -369,8 +369,6 @@ int CGraphicsUI::DisplayPLEntries(CPlayList *PlayList)
 		
 		nLineNumber++;
 	}	
-
-	return 0;	
 }
 
 int CGraphicsUI::OnConnectionProgress()

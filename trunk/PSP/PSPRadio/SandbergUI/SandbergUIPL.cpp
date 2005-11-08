@@ -127,7 +127,7 @@ void CSandbergUI::RenderFrame(TexCoord &area, unsigned int tex_color)
 	sceGuDepthFunc(GU_GEQUAL);
 }
 
-int CSandbergUI::DisplayPLList(CDirList *plList)
+void CSandbergUI::DisplayContainers(CMetaDataContainer *Container)
 {
 	int 		list_cnt, render_cnt;
 	int		current = 1;
@@ -137,9 +137,9 @@ int CSandbergUI::DisplayPLList(CDirList *plList)
 	int		first_entry;
 	char		strTemp[MAX_CHARS+1];
 
-	list<CDirList::directorydata>::iterator ListIterator;
-	list<CDirList::directorydata>::iterator *CurrentElement = plList->GetCurrentElementIterator();
-	list<CDirList::directorydata> *List = plList->GetList();
+	map< string, list<MetaData>* >::iterator ListIterator;
+	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
+	map< string, list<MetaData>* > *List = Container->GetContainerList();
 
 	list_cnt = List->size();
 
@@ -175,7 +175,8 @@ int CSandbergUI::DisplayPLList(CDirList *plList)
 				{
 					color = 0xFF444444;
 				}
-				strncpy(strTemp, basename((*ListIterator).strURI), MAX_CHARS);
+				strncpy(strTemp, ListIterator->first.c_str(), MAX_CHARS);
+				//strncpy(strTemp, basename((*ListIterator).strURI), MAX_CHARS);
 				strTemp[MAX_CHARS] = 0;
 				ListIterator++;
 			}
@@ -190,10 +191,9 @@ int CSandbergUI::DisplayPLList(CDirList *plList)
 		}
 	}
 
-	return 0;
 }
 
-int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
+void CSandbergUI::DisplayElements(CMetaDataContainer *Container)
 {
 	int 		list_cnt, render_cnt;
 	int		current = 1;
@@ -204,8 +204,8 @@ int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
 	char		strTemp[MAX_CHARS+1];
 
 	list<MetaData>::iterator ListIterator;
-	list<MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
-	list<MetaData> *List = PlayList->GetList();
+	list<MetaData>::iterator *CurrentElement = Container->GetCurrentElementIterator();
+	list<MetaData> *List = Container->GetElementList();
 
 	list_cnt = List->size();
 
@@ -265,7 +265,6 @@ int CSandbergUI::DisplayPLEntries(CPlayList *PlayList)
 		}
 	}
 
-	return 0;
 }
 
 int CSandbergUI::FindFirstEntry(int list_cnt, int current)
@@ -291,21 +290,20 @@ int CSandbergUI::FindFirstEntry(int list_cnt, int current)
 	return first_entry;
 }
 
-int CSandbergUI::OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection)
+void CSandbergUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 {
 
-	switch (CurrentPlayListSideSelection)
+	switch (Container->GetCurrentSide())
 	{
-		case	PlayListScreen::PLAYLIST_LIST:
+		case	CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 			select_target = 0;
 			break;
-		case	PlayListScreen::PLAYLIST_ENTRIES:
+		case	CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 			select_target = SIN_COUNT-1;
 			break;
 		default:
 			break;
 	}
-	return 0;
 }
 
 void CSandbergUI::RenderActiveList(void)

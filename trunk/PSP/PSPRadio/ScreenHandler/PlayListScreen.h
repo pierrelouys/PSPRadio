@@ -1,17 +1,12 @@
 #ifndef __PLAYLIST_SCREEN__
 	#define __PLAYLIST_SCREEN__
 
+	#include "MetaDataContainer.h"
 	#include "ScreenHandler.h"
 
 	class PlayListScreen : public IScreen
 	{
 		public:
-			enum PlayListSide
-			{
-				PLAYLIST_LIST,
-				PLAYLIST_ENTRIES
-			};
-
 			PlayListScreen(int Id, CScreenHandler *ScreenHandler);
 			virtual ~PlayListScreen();
 			
@@ -26,9 +21,7 @@
 			virtual void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState);
 
 		protected:
-			CPlayList *m_CurrentPlayList;
-			CDirList  *m_CurrentPlayListDir;
-			PlayListSide m_CurrentPlayListSideSelection;
+			CMetaDataContainer *m_Lists;
 	};
 
 #endif

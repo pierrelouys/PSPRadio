@@ -36,8 +36,6 @@
 #include "PlayListScreen.h"
 #include "OptionsScreen.h"
 #include "SHOUTcastScreen.h"
-#include "DirList.h"
-#include "PlayList.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 

@@ -3,8 +3,6 @@
 	
 	#include <PSPSound.h>
 	#include <iniparser.h>
-	#include "PlayList.h"
-	#include "DirList.h"
 	#include <list>
 	using namespace std;
 

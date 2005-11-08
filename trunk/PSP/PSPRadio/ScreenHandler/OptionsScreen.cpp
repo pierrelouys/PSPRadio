@@ -30,8 +30,6 @@
 #include <pspwlan.h> 
 #include <psppower.h>
 #include "OptionsScreen.h"
-#include "DirList.h"
-#include "PlayList.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
