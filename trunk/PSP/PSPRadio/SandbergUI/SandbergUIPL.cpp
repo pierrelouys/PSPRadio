@@ -183,6 +183,11 @@ void CSandbergUI::DisplayContainers(CMetaDataContainer *Container)
 					pStrTemp[MAX_CHARS] = 0;
 					UpdateTextItem(TEXT_PL_LIST1 +  i, LIST_TEXT_X, y++, pStrTemp, color);
 				}
+				else
+				{
+					strTemp[MAX_CHARS] = 0;
+					UpdateTextItem(TEXT_PL_LIST1 +  i, LIST_TEXT_X, y++, strTemp, color);
+				}
 				ListIterator++;
 			}
 			else
