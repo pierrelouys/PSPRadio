@@ -132,9 +132,9 @@ public:
 	int OnStreamOpeningSuccess();
 	int OnVBlank();
 	int OnNewSongData(MetaData *pData);
-	int DisplayPLList(CDirList *plList);
-	int DisplayPLEntries(CPlayList *PlayList);
-	int OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection);
+	void DisplayContainers(CMetaDataContainer *Container);
+	void DisplayElements(CMetaDataContainer *Container);
+	void OnCurrentContainerSideChange(CMetaDataContainer *Container);
 
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);

@@ -32,15 +32,14 @@ public:
 	int OnStreamOpeningSuccess();
 	int OnNewSongData(MetaData *pData);
 	
-	int DisplayPLList(CDirList *plList);
-	int DisplayPLEntries(CPlayList *PlayList);
-	int OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection);
-	
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);
 	void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator);
 
+	void DisplayContainers(CMetaDataContainer *Container);
+	void DisplayElements(CMetaDataContainer *Container);
+	void OnCurrentContainerSideChange(CMetaDataContainer *Container);
 	
 private:
 	bool  m_isdirty;

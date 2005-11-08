@@ -574,12 +574,13 @@ int CTextUI::OnConnectionProgress()
 	return 0;
 }
 
-int CTextUI::DisplayPLList(CDirList *plList)
+void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
 	int x,y,c,r1,r2,ct,cs;
-	list<CDirList::directorydata>::iterator ListIterator;
-	list<CDirList::directorydata>::iterator *CurrentElement = plList->GetCurrentElementIterator();
-	list<CDirList::directorydata> *List = plList->GetList();
+
+	map< string, list<MetaData>* >::iterator ListIterator;
+	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
+	map< string, list<MetaData>* > *List = Container->GetContainerList();
 	char *text = NULL;
 	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &x, &y);
 	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
@@ -594,9 +595,10 @@ int CTextUI::DisplayPLList(CDirList *plList)
 	
 	text = (char *)malloc (MAXPATHLEN);
 	
-	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
+	//Log(LOG_VERYLOW, "DisplayContainers(): populating screen");
 	if (List->size() > 0)
 	{
+		//Log(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
 		ListIterator = *CurrentElement;
 		for (int i = 0; i < (r2-r1)/2; i++)
 		{
@@ -605,7 +607,9 @@ int CTextUI::DisplayPLList(CDirList *plList)
 			ListIterator--;
 		
 		}
+
 		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
+		//Log(LOG_VERYLOW, "DisplayContainers(): Populating Screen (total elements %d)", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
 			if (y > r2)
@@ -623,9 +627,14 @@ int CTextUI::DisplayPLList(CDirList *plList)
 			}
 			
 			//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
-			strncpy(text, basename((*ListIterator).strURI), 28);
-			text[28] = 0;
-		
+			//Log(LOG_VERYLOW, "DisplayContainers(): c_str text='%s'", ListIterator->first.c_str());
+			strncpy(text, ListIterator->first.c_str(), 28);
+
+			if (!strlen(text))
+			{
+				sprintf(text, "No Genre Defined");
+			}
+			//Log(LOG_VERYLOW, "DisplayContainers(): Calling print with text='%s'", text);// pText='%s'", text, pText);
 			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
 			uiPrintf(x, y, color, text);
 			y+=1;
@@ -633,16 +642,14 @@ int CTextUI::DisplayPLList(CDirList *plList)
 	}
 	
 	free(text), text = NULL;
-	
-	return 0;
 }
 
-int CTextUI::DisplayPLEntries(CPlayList *PlayList)
+void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
 	int x,y,c,r1,r2,ct,cs;
 	list<MetaData>::iterator ListIterator;
-	list<MetaData>::iterator *CurrentElement = PlayList->GetCurrentElementIterator();
-	list<MetaData> *List = PlayList->GetList();
+	list<MetaData>::iterator *CurrentElement = Container->GetCurrentElementIterator();
+	list<MetaData> *List = Container->GetElementList();
 	char *text;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
 	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
@@ -657,8 +664,6 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	y++;
 	
 	text = (char *)malloc (MAXPATHLEN);
-	
-	
 	
 	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
@@ -708,11 +713,9 @@ int CTextUI::DisplayPLEntries(CPlayList *PlayList)
 	}
 	
 	free(text), text = NULL;
-	
-	return 0;
 }
 
-int CTextUI::OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide CurrentPlayListSideSelection)
+void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 {
 	int r1,r2, ct, iListX, iEntryX, y;
 	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &iEntryX, &y);
@@ -722,20 +725,17 @@ int CTextUI::OnCurrentPlayListSideSelectionChange(PlayListScreen::PlayListSide C
 
 	ClearRows(r1);
 	
-	switch (CurrentPlayListSideSelection)
+	switch (Container->GetCurrentSide())
 	{
-		case PlayListScreen::PLAYLIST_LIST:
+		case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
 			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
 			break;
 		
-		case PlayListScreen::PLAYLIST_ENTRIES:
+		case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
 			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
 			break;
 	
 	}
-	
-	return 0;
 }
-
