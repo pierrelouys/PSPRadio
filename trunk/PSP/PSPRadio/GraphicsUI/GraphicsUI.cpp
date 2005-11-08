@@ -287,8 +287,8 @@ int CGraphicsUI::OnNewSongData(MetaData *pData)
 
 void CGraphicsUI::DisplayContainers(CMetaDataContainer *Container)
 {
-	//list<CDirList::directorydata>::iterator dataIter = *plList->GetCurrentElementIterator();
 	map< string, list<MetaData>* >::iterator dataIter = *Container->GetCurrentContainerIterator();
+	char *strText = (char *)malloc (MAXPATHLEN);
 	
 	int nLineCount = m_theme.GetLineCount(OA_PLAYLIST);
 
@@ -318,11 +318,23 @@ void CGraphicsUI::DisplayContainers(CMetaDataContainer *Container)
 		}
 		
 		//m_theme.DisplayString(basename(dataIter->strURI), OA_PLAYLIST, nLineNumber+1, bHighlight);
-		m_theme.DisplayString((char *)dataIter->first.c_str(), OA_PLAYLIST, nLineNumber+1, bHighlight);
+		strncpy(strText, dataIter->first.c_str(), MAXPATHLEN - 1);
+		strText[MAXPATHLEN - 1] = 0;
+		if ((strlen(strText) > 4) && 
+			(0 == memcmp(strText, "ms0:", 4)) )
+		{
+			char *pText = basename(strText);
+			m_theme.DisplayString(pText, OA_PLAYLIST, nLineNumber+1, bHighlight);
+		}
+		else
+		{
+			m_theme.DisplayString(strText, OA_PLAYLIST, nLineNumber+1, bHighlight);
+		}
 		
 		nLineNumber++;
 	}	
 
+	free (strText), strText = NULL;
 }
 
 void CGraphicsUI::DisplayElements(CMetaDataContainer *Container)

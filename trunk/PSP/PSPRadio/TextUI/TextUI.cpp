@@ -626,17 +626,20 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 				color = c;
 			}
 			
-			//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
-			//Log(LOG_VERYLOW, "DisplayContainers(): c_str text='%s'", ListIterator->first.c_str());
-			strncpy(text, ListIterator->first.c_str(), 28);
+			strncpy(text, ListIterator->first.c_str(), MAXPATHLEN - 1);
+			text[MAXPATHLEN - 1] = 0;
 
-			if (!strlen(text))
+			if (strlen(text) > 4 && memcmp(text, "ms0:", 4) == 0)
 			{
-				sprintf(text, "No Genre Defined");
+				char *pText = basename(text);
+				pText[28] = 0;
+				uiPrintf(x, y, color, pText);
 			}
-			//Log(LOG_VERYLOW, "DisplayContainers(): Calling print with text='%s'", text);// pText='%s'", text, pText);
-			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
-			uiPrintf(x, y, color, text);
+			else
+			{
+				text[28] = 0;
+				uiPrintf(x, y, color, text);
+			}
 			y+=1;
 		}
 	}

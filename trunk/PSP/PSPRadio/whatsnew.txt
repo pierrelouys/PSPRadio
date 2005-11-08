@@ -5,6 +5,9 @@ What's New for PSPRadio
 (jpfouch48) Added scrolling text to metadata area. (Currently double buffering
 is not working so it may look alittle choppy)
 (sandberg) Added a radial blur effect as a background effect on the 3D UI.
+(raf) Added code to draw font with outline - thanks to Halfast for the idea.
+(raf) Revamped code to handle playlists in memory. 
+(raf) Now shoutcast.com entries are sorted by genre
 
 0.36-final (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.36/)
 (raf) If AUTOSTART set to 1 in config file, App starts in Options screen, starts the network, then goes back to main screen.
