@@ -8,6 +8,7 @@ is not working so it may look alittle choppy)
 (raf) Added code to draw font with outline - thanks to Halfast for the idea.
 (raf) Revamped code to handle playlists in memory. 
 (raf) Now shoutcast.com entries are sorted by genre
+(raf) Now will reload shoutcast.com db on download. Also now include a default db.xml
 
 0.36-final (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.36/)
 (raf) If AUTOSTART set to 1 in config file, App starts in Options screen, starts the network, then goes back to main screen.
