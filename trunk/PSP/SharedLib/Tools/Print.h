@@ -10,7 +10,7 @@
 	void ScreenSetBackColor(u32 colour);
 	void ScreenSetTextColor(u32 colour);
 	void ScreenSetBackgroundImage(char *strImage);
-	void ScreenPutChar( int x, int y, u32 color, u8 ch);
+	void ScreenPutChar( int x, int y, u32 color, u8 ch, bool do_background = true);
 	int  ScreenPrintData(const char *buff, int size);
 	void ScreenPrintf(const char *format, ...);
 	void ScreenSetXY(int x, int y);

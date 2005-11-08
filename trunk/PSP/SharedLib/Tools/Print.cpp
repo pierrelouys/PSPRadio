@@ -52,11 +52,6 @@ void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
 /* Load an image and show it to screen */
 void LoadImage(const char* filename, u32 *ImageBuffer)
 {
-	//u32* vram32;
-	//u16* vram16;
-	//int bufferwidth;
-	//int pixelformat;
-	//int unknown;
 	png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned int sig_read = 0;
@@ -95,10 +90,6 @@ void LoadImage(const char* filename, u32 *ImageBuffer)
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
 		return;
 	}
-	sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
-	//u32 *vram_unused;
-	//sceDisplayGetFrameBuf((void**)&vram_unused, &bufferwidth, &pixelformat, &unknown);
-	//vram16 = (u16*) ImageBuffer;//vram32;
 	for (y = 0; y < height; y++) 
 	{
 		png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
@@ -155,20 +146,19 @@ void ScreenSetBackgroundImage(char *strImage)
 	}
 }
 
-void ScreenSetBackColor(u32 colour)
+void ScreenSetBackColor(u32 color)
 {
-   bg_col = colour;
+   bg_col = color;
 }
 
-void ScreenSetTextColor(u32 colour)
+void ScreenSetTextColor(u32 color)
 {
-   fg_col = colour;
+   fg_col = color;
 }
 
 extern u8 msx[];
 
-
-void ScreenPutChar( int x, int y, u32 color, u8 ch)
+void ScreenPutChar( int x, int y, u32 color, u8 ch, bool do_background)
 {
 	int 	i,j, l;
 	u8	*font;
@@ -195,7 +185,16 @@ void ScreenPutChar( int x, int y, u32 color, u8 ch)
 				if ((*font & (128 >> j)))
 					*vram_ptr++ = color;
 				else
-					*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
+				{
+					if (true == do_background)
+					{
+						*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
+					}
+					else
+					{
+						vram_ptr++;
+					}
+				}
 			}
 			else
 			{
@@ -213,7 +212,7 @@ void ScreenPutChar( int x, int y, u32 color, u8 ch)
 
 void ScreenPutEraseChar( int x, int y, u32 color)
 {
-	int 	i,j, l;
+	int 	i,j;
 	u32 *vram_ptr;
 	u32 *vram;
 	
@@ -222,19 +221,48 @@ void ScreenPutEraseChar( int x, int y, u32 color)
 	   return;
 	}
 	
-	vram = g_vram_base + x;
-	vram += (y * PSP_LINE_SIZE);
-	
-	for (i=l=0; i < 8; i++, l+= 8)
+	if (NULL == m_ImageBuffer)
 	{
-		vram_ptr  = vram;
-		for (j=0; j < 8; j++)
+		ScreenPutChar( x, y, bg_col, 219);
+	}
+	else
+	{
+		vram = g_vram_base + x;
+		vram += (y * PSP_LINE_SIZE);
+		
+		for (i=0; i < 8; i++)
 		{
-			*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
+			vram_ptr  = vram;
+			for (j=0; j < 8; j++)
+			{
+				*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
+			}
+			vram += PSP_LINE_SIZE;
 		}
-		vram += PSP_LINE_SIZE;
 	}
 }
+
+void ScreenPutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
+{
+	int xminusone = (x>0?(x-1):0);
+	int yminusone = (y>0?(y-1):0);
+	
+	ScreenPutEraseChar(x,y, 0);
+
+	/** y - 1 */	
+	ScreenPutChar(xminusone, yminusone, bg_color, ch, false);
+	ScreenPutChar(x, yminusone, bg_color, ch, false);	
+	ScreenPutChar(x+1, yminusone, bg_color, ch, false);
+	/** y + 1 */
+	ScreenPutChar(xminusone, y+1, bg_color, ch, false);
+	ScreenPutChar(x, y+1, bg_color, ch, false);	
+	ScreenPutChar(x+1, y+1, bg_color, ch, false);
+	/** y */
+	ScreenPutChar(xminusone, y, bg_color, ch, false);
+	ScreenPutChar(x+1, y, bg_color, ch, false);
+	ScreenPutChar(x, y, fg_color, ch, false);	
+}
+
 
 void ScreenClearLine(int Y)
 {
@@ -243,21 +271,9 @@ void ScreenClearLine(int Y)
 
 void ScreenClearNChars(int X, int Y, int N)
 {
-	if (NULL == m_ImageBuffer)
+	for (int i=X; i < X+N; i++)
 	{
-		for (int i=X; i < X+N; i++)
-		{
-			ScreenPutChar( i*7 , Y * 8, bg_col, 219);
-		}
-	}
-	else
-	{
-		//Get Line from bg image..
-		//BlitImage(X*8,Y*8, (X+N)*8, ((Y+1)*8));
-		for (int i=X; i < X+N; i++)
-		{
-			ScreenPutEraseChar( i*7 , Y * 8, bg_col);
-		}
+		ScreenPutEraseChar( i*7 , Y * 8, bg_col);
 	}
 }
 
@@ -286,8 +302,10 @@ int ScreenPrintData(const char *buff, int size)
 							X++;
 						}
 						break;
-			default:
-						ScreenPutChar( X*7 , Y * 8, fg_col, c);
+			default: 
+						//ScreenPutCharWithOutline(X*7, Y*8, 0xFFFFFFFF, fg_col, c);
+						ScreenPutCharWithOutline(X*7, Y*8, 0, fg_col, c);
+						//ScreenPutChar( X*7 , Y * 8, fg_col, c);
 						X++;
 						if (X == MX)
 						{
@@ -336,7 +354,7 @@ int ScreenGetY()
 	return Y;
 }
 
-void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2)
+void ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2)
 {
 	u16* vram16;
 	int bufferwidth;
@@ -388,7 +406,7 @@ void ScreenClear()
 
 	if (m_strImage)
 	{
-		BlitImage(0,0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+		ShowBackgroundPng(0,0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 		ScreenSetXY(0,0);
 	}
 	else
