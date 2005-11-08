@@ -135,7 +135,7 @@ void CSandbergUI::DisplayContainers(CMetaDataContainer *Container)
 	unsigned int	color;
 	int		y = LIST_TEXT_Y;
 	int		first_entry;
-	char		strTemp[MAX_CHARS+1];
+	char 	*strTemp = (char *)malloc (MAXPATHLEN);
 
 	map< string, list<MetaData>* >::iterator ListIterator;
 	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
@@ -175,9 +175,14 @@ void CSandbergUI::DisplayContainers(CMetaDataContainer *Container)
 				{
 					color = 0xFF444444;
 				}
-				strncpy(strTemp, ListIterator->first.c_str(), MAX_CHARS);
-				//strncpy(strTemp, basename((*ListIterator).strURI), MAX_CHARS);
-				strTemp[MAX_CHARS] = 0;
+				strncpy(strTemp, ListIterator->first.c_str(), MAXPATHLEN);
+				strTemp[MAXPATHLEN - 1] = 0;
+				if (strlen(strTemp) > 4 && memcmp(strTemp, "ms0:", 4) == 0)
+				{
+					char *pStrTemp = basename(strTemp);
+					pStrTemp[MAX_CHARS] = 0;
+					UpdateTextItem(TEXT_PL_LIST1 +  i, LIST_TEXT_X, y++, pStrTemp, color);
+				}
 				ListIterator++;
 			}
 			else
@@ -186,11 +191,11 @@ void CSandbergUI::DisplayContainers(CMetaDataContainer *Container)
 				strTemp[0] = ' ';
 				strTemp[1] = 0;
 				color = 0xFFFFFFFF;
+				UpdateTextItem(TEXT_PL_LIST1 +  i, LIST_TEXT_X, y++, strTemp, color);
 			}
-			UpdateTextItem(TEXT_PL_LIST1 +  i, LIST_TEXT_X, y++, strTemp, color);
 		}
 	}
-
+	free (strTemp), strTemp = NULL;
 }
 
 void CSandbergUI::DisplayElements(CMetaDataContainer *Container)
