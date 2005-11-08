@@ -33,7 +33,7 @@
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
-
+#include "SHOUTcastScreen.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -351,6 +351,7 @@ void OptionsScreen::OnOptionActivation()
 				if (true == m_ScreenHandler->DownloadSHOUTcastDB())
 				{
 					timeLastTime = timeNow; /** Only when successful */
+					((SHOUTcastScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->LoadLists();
 				}
 			}
 			else
