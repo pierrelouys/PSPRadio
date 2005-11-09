@@ -220,6 +220,11 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 						memcpy(songdata->strGenre, strGenre, 128);
 						songdata->strGenre[127] = 0;
 						
+						if (0 == strlen(songdata->strGenre))
+						{
+							strcpy(songdata->strGenre, "Other");
+						}
+
 						ProcessGenre(songdata);
 
 						iCount++;
@@ -258,19 +263,174 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 void CMetaDataContainer::ProcessGenre(MetaData *metadata)
 {
 /// Genres: "New Age" "News" "Talk" "Pop" "Oldies" "70s" "80s" "90s" "Anime" "Country"
-	if (0 == strlen(metadata->strGenre))
-	{
-		strcpy(metadata->strGenre, "No Genre Defined");
-	}
+	char *strGenre = strdup(metadata->strGenre);
 
+	strlwr(strGenre); /** Convert the string to lower case */
+	strGenre[0] = toupper(strGenre[0]);
+	
+	/** All go here */
+	AddToGenre(metadata, "**All Top 600**");
+
+	if (strstr(strGenre, "70s"))
+		AddToGenre(metadata, "70s");
+
+	if (strstr(strGenre, "80s"))
+		AddToGenre(metadata, "80s");
+
+	if (strstr(strGenre, "90s"))
+		AddToGenre(metadata, "90s");
+
+	if (strstr(strGenre, "new age"))
+		AddToGenre(metadata, "New Age");
+
+	if (strstr(strGenre, "news"))
+		AddToGenre(metadata, "News");
+
+	if (strstr(strGenre, "talk"))
+		AddToGenre(metadata, "Talk");
+
+	if (strstr(strGenre, "pop"))
+		AddToGenre(metadata, "Pop");
+
+	if (strstr(strGenre, "dance"))
+		AddToGenre(metadata, "Dance");
+
+	if (strstr(strGenre, "trance"))
+		AddToGenre(metadata, "Trance");
+
+	if (strstr(strGenre, "anime"))
+		AddToGenre(metadata, "Anime");
+
+	if (strstr(strGenre, "oldies"))
+		AddToGenre(metadata, "Oldies");
+
+	if (strstr(strGenre, "country"))
+		AddToGenre(metadata, "Country");
+
+	if (strstr(strGenre, "50s"))
+		AddToGenre(metadata, "Oldies");
+
+	if (strstr(strGenre, "60s"))
+		AddToGenre(metadata, "Oldies");
+
+	if (strstr(strGenre, "rock"))
+		AddToGenre(metadata, "Rock");
+
+	if (strstr(strGenre, "classical"))
+		AddToGenre(metadata, "Classical");
+
+	if (strstr(strGenre, "alternative"))
+		AddToGenre(metadata, "Alternative");
+
+	if (strstr(strGenre, "acoustic"))
+		AddToGenre(metadata, "Ambient");
+
+	if (strstr(strGenre, "ambient"))
+		AddToGenre(metadata, "Ambient");
+
+	if (strstr(strGenre, "americana"))
+		AddToGenre(metadata, "Americana");
+
+	if (strstr(strGenre, "jazz"))
+		AddToGenre(metadata, "Jazz");
+
+	if (strstr(strGenre, "blues"))
+		AddToGenre(metadata, "Blues");
+
+	if (strstr(strGenre, "house"))
+		AddToGenre(metadata, "House");
+
+	if (strstr(strGenre, "christian"))
+		AddToGenre(metadata, "Christian");
+
+	if (strstr(strGenre, "christmas"))
+		AddToGenre(metadata, "Holidays");
+
+	if (strstr(strGenre, "rnb "))
+		AddToGenre(metadata, "R&B");
+
+	if (strstr(strGenre, "r&b"))
+		AddToGenre(metadata, "R&B");
+
+	if (strstr(strGenre, "comedy"))
+		AddToGenre(metadata, "Talk");
+
+	if (strstr(strGenre, "techno"))
+		AddToGenre(metadata, "Techno");
+
+	if (strstr(strGenre, "soundtrack"))
+		AddToGenre(metadata, "Soundtrack");
+
+	if (strstr(strGenre, "folk"))
+		AddToGenre(metadata, "Folk");
+
+	if (strstr(strGenre, "game"))
+		AddToGenre(metadata, "Video Games");
+
+	if (strstr(strGenre, "gospel"))
+		AddToGenre(metadata, "Christian");
+
+	if (strstr(strGenre, "hardcore"))
+		AddToGenre(metadata, "Hardcore");
+
+	if (strstr(strGenre, "hip hop"))
+		AddToGenre(metadata, "Hip Hop");
+
+	if (strstr(strGenre, "rap"))
+		AddToGenre(metadata, "Rap");
+
+	if (strstr(strGenre, "indie"))
+		AddToGenre(metadata, "Indie");
+
+	if (strstr(strGenre, "live"))
+		AddToGenre(metadata, "Live");
+
+	if (strstr(strGenre, "metal"))
+		AddToGenre(metadata, "Metal");
+
+	if (strstr(strGenre, "progressive"))
+		AddToGenre(metadata, "Progressive");
+
+	if (strstr(strGenre, "r&amp;b"))
+		AddToGenre(metadata, "R&B");
+
+	if (strstr(strGenre, "reggae"))
+		AddToGenre(metadata, "Reggae");
+
+	if (strstr(strGenre, "latin"))
+		AddToGenre(metadata, "Latin");
+
+	if (strstr(strGenre, "punk"))
+		AddToGenre(metadata, "Punk");
+
+	if (strstr(strGenre, "sport"))
+		AddToGenre(metadata, "Sports");
+
+	if (strstr(strGenre, "salsa"))
+		AddToGenre(metadata, "Latin");
+
+	if (strstr(strGenre, "c64"))
+		AddToGenre(metadata, "Video Games");
+
+	if (strstr(strGenre, "industrial"))
+		AddToGenre(metadata, "Industrial");
+
+	if (strstr(strGenre, "blues"))
+		AddToGenre(metadata, "Blues");
+
+	free(strGenre), strGenre = NULL;
+}
+
+void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
+{
 	map<string, list<MetaData>* >::iterator found;
-	found = m_containerListMap.find(metadata->strGenre);
+	found = m_containerListMap.find(strGenre);
 	
 	if (found == m_containerListMap.end()) /** Didn't find it */
 	{
 		m_currentElementList = new list<MetaData>;
 		/** Add new genre to the container map */
-		m_containerListMap.insert( map<string, list<MetaData>* >::value_type(metadata->strGenre, m_currentElementList) );
+		m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strGenre, m_currentElementList) );
 	}
 	else
 	{

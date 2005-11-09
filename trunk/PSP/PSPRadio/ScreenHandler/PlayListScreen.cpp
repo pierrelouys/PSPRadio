@@ -327,7 +327,7 @@ void PlayListScreen::OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 					if (m_UI)
 						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 					/** Populate m_CurrentMetaData */
-					memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
 					if (m_UI)
 						m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
 					break;
@@ -357,7 +357,7 @@ void PlayListScreen::OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 						m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 						
 						/** Populate m_CurrentMetaData */
-						memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+						///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
 						
 						m_ScreenHandler->GetSound()->Play();
 					}

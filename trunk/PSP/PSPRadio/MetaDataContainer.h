@@ -65,6 +65,7 @@
 			Side m_CurrentSide;
 
 			void ProcessGenre(MetaData *metadata);
+			void AddToGenre(MetaData *metadata, char *strGenre);
 
 			void LoadPlayListURIIntoCurrentElementList(char *strFileName);
 	};
