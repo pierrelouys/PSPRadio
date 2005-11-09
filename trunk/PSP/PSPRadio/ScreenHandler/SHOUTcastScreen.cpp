@@ -44,7 +44,12 @@ SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 	:PlayListScreen(Id, ScreenHandler)
 {
 	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
+	m_Lists = NULL;
+
+	m_Lists = new CMetaDataContainer();
+
 	LoadLists();
+
 }
 
 

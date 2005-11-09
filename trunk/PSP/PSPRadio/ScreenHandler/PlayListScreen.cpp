@@ -37,6 +37,8 @@
 PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)
 {
 	Log(LOG_VERYLOW,"PlayListScreen Ctor.");
+	m_Lists = NULL;
+
 	m_Lists = new CMetaDataContainer();
 
 	LoadLists();
@@ -72,22 +74,25 @@ void PlayListScreen::Activate(IPSPRadio_UI *UI)
 	IScreen::Activate(UI);
 
 	Log(LOG_VERYLOW, "Activate(): Start");
-	if (false == m_Lists->GetContainerList()->empty())
+	if (m_Lists)
 	{
-		Log(LOG_VERYLOW, "Activate(): Calling DisplayContainers");
-		m_UI->DisplayContainers(m_Lists);
-
-		//Log(LOG_VERYLOW, "Activate(): 1");
-		if ( (m_Lists->GetElementList()) &&
-			 (false == m_Lists->GetElementList()->empty()) )
+		if (false == m_Lists->GetContainerList()->empty())
 		{
-			Log(LOG_VERYLOW, "Activate(): Calling DisplayElements");
-			m_UI->DisplayElements(m_Lists);
+			Log(LOG_VERYLOW, "Activate(): Calling DisplayContainers");
+			m_UI->DisplayContainers(m_Lists);
+	
+			//Log(LOG_VERYLOW, "Activate(): 1");
+			if ( (m_Lists->GetElementList()) &&
+				(false == m_Lists->GetElementList()->empty()) )
+			{
+				Log(LOG_VERYLOW, "Activate(): Calling DisplayElements");
+				m_UI->DisplayElements(m_Lists);
+			}
 		}
+		//Log(LOG_VERYLOW, "Activate(): 2");
+		m_UI->OnCurrentContainerSideChange(m_Lists); 
 	}
 
-	//Log(LOG_VERYLOW, "Activate(): 2");
-	m_UI->OnCurrentContainerSideChange(m_Lists); 
 
 	if (CPSPSound::PLAY == m_ScreenHandler->GetSound()->GetPlayState())
 	{
