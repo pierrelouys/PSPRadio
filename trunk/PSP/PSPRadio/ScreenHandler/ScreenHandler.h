@@ -73,7 +73,7 @@
 		};
 		
 		
-		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound);
+		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen = PSPRADIO_SCREEN_PLAYLIST);
 		~CScreenHandler();
 		IPSPRadio_UI *StartUI(UIs UI);
 		

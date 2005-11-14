@@ -286,7 +286,7 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	m_lockclear->Unlock();
 }
 
-void CTextUI::ClearHalfRows(int iColStart, int iRowStart, int iRowEnd)
+void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowEnd)
 {
 	if (iRowEnd == -1)
 		iRowEnd = iRowStart;
@@ -294,7 +294,7 @@ void CTextUI::ClearHalfRows(int iColStart, int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		ScreenClearNChars(iColStart, iRow, 33);
+		ScreenClearNChars(iColStart, iRow, iColEnd - iColStart);
 	}
 	m_lockclear->Unlock();
 }
@@ -576,20 +576,21 @@ int CTextUI::OnConnectionProgress()
 
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
-	int x,y,c,r1,r2,ct,cs;
+	int x,y,c,r1,r2,ct,cs,ex,ey;
 
 	map< string, list<MetaData>* >::iterator ListIterator;
 	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
 	map< string, list<MetaData>* > *List = Container->GetContainerList();
 	char *text = NULL;
 	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &x, &y);
+	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &ex, &ey);
 	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
 	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
 	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
 	cs = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
 	int color = c;
 
-	ClearHalfRows(x, r1+1,r2); /** Don't clear title (+1) */
+	ClearHalfRows(x, ex-1, r1+1,r2); /** Don't clear title (+1) */
 	//uiPrintf(33/2 + x - 2/*list/2*/, y, ct, "List");
 	y++;
 	
@@ -632,12 +633,12 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 			if (strlen(text) > 4 && memcmp(text, "ms0:", 4) == 0)
 			{
 				char *pText = basename(text);
-				pText[28] = 0;
+				pText[ex - 2] = 0;
 				uiPrintf(x, y, color, pText);
 			}
 			else
 			{
-				text[28] = 0;
+				text[ex - 2] = 0;
 				uiPrintf(x, y, color, text);
 			}
 			y+=1;
@@ -661,7 +662,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
 	int color = c;
 
-	ClearHalfRows(x, r1+1,r2); /** Don't clear Entry title */
+	ClearHalfRows(x, 67, r1+1,r2); /** Don't clear Entry title */
 	
 	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
 	y++;
@@ -699,14 +700,14 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
-				strncpy(text, (*ListIterator).strTitle, 28);
-				text[28] = 0;
+				strncpy(text, (*ListIterator).strTitle, 67 - x);
+				text[67 - x] = 0;
 			}
 			else
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
-				strncpy(text, (*ListIterator).strURI, 28);
-				text[28] = 0;
+				strncpy(text, (*ListIterator).strURI, 67 - x);
+				text[67 - x] = 0;
 			}
 		
 			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
@@ -731,13 +732,17 @@ void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 	switch (Container->GetCurrentSide())
 	{
 		case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
-			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
-			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
+// 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
+// 			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
+			uiPrintf((iEntryX - iListX)/2 - 4/*entry/2*/,  r1, ct, "*List*");
+			uiPrintf((67 - iEntryX)/2+iEntryX - 4/*entry/2*/, r1, ct, "Entries");
 			break;
 		
 		case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
-			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
-			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
+//			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
+//			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
+			uiPrintf((iEntryX - iListX)/2 - 3/*entry/2*/,  r1, ct, "List");
+			uiPrintf((67 - iEntryX)/2+iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
 			break;
 	
 	}

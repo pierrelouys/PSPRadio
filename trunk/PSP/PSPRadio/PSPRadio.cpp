@@ -61,7 +61,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.37-pre2")
+	myPSPApp(): CPSPApp("PSPRadio", "0.37-pre3")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -102,25 +102,32 @@ public:
 			sceKernelChangeThreadPriority(sceKernelGetThreadId(), m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
 		}
 		
-		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound);
+		CScreenHandler::Screen iInitialScreen = (CScreenHandler::Screen)m_Config->GetInteger("SYSTEM:INITIAL_SCREEN", 0);
+		if (0 != iInitialScreen)
+		{
+			Log(LOG_INFO, "Initial screen set to %d in config file.", iInitialScreen);
+		}
+		m_ScreenHandler = new CScreenHandler(strDir, m_Config, m_Sound, iInitialScreen);
 		Setup_UI(strDir);
 	
 		m_UI->SetTitle(strAppTitle);
 		m_UI->DisplayMainCommands();
 		
+
 		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
 				m_Config->GetInteger("WIFI:PROFILE", 1));
 			m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS)->Activate(m_UI);
 			((OptionsScreen *)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
-			/** Go back to main screen */
-			m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST)->Activate(m_UI);
+			/** Go back after starting network */
+			m_ScreenHandler->GetScreen(iInitialScreen)->Activate(m_UI);
 		}
 		else
 		{
 			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
 		}
+		
 		
 		Log(LOG_VERYLOW, "Freeing strDir");
 		free(strDir);

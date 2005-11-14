@@ -44,6 +44,7 @@ enum OptionIDs
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
 	OPTION_ID_UI,
+	OPTION_ID_REFRESH_PLAYLISTS,
 	OPTION_ID_SHOUTCAST_DN,
 	OPTION_ID_EXIT,
 };
@@ -56,8 +57,9 @@ OptionsScreen::Options OptionsData[] =
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
-	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Download"},					0,1,1		},
-	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{"Exit"},						0,1,1		},
+	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{"Yes"},						0,1,1		},
+	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Yes"},						0,1,1		},
+	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{"Yes"},						0,1,1		},
 	
 	{  -1,  						"",							{""},							0,0,0		}
 };
@@ -342,6 +344,12 @@ void OptionsScreen::OnOptionActivation()
 			break;
 		case OPTION_ID_UI:
 			m_ScreenHandler->StartUI((CScreenHandler::UIs)((*m_CurrentOptionIterator).iSelectedState - 1));
+			fOptionActivated = true;
+			break;
+		case OPTION_ID_REFRESH_PLAYLISTS:
+			m_UI->DisplayMessage("Refreshing Playlists");
+			((PlayListScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->LoadLists();
+			m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
 			break;
 		case OPTION_ID_SHOUTCAST_DN:

@@ -42,7 +42,7 @@
 
 #define ReportError pPSPApp->ReportError
 
-CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound)
+CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen)
 {
 	m_RequestOnPlayOrStop = NOTHING;
 	m_CurrentUI = UI_TEXT;
@@ -61,7 +61,7 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	Screens[PSPRADIO_SCREEN_OPTIONS] = 
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
 
-	m_CurrentScreen = Screens[PSPRADIO_SCREEN_PLAYLIST];
+	m_CurrentScreen = Screens[InitialScreen];
 	m_PreviousScreen = m_CurrentScreen;
 }
 
