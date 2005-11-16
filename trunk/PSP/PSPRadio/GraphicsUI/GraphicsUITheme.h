@@ -72,6 +72,7 @@ private:
 	std::map<char, SDL_Rect> m_FontMap[5];
 	SDL_Rect m_FontSize[5];
 
+	SDL_Rect m_CurrentScreenSrc;
 	SDL_Color m_TransparencyColor;
 };
 
