@@ -220,6 +220,12 @@ int CGraphicsUITheme::Initialize(char *szThemeFileName, bool bFullScreen)
 	SDL_SetColorKey(m_pPSPSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pPSPSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
 	SDL_SetColorKey(m_pImageSurface, SDL_SRCCOLORKEY, SDL_MapRGB(m_pImageSurface->format, m_TransparencyColor.r, m_TransparencyColor.g, m_TransparencyColor.b)); 
 
+	if(-1 == GetIniRect("screens:main", &m_CurrentScreenSrc))
+	{
+		Log(LOG_ERROR, "Initialize: ERROR getting main screen src");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -282,11 +288,9 @@ int CGraphicsUITheme::GetButtonStateCount(ButtonPosEnum posEnum)
 //*****************************************************************************
 void CGraphicsUITheme::DisplayMainScreen()
 {
-	SDL_Rect rectSrc;
-
-	if(0 == GetIniRect("screens:main", &rectSrc))
+	if(0 == GetIniRect("screens:main", &m_CurrentScreenSrc))
 	{
-		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
+		SDL_BlitSurface(m_pImageSurface, &m_CurrentScreenSrc, m_pPSPSurface, NULL);
 	}
 }
 
@@ -298,11 +302,9 @@ void CGraphicsUITheme::DisplayMainScreen()
 //*****************************************************************************
 void CGraphicsUITheme::DisplayShoutcastScreen()
 {
-	SDL_Rect rectSrc;
-
-	if(0 == GetIniRect("screens:shoutcast", &rectSrc))
+	if(0 == GetIniRect("screens:shoutcast", &m_CurrentScreenSrc))
 	{
-		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
+		SDL_BlitSurface(m_pImageSurface, &m_CurrentScreenSrc, m_pPSPSurface, NULL);
 	}
 }
 
@@ -314,11 +316,9 @@ void CGraphicsUITheme::DisplayShoutcastScreen()
 //*****************************************************************************
 void CGraphicsUITheme::DisplaySettingScreen()
 {
-	SDL_Rect rectSrc;
-
-	if(0 == GetIniRect("screens:settings", &rectSrc))
+	if(0 == GetIniRect("screens:settings", &m_CurrentScreenSrc))
 	{
-		SDL_BlitSurface(m_pImageSurface, &rectSrc, m_pPSPSurface, NULL);
+		SDL_BlitSurface(m_pImageSurface, &m_CurrentScreenSrc, m_pPSPSurface, NULL);
 	}
 }
 
@@ -979,14 +979,17 @@ void CGraphicsUITheme::DisplayString(char *szWord, OutputAreaEnum posEnum, int n
 	{
 		memcpy(&dst, &g_OutputAreaArray[posEnum].dstRect, sizeof(SDL_Rect));
 		memcpy(&src, &g_OutputAreaArray[posEnum].srcRect, sizeof(SDL_Rect));
+//		memcpy(&src, &m_CurrentScreenSrc, sizeof(SDL_Rect));
 
 		src.y = src.y + (g_OutputAreaArray[posEnum].lineSize.h * (nLineNumber - 1));
 		src.h = g_OutputAreaArray[posEnum].lineSize.h;
 		
 		dst.y = dst.y + (g_OutputAreaArray[posEnum].lineSize.h * (nLineNumber - 1));
 		dst.h = g_OutputAreaArray[posEnum].lineSize.h;
-
 		
+		src.x += m_CurrentScreenSrc.x;
+		src.y += m_CurrentScreenSrc.y;
+
 		// Clear out area before repaint
 		SDL_BlitSurface(m_pImageSurface, &src, m_pPSPSurface, &dst);
 
@@ -1169,6 +1172,12 @@ void CGraphicsUITheme::DisplayStringSurface(StringPosType *pPos)
 	}
 }
 
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
 void CGraphicsUITheme::UpdateStringSurface(StringPosType *pPos)
 {
 	SDL_Rect src, dst;
@@ -1199,7 +1208,13 @@ void CGraphicsUITheme::UpdateStringSurface(StringPosType *pPos)
 	src.h = pPos->pSurface->h;
 
 	// Clear out area before repaint
-	SDL_BlitSurface(m_pImageSurface, &pPos->rectPos, m_pPSPSurface, &pPos->rectPos);
+	SDL_Rect tmpRect;
+	memcpy(&tmpRect, &pPos->rectPos, sizeof(SDL_Rect));
+
+	tmpRect.x += m_CurrentScreenSrc.x;
+	tmpRect.y += m_CurrentScreenSrc.y;
+
+	SDL_BlitSurface(m_pImageSurface, &tmpRect, m_pPSPSurface, &pPos->rectPos);
 
 	SDL_BlitSurface(pPos->pSurface, &src, m_pPSPSurface, &dst);
 }
@@ -1257,6 +1272,12 @@ SDL_Surface *CGraphicsUITheme::GetStringSurface(char *szWord, int nFontIndex)
 	return pSurface;
 }
 
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
 void CGraphicsUITheme::LogError(char *szFormat, ...)
 {
 	va_list args;
@@ -1266,6 +1287,12 @@ void CGraphicsUITheme::LogError(char *szFormat, ...)
 	va_end (args);
 }
 
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
 void CGraphicsUITheme::LogInfo(char *szFormat, ...)
 {
 	va_list args;
@@ -1275,6 +1302,12 @@ void CGraphicsUITheme::LogInfo(char *szFormat, ...)
 	va_end (args);
 }
 
+//*****************************************************************************
+// 
+//*****************************************************************************
+//
+//
+//*****************************************************************************
 Uint32 OnUpdateString_TimerCallback(Uint32 interval, void *param)
 {
 	StringPosType *pStringPos = (StringPosType*)param;
