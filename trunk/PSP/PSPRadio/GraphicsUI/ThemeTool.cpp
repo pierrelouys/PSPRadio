@@ -29,6 +29,8 @@ bool CPSPThemeTool::Initialize(char *szThemeFileName)
 		return false;
 	}
 
+	m_GUI.DisplayMainScreen();
+
 	return true;
 }
 
@@ -129,16 +131,16 @@ bool CPSPThemeTool::Run(void)
 					case SDLK_a:
 					{
 						m_GUI.DisplayString("-- -- -- -- -- -- -- -- -- -- -- -- File Title -- -- -- -- -- -- -- -- -- -- -- --", SP_META_FILETITLE);
-						m_GUI.DisplayString("Uri",SP_META_URI);
-						m_GUI.DisplayString("Url",SP_META_URL);
-						m_GUI.DisplayString("Sample Rate",SP_META_SAMPLERATE);
-						m_GUI.DisplayString("MPEG Layer",SP_META_MPEGLAYER);
-						m_GUI.DisplayString("Genre",SP_META_GENRE);
-						m_GUI.DisplayString("Author",SP_META_SONGAUTHOR);
-						m_GUI.DisplayString("Length",SP_META_LENGTH);
-						m_GUI.DisplayString("Bitrate",SP_META_BITRATE);
-						m_GUI.DisplayString("Channels",SP_META_CHANNELS);
-						m_GUI.DisplayString("This Is A Sample Error Message",SP_ERROR);
+						m_GUI.DisplayString("-- Uri --",SP_META_URI);
+						m_GUI.DisplayString("-- Url --",SP_META_URL);
+						m_GUI.DisplayString("-- Sample Rate --",SP_META_SAMPLERATE);
+						m_GUI.DisplayString("-- MPEG Layer --",SP_META_MPEGLAYER);
+						m_GUI.DisplayString("-- Genre --",SP_META_GENRE);
+						m_GUI.DisplayString("-- Author --",SP_META_SONGAUTHOR);
+						m_GUI.DisplayString("-- Length --",SP_META_LENGTH);
+						m_GUI.DisplayString("-- Bitrate --",SP_META_BITRATE);
+						m_GUI.DisplayString("-- Channels --",SP_META_CHANNELS);
+						m_GUI.DisplayString("-- This Is A Sample Error Message --",SP_ERROR);
 						
 					} break;
 
