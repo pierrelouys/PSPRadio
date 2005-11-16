@@ -979,7 +979,6 @@ void CGraphicsUITheme::DisplayString(char *szWord, OutputAreaEnum posEnum, int n
 	{
 		memcpy(&dst, &g_OutputAreaArray[posEnum].dstRect, sizeof(SDL_Rect));
 		memcpy(&src, &g_OutputAreaArray[posEnum].srcRect, sizeof(SDL_Rect));
-//		memcpy(&src, &m_CurrentScreenSrc, sizeof(SDL_Rect));
 
 		src.y = src.y + (g_OutputAreaArray[posEnum].lineSize.h * (nLineNumber - 1));
 		src.h = g_OutputAreaArray[posEnum].lineSize.h;
@@ -988,7 +987,7 @@ void CGraphicsUITheme::DisplayString(char *szWord, OutputAreaEnum posEnum, int n
 		dst.h = g_OutputAreaArray[posEnum].lineSize.h;
 		
 		src.x += m_CurrentScreenSrc.x;
-		src.y += m_CurrentScreenSrc.y;
+// FIX JPF		src.y += m_CurrentScreenSrc.y;
 
 		// Clear out area before repaint
 		SDL_BlitSurface(m_pImageSurface, &src, m_pPSPSurface, &dst);
@@ -1212,7 +1211,7 @@ void CGraphicsUITheme::UpdateStringSurface(StringPosType *pPos)
 	memcpy(&tmpRect, &pPos->rectPos, sizeof(SDL_Rect));
 
 	tmpRect.x += m_CurrentScreenSrc.x;
-	tmpRect.y += m_CurrentScreenSrc.y;
+// FIX JPF	tmpRect.y += m_CurrentScreenSrc.y;
 
 	SDL_BlitSurface(m_pImageSurface, &tmpRect, m_pPSPSurface, &pPos->rectPos);
 
