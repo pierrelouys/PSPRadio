@@ -72,8 +72,6 @@
 		
 		virtual int ProcessMessages(){return 0;};
 		
-		//void ExitApp() { m_Exit = true; };
-		
 		/** Accessors */
 		bool IsExiting() { return m_Exit; };
 		SceCtrlData GetPadData() { return m_pad; };
@@ -93,9 +91,6 @@
 		int StopPolling();
 		bool IsPolling(){ return m_Polling;}
 		
-		//void CantExit() { m_ExitSema->Up(); }
-		//void CanExit() { m_ExitSema->Down(); }
-		
 		/** Networking */
 		char *GetMyIP() { return m_strMyIP; };
 		int  GetResolverId() { return m_ResolverId; };
@@ -103,6 +98,7 @@
 		void DisableNetwork();
 		bool IsNetworkEnabled() { return m_NetworkEnabled; };
 		int  GetNumberOfNetworkProfiles();
+		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
 		
 		/** USB */
 		int  EnableUSB();
@@ -113,7 +109,6 @@
 		/** Helpers */
 	
 		int CallbackSetupThread(SceSize args, void *argp);
-		//virtual void OnExit(){};
 		
 		/** Threads */
 		int Run(); /** Thread */
@@ -139,7 +134,6 @@
 		bool m_Exit;
 		bool m_NetworkEnabled;
 		bool m_USBEnabled;
-		//CSema *m_ExitSema;
 		CPSPThread *m_thCallbackSetup; /** Callback thread */
 		CPSPThread *m_thRun; /** Run Thread */
 		SceCtrlData m_pad; /** Buttons(Pad) data */

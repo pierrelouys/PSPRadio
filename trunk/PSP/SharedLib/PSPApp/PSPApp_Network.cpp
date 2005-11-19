@@ -179,14 +179,23 @@ void CPSPApp::DisableNetwork()
 
 int CPSPApp::GetNumberOfNetworkProfiles()
 {
-	int numNetConfigs = 1;
-	while (sceUtilityCheckNetParam(numNetConfigs++) == 0)
+	int iNumProfiles = 0;
+	while (sceUtilityCheckNetParam(iNumProfiles++) == 0)
 	{};
-	numNetConfigs--;
 
-	return numNetConfigs;
+	return iNumProfiles - 1;
 }
 
+void CPSPApp::GetNetworkProfileName(int iProfile, char *buf, size_t size)
+{
+	netData data;
+	memset(&data, 0, sizeof(netData));
+	data.asUint = 0xBADF00D;
+	memset(&data.asString[4], 0, 124);
+	sceUtilityGetNetParam(iProfile, 0/** 0 = Profile Name*/, &data);
+	
+	strncpy(buf, data.asString, size);
+}
 
 /** From FTPD */
 int CPSPApp::WLANConnectionHandler(int profile) 
