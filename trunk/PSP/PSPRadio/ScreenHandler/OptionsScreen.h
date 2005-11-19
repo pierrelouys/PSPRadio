@@ -17,6 +17,10 @@
 			
 			int  Start_Network(int iNewProfile = -1);
 
+			void LoadFromConfig();
+			void SaveToConfigFile();
+
+			
 			#define MAX_OPTION_LENGTH 60
 			#define MAX_NUM_OF_OPTIONS 20
 			
@@ -36,7 +40,6 @@
 			list<Options>::iterator m_CurrentOptionIterator;
 			int m_iNetworkProfile;
 			int  Stop_Network();
-			void GetNetworkProfileName(int iProfile, char *buf, size_t size);
 			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 
 			void OnOptionActivation();

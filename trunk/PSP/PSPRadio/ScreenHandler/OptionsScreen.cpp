@@ -46,24 +46,33 @@ enum OptionIDs
 	OPTION_ID_UI,
 	OPTION_ID_REFRESH_PLAYLISTS,
 	OPTION_ID_SHOUTCAST_DN,
+	OPTION_ID_SAVE_CONFIG,
 	OPTION_ID_EXIT,
 };
 
 OptionsScreen::Options OptionsData[] = 
 {
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
-	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",	{"Off","1","2","3","4"},			1,1,5		},
+	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},			1,1,5		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
 	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{"Yes"},						0,1,1		},
 	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Yes"},						0,1,1		},
+	{	OPTION_ID_SAVE_CONFIG,		"Save Options",				{"Yes"},						0,1,1		},
 	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{"Yes"},						0,1,1		},
 	
 	{  -1,  						"",							{""},							0,0,0		}
 };
 
+OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, ScreenHandler)
+{
+	m_iNetworkProfile = 1;
+	LoadFromConfig();
+}
+
+/** Activate() is called on screen activation */
 void OptionsScreen::Activate(IPSPRadio_UI *UI)
 {
 	IScreen::Activate(UI);
@@ -73,13 +82,102 @@ void OptionsScreen::Activate(IPSPRadio_UI *UI)
 	m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 }
 
-OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, ScreenHandler)
+void OptionsScreen::LoadFromConfig()
 {
-	m_iNetworkProfile = 1;
-//	m_NetworkStarted  = false;
+	CIniParser *pConfig = m_ScreenHandler->GetConfig();
+	Log(LOG_INFO, "LoadFromConfig(): Loading Options from configuration file");
+	
+	if (pConfig)
+	{
+		/** CPU FREQ */
+		int iRet = 0;
+		switch(pConfig->GetInteger("SYSTEM:CPUFREQ"))
+		{
+			case 111:
+				iRet = scePowerSetClockFrequency(111, 111, 55);
+				break;
+			case 222:
+				iRet = scePowerSetClockFrequency(222, 222, 111);
+				break;
+			case 265:
+			case 266:
+				iRet = scePowerSetClockFrequency(266, 266, 133);
+				break;
+			case 333:
+				iRet = scePowerSetClockFrequency(333, 333, 166);
+				break;
+			default:
+				iRet = -1;
+				break;
+		}
+		if (0 != iRet) 
+		{
+			Log(LOG_ERROR, "LoadFromConfig(): Unable to change CPU/BUS Speed to selection %d",
+					pConfig->GetInteger("SYSTEM:CPUFREQ"));
+		}
+		/** CPU FREQ */
+		
+		/** LOGLEVEL */
+		Logging.SetLevel((loglevel_enum)pConfig->GetInteger("DEBUGGING:LOGLEVEL", 100));
+		/** LOGLEVEL */
+		
+		/** WIFI PROFILE */
+		m_iNetworkProfile = pConfig->GetInteger("WIFI:PROFILE", 1);
+		/** WIFI PROFILE */
+		
+		if (1 == pConfig->GetInteger("WIFI:AUTOSTART", 0))
+		{
+			Log(LOG_INFO, "LoadFromConfig(): WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
+				m_iNetworkProfile);
+			//m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS)->Activate(m_UI);
+			//((OptionsScreen *)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
+			Start_Network();
+			/** Go back after starting network */
+			//m_ScreenHandler->GetScreen(iInitialScreen)->Activate(m_UI);
+		}
+		else
+		{
+			Log(LOG_INFO, "LoadFromConfig(): WIFI AUTOSTART Not Set, Not starting network");
+		}
+		
+
+	}
+	else
+	{
+		Log(LOG_ERROR, "LoadFromConfig(): Error: no config object.");
+	}
 }
 
+void OptionsScreen::SaveToConfigFile()
+{
+	CIniParser *pConfig = m_ScreenHandler->GetConfig();
+	
+	if (pConfig)
+	{
+		pConfig->SetInteger("DEBUGGING:LOGLEVEL", Logging.GetLevel());
+		pConfig->SetInteger("SYSTEM:CPUFREQ", scePowerGetCpuClockFrequency());
+		pConfig->SetInteger("WIFI:PROFILE", m_iNetworkProfile);
+		switch(m_ScreenHandler->GetCurrentUI())
+		{
+			case CScreenHandler::UI_TEXT:
+				pConfig->SetString("UI:MODE", "Text");
+				break;
+			case CScreenHandler::UI_GRAPHICS:
+				pConfig->SetString("UI:MODE", "Graphics");
+				break;
+			case CScreenHandler::UI_3D:
+				pConfig->SetString("UI:MODE", "3D");
+				break;
+		}
+		pConfig->Save();
+	}
+	else
+	{
+		Log(LOG_ERROR, "SaveToConfigFile(): Error: no config object.");
+	}
+}
 
+/** This populates and updates the option data */
 void OptionsScreen::UpdateOptionsData()
 {
 	Options Option;
@@ -119,17 +217,11 @@ void OptionsScreen::UpdateOptionsData()
 			{
 				Option.iNumberOfStates = pPSPApp->GetNumberOfNetworkProfiles();
 				char *NetworkName = NULL;
-				for (int i = 0; i < Option.iNumberOfStates; i++)
+				Option.strStates[0] = strdup("Off");
+				for (int i = 1; i <= Option.iNumberOfStates; i++)
 				{
 					NetworkName = (char*)malloc(128);
-					if (0 == i)
-					{
-						sprintf(NetworkName, "Off");
-					}
-					else
-					{
-						GetNetworkProfileName(i, NetworkName, 128);
-					}
+					pPSPApp->GetNetworkProfileName(i, NetworkName, 128);
 					Option.strStates[i] = NetworkName;
 				}
 				Option.iActiveState = (pPSPApp->IsNetworkEnabled()==true)?(m_iNetworkProfile+1):1;
@@ -198,53 +290,6 @@ void OptionsScreen::UpdateOptionsData()
 
 }
 
-void OptionsScreen::InputHandler(int iButtonMask)
-{
-	if (iButtonMask & PSP_CTRL_UP)
-	{
-		if(m_CurrentOptionIterator == m_OptionsList.begin())
-			m_CurrentOptionIterator = m_OptionsList.end();
-		m_CurrentOptionIterator--;
-		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
-	}
-	else if (iButtonMask & PSP_CTRL_DOWN)
-	{
-		m_CurrentOptionIterator++;
-		if(m_CurrentOptionIterator == m_OptionsList.end())
-			m_CurrentOptionIterator = m_OptionsList.begin();
-		
-		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
-	}
-	else if (iButtonMask & PSP_CTRL_LEFT)
-	{
-		if ((*m_CurrentOptionIterator).iSelectedState > 1)
-		{
-			(*m_CurrentOptionIterator).iSelectedState--;
-		
-			//OnOptionChange();
-			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
-		}
-	}
-	else if (iButtonMask & PSP_CTRL_RIGHT)
-	{
-		if ((*m_CurrentOptionIterator).iSelectedState < (*m_CurrentOptionIterator).iNumberOfStates)
-		{
-			(*m_CurrentOptionIterator).iSelectedState++;
-			
-			//OnOptionChange();
-			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
-		}
-	}
-	else if ( (iButtonMask & PSP_CTRL_CROSS) || (iButtonMask & PSP_CTRL_CIRCLE) )
-	{
-		OnOptionActivation();
-	}
-}
-
-//	OPTION_ID_NETWORK_PROFILES,
-//	OPTION_ID_NETWORK_ENABLE,
-//	OPTION_ID_USB_ENABLE,
-//	OPTION_ID_CPU_SPEED
 void OptionsScreen::OnOptionActivation()
 {
 	bool fOptionActivated = false;
@@ -368,6 +413,13 @@ void OptionsScreen::OnOptionActivation()
 			}		
 			fOptionActivated = false;
 			break;	
+		case OPTION_ID_SAVE_CONFIG:
+			m_UI->DisplayMessage("Saving Configuration Options");
+			Log(LOG_INFO, "User selected to save config file.");
+			SaveToConfigFile();
+			m_UI->DisplayMessage("Done");
+			fOptionActivated = true;
+			break;
 		case OPTION_ID_EXIT:
 			Log(LOG_ALWAYS, "User selected to Exit.");
 			pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
@@ -418,7 +470,6 @@ int OptionsScreen::Start_Network(int iProfile)
 		m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
 		
-		//m_NetworkStarted = true;
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
 		
 	}
@@ -443,13 +494,46 @@ int OptionsScreen::Stop_Network()
 	return 0;
 }
 
-void OptionsScreen::GetNetworkProfileName(int iProfile, char *buf, size_t size)
+void OptionsScreen::InputHandler(int iButtonMask)
 {
-	netData data;
-	memset(&data, 0, sizeof(netData));
-	data.asUint = 0xBADF00D;
-	memset(&data.asString[4], 0, 124);
-	sceUtilityGetNetParam(iProfile, 0/**Profile Name*/, &data);
-	
-	strncpy(buf, data.asString, size);
+	if (iButtonMask & PSP_CTRL_UP)
+	{
+		if(m_CurrentOptionIterator == m_OptionsList.begin())
+			m_CurrentOptionIterator = m_OptionsList.end();
+		m_CurrentOptionIterator--;
+		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+	else if (iButtonMask & PSP_CTRL_DOWN)
+	{
+		m_CurrentOptionIterator++;
+		if(m_CurrentOptionIterator == m_OptionsList.end())
+			m_CurrentOptionIterator = m_OptionsList.begin();
+		
+		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	}
+	else if (iButtonMask & PSP_CTRL_LEFT)
+	{
+		if ((*m_CurrentOptionIterator).iSelectedState > 1)
+		{
+			(*m_CurrentOptionIterator).iSelectedState--;
+		
+			//OnOptionChange();
+			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		}
+	}
+	else if (iButtonMask & PSP_CTRL_RIGHT)
+	{
+		if ((*m_CurrentOptionIterator).iSelectedState < (*m_CurrentOptionIterator).iNumberOfStates)
+		{
+			(*m_CurrentOptionIterator).iSelectedState++;
+			
+			//OnOptionChange();
+			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		}
+	}
+	else if ( (iButtonMask & PSP_CTRL_CROSS) || (iButtonMask & PSP_CTRL_CIRCLE) )
+	{
+		OnOptionActivation();
+	}
 }
+
