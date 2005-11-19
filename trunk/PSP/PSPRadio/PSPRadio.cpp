@@ -113,22 +113,6 @@ public:
 		m_UI->SetTitle(strAppTitle);
 		m_UI->DisplayMainCommands();
 		
-
-		if (1 == m_Config->GetInteger("WIFI:AUTOSTART", 0))
-		{
-			Log(LOG_INFO, "WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
-				m_Config->GetInteger("WIFI:PROFILE", 1));
-			m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS)->Activate(m_UI);
-			((OptionsScreen *)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network(m_Config->GetInteger("WIFI:PROFILE", 1));
-			/** Go back after starting network */
-			m_ScreenHandler->GetScreen(iInitialScreen)->Activate(m_UI);
-		}
-		else
-		{
-			Log(LOG_INFO, "WIFI AUTOSTART Not Set, Not starting network");
-		}
-		
-		
 		Log(LOG_VERYLOW, "Freeing strDir");
 		free(strDir);
 		
