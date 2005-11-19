@@ -88,6 +88,7 @@
 		char *GetCWD(){return m_strCWD;}
 		CPSPSound *GetSound(){return m_Sound;}
 		IScreen *GetScreen(int Id){return Screens[Id];}
+		CIniParser *GetConfig() { return m_Config;}
 
 		void OnVBlank();
 		
