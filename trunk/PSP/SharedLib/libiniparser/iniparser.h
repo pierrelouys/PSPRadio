@@ -48,12 +48,29 @@ class CIniParser
 public:
 	CIniParser(char *strIniFilename)
 	{
-		m_dict = iniparser_new(strIniFilename);
+		m_strIniFilename = strdup(strIniFilename);
+		m_dict = iniparser_new(m_strIniFilename);
 	}
 	~CIniParser()
 	{
 		iniparser_free(m_dict);
+		free(m_strIniFilename), m_strIniFilename = NULL;
 	}
+	
+	void Save()
+	{
+		FILE *ini = NULL;
+		ini=fopen(m_strIniFilename, "wr");
+		if (NULL != ini) 
+		{
+			iniparser_dump_ini(m_dict, ini);
+			
+			fclose(ini), ini = NULL;
+    	}
+    }
+
+    char *m_strIniFilename;
+		
 	
 	/** Accessors */
 	//char *GetKey(char *section, char *key)
@@ -74,6 +91,18 @@ public:
 	int GetInteger(char *key, int notfound = -1)
 	{
 		return iniparser_getint(m_dict, key, notfound);
+	}
+	
+	void SetInteger(char *key, int value)
+	{
+		char tmp[10];
+		sprintf(tmp, "%d", value);
+		iniparser_setstr(m_dict, key, tmp);
+	}
+	
+	void SetString(char *key, char *value)
+	{
+		iniparser_setstr(m_dict, key, value);
 	}
 	
 private:
