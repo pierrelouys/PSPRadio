@@ -569,7 +569,7 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 					memcpy(songdata->strURI, strLine, 256);
 					songdata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */					
 					m_currentElementList->push_back(*songdata);
-					Log(LOG_INFO, "Adding '%s' to the list.", strLine);
+					Log(LOG_LOWLEVEL, "Adding '%s' to the list.", strLine);
 					break;
 				case 2:
 					if ( ('n' == strLine[0]) || ('N' == strLine[0]) ) /** Number of entry entry */
