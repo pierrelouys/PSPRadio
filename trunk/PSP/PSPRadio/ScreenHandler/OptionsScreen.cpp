@@ -449,25 +449,30 @@ int OptionsScreen::Start_Network(int iProfile)
 	{
 		if (pPSPApp->IsNetworkEnabled())
 		{
-			m_UI->DisplayMessage_DisablingNetwork();
+			if (m_UI) 
+				m_UI->DisplayMessage_DisablingNetwork();
 
 			Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
 			pPSPApp->DisableNetwork();
 			sceKernelDelayThread(500000);  
 		}
 		
-		m_UI->DisplayMessage_EnablingNetwork();
+		if (m_UI) 
+			m_UI->DisplayMessage_EnablingNetwork();
 
 		if (pPSPApp->EnableNetwork(abs(m_iNetworkProfile)) == 0)
 		{
-			m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+			if (m_UI) 
+				m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 		}
 		else
 		{
-			m_UI->DisplayMessage_DisablingNetwork();
+			if (m_UI) 
+				m_UI->DisplayMessage_DisablingNetwork();
 		}
 
-		m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		if (m_UI) 
+			m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
 		
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
