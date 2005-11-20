@@ -25,7 +25,7 @@
 	{
 		public:
 			IScreen(int Id, CScreenHandler *ScreenHandler)
-				{m_ScreenHandler = ScreenHandler, m_Id = Id;}
+				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_UI = NULL;}
 			virtual ~IScreen(){}
 			
 			int GetId(){ return m_Id; }
