@@ -656,7 +656,7 @@ void CIniParser::iniparser_dump_ini(dictionary * d, FILE * f)
         for (i=0 ; i<d->size ; i++) {
             if (d->key[i]==NULL)
                 continue ;
-            fprintf(f, "%s = %s\n", d->key[i], d->val[i]);
+            fprintf(f, "%s = %s\r\n", d->key[i], d->val[i]);
         }
         return ;
     }
