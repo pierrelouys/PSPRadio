@@ -39,6 +39,7 @@
 			list<Options> m_OptionsList;
 			list<Options>::iterator m_CurrentOptionIterator;
 			int m_iNetworkProfile;
+			bool m_WifiAutoStart, m_USBAutoStart;
 			int  Stop_Network();
 			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 

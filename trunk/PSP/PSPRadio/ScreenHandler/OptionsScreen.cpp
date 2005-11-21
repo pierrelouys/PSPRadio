@@ -40,10 +40,13 @@
 enum OptionIDs
 {
 	OPTION_ID_NETWORK_PROFILES,
+	OPTION_ID_WIFI_AUTOSTART,
 	OPTION_ID_USB_ENABLE,
+	OPTION_ID_USB_AUTOSTART,
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
 	OPTION_ID_UI,
+	OPTION_ID_INITIAL_SCREEN,
 	OPTION_ID_REFRESH_PLAYLISTS,
 	OPTION_ID_SHOUTCAST_DN,
 	OPTION_ID_SAVE_CONFIG,
@@ -53,11 +56,14 @@ enum OptionIDs
 OptionsScreen::Options OptionsData[] = 
 {
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
-	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},			1,1,5		},
+	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},		1,1,5		},
+	{	OPTION_ID_WIFI_AUTOSTART,	"WiFi AutoStart",			{"No", "Yes"},					1,1,2		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
+	{	OPTION_ID_USB_AUTOSTART,	"USB AutoStart",			{"No", "Yes"},					1,1,2		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
+	{	OPTION_ID_INITIAL_SCREEN,	"Initial Screen",			{"PlayList","SHOUTcast.com","Options"}, 1,1,3 },
 	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{"Yes"},						0,1,1		},
 	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Yes"},						0,1,1		},
 	{	OPTION_ID_SAVE_CONFIG,		"Save Options",				{"Yes"},						0,1,1		},
@@ -69,6 +75,8 @@ OptionsScreen::Options OptionsData[] =
 OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, ScreenHandler)
 {
 	m_iNetworkProfile = 1;
+	m_WifiAutoStart = false;
+	m_USBAutoStart = false;
 	LoadFromConfig();
 }
 
@@ -125,8 +133,10 @@ void OptionsScreen::LoadFromConfig()
 		m_iNetworkProfile = pConfig->GetInteger("WIFI:PROFILE", 1);
 		/** WIFI PROFILE */
 		
+		/** OPTION_ID_WIFI_AUTOSTART */
 		if (1 == pConfig->GetInteger("WIFI:AUTOSTART", 0))
 		{
+			m_WifiAutoStart = true;
 			Log(LOG_INFO, "LoadFromConfig(): WIFI AUTOSTART SET: Enabling Network; using profile: %d", 	
 				m_iNetworkProfile);
 			//m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS)->Activate(m_UI);
@@ -137,9 +147,30 @@ void OptionsScreen::LoadFromConfig()
 		}
 		else
 		{
+			m_WifiAutoStart = false;
 			Log(LOG_INFO, "LoadFromConfig(): WIFI AUTOSTART Not Set, Not starting network");
 		}
+		/** OPTION_ID_WIFI_AUTOSTART */
 		
+		/** OPTION_ID_INITIAL_SCREEN */
+		// This is loaded in PSPRadio.cpp/ScreenHandler.cpp 
+		/** OPTION_ID_INITIAL_SCREEN */
+		
+		/** OPTION_ID_USB_AUTOSTART */
+		if (1 == pConfig->GetInteger("SYSTEM:USB_AUTOSTART", 0))
+		{
+			m_USBAutoStart = true;
+			Log(LOG_INFO, "LoadFromConfig(): USB_AUTOSTART SET: Enabling USB");
+			pPSPApp->EnableUSB();
+		}
+		else
+		{
+			m_USBAutoStart = false;
+			Log(LOG_INFO, "LoadFromConfig(): USB_AUTOSTART Not Set");
+		}
+		/** OPTION_ID_USB_AUTOSTART */
+		
+
 
 	}
 	else
@@ -169,6 +200,18 @@ void OptionsScreen::SaveToConfigFile()
 				pConfig->SetString("UI:MODE", "3D");
 				break;
 		}
+		/** OPTION_ID_INITIAL_SCREEN */
+		pConfig->SetInteger("SYSTEM:INITIAL_SCREEN", m_ScreenHandler->GetInitialScreen());
+		/** OPTION_ID_INITIAL_SCREEN */
+
+		/** OPTION_ID_WIFI_AUTOSTART */
+		pConfig->SetInteger("WIFI:AUTOSTART", m_WifiAutoStart);
+		/** OPTION_ID_WIFI_AUTOSTART */
+		
+		/** OPTION_ID_USB_AUTOSTART */
+		pConfig->SetInteger("SYSTEM:USB_AUTOSTART", m_USBAutoStart);
+		/** OPTION_ID_USB_AUTOSTART */
+
 		pConfig->Save();
 	}
 	else
@@ -281,6 +324,19 @@ void OptionsScreen::UpdateOptionsData()
 			case OPTION_ID_UI:
 				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
 				break;
+			
+			case OPTION_ID_INITIAL_SCREEN:
+				Option.iActiveState = m_ScreenHandler->GetInitialScreen() + 1;
+				break;
+
+			case OPTION_ID_WIFI_AUTOSTART:
+				Option.iActiveState = (m_WifiAutoStart==true)?2:1;
+				break;
+				
+			case OPTION_ID_USB_AUTOSTART:
+				Option.iActiveState = (m_USBAutoStart==true)?2:1;
+				break;
+
 		}
 		
 		m_OptionsList.push_back(Option);
@@ -295,11 +351,13 @@ void OptionsScreen::OnOptionActivation()
 	bool fOptionActivated = false;
 	static time_t	timeLastTime = 0;
 	time_t timeNow = clock() / (1000*1000); /** clock is in microseconds */
+	int iSelectionBase0 = (*m_CurrentOptionIterator).iSelectedState - 1;
+	int iSelectionBase1 = (*m_CurrentOptionIterator).iSelectedState;
 	
 	switch ((*m_CurrentOptionIterator).Id)
 	{
 		case OPTION_ID_NETWORK_PROFILES:
-			m_iNetworkProfile = (*m_CurrentOptionIterator).iSelectedState - 1;
+			m_iNetworkProfile = iSelectionBase0;
 			if (m_iNetworkProfile > 0) /** Enable */
 			{
 				Start_Network();
@@ -314,8 +372,14 @@ void OptionsScreen::OnOptionActivation()
 				fOptionActivated = true;
 			}
 			break;
+			
+		case OPTION_ID_WIFI_AUTOSTART:
+			m_WifiAutoStart = (iSelectionBase1 == 2)?true:false;
+			fOptionActivated = true;
+			break;
+
 		case OPTION_ID_USB_ENABLE:
-			if ((*m_CurrentOptionIterator).iSelectedState == 2) /** Enable */
+			if (iSelectionBase1 == 2) /** Enable */
 			{
 				pPSPApp->EnableUSB();
 				if (true == pPSPApp->IsUSBEnabled())
@@ -336,10 +400,16 @@ void OptionsScreen::OnOptionActivation()
 				}
 			}
 			break;
+			
+		case OPTION_ID_USB_AUTOSTART:
+			m_USBAutoStart = (iSelectionBase1 == 2)?true:false;
+			fOptionActivated = true;
+			break;
+		
 		case OPTION_ID_CPU_SPEED:
 		{
 			int iRet = -1;
-			switch ((*m_CurrentOptionIterator).iSelectedState)
+			switch (iSelectionBase1)
 			{
 				case 1: /* 111 */
 					iRet = scePowerSetClockFrequency(111, 111, 55);
@@ -365,8 +435,9 @@ void OptionsScreen::OnOptionActivation()
 			}
 			break;
 		}
+		
 		case OPTION_ID_LOG_LEVEL:
-			switch((*m_CurrentOptionIterator).iSelectedState)
+			switch(iSelectionBase1)
 			{
 				case 1:
 					Logging.SetLevel(LOG_VERYLOW);
@@ -387,16 +458,24 @@ void OptionsScreen::OnOptionActivation()
 			Log(LOG_ALWAYS, "Log Level Changed to (%d)", Logging.GetLevel());
 			fOptionActivated = true;
 			break;
+			
 		case OPTION_ID_UI:
-			m_ScreenHandler->StartUI((CScreenHandler::UIs)((*m_CurrentOptionIterator).iSelectedState - 1));
+			m_ScreenHandler->StartUI((CScreenHandler::UIs)iSelectionBase0);
 			fOptionActivated = true;
 			break;
+			
+		case OPTION_ID_INITIAL_SCREEN:
+			m_ScreenHandler->SetInitialScreen((CScreenHandler::Screen)iSelectionBase0);
+			fOptionActivated = true;
+			break;
+			
 		case OPTION_ID_REFRESH_PLAYLISTS:
 			m_UI->DisplayMessage("Refreshing Playlists");
 			((PlayListScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->LoadLists();
 			m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
 			break;
+			
 		case OPTION_ID_SHOUTCAST_DN:
 			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
 			{
@@ -413,6 +492,7 @@ void OptionsScreen::OnOptionActivation()
 			}		
 			fOptionActivated = false;
 			break;	
+			
 		case OPTION_ID_SAVE_CONFIG:
 			m_UI->DisplayMessage("Saving Configuration Options");
 			Log(LOG_INFO, "User selected to save config file.");
@@ -420,10 +500,12 @@ void OptionsScreen::OnOptionActivation()
 			m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
 			break;
+			
 		case OPTION_ID_EXIT:
 			Log(LOG_ALWAYS, "User selected to Exit.");
 			pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
 			break;
+			
 	}
 	
 	if (true == fOptionActivated)	

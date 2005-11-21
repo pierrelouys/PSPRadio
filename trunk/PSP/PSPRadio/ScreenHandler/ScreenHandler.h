@@ -90,6 +90,9 @@
 		IScreen *GetScreen(int Id){return Screens[Id];}
 		CIniParser *GetConfig() { return m_Config;}
 
+		Screen GetInitialScreen(){ return m_InitialScreen; }
+		void SetInitialScreen(Screen screen){m_InitialScreen = screen;}
+		
 		void OnVBlank();
 		
 		request_on_play_stop m_RequestOnPlayOrStop;
@@ -116,6 +119,7 @@
 	private:
 		IScreen *m_CurrentScreen;
 		IScreen *m_PreviousScreen;
+		Screen   m_InitialScreen;
 		UIs m_CurrentUI;
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;
