@@ -7,6 +7,7 @@ What's New for PSPRadio
 (raf) Options can now be saved from options screen.
 (raf) Some refactoring of options code/pspapp_network. Corrections on loglevels.
 (raf) 0.37-pre3b: Corrected the WIFI:AUTOSTARTing.
+(raf) 0.37-pre3c: Now save and restore USB autostart / wifi autostart / intial screen
 
 0.37-pre2
 (raf) Corrected issue where SHOUTcast screen wasn't allocating memory for the lists, reusing the playlists' memory. This was causing instability in version 0.37-pre1.
