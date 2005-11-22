@@ -227,6 +227,11 @@ public:
 	void OnExit()
 	{
 		Log(LOG_VERYLOW, "PSPRadio::OnExit()");
+		
+		CScreen rootScreen;
+		rootScreen.SetBackgroundImage("Shutdown.png");
+		rootScreen.Clear(); 
+
 		if (m_Sound)
 		{
 			Log(LOG_VERYLOW, "Exiting. Destroying m_Sound object");
@@ -494,10 +499,6 @@ int main(int argc, char **argv)
 	{
 		PSPApp->Setup(argc, argv);
 		PSPApp->ProcessEvents();
-		
-		rootScreen.SetBackgroundImage("Init.png");
-		//	rootScreen.SetBackgroundImage("Shutdown.png");
-		rootScreen.Clear();
 		
 		delete(PSPApp);
 	}
