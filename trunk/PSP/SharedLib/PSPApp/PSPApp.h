@@ -23,6 +23,7 @@
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>
 	#include <psppower.h>
+	#include <psprtc.h>
 	#include <PSPNet.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
@@ -58,6 +59,8 @@
 	#define MID_ONBUTTON_RELEASED			0x01000013
 	#define MID_ONHPRM_RELEASED				0x01000014
 	#define MID_ONVBLANK					0x01000020
+	#define MID_ONBATTERY_CHANGE			0x01000040
+	#define MID_ONTIME_CHANGE				0x01000041
 
 	class CPSPThread;
 	class CPSPApp;
@@ -131,6 +134,9 @@
 		/** Data */
 		CLogging m_Log;
 		CPSPKeyHandler KeyHandler;
+		int m_BatteryStatus;
+		pspTime m_LocalTime;
+		int m_TimeUpdate;
 		bool m_Exit;
 		bool m_NetworkEnabled;
 		bool m_USBEnabled;

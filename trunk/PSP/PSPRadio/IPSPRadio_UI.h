@@ -6,6 +6,7 @@
 	#include "OptionsScreen.h"
 	#include "PSPSound.h"
 	#include "MetaDataContainer.h"
+	#include <psprtc.h>
 	
 	/** UI class interface */ 
 	class IPSPRadio_UI
@@ -41,6 +42,8 @@
 		virtual void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator){};
 		virtual void OnScreenshot(CScreenHandler::ScreenShotState state){};
+		virtual void OnBatteryChange(int Percentage){};
+		virtual void OnTimeChange(pspTime *LocalTime){};
 
 		virtual void DisplayContainers(CMetaDataContainer *Container){}
 		virtual void DisplayElements(CMetaDataContainer *Container){}

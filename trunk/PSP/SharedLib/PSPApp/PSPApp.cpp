@@ -26,6 +26,7 @@
 #include <pspkernel.h>
 #include <psphprm.h>
 #include <psppower.h>
+#include <psprtc.h>
 #include "PSPApp.h"
 
 #undef ReportError
@@ -50,7 +51,8 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_strVersionNumber = strdup(strVersionNumber);
 	pPSPApp = this;
 	m_Polling = false;
-	
+	m_BatteryStatus = 0x00;
+	m_TimeUpdate = 0;
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 1024, THREAD_ATTR_USER);
 
 	if (m_thCallbackSetup)
@@ -133,7 +135,9 @@ int CPSPApp::Run()
 	short oldAnalogue = 0;
 	u32 hprmlatch = 0;
 	CPSPKeyHandler::KeyEvent event;
-	
+	int newBatteryStatus;
+	u16 oldMinute;
+
 	Log(LOG_INFO, "Run(): Going into main loop.");
 	
 	sceCtrlSetSamplingCycle(10); 
@@ -153,6 +157,31 @@ int CPSPApp::Run()
 		if (KeyHandler.KeyHandler(event))
 		{
 			SendEvent(event.event, (void *)&(event.key_state));
+		}
+
+		// Only read from the RTC once a second
+		if (m_TimeUpdate++ == 60)
+		{
+			m_TimeUpdate = 0;
+			oldMinute = m_LocalTime.minutes;
+
+			// Read from the RTC (if possible). return zero on success
+			if (!sceRtcGetCurrentClockLocalTime(&m_LocalTime))
+			{
+				// Only update each minute
+				if (oldMinute != m_LocalTime.minutes)
+				{
+					SendEvent(MID_ONTIME_CHANGE, (void *)&m_LocalTime);
+
+					// Check to see if the battery status has changed
+					newBatteryStatus = scePowerGetBatteryLifePercent();
+					if (newBatteryStatus != m_BatteryStatus)
+					{
+						m_BatteryStatus = newBatteryStatus;
+						SendEvent(MID_ONBATTERY_CHANGE, (void *)&m_BatteryStatus);
+					}
+				}
+			}
 		}
 
 		if (oldAnalogue != (short)m_pad.Lx)

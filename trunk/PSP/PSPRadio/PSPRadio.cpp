@@ -39,6 +39,7 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
+#include <psprtc.h>
 #include "ScreenHandler.h"
 #include "PlayListScreen.h"
 #include "SHOUTcastScreen.h"
@@ -419,6 +420,20 @@ public:
 
 				case MID_ONHPRM_RELEASED:
 					m_ScreenHandler->OnHPRMReleased(*((u32*)event.pData));
+					break;
+
+				case MID_ONBATTERY_CHANGE:
+					if (m_UI)
+						m_UI->OnBatteryChange(*((int*)event.pData));
+					break;
+
+				case MID_ONTIME_CHANGE:
+					{
+					pspTime	*localTime = (pspTime *)event.pData;
+
+					if (m_UI)
+						m_UI->OnTimeChange(localTime);
+					}
 					break;
 
 				/** This is not used, vblank notification is done via 'callback' of OnVBlank from PSPApp */

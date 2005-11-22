@@ -8,6 +8,7 @@ What's New for PSPRadio
 (raf) Some refactoring of options code/pspapp_network. Corrections on loglevels.
 (raf) 0.37-pre3b: Corrected the WIFI:AUTOSTARTing.
 (raf) 0.37-pre3c: Now you can save and restore USB autostart / wifi autostart / intial screen from the options screen
+(sandberg) Added support for showing the battery status and the current local time.
 
 0.37-pre2
 (raf) Corrected issue where SHOUTcast screen wasn't allocating memory for the lists, reusing the playlists' memory. This was causing instability in version 0.37-pre1.
