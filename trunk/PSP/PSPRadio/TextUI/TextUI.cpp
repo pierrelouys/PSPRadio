@@ -30,7 +30,7 @@
 #include <Tools.h>
 #include <stdarg.h>
 #include <Logging.h>
-#include <Print.h>
+#include <Screen.h>
 #include "TextUI.h"
 
 #define MAX_ROWS 34
@@ -45,6 +45,7 @@ CTextUI::CTextUI()
 	m_lockprint = NULL;
 	m_lockclear = NULL;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
+	m_Screen = new CScreen;
 	m_strTitle = strdup("PSPRadio by Raf");
 	
 	m_lockprint = new CLock("Print_Lock");
@@ -66,6 +67,8 @@ CTextUI::~CTextUI()
 		delete(m_lockclear);
 		m_lockclear = NULL;
 	}
+	
+	delete(m_Screen), m_Screen = NULL;
 	Log(LOG_VERYLOW, "~CTextUI(): End");
 }
 
@@ -80,7 +83,7 @@ int CTextUI::Initialize(char *strCWD)
 	
 	free (strCfgFile), strCfgFile = NULL;
 	
-	ScreenInit();
+	//m_Screen->Init();
 	
 	return 0;
 }
@@ -110,13 +113,13 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
-			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
+			m_Screen->SetBackColor(GetConfigColor("COLORS:BACKGROUND"));
+			m_Screen->SetTextColor(GetConfigColor("COLORS:MAINTEXT"));
 			if (m_Config->GetString("IMAGES:SHOUTCAST_SCREEN_BACKGROUND", NULL))
 			{
-				ScreenSetBackgroundImage(m_Config->GetStr("IMAGES:SHOUTCAST_SCREEN_BACKGROUND"));
+				m_Screen->SetBackgroundImage(m_Config->GetStr("IMAGES:SHOUTCAST_SCREEN_BACKGROUND"));
 			}
-			ScreenClear(); 
+			m_Screen->Clear(); 
 			if (m_strTitle)
 			{
 				GetConfigPos("TEXT_POS:TITLE", &x, &y);
@@ -131,13 +134,13 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			break;
 		
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			ScreenSetBackColor(GetConfigColor("COLORS:BACKGROUND"));
-			ScreenSetTextColor(GetConfigColor("COLORS:MAINTEXT"));
+			m_Screen->SetBackColor(GetConfigColor("COLORS:BACKGROUND"));
+			m_Screen->SetTextColor(GetConfigColor("COLORS:MAINTEXT"));
 			if (m_Config->GetString("IMAGES:MAIN_SCREEN_BACKGROUND", NULL))
 			{
-				ScreenSetBackgroundImage(m_Config->GetStr("IMAGES:MAIN_SCREEN_BACKGROUND"));
+				m_Screen->SetBackgroundImage(m_Config->GetStr("IMAGES:MAIN_SCREEN_BACKGROUND"));
 			}
-			ScreenClear(); 
+			m_Screen->Clear(); 
 			if (m_strTitle)
 			{
 				GetConfigPos("TEXT_POS:TITLE", &x, &y);
@@ -152,13 +155,13 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			break;
 		
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			ScreenSetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
-			ScreenSetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
+			m_Screen->SetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
+			m_Screen->SetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
 			if (m_Config->GetString("IMAGES:OPTIONS_SCREEN_BACKGROUND", NULL))
 			{
-				ScreenSetBackgroundImage(m_Config->GetStr("IMAGES:OPTIONS_SCREEN_BACKGROUND"));
+				m_Screen->SetBackgroundImage(m_Config->GetStr("IMAGES:OPTIONS_SCREEN_BACKGROUND"));
 			}
-			ScreenClear(); 
+			m_Screen->Clear(); 
 			uiPrintf(-1,0, GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"), "PSPRadio OPTIONS:");
 			break;
 	
@@ -264,9 +267,9 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 	{
 		x = 67/2 - strlen(msg)/2;
 	}
-	ScreenSetXY(x,y);
-	ScreenSetTextColor(color);
-	ScreenPrintf(msg);
+	m_Screen->SetXY(x,y);
+	m_Screen->SetTextColor(color);
+	m_Screen->Printf(msg);
 	
 	va_end (args);                  /* Clean up. */
 
@@ -281,7 +284,7 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		ScreenClearLine(iRow);
+		m_Screen->ClearLine(iRow);
 	}
 	m_lockclear->Unlock();
 }
@@ -294,7 +297,7 @@ void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowE
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
-		ScreenClearNChars(iColStart, iRow, iColEnd - iColStart);
+		m_Screen->ClearNChars(iColStart, iRow, iColEnd - iColStart);
 	}
 	m_lockclear->Unlock();
 }
@@ -570,7 +573,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 
 int CTextUI::OnConnectionProgress()
 {
-	ScreenPrintf(".");
+	m_Screen->Printf(".");
 	return 0;
 }
 

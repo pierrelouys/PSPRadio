@@ -64,4 +64,6 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/TextUI
 	cp -vf ./TextUI/*.cfg $(KXPLOIT_PRIMARY_DIR)/TextUI
 	cp -vf ./TextUI/*.png $(KXPLOIT_PRIMARY_DIR)/TextUI
+	cp -vf ./Init.png ./Shutdown.png $(KXPLOIT_PRIMARY_DIR)
+	
 

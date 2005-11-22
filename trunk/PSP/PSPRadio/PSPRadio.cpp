@@ -46,6 +46,7 @@
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
 #include <ivorbisfile.h>
+#include "Screen.h"
 
 PSP_MAIN_THREAD_PRIORITY(80);
 //PSP_MAIN_THREAD_STACK_SIZE_KB(512);
@@ -61,7 +62,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.37-pre3c")
+	myPSPApp(): CPSPApp("PSPRadio", "0.37-pre4")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -484,11 +485,19 @@ int main(int argc, char **argv)
 		pspDebugBreakpoint();
 	#endif
 
+	CScreen rootScreen;
+	rootScreen.SetBackgroundImage("Init.png");
+	rootScreen.Clear(); 
+	
 	myPSPApp *PSPApp = new myPSPApp();
 	if (PSPApp)
 	{
 		PSPApp->Setup(argc, argv);
 		PSPApp->ProcessEvents();
+		
+		rootScreen.SetBackgroundImage("Init.png");
+		//	rootScreen.SetBackgroundImage("Shutdown.png");
+		rootScreen.Clear();
 		
 		delete(PSPApp);
 	}

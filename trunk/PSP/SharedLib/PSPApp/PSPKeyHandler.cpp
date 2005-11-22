@@ -55,6 +55,17 @@ bool CPSPKeyHandler::KeyHandler(CPSPKeyHandler::KeyEvent &event)
 	{
 		ret_value = KeyHandlerSTM(EVENT_UPDATE, event);
 	}
+	
+	#if 0
+	SceCtrlData	s_PadData;
+	sceCtrlPeekBufferPositive( &s_PadData, 1 );
+	if (s_PadData.Buttons & PSP_CTRL_HOME)
+	{
+		Log(LOG_ERROR, "HOME PRESSED!!!");
+		m_latch.uiPress |= PSP_CTRL_HOME;
+		ret_value = KeyHandlerSTM(EVENT_RELEASED, event);
+	}
+	#endif
 
 	return ret_value;
 }

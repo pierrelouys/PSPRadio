@@ -62,6 +62,17 @@ int DriverLoadThread(SceSize args, void *argp)
 		pspDebugScreenPrintf("Ready.\n");
 	#endif
 
+	//test, from FileAssistant++
+	#if 0
+	// Firmware v1.5
+	*((unsigned int *)0x8805c510)=0x00001021; // good PRX
+	*((unsigned int *)0x8805c834)=0x00000000; // good VSH
+	*((unsigned int *)0x8805c690)=0x00000000; // VSHByID
+	*((unsigned int *)0x8805c3b8)=0x00000000; // modByID
+	*((unsigned int *)0x8805c834)=0x00000000; // VSH
+	*((unsigned int *)0x8805ca40)=0x00000000; // VSHPlain
+	#endif
+	
 	
 	sceKernelSleepThreadCB();
 

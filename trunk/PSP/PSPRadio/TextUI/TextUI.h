@@ -2,6 +2,7 @@
 #define _PSPRADIOTEXTUI_
 
 #include "IPSPRadio_UI.h"
+#include "Screen.h"
 
 class CTextUI : public IPSPRadio_UI
 {
@@ -47,6 +48,7 @@ private:
 	CLock *m_lockclear;
 	CIniParser *m_Config;
 	char  *m_strTitle;
+	CScreen *m_Screen;
 	CScreenHandler::Screen m_CurrentScreen;
 
 	//helpers

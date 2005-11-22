@@ -151,7 +151,11 @@ void CScreenHandler::CommonInputHandler(int iButtonMask)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-			if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
+			if (iButtonMask & PSP_CTRL_HOME)
+			{
+				pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
+			}
+			else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
 			{
 				// Enter option menu and store the current screen
 				m_PreviousScreen = m_CurrentScreen;

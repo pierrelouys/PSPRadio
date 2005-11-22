@@ -1,13 +1,13 @@
 What's New for PSPRadio 
 ========================
 
-0.37-pre3 (r562)
+0.37-pre3 (r562) (c=r573)
 (raf) The initial screen can now be selected in the PSPRadio.cfg file, under SYSTEM/INITIAL_SCREEN
 (raf) Can now refresh the playlists from the Options screen.
 (raf) Options can now be saved from options screen.
 (raf) Some refactoring of options code/pspapp_network. Corrections on loglevels.
 (raf) 0.37-pre3b: Corrected the WIFI:AUTOSTARTing.
-(raf) 0.37-pre3c: Now save and restore USB autostart / wifi autostart / intial screen
+(raf) 0.37-pre3c: Now you can save and restore USB autostart / wifi autostart / intial screen from the options screen
 
 0.37-pre2
 (raf) Corrected issue where SHOUTcast screen wasn't allocating memory for the lists, reusing the playlists' memory. This was causing instability in version 0.37-pre1.

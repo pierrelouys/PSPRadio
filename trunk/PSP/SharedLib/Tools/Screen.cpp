@@ -23,22 +23,27 @@
 #include <pspdisplay.h>
 #include <pspge.h>
 #include <stdarg.h>
-#include <Print.h>
+#include <Screen.h>
 #include <png.h>
 
-#define PSP_LINE_SIZE 512
-#define PSP_PIXEL_FORMAT 3
+CScreen::CScreen()
+{
+	
+	X = 0; 
+	Y = 0; 
+	MX = SCREEN_MAX_X;
+	MY = SCREEN_MAX_Y;
+	bg_col = 0; 
+	fg_col = 0xFFFFFFFF;
+	g_vram_base = (u32 *)0x04000000;
+	init = false;
+	m_strImage = NULL;
+	m_ImageBuffer = NULL;
+	
+	Init();
+}
 
 /* baseado nas libs do Duke... */
-
-static int X = 0, Y = 0;
-static int MX=SCREEN_MAX_X, MY=SCREEN_MAX_Y;
-static u32 bg_col = 0, fg_col = 0xFFFFFFFF;
-static u32* g_vram_base = (u32 *) 0x04000000;
-
-static bool init = false;
-char *m_strImage = NULL;
-u32  *m_ImageBuffer = NULL;
 
 void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2);
 
@@ -50,7 +55,7 @@ void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
 }
 
 /* Load an image and show it to screen */
-void LoadImage(const char* filename, u32 *ImageBuffer)
+void CScreen::LoadImage(const char* filename, u32 *ImageBuffer)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -105,7 +110,7 @@ void LoadImage(const char* filename, u32 *ImageBuffer)
 }
 /** PNG STUFF */
 
-static void clear_screen(u32 color)
+void CScreen::clear_screen(u32 color)
 {
     int x;
     u32 *vram = g_vram_base;
@@ -116,18 +121,18 @@ static void clear_screen(u32 color)
     }
 }
 
-void ScreenInit()
+void CScreen::Init()
 {
 	X = Y = 0;
 	/* Place vram in uncached memory */
 	g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 	sceDisplaySetFrameBuf((void *) g_vram_base, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
-	clear_screen(bg_col);
+	//clear_screen(bg_col);
 	init = true;
 }
 
-void ScreenSetBackgroundImage(char *strImage)
+void CScreen::SetBackgroundImage(char *strImage)
 {
 	if (m_strImage)
 	{
@@ -146,19 +151,19 @@ void ScreenSetBackgroundImage(char *strImage)
 	}
 }
 
-void ScreenSetBackColor(u32 color)
+void CScreen::SetBackColor(u32 color)
 {
    bg_col = color;
 }
 
-void ScreenSetTextColor(u32 color)
+void CScreen::SetTextColor(u32 color)
 {
    fg_col = color;
 }
 
 extern u8 msx[];
 
-void ScreenPutChar( int x, int y, u32 color, u8 ch, bool do_background)
+void CScreen::PutChar( int x, int y, u32 color, u8 ch, bool do_background)
 {
 	int 	i,j, l;
 	u8	*font;
@@ -210,7 +215,7 @@ void ScreenPutChar( int x, int y, u32 color, u8 ch, bool do_background)
 	}
 }
 
-void ScreenPutEraseChar( int x, int y, u32 color)
+void CScreen::PutEraseChar( int x, int y, u32 color)
 {
 	int 	i,j;
 	u32 *vram_ptr;
@@ -223,7 +228,7 @@ void ScreenPutEraseChar( int x, int y, u32 color)
 	
 	if (NULL == m_ImageBuffer)
 	{
-		ScreenPutChar( x, y, bg_col, 219);
+		PutChar( x, y, bg_col, 219);
 	}
 	else
 	{
@@ -242,43 +247,53 @@ void ScreenPutEraseChar( int x, int y, u32 color)
 	}
 }
 
-void ScreenPutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
+void CScreen::PutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
 	int xminusone = (x>0?(x-1):0);
 	int yminusone = (y>0?(y-1):0);
 	
-	ScreenPutEraseChar(x,y, 0);
+	PutEraseChar(x,y, 0);
 
 	/** y - 1 */	
-	ScreenPutChar(xminusone, yminusone, bg_color, ch, false);
-	ScreenPutChar(x, yminusone, bg_color, ch, false);	
-	ScreenPutChar(x+1, yminusone, bg_color, ch, false);
+	PutChar(xminusone, yminusone, bg_color, ch, false);
+	PutChar(x, yminusone, bg_color, ch, false);	
+	PutChar(x+1, yminusone, bg_color, ch, false);
 	/** y + 1 */
-	ScreenPutChar(xminusone, y+1, bg_color, ch, false);
-	ScreenPutChar(x, y+1, bg_color, ch, false);	
-	ScreenPutChar(x+1, y+1, bg_color, ch, false);
+	PutChar(xminusone, y+1, bg_color, ch, false);
+	PutChar(x, y+1, bg_color, ch, false);	
+	PutChar(x+1, y+1, bg_color, ch, false);
 	/** y */
-	ScreenPutChar(xminusone, y, bg_color, ch, false);
-	ScreenPutChar(x+1, y, bg_color, ch, false);
-	ScreenPutChar(x, y, fg_color, ch, false);	
+	PutChar(xminusone, y, bg_color, ch, false);
+	PutChar(x+1, y, bg_color, ch, false);
+	PutChar(x, y, fg_color, ch, false);	
 }
 
-
-void ScreenClearLine(int Y)
+void CScreen::PutCharWithShadow(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
-	ScreenClearNChars(0, Y, MX);
+	PutEraseChar(x+1,y+1, 0);
+	PutEraseChar(x,y, 0);
+
+	/** x+1,y+1 */
+	PutChar(x+1, y+1, bg_color, ch, false);
+	/** x,y */
+	PutChar(x, y, fg_color, ch, false);	
 }
 
-void ScreenClearNChars(int X, int Y, int N)
+void CScreen::ClearLine(int Y)
+{
+	ClearNChars(0, Y, MX);
+}
+
+void CScreen::ClearNChars(int X, int Y, int N)
 {
 	for (int i=X; i < X+N; i++)
 	{
-		ScreenPutEraseChar( i*7 , Y * 8, bg_col);
+		PutEraseChar( i*7 , Y * 8, bg_col);
 	}
 }
 
 /* Print non-nul terminated strings */
-int ScreenPrintData(const char *buff, int size)
+int CScreen::PrintData(const char *buff, int size)
 {
 	int i;
 	int j;
@@ -294,18 +309,19 @@ int ScreenPrintData(const char *buff, int size)
 						Y ++;
 						if (Y == MY)
 							Y = 0;
-						ScreenClearLine(Y);
+						ClearLine(Y);
 						break;
 			case '\t':
 						for (j = 0; j < 5; j++) {
-							ScreenPutChar( X*7 , Y * 8, fg_col, ' ');
+							PutChar( X*7 , Y * 8, fg_col, ' ');
 							X++;
 						}
 						break;
 			default: 
-						//ScreenPutCharWithOutline(X*7, Y*8, 0xFFFFFFFF, fg_col, c);
-						ScreenPutCharWithOutline(X*7, Y*8, 0, fg_col, c);
-						//ScreenPutChar( X*7 , Y * 8, fg_col, c);
+						//PutCharWithOutline(X*7, Y*8, 0xFFFFFFFF, fg_col, c);
+						//PutCharWithOutline(X*7, Y*8, 0, fg_col, c);
+						//PutChar( X*7 , Y * 8, fg_col, c);
+						PutCharWithShadow(X*7, Y*8, 0, fg_col, c);
 						X++;
 						if (X == MX)
 						{
@@ -313,7 +329,7 @@ int ScreenPrintData(const char *buff, int size)
 							Y++;
 							if (Y == MY)
 								Y = 0;
-							ScreenClearLine(Y);
+							ClearLine(Y);
 						}
 		}
 	}
@@ -321,7 +337,7 @@ int ScreenPrintData(const char *buff, int size)
 	return i;
 }
 
-void ScreenPrintf(const char *format, ...)
+void CScreen::Printf(const char *format, ...)
 {
    va_list	opt;
    char     buff[2048];
@@ -334,27 +350,27 @@ void ScreenPrintf(const char *format, ...)
    
    va_start(opt, format);
    bufsz = vsnprintf( buff, (size_t) sizeof(buff), format, opt);
-   ScreenPrintData(buff, bufsz);
+   PrintData(buff, bufsz);
 }
 
 
-void ScreenSetXY(int x, int y)
+void CScreen::SetXY(int x, int y)
 {
 	if( x<MX && x>=0 ) X=x;
 	if( y<MY && y>=0 ) Y=y;
 }
 
-int ScreenGetX()
+int CScreen::GetX()
 {
 	return X;
 }
 
-int ScreenGetY()
+int CScreen::GetY()
 {
 	return Y;
 }
 
-void ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2)
+void CScreen::ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2)
 {
 	u16* vram16;
 	int bufferwidth;
@@ -395,7 +411,7 @@ void ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2)
 	}
 }
 
-void ScreenClear()
+void CScreen::Clear()
 {
 	int y;
 
@@ -407,13 +423,13 @@ void ScreenClear()
 	if (m_strImage)
 	{
 		ShowBackgroundPng(0,0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
-		ScreenSetXY(0,0);
+		SetXY(0,0);
 	}
 	else
 	{
 		for(y=0;y<MY;y++)
-			ScreenClearLine(y);
-		ScreenSetXY(0,0);
+			ClearLine(y);
+		SetXY(0,0);
 		clear_screen(bg_col);
 	}
 }
