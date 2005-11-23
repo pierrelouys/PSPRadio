@@ -134,19 +134,13 @@
 	
 	int sceNetInetClose(SOCKET s);
 	
-	/** RC 09-11-2005: These defined from http://www.netrino.com/Publications/Glossary/Endianness.html */
-	#define htons(A)  ((((u16)(A) & 0xff00) >> 8) | \
-					   (((u16)(A) & 0x00ff) << 8))
-	#define htonl(A) ((((u32)(A) & 0xff000000) >> 24) | \
-	                  (((u32)(A) & 0x00ff0000) >> 8)  | \
-	                  (((u32)(A) & 0x0000ff00) << 8)  | \
-	                  (((u32)(A) & 0x000000ff) << 24))
-	#define ntohs     htons
-	#define ntohl     htohl
+	#define ntohs(x) __builtin_allegrex_wsbh(x)
+	#define ntohl(x) __builtin_allegrex_wsbw(x)
+	#define htons ntohs
+	#define htonl ntohl
 	
 	int sceNetInetGetErrno();
 	
-	//char *inet_ntoa(struct in_addr in);
 	struct in_addr_b
 	{
 		unsigned char b1,b2,b3,b4;
