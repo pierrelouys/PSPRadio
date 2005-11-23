@@ -53,7 +53,8 @@ PSP_MAIN_THREAD_PRIORITY(80);
 //PSP_MAIN_THREAD_STACK_SIZE_KB(512);
 
 #define CFG_FILENAME "PSPRadio.cfg"
-
+CScreen rootScreen;
+	
 class myPSPApp : public CPSPApp
 {
 private:
@@ -229,7 +230,6 @@ public:
 	{
 		Log(LOG_VERYLOW, "PSPRadio::OnExit()");
 		
-		CScreen rootScreen;
 		rootScreen.SetBackgroundImage("Shutdown.png");
 		rootScreen.Clear(); 
 
@@ -455,6 +455,12 @@ public:
 	void OnVBlank()
 	{
 		m_ScreenHandler->OnVBlank();
+		/** test */
+		#if 0
+		SceCtrlData m_pad;
+		sceCtrlPeekBufferPositive(&m_pad, 1);
+		rootScreen.Printf("mpad = %x\n", m_pad.Buttons);
+		#endif
 	}
 
 	int OnPowerEvent(int pwrflags)
@@ -466,27 +472,23 @@ public:
 			Log(LOG_INFO,
 				"flags: 0x%08X: suspending\n", pwrflags);
 		} 
-		else if (pwrflags & PSP_POWER_CB_RESUMING) 
+		if (pwrflags & PSP_POWER_CB_RESUMING) 
 		{
 			Log(LOG_INFO,
 				"flags: 0x%08X: resuming from suspend mode\n", pwrflags);
 		} 
-		else if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE) 
+		if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE) 
 		{
 			Log(LOG_INFO,
 				"flags: 0x%08X: resume complete\n", pwrflags);
+			
+			m_Sound->Stop();
 		} 
-		else if (pwrflags & PSP_POWER_CB_STANDBY) 
+		if (pwrflags & PSP_POWER_CB_STANDBY) 
 		{
 			Log(LOG_INFO,
 				"flags: 0x%08X: entering standby mode\n", pwrflags);
 		} 
-		else 
-		{
-			Log(LOG_INFO, "flags: 0x%08X: Unhandled power event\n", pwrflags);
-		}
-		//sceDisplayWaitVblankStart();
-	
 		return 0;
 	}
 
@@ -505,7 +507,7 @@ int main(int argc, char **argv)
 		pspDebugBreakpoint();
 	#endif
 
-	CScreen rootScreen;
+
 	rootScreen.SetBackgroundImage("Init.png");
 	rootScreen.Clear(); 
 	
