@@ -158,7 +158,7 @@ int CPSPApp::Run()
 		{
 			SendEvent(event.event, (void *)&(event.key_state));
 		}
-
+		
 		// Only read from the RTC once a second
 		if (m_TimeUpdate++ == 60)
 		{
@@ -257,7 +257,12 @@ int CPSPApp::exitCallback(int arg1, int arg2, void *common)
 
 int CPSPApp::powerCallback(int arg1, int pwrflags, void *common) 
 {
-	return pPSPApp->OnPowerEvent(pwrflags);
+	pPSPApp->OnPowerEvent(pwrflags);
+	
+	/** Register again (or it won't happen anymore) */
+    int cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
+    scePowerRegisterCallback(0, cbid);
+	return 0;
 }
 
 /* Thread statics */
