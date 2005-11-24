@@ -9,14 +9,23 @@
 	#define PSP_LINE_SIZE 512
 	#define PSP_PIXEL_FORMAT 3
 	
+	
 
 	class CScreen
 	{
 	public:
+		enum textmode
+		{
+			TEXTMODE_NORMAL,
+			TEXTMODE_OUTLINED,
+			TEXTMODE_SHADOWED
+		};
+				
 		CScreen();
 		void SetBackColor(u32 colour);
 		void SetTextColor(u32 colour);
 		void SetBackgroundImage(char *strImage);
+		void SetTextMode(textmode mode){m_TextMode = mode;}
 		void Printf(const char *format, ...);
 		void Clear();
 		void SetXY(int x, int y);
@@ -33,6 +42,7 @@
 		bool init;
 		char *m_strImage;
 		u32  *m_ImageBuffer;
+		textmode m_TextMode;
 
 		void Init();
 		void PutChar( int x, int y, u32 color, u8 ch, bool do_background = true);

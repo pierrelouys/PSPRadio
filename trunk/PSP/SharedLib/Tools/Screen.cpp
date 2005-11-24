@@ -39,6 +39,7 @@ CScreen::CScreen()
 	init = false;
 	m_strImage = NULL;
 	m_ImageBuffer = NULL;
+	m_TextMode = TEXTMODE_NORMAL;
 	
 	Init();
 }
@@ -220,11 +221,29 @@ void CScreen::PutEraseChar( int x, int y, u32 color)
 	int 	i,j;
 	u32 *vram_ptr;
 	u32 *vram;
+	int iCharHeight = 8, iCharWidth = 8;
 	
 	if(false == init)
 	{
 	   return;
 	}
+	
+	switch(m_TextMode)
+	{
+		case TEXTMODE_NORMAL:
+			iCharHeight = 8;
+			iCharWidth  = 8;
+			break;
+		case TEXTMODE_OUTLINED:
+			iCharHeight = 9;
+			iCharWidth  = 9;
+			break;
+		case TEXTMODE_SHADOWED:
+			iCharHeight = 9;
+			iCharWidth  = 9;
+			break;
+	}
+
 	
 	if (NULL == m_ImageBuffer)
 	{
@@ -235,10 +254,10 @@ void CScreen::PutEraseChar( int x, int y, u32 color)
 		vram = g_vram_base + x;
 		vram += (y * PSP_LINE_SIZE);
 		
-		for (i=0; i < 8; i++)
+		for (i=0; i < iCharHeight; i++)
 		{
 			vram_ptr  = vram;
-			for (j=0; j < 8; j++)
+			for (j=0; j < iCharWidth; j++)
 			{
 				*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
 			}
@@ -270,7 +289,7 @@ void CScreen::PutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch
 
 void CScreen::PutCharWithShadow(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
-	PutEraseChar(x+1,y+1, 0);
+//	PutEraseChar(x+1,y+1, 0);
 	PutEraseChar(x,y, 0);
 
 	/** x+1,y+1 */
@@ -318,10 +337,18 @@ int CScreen::PrintData(const char *buff, int size)
 						}
 						break;
 			default: 
-						//PutCharWithOutline(X*7, Y*8, 0xFFFFFFFF, fg_col, c);
-						//PutCharWithOutline(X*7, Y*8, 0, fg_col, c);
-						//PutChar( X*7 , Y * 8, fg_col, c);
-						PutCharWithShadow(X*7, Y*8, 0, fg_col, c);
+						switch(m_TextMode)
+						{
+							case TEXTMODE_NORMAL:
+								PutChar( X*7 , Y * 8, fg_col, c);
+								break;
+							case TEXTMODE_OUTLINED:
+								PutCharWithOutline(X*7, Y*8, 0, fg_col, c);
+								break;
+							case TEXTMODE_SHADOWED:
+								PutCharWithShadow(X*7, Y*8, 0, fg_col, c);
+								break;
+						}
 						X++;
 						if (X == MX)
 						{
