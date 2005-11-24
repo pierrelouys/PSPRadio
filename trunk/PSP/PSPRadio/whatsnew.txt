@@ -1,6 +1,17 @@
 What's New for PSPRadio 
 ========================
 
+0.37-pre4
+(sandberg) Added support for showing the battery status and the current local time.
+(raf) TextUI is now more configurable (for listboxes/textmode(font modes))
+(raf) Added shadowed font mode for textui.
+(raf) Added option to select if file extensions should be displayed or not in textui.
+(raf) Added pngs for startup/shutdown of PSPRadio
+(raf) Fixed problem where PSPRadio was exiting when it went into screen blank mode.
+(raf) Now using pngs designed by Semtex/albadross/HalfastII
+(raf) Added better support for suspending/resuming psp.
+
+
 0.37-pre3 (r562) (c=r573)
 (raf) The initial screen can now be selected in the PSPRadio.cfg file, under SYSTEM/INITIAL_SCREEN
 (raf) Can now refresh the playlists from the Options screen.
@@ -8,7 +19,6 @@ What's New for PSPRadio
 (raf) Some refactoring of options code/pspapp_network. Corrections on loglevels.
 (raf) 0.37-pre3b: Corrected the WIFI:AUTOSTARTing.
 (raf) 0.37-pre3c: Now you can save and restore USB autostart / wifi autostart / intial screen from the options screen
-(sandberg) Added support for showing the battery status and the current local time.
 
 0.37-pre2
 (raf) Corrected issue where SHOUTcast screen wasn't allocating memory for the lists, reusing the playlists' memory. This was causing instability in version 0.37-pre1.
