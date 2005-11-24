@@ -256,6 +256,13 @@ void PlayListScreen::InputHandler(int iButtonMask)
 										Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
 									}
 								}
+								else // this shouldn't happen, but we should handle anyways.
+								{
+									m_ScreenHandler->GetSound()->GetCurrentStream()->
+										SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+									Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
+									m_ScreenHandler->GetSound()->Play();
+								}
 							}
 							break;
 					}
