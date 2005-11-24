@@ -381,7 +381,8 @@ public:
 							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::PLAY);
 							break;
 						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::PLAY);							break;
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::PLAY);							
+							break;
 						default:
 							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
 								m_ScreenHandler->GetCurrentScreen()->GetId());
@@ -482,7 +483,33 @@ public:
 			Log(LOG_INFO,
 				"flags: 0x%08X: resume complete\n", pwrflags);
 			
-			m_Sound->Stop();
+			bool bWasPlaying = false;
+			if (CPSPSound::PLAY == m_Sound->GetPlayState())
+			{
+				m_Sound->Stop();
+				bWasPlaying = true;
+			}
+			if (IsNetworkEnabled())
+			{
+				DisableNetwork();
+				#if 0 //test
+				((OptionsScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network();
+				
+				if(true == IsNetworkEnabled() && true == bWasPlaying)
+				{
+					m_Sound->Play();
+				}
+				#endif
+			}
+			else
+			{
+				#if 0 //test
+				if (true == bWasPlaying)
+				{
+					m_Sound->Play();
+				}
+				#endif
+			}
 		} 
 		if (pwrflags & PSP_POWER_CB_STANDBY) 
 		{
