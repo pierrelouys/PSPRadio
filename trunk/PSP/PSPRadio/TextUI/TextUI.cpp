@@ -543,11 +543,11 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		x1 = m_Config->GetInteger("TEXT_POS:METADATA_START_COLUMN", 0);
 		ClearRows(r1, r2);
 		
-		if (strlen(pData->strTitle) >= 59)
-			pData->strTitle[59] = 0;
+		if (strlen(pData->strTitle) >= (size_t)(59-x1))
+			pData->strTitle[59-x1] = 0;
 			
-		if (strlen(pData->strURL) >= 59)
-			pData->strURL[59] = 0;
+		if (strlen(pData->strURL) >= (size_t)(59-x1))
+			pData->strURL[59-x1] = 0;
 		
 		if (0 != pData->iSampleRate)
 		{
