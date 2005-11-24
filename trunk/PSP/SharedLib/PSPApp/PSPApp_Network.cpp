@@ -174,6 +174,7 @@ void CPSPApp::DisableNetwork()
     {
 	    Log(LOG_ERROR, "DisableNetwork() Called, but networking was not enabled. Ignoring.");
     }
+	m_NetworkEnabled = false;
 }
 
 int CPSPApp::GetNumberOfNetworkProfiles()
