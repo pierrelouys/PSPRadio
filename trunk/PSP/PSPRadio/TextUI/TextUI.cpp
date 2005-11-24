@@ -67,6 +67,11 @@ CTextUI::~CTextUI()
 		delete(m_lockclear);
 		m_lockclear = NULL;
 	}
+	if (m_Config)
+	{
+		delete(m_Config);
+		m_Config = NULL;
+	}
 	
 	delete(m_Screen), m_Screen = NULL;
 	Log(LOG_VERYLOW, "~CTextUI(): End");
@@ -96,7 +101,7 @@ int CTextUI::GetConfigColor(char *strKey)
 	return RGB2BGR(iRet);
 }
 
-void CTextUI::GetConfigPos(char *strKey, int *x, int *y)
+void CTextUI::GetConfigPair(char *strKey, int *x, int *y)
 {
 	sscanf(m_Config->GetStr(strKey), "%d,%d", x, y);
 }
@@ -110,6 +115,8 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	int x,y,c;
 	m_CurrentScreen = screen;
 	
+	m_Screen->SetTextMode((enum textmode)m_Config->GetInteger("OTHER:TEXT_MODE", 0));
+	
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
@@ -122,11 +129,11 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			m_Screen->Clear(); 
 			if (m_strTitle)
 			{
-				GetConfigPos("TEXT_POS:TITLE", &x, &y);
+				GetConfigPair("TEXT_POS:TITLE", &x, &y);
 				c = GetConfigColor("COLORS:TITLE");
 				uiPrintf(x,y, c, m_strTitle);
 			}
-			GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+			GetConfigPair("TEXT_POS:MAIN_COMMANDS", &x, &y);
 			c = GetConfigColor("COLORS:MAIN_COMMANDS");
 				
 			ClearRows(y);
@@ -143,11 +150,11 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			m_Screen->Clear(); 
 			if (m_strTitle)
 			{
-				GetConfigPos("TEXT_POS:TITLE", &x, &y);
+				GetConfigPair("TEXT_POS:TITLE", &x, &y);
 				c = GetConfigColor("COLORS:TITLE");
 				uiPrintf(x,y, c, m_strTitle);
 			}
-			GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+			GetConfigPair("TEXT_POS:MAIN_COMMANDS", &x, &y);
 			c = GetConfigColor("COLORS:MAIN_COMMANDS");
 				
 			ClearRows(y);
@@ -307,7 +314,7 @@ int CTextUI::SetTitle(char *strTitle)
 {
 //	int x,y;
 //	int c;
-//	GetConfigPos("TEXT_POS:TITLE", &x, &y);
+//	GetConfigPair("TEXT_POS:TITLE", &x, &y);
 //	c = GetConfigColor("COLORS:TITLE");
 //	uiPrintf(x,y, c, strTitle);
 	
@@ -324,7 +331,7 @@ int CTextUI::SetTitle(char *strTitle)
 int CTextUI::DisplayMessage_EnablingNetwork()
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:NETWORK_ENABLING", &x, &y);
+	GetConfigPair("TEXT_POS:NETWORK_ENABLING", &x, &y);
 	c = GetConfigColor("COLORS:NETWORK_ENABLING");
 	
 	//ClearErrorMessage();
@@ -337,7 +344,7 @@ int CTextUI::DisplayMessage_EnablingNetwork()
 int CTextUI::DisplayMessage_DisablingNetwork()
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:NETWORK_DISABLING", &x, &y);
+	GetConfigPair("TEXT_POS:NETWORK_DISABLING", &x, &y);
 	c = GetConfigColor("COLORS:NETWORK_DISABLING");
 	
 	ClearRows(y);
@@ -349,7 +356,7 @@ int CTextUI::DisplayMessage_DisablingNetwork()
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:NETWORK_READY", &x, &y);
+	GetConfigPair("TEXT_POS:NETWORK_READY", &x, &y);
 	c = GetConfigColor("COLORS:NETWORK_READY");
 	
 	ClearRows(y);
@@ -361,7 +368,7 @@ int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 int CTextUI::DisplayMainCommands()
 {
 //	int x,y,c;
-//	GetConfigPos("TEXT_POS:MAIN_COMMANDS", &x, &y);
+//	GetConfigPair("TEXT_POS:MAIN_COMMANDS", &x, &y);
 //	c = GetConfigColor("COLORS:MAIN_COMMANDS");
 	
 //	ClearRows(y);
@@ -373,7 +380,7 @@ int CTextUI::DisplayMainCommands()
 int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:ACTIVE_COMMAND", &x, &y);
+	GetConfigPair("TEXT_POS:ACTIVE_COMMAND", &x, &y);
 	c = GetConfigColor("COLORS:ACTIVE_COMMAND");
 	
 	ClearRows(y);
@@ -383,10 +390,10 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 		{
 			uiPrintf(x, y, c, "STOP");
 			int r1,r2;
-			GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+			GetConfigPair("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
 			ClearRows(r1, r2);
 			int px,py;
-			GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &px, &py);
+			GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &px, &py);
 			ClearRows(py);
 			break;
 		}
@@ -409,11 +416,11 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
+			GetConfigPair("TEXT_POS:ERROR_MESSAGE", &x, &y);
 			ClearErrorMessage();
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			GetConfigPos("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
+			GetConfigPair("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
 			ClearRows(y);
 			break;
 	}
@@ -438,11 +445,11 @@ int CTextUI::DisplayMessage(char *strMsg)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			GetConfigPos("TEXT_POS:ERROR_MESSAGE", &x, &y);
+			GetConfigPair("TEXT_POS:ERROR_MESSAGE", &x, &y);
 			ClearErrorMessage();
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			GetConfigPos("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
+			GetConfigPair("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
 			ClearRows(y);
 			break;
 	}
@@ -462,7 +469,7 @@ int CTextUI::DisplayMessage(char *strMsg)
 int CTextUI::ClearErrorMessage()
 {
 	int x,y;
-	GetConfigPos("TEXT_POS:ERROR_MESSAGE_ROW_RANGE", &x, &y);
+	GetConfigPair("TEXT_POS:ERROR_MESSAGE_ROW_RANGE", &x, &y);
 	ClearRows(x, y);
 	return 0;
 }
@@ -473,7 +480,7 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{
-		GetConfigPos("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
+		GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
 		c = GetConfigColor("COLORS:BUFFER_PERCENTAGE");
 	
 		if (iPerc > 97)
@@ -494,7 +501,7 @@ int CTextUI::OnNewStreamStarted()
 int CTextUI::OnStreamOpening()
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:STREAM_OPENING", &x, &y);
+	GetConfigPair("TEXT_POS:STREAM_OPENING", &x, &y);
 	c = GetConfigColor("COLORS:STREAM_OPENING");
 	
 	ClearErrorMessage(); /** Clear any errors */
@@ -506,7 +513,7 @@ int CTextUI::OnStreamOpening()
 int CTextUI::OnStreamOpeningError()
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:STREAM_OPENING_ERROR", &x, &y);
+	GetConfigPair("TEXT_POS:STREAM_OPENING_ERROR", &x, &y);
 	c = GetConfigColor("COLORS:STREAM_OPENING_ERROR");
 	
 	ClearRows(y);
@@ -517,7 +524,7 @@ int CTextUI::OnStreamOpeningError()
 int CTextUI::OnStreamOpeningSuccess()
 {
 	int x,y,c;
-	GetConfigPos("TEXT_POS:STREAM_OPENING_SUCCESS", &x, &y);
+	GetConfigPair("TEXT_POS:STREAM_OPENING_SUCCESS", &x, &y);
 	c = GetConfigColor("COLORS:STREAM_OPENING_SUCCESS");
 	
 	ClearRows(y);
@@ -532,7 +539,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{
 
-		GetConfigPos("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+		GetConfigPair("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
 		ClearRows(r1, r2);
 		
 		if (strlen(pData->strTitle) >= 59)
@@ -577,34 +584,46 @@ int CTextUI::OnConnectionProgress()
 	return 0;
 }
 
+/*
+PLAYLIST_CONTAINERLIST_START_COLUMN=0,14;
+PLAYLIST_CONTAINERLIST_END_COLUMN=17;
+PLAYLIST_CONTAINERLIST_ROW_RANGE=14,28
+*/
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
-	int x,y,c,r1,r2,ct,cs,ex,ey;
+	//int x,y,c,r1,r2,ct,cs,ex,ey;
+	int iStartCol, iEndCol, iRowStart, iRowEnd;
+	int iColorNormal, iColorSelected, iColorTitle, iColor;
+	int iNextRow = 0;
 
 	map< string, list<MetaData>* >::iterator ListIterator;
 	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
 	map< string, list<MetaData>* > *List = Container->GetContainerList();
-	char *text = NULL;
-	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &x, &y);
-	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &ex, &ey);
-	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
-	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
-	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
-	cs = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
-	int color = c;
+	char *strText = NULL;
+	//GetConfigPair("TEXT_POS:PLAYLIST_DIRS", &x, &y);
+	//GetConfigPair("TEXT_POS:PLAYLIST_ENTRIES", &ex, &ey);
+	//GetConfigPair("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
+	iColorNormal   = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
+	iColorTitle    = GetConfigColor("COLORS:PLAYLIST_TITLE");
+	iColorSelected = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
+	iStartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_START_COLUMN", 0);
+	iEndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_END_COLUMN", 0);
+	GetConfigPair("TEXT_POS:PLAYLIST_CONTAINERLIST_ROW_RANGE", &iRowStart, &iRowEnd);
+	//int color = c;
+	iColor = iColorNormal;
 
-	ClearHalfRows(x, ex-1, r1+1,r2); /** Don't clear title (+1) */
-	//uiPrintf(33/2 + x - 2/*list/2*/, y, ct, "List");
-	y++;
+	ClearHalfRows(iStartCol, iEndCol, iRowStart+1, iRowEnd); /** Don't clear title (+1) */
+
+	iNextRow = iRowStart + 1; /** Start after the title */
 	
-	text = (char *)malloc (MAXPATHLEN);
+	strText = (char *)malloc (MAXPATHLEN);
 	
 	//Log(LOG_VERYLOW, "DisplayContainers(): populating screen");
 	if (List->size() > 0)
 	{
 		//Log(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
 		ListIterator = *CurrentElement;
-		for (int i = 0; i < (r2-r1)/2; i++)
+		for (int i = 0; i < (iRowEnd-iRowStart)/2; i++)
 		{
 			if (ListIterator == List->begin())
 				break;
@@ -616,67 +635,77 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 		//Log(LOG_VERYLOW, "DisplayContainers(): Populating Screen (total elements %d)", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
-			if (y > r2)
+			if (iNextRow > iRowEnd)
 			{
 				break;
 			}
 			
 			if (ListIterator == *CurrentElement)
 			{
-				color = cs;
+				iColor = iColorSelected;
 			}
 			else
 			{
-				color = c;
+				iColor = iColorNormal;
 			}
 			
-			strncpy(text, ListIterator->first.c_str(), MAXPATHLEN - 1);
-			text[MAXPATHLEN - 1] = 0;
+			strncpy(strText, ListIterator->first.c_str(), MAXPATHLEN - 1);
+			strText[MAXPATHLEN - 1] = 0;
 
-			if (strlen(text) > 4 && memcmp(text, "ms0:", 4) == 0)
+			if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 			{
-				char *pText = basename(text);
-				pText[ex - 2] = 0;
-				uiPrintf(x, y, color, pText);
+				char *pText = basename(strText);
+				pText[iEndCol-iStartCol - 2] = 0;
+				uiPrintf(iStartCol, iNextRow, iColor, pText);
 			}
 			else
 			{
-				text[ex - 2] = 0;
-				uiPrintf(x, y, color, text);
+				strText[iEndCol-iStartCol - 2] = 0;
+				uiPrintf(iStartCol, iNextRow, iColor, strText);
 			}
-			y+=1;
+			iNextRow++;
 		}
 	}
 	
-	free(text), text = NULL;
+	free(strText), strText = NULL;
 }
 
+/*
+PLAYLIST_ENTRIESLIST_START_COLUMN=18
+PLAYLIST_ENTRIESLIST_END_COLUMN=67;
+PLAYLIST_ENTRIESLIST_ROW_RANGE=14,28
+*/
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
-	int x,y,c,r1,r2,ct,cs;
+	int iStartCol,iEndCol,iRowStart,iRowEnd, iNextRow;
+	int iColorNormal,iColorTitle,iColorSelected, iColor;
+	char *strText = NULL;
+	
 	list<MetaData>::iterator ListIterator;
 	list<MetaData>::iterator *CurrentElement = Container->GetCurrentElementIterator();
 	list<MetaData> *List = Container->GetElementList();
-	char *text;
-	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
-	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
-	c = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
-	cs = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
-	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
-	int color = c;
+	//GetConfigPair("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
+	//GetConfigPair("TEXT_POS:PLAYLIST_ROW_RANGE", &iRowStart, &iRowEnd);
+	iColorNormal = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
+	iColorSelected = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
+	iColorTitle = GetConfigColor("COLORS:PLAYLIST_TITLE");
+	iStartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_START_COLUMN", 0);
+	iEndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_END_COLUMN", 0);
+	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iRowStart, &iRowEnd);
+	iColor = iColorNormal;
 
-	ClearHalfRows(x, 67, r1+1,r2); /** Don't clear Entry title */
+	ClearHalfRows(iStartCol,iEndCol, iRowStart+1,iRowEnd); /** Don't clear Entry title */
 	
 	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
-	y++;
+	iNextRow = iRowStart + 1;
 	
-	text = (char *)malloc (MAXPATHLEN);
+	strText = (char *)malloc (MAXPATHLEN);
 	
 	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
 	{
 		ListIterator = *CurrentElement;
-		for (int i = 0; i < (r2-r1)/2; i++)
+		for (int i = 0; i < (iRowEnd-iRowStart)/2; i++)
 		{
 			if (ListIterator == List->begin())
 				break;
@@ -686,66 +715,82 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
-			if (y > r2)
+			if (iNextRow > iRowEnd)
 			{
 				break;
 			}
 			
 			if (ListIterator == *CurrentElement)
 			{
-				color = cs;
+				iColor = iColorSelected;
 			}
 			else
 			{
-				color = c;
+				iColor = iColorNormal;
 			}
 			
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
-				strncpy(text, (*ListIterator).strTitle, 67 - x);
-				text[67 - x] = 0;
+				strncpy(strText, (*ListIterator).strTitle, (iEndCol-iStartCol));
+				strText[iEndCol-iStartCol] = 0;
 			}
 			else
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
-				strncpy(text, (*ListIterator).strURI, 67 - x);
-				text[67 - x] = 0;
+				strncpy(strText, (*ListIterator).strURI, (iEndCol-iStartCol));
+				strText[iEndCol-iStartCol] = 0;
 			}
 		
-			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for text='%s'", text);
-			uiPrintf(x, y, color, text);
-			y+=1;
+			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for strText='%s'", strText);
+			uiPrintf(iStartCol, iNextRow, iColor, strText);
+			iNextRow++;
 		}
 	}
 	
-	free(text), text = NULL;
+	free(strText), strText = NULL;
 }
 
 void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 {
-	int r1,r2, ct, iListX, iEntryX, y;
-	GetConfigPos("TEXT_POS:PLAYLIST_ENTRIES", &iEntryX, &y);
-	GetConfigPos("TEXT_POS:PLAYLIST_DIRS", &iListX, &y);
-	GetConfigPos("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
-	ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
+	//int r1,r2, ct, iListX, iEntryX, y;
+	//GetConfigPair("TEXT_POS:PLAYLIST_ENTRIES", &iEntryX, &y);
+	//GetConfigPair("TEXT_POS:PLAYLIST_DIRS", &iListX, &y);
+	//GetConfigPair("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
+	//ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
+	int iContainer_StartCol, iContainer_EndCol, iContainer_RowStart, iContainer_RowEnd;
+	int iEntries_StartCol, iEntries_EndCol, iEntries_RowStart, iEntries_RowEnd;
+	int iColorTitle;
+	
+	iContainer_StartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_START_COLUMN", 0);
+	iContainer_EndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_END_COLUMN", 0);
+	GetConfigPair("TEXT_POS:PLAYLIST_CONTAINERLIST_ROW_RANGE", &iContainer_RowStart, &iContainer_RowEnd);
+	
+	iEntries_StartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_START_COLUMN", 0);
+	iEntries_EndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_END_COLUMN", 0);
+	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iEntries_RowStart, &iEntries_RowEnd);
+	
+	iColorTitle = GetConfigColor("COLORS:PLAYLIST_TITLE");
 
-	ClearRows(r1);
+	ClearRows(iContainer_RowStart);
+	if (iContainer_RowStart != iEntries_RowStart)
+		ClearRows(iEntries_RowStart);
+	
 	
 	switch (Container->GetCurrentSide())
 	{
 		case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 // 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
 // 			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
-			uiPrintf((iEntryX - iListX)/2 - 4/*entry/2*/,  r1, ct, "*List*");
-			uiPrintf((67 - iEntryX)/2+iEntryX - 4/*entry/2*/, r1, ct, "Entries");
+			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2 - 4/*entry/2*/,  iContainer_RowStart, iColorTitle, "*List*");
+			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - 4/*entry/2*/, iEntries_RowStart, iColorTitle, "Entries");
 			break;
 		
 		case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 //			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
 //			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
-			uiPrintf((iEntryX - iListX)/2 - 3/*entry/2*/,  r1, ct, "List");
-			uiPrintf((67 - iEntryX)/2+iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
+			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2 - 3/*entry/2*/,  iContainer_RowStart, iColorTitle, "List");
+			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - 5/*entry/2*/, iEntries_RowStart, iColorTitle, "*Entries*");
 			break;
 	
 	}

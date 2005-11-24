@@ -68,7 +68,7 @@ private:
 
 	int ClearErrorMessage();
 	int GetConfigColor(char *strKey);
-	void GetConfigPos(char *strKey, int *x, int *y);
+	void GetConfigPair(char *strKey, int *x, int *y);
 	
 	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
 					int iActiveState);
