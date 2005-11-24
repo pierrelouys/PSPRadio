@@ -153,7 +153,8 @@ void CScreenHandler::CommonInputHandler(int iButtonMask)
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 			if (iButtonMask & PSP_CTRL_HOME)
 			{
-				pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
+				//pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
+				//Log(LOG_ERROR, "HOME BUTTON RECEIVED!");
 			}
 			else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
 			{
