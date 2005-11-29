@@ -360,6 +360,7 @@ void OptionsScreen::OnOptionActivation()
 			m_iNetworkProfile = iSelectionBase0;
 			if (m_iNetworkProfile > 0) /** Enable */
 			{
+				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 				Start_Network();
 				if (true == pPSPApp->IsNetworkEnabled())
 				{
@@ -471,6 +472,7 @@ void OptionsScreen::OnOptionActivation()
 			
 		case OPTION_ID_REFRESH_PLAYLISTS:
 			m_UI->DisplayMessage("Refreshing Playlists");
+			m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 			((PlayListScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->LoadLists();
 			m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
@@ -480,6 +482,7 @@ void OptionsScreen::OnOptionActivation()
 			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
 			{
 				m_UI->DisplayMessage("Downloading latest SHOUTcast Database. . .");
+				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 				if (true == m_ScreenHandler->DownloadSHOUTcastDB())
 				{
 					timeLastTime = timeNow; /** Only when successful */
