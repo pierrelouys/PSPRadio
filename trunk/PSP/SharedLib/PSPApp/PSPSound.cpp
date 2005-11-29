@@ -76,8 +76,15 @@ void CPSPSound::Initialize()
 	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
 	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
 	
-	m_thPlayAudio->Start();
-	m_thDecode->Start();
+	if (m_CurrentStream && m_EventToDecTh && m_EventToPlayTh && m_thDecode && m_thPlayAudio)
+	{
+		m_thPlayAudio->Start();
+		m_thDecode->Start();
+	}
+	else
+	{
+		Log(LOG_ERROR, "Initialize(): Memory allocation error!");
+	}
 	
 }
 
@@ -109,12 +116,12 @@ CPSPSound::~CPSPSound()
 	
 	if (m_EventToDecTh)
 	{
-		delete(m_EventToDecTh);
+		delete(m_EventToDecTh); m_EventToDecTh = NULL;
 	}
 	
 	if (m_EventToPlayTh)
 	{
-		delete(m_EventToPlayTh);
+		delete(m_EventToPlayTh); m_EventToPlayTh = NULL;
 	}
 	
 	
@@ -141,20 +148,21 @@ int CPSPSound::Play()
 	switch(m_CurrentState)
 	{
 		case STOP:
-			m_CurrentState = PLAY;
 			event.EventId = MID_DECODER_START;
 			m_EventToDecTh->Send(event);
 			break;
 		case PAUSE:
-			m_CurrentState = PLAY;
-			event.EventId = MID_DECODER_START;
-			m_EventToDecTh->Send(event);
+			//event.EventId = MID_DECODER_START;
+			//m_EventToDecTh->Send(event);
+			event.EventId = MID_PLAY_START;
+			m_EventToPlayTh->Send(event);
 			break;
 			
 		case PLAY:
 		default:
 			break;
 	}
+	m_CurrentState = PLAY;
 	return m_CurrentState;
 }
 
@@ -167,8 +175,8 @@ int CPSPSound::Pause()
 	{
 		case PLAY:
 			m_CurrentState = PAUSE;
-			event.EventId = MID_DECODER_STOP;
-			m_EventToDecTh->Send(event);
+			//event.EventId = MID_DECODER_STOP;
+			//m_EventToDecTh->Send(event);
 			event.EventId = MID_PLAY_STOP;
 			m_EventToPlayTh->Send(event);
 			break;
@@ -216,7 +224,6 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
 		Frame *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
-		//int count = 0;
 		CPSPEventQ *m_EventToPlayTh = pPSPSound->m_EventToPlayTh;
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
@@ -225,8 +232,6 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendEvent(MID_THPLAY_BEGIN);
 		
-///		pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
-		///
 		for(;;)
 		{
 			Log(LOG_VERYLOW, "ThPlay::Calling Receive. %d Messages in Queue", m_EventToPlayTh->Size());
@@ -238,18 +243,18 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				Log(LOG_VERYLOW, "ThPlay:: Thread Exit message received.");
 				pPSPSound->SendEvent(MID_THPLAY_END);
 				m_EventToPlayTh->SendReceiveOK();
-///				pPSPApp->CanExit(); /** OK, App can exit now. */
 				sceKernelExitThread(0);
 				break;
 			
 			case MID_PLAY_START:
 				Log(LOG_VERYLOW, "ThPlay:: Thread Play message received.");
+				pPSPSound->SendEvent(MID_THPLAY_PLAYING);
 				while (m_EventToPlayTh->Size() == 0)
 				{
 					mybuf = pPSPSound->Buffer.PopBuffer();
 					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
 					
-					if ((clock()/1000 - timeLastPercentEvent) > 333) /** 3 times per sec */
+					if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 					{
 						pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
 						timeLastPercentEvent = clock() / 1000;
@@ -259,9 +264,16 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				break;
 				
 			case MID_PLAY_STOP:
-				Log(LOG_VERYLOW, "ThPlay:: Stop message received.");
-				pPSPSound->SendEvent(MID_THPLAY_DONE);
-				pPSPSound->Buffer.Empty();
+				if (STOP == pPSPSound->GetPlayState())
+				{
+					Log(LOG_VERYLOW, "ThPlay:: Stop message received.");
+					pPSPSound->SendEvent(MID_THPLAY_DONE);
+					pPSPSound->Buffer.Empty();
+				}
+				else
+				{
+					Log(LOG_VERYLOW, "ThPlay:: Stop message received. (But stream not stopped)");
+				}
 				break;
 			}
 		}
@@ -275,8 +287,6 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 	Log(LOG_INFO,"Starting Decoding Thread.");
 	pPSPSound->SendEvent(MID_THDECODE_BEGIN);
 
-///	pPSPApp->CantExit(); /** This to prevent the app to exit while in this area */
-	
 	CPSPEventQ *m_EventToDecTh = pPSPSound->m_EventToDecTh;
 	CPSPEventQ::QEvent event = { 0, 0, NULL };
 	int rret = 0;
