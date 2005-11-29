@@ -373,8 +373,9 @@ public:
 					if (m_UI)
 						m_UI->OnStreamOpeningError();
 					break;
-				case MID_DECODE_STREAM_OPEN:
-					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN received, calling OnPlayStateChange(PLAY)");
+				//case MID_DECODE_STREAM_OPEN:
+				case MID_THPLAY_PLAYING: /** The play thread sends this on play, which only happens after a stream is successfully opened and decoding started, or after resume from pause */
+					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
 					{
 						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
