@@ -180,7 +180,6 @@ void CPSPStream::Close()
 					fclose(m_pfd);
 				}
 				m_pfd = NULL;
-				m_State = STREAM_STATE_CLOSED;
 				break;
 			case STREAM_TYPE_URL:
 				if (m_fdSocket >= 0)
@@ -188,13 +187,13 @@ void CPSPStream::Close()
 					sceNetInetClose(m_fdSocket);
 				}
 				m_fdSocket = -1;
-				m_State = STREAM_STATE_CLOSED;
 				break;
 			case STREAM_TYPE_NONE:
-				Log(LOG_ERROR, "SoundStream::Close(): Invalid State.");
+				Log(LOG_ERROR, "SoundStream::Close(): Invalid stream type %d.", m_Type);
 				break;
 		}
 	}
+	m_State = STREAM_STATE_CLOSED;
 	//Content type is still defined!
 	//m_ContentType = MetaData::CONTENT_NOT_DEFINED;
 }
@@ -202,59 +201,59 @@ void CPSPStream::Close()
 int CPSPStream::Open()
 {
 	SetContentType(MetaData::CONTENT_NOT_DEFINED);
-	if (STREAM_STATE_CLOSED == m_State)
+	if (STREAM_STATE_OPEN == m_State)
 	{
-		switch(m_Type)
-		{
-			case STREAM_TYPE_URL:
-				//ReportError ("Opening URL '%s'\n", filename);
-				m_fdSocket = http_open(m_MetaData->strURI);
-				Log(LOG_LOWLEVEL, "Back from http_open(): socket=%d", m_fdSocket);
-				if (m_fdSocket < 0)
-				{
-					//Don't report again, because http_open will report.
-					//ReportError("CPSPStream::OpenFile-Error opening URL.\n");
-					m_State = STREAM_STATE_CLOSED;
-				}
-				else
-				{
-					//ReportError("CPSPStream::OpenFile-URL Opened. (handle=%d)\n", m_fdSocket);
-					//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
-					m_State = STREAM_STATE_OPEN;
-				}
-				break;
-			
-			case STREAM_TYPE_FILE:
-				m_pfd = fopen(m_MetaData->strURI, "rb");
-				if(m_pfd)
-				{
-					char *ext = strrchr(m_MetaData->strURI, '.') + 1;
-					if (strlen(ext) >= 3)
-					{
-						if (0 == strncasecmp(ext, "mp", 2))
-						{
-							SetContentType(MetaData::CONTENT_AUDIO_MPEG);
-						}
-						else if (0 == strncasecmp(ext, "ogg", 3))
-						{
-							SetContentType(MetaData::CONTENT_AUDIO_OGG);
-						}
-					}
-					m_State = STREAM_STATE_OPEN;
-				}
-				else
-				{
-					ReportError("Unable to open %s", m_MetaData->strURI);
-				}
-				break;
-			case STREAM_TYPE_NONE:
-				ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_MetaData->strURI);
-				break;
-		}
+		Log(LOG_ERROR, "Calling OpenFile, but there is a file open already; Closing.");
+		Close();
+		Log(LOG_ERROR, "Re-Opening now.");
 	}
-	else
+	
+	switch(m_Type)
 	{
-		ReportError("Calling OpenFile, but there is a file open already");
+		case STREAM_TYPE_URL:
+			//ReportError ("Opening URL '%s'\n", filename);
+			m_fdSocket = http_open(m_MetaData->strURI);
+			Log(LOG_LOWLEVEL, "Back from http_open(): socket=%d", m_fdSocket);
+			if (m_fdSocket < 0)
+			{
+				//Don't report again, because http_open will report.
+				//ReportError("CPSPStream::OpenFile-Error opening URL.\n");
+				m_State = STREAM_STATE_CLOSED;
+			}
+			else
+			{
+				//ReportError("CPSPStream::OpenFile-URL Opened. (handle=%d)\n", m_fdSocket);
+				//Log("Opened. MetaData Interval = %d\n", m_iMetaDataInterval);
+				m_State = STREAM_STATE_OPEN;
+			}
+			break;
+		
+		case STREAM_TYPE_FILE:
+			m_pfd = fopen(m_MetaData->strURI, "rb");
+			if(m_pfd)
+			{
+				char *ext = strrchr(m_MetaData->strURI, '.') + 1;
+				if (strlen(ext) >= 3)
+				{
+					if (0 == strncasecmp(ext, "mp", 2))
+					{
+						SetContentType(MetaData::CONTENT_AUDIO_MPEG);
+					}
+					else if (0 == strncasecmp(ext, "ogg", 3))
+					{
+						SetContentType(MetaData::CONTENT_AUDIO_OGG);
+					}
+				}
+				m_State = STREAM_STATE_OPEN;
+			}
+			else
+			{
+				ReportError("Unable to open %s", m_MetaData->strURI);
+			}
+			break;
+		case STREAM_TYPE_NONE:
+			ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_MetaData->strURI);
+			break;
 	}
 	
 	return m_State!=STREAM_STATE_CLOSED?0:-1;
