@@ -68,8 +68,8 @@
 		enum request_on_play_stop
 		{
 			NOTHING,
-			PLAY,
-			STOP
+			PLAY_REQUEST,
+			STOP_REQUEST,		/** User selected to stop */
 		};
 		
 		
