@@ -125,7 +125,7 @@ int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, cha
 	if (m_strFilename && LogLevel >= m_LogLevel) /** Log only if Set() was called and loglevel is correct */
 	{
 		va_start (args, strFormat);         /* Initialize the argument list. */
-		int timeDelta = (int)(clock() - m_timeInitial)/1000; /** Clock is in microseconds! */
+		int timeDelta = (int)(clock() - m_timeInitial)*1000/(CLOCKS_PER_SEC); /** we want time in ms */
 		
 		Open();
 		if (m_fp)
