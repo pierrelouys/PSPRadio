@@ -45,6 +45,7 @@ SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 {
 	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
 	m_Lists = NULL;
+	m_PlayMode = PLAYMODE_SINGLE;
 
 	m_Lists = new CMetaDataContainer();
 

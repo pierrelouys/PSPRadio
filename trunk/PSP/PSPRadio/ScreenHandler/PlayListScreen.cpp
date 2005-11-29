@@ -38,6 +38,7 @@ PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(I
 {
 	Log(LOG_VERYLOW,"PlayListScreen Ctor.");
 	m_Lists = NULL;
+	m_PlayMode = PLAYMODE_NORMAL;
 
 	m_Lists = new CMetaDataContainer();
 
@@ -229,14 +230,14 @@ void PlayListScreen::InputHandler(int iButtonMask)
 							break;
 						case CPSPSound::PLAY:
 							/** No pausing for URLs, only for Files(local) */
-							if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
-							{
-								m_ScreenHandler->GetSound()->GetCurrentStream()->
-									SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-								m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
-								m_ScreenHandler->GetSound()->Pause();
-							}
-							else
+							//if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
+							//{
+							//	m_ScreenHandler->GetSound()->GetCurrentStream()->
+							//		SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+							//	m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+							//	m_ScreenHandler->GetSound()->Pause();
+							//}
+							//else
 							{
 								/** If currently playing a stream, and the user presses play, then start the 
 								currently selected stream! */
@@ -249,14 +250,21 @@ void PlayListScreen::InputHandler(int iButtonMask)
 									{
 										Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
 										m_ScreenHandler->GetSound()->Stop();
-										m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::PLAY;
+										m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::PLAY_REQUEST;
 									}
 									else
 									{
-										Log(LOG_VERYLOW, "Not Stopping/Restarting, as the selected stream == current stream");
+										//the selected stream == current stream, if a file stream, then pause.
+										if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
+										{
+											m_ScreenHandler->GetSound()->GetCurrentStream()->
+												SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+											m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+											m_ScreenHandler->GetSound()->Pause();
+										}
 									}
 								}
-								else // this shouldn't happen, but we should handle anyways.
+								else // this shouldn't happen, but we should handle it anyways.
 								{
 									m_ScreenHandler->GetSound()->GetCurrentStream()->
 										SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
@@ -278,6 +286,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		{
 			Log(LOG_VERYLOW, "Calling Stop() at InputHandler, [] pressed.");
 			m_ScreenHandler->GetSound()->Stop();
+			m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::STOP_REQUEST;
 		}
 	}
 }
@@ -324,64 +333,85 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 void PlayListScreen::OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 {
 	static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
+	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
 	
-	switch(OldPlayState)
+	switch (NewPlayState)
 	{
-		case CPSPSound::STOP:
-			switch(NewPlayState)
-			{
-				case CPSPSound::PLAY:
-					if (m_UI)
-						m_UI->DisplayActiveCommand(CPSPSound::PLAY);
-					/** Populate m_CurrentMetaData */
-					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
-					if (m_UI)
-						m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
-					break;
-				
-				case CPSPSound::STOP:
-					if (m_UI)
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
-					Log(LOG_VERYLOW, "Calling Stop() on OnPlayStateChange Old=STOP, New=STOP.");
-					m_ScreenHandler->GetSound()->Stop();
-					break;
-				case CPSPSound::PAUSE:
-				default:
-					break;
-			}
-			break;
-		
 		case CPSPSound::PLAY:
-			switch(NewPlayState)
+			if (m_UI)
+				m_UI->DisplayActiveCommand(CPSPSound::PLAY);
+			/** Populate m_CurrentMetaData */
+			MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+			memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+			if (m_UI)
+				m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+			break;
+		case CPSPSound::PAUSE:
+			break;
+		case CPSPSound::STOP:
+			if (CScreenHandler::PLAY_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop)
 			{
-				case CPSPSound::STOP:
-					if (m_UI)
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
-					//m_Sound->Stop();
-					
-					if (CScreenHandler::PLAY == m_ScreenHandler->m_RequestOnPlayOrStop)
+				pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+				
+				/** Populate m_CurrentMetaData */
+				///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+				MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+				memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+				if (m_UI)
+					m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+				
+				m_ScreenHandler->GetSound()->Play();
+			}
+			else if (CScreenHandler::STOP_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop) 
+			{
+				/** If user selected to stop, just stop */
+				if (m_UI)
+					m_UI->DisplayActiveCommand(CPSPSound::STOP);
+			}
+			else
+			{
+				switch(m_PlayMode)
+				{
+					case PLAYMODE_NORMAL:
 					{
-						m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+						//play next strack
+						m_Lists->NextElement();
+						m_UI->DisplayElements(m_Lists);
+
+						pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 						
 						/** Populate m_CurrentMetaData */
 						///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+						MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+						memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+						if (m_UI)
+							m_UI->OnNewSongData(pCurrentStream->GetMetaData());
 						
 						m_ScreenHandler->GetSound()->Play();
+						
+						break;
 					}
-					break;
+						
+					case PLAYMODE_REPEAT:
+					{
+						MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+						memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+						if (m_UI)
+							m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+						
+						m_ScreenHandler->GetSound()->Play();
+						break;
+					}
 					
-				case CPSPSound::PLAY:
-				case CPSPSound::PAUSE:
-				default:
-					break;
+					case PLAYMODE_SINGLE:
+						//don't do anything
+						break;
+				}
+			
 			}
 			break;
-		
-		case CPSPSound::PAUSE:
-		default:
-			break;
 	}
-	
+
 	m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
 	
 	OldPlayState = NewPlayState;
