@@ -193,7 +193,7 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 		{
 			Log(LOG_LOWLEVEL, "m_last_section changed from %d to %d. Processing Changes...", 
 				m_last_section, current_section);
-			ReadComments(); /** Get new stream information */
+			ProcessInfo(); /** Get new stream information */
 			ReadComments(); /** Get metadata from the stream */
 			m_last_section = current_section;
 			pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
