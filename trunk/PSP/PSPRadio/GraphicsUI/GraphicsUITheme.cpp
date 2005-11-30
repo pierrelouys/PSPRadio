@@ -1124,10 +1124,10 @@ void CGraphicsUITheme::DisplayStringSurface(StringPosType *pPos)
 		// Crop Lines that are too long
 		if(pPos->pSurface->w > pPos->rectPos.w)
 		{
-			pPos->nTimerID = SDL_AddTimer(100, OnUpdateString_TimerCallback, (void *)pPos);
-			pPos->bRotate = true;
-			pPos->nCurrentXPos = pPos->rectPos.x + (pPos->rectPos.w/2 - pPos->pSurface->w/2);
-//			pPos->pSurface->w = pPos->rectPos.w;
+//			pPos->nTimerID = SDL_AddTimer(100, OnUpdateString_TimerCallback, (void *)pPos);
+//			pPos->bRotate = true;
+//			pPos->nCurrentXPos = pPos->rectPos.x + (pPos->rectPos.w/2 - pPos->pSurface->w/2);
+			pPos->pSurface->w = pPos->rectPos.w;
 		}
 		else
 		{
