@@ -42,9 +42,10 @@
 	public:
 		CPSPSoundBuffer();	
 		~CPSPSoundBuffer();
-		void  ChangeBufferSize(size_t buffer_size); /*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
-		void  PushFrame(Frame frame); /* Takes 1 frame for any samplerate, set samplate first. */
-		void  Push44Frame(Frame frame); /* Takes 1 frame for a 44100Hz stream */
+		/*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
+		void  ChangeBufferSize(size_t buffer_size); 
+		void  PushFrame(Frame &frame); /* Takes 1 frame for any samplerate, set samplate first. */
+		void  Push44Frame(Frame &frame); /* Takes 1 frame for a 44100Hz stream */
 		Frame PopFrame(); 			/* Returns 1 frame */
 		
 		Frame *PopBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
@@ -56,14 +57,14 @@
 		void SampleRateChange(int newRate);
 		
 	private:
-		FrameTransport 	*ringbuf_start;/* *pspbuf; */ /** Buffers */
-		Frame *pspbuf;
-		FrameTransport 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
-		bool  	m_buffering;
+		FrameTransport  *m_RingBuffer;
+		Frame			*m_DeviceBuffer; /** One PSP sound buffer */
+		size_t			m_PopIndex, m_PushIndex;
+		bool  			m_bBuffering;
 		size_t 	/*m_samplerate,*/ m_mult, m_div;
 		size_t 	m_FrameCount; /** Used for buffer percentage */
 		size_t	m_NumBuffers; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
-		size_t  m_FrameTransportSize;
+		size_t  m_RingBufferSize; /** Number of frames in the ring buffer */
 		Frame   m_EmptyFrame;
 		void AllocateBuffers(); /** Called by constructor/ChangeBufferSize() to (re)allocate buffers */
 

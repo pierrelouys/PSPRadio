@@ -31,18 +31,18 @@
 
 using namespace std;
 
-
 /** Sound buffer class implementation */
 CPSPSoundBuffer::CPSPSoundBuffer()
 {
 	/** Initialize */
-	ringbuf_start=NULL;
-	pspbuf = NULL;
-	/** **/
-	//m_samplerate = PSP_SAMPLERATE;
-	
-	m_NumBuffers = DEFAULT_NUM_BUFFERS;
-	
+	m_RingBuffer = NULL;
+	m_DeviceBuffer = NULL; /** One PSP sound buffer */
+	m_PopIndex = m_PushIndex = 0;
+	m_bBuffering = true;
+	m_mult = m_div = 1;
+	m_FrameCount = 0; /** Used for buffer percentage */
+	m_NumBuffers = DEFAULT_NUM_BUFFERS; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
+	m_RingBufferSize = (PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers*15); /** Number of frames in the ring buffer */
 	memset(&m_EmptyFrame, 0, sizeof(Frame));
 	
 	AllocateBuffers();
@@ -51,13 +51,13 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 
 CPSPSoundBuffer::~CPSPSoundBuffer()
 {
-	if (ringbuf_start)
+	if (m_RingBuffer)
 	{
-		delete[] ringbuf_start, ringbuf_start=NULL;
+		delete[] m_RingBuffer, m_RingBuffer=NULL;
 	}
-	if (pspbuf)
+	if (m_DeviceBuffer)
 	{
-		free(pspbuf), pspbuf = NULL;
+		free(m_DeviceBuffer), m_DeviceBuffer = NULL;
 	}
 	
 }
@@ -65,20 +65,20 @@ CPSPSoundBuffer::~CPSPSoundBuffer()
 
 void CPSPSoundBuffer::AllocateBuffers()
 {
-	if (ringbuf_start)
+	if (m_RingBuffer)
 	{
-		delete[] ringbuf_start, ringbuf_start = NULL;
+		delete[] m_RingBuffer, m_RingBuffer=NULL;
 	}
-	if (pspbuf)
+	if (m_DeviceBuffer)
 	{
-		free (pspbuf), pspbuf = NULL;
+		free(m_DeviceBuffer), m_DeviceBuffer = NULL;
 	}
 	
-	m_FrameTransportSize = (PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
-	ringbuf_start = new FrameTransport[m_FrameTransportSize*15];
+	m_RingBufferSize = (PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);//*15); /** Number of frames in the ring buffer; 15 to accomodate for different samplerates */
 	
-	ringbuf_end = &ringbuf_start[m_FrameTransportSize];
-	pspbuf = (Frame *)memalign(64, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
+	m_RingBuffer = new FrameTransport[m_RingBufferSize]; 
+	
+	m_DeviceBuffer = (Frame *)memalign(64, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
 	
 	Empty();
 }
@@ -93,29 +93,28 @@ void CPSPSoundBuffer::ChangeBufferSize(size_t buffer_size)
 void  CPSPSoundBuffer::Empty() 
 { 
 	Log(LOG_VERYLOW, "CPSPSoundBuffer::Empty() Called.");
-	for (size_t i = 0; i < m_FrameTransportSize ; i++)
+	for (size_t i = 0; i < m_RingBufferSize ; i++)
 	{
-		memset(&(ringbuf_start[i].frame), 0, sizeof(Frame));
-		ringbuf_start[i].bIsLastFrame = false;
+		memset(&(m_RingBuffer[i].frame), 0, sizeof(Frame));
+		m_RingBuffer[i].bIsLastFrame = false;
 	}
-	pushpos = poppos = ringbuf_start;
-	m_lastpushpos = 0;
-	m_FrameCount = 0;
-	m_mult = 1, m_div = 1;
-	m_buffering = true;
+	m_PopIndex = m_PushIndex = 0;
+	m_bBuffering = true;
+	m_mult = m_div = 1;
+	m_FrameCount = 0; /** Used for buffer percentage */
+	
 }
 
 size_t CPSPSoundBuffer::GetBufferFillPercentage() 
 { 
 	
-	return 100*m_FrameCount/(PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
+	return 100*m_FrameCount/m_RingBufferSize;
 };
 		
 void CPSPSoundBuffer::SampleRateChange(int newRate)
 {
 	if (newRate > 0)
 	{
-		//Empty();
 		m_mult = 1, m_div = 1;
 		switch(newRate)
 		{
@@ -157,7 +156,8 @@ void CPSPSoundBuffer::SampleRateChange(int newRate)
 	}
 }
 
-void CPSPSoundBuffer::PushFrame(Frame frame) /** Push a frame at an arbitrary samplerate */
+/** This is called by the decoder for every decoded PCM frame */
+void CPSPSoundBuffer::PushFrame(Frame &frame) /** Push a frame at an arbitrary samplerate */
 {
 	static size_t iDiv = 0;
 	for (size_t iMult = 0; iMult < m_mult; iMult++)
@@ -171,25 +171,23 @@ void CPSPSoundBuffer::PushFrame(Frame frame) /** Push a frame at an arbitrary sa
 	
 }
 
-void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz stream */
+void CPSPSoundBuffer::Push44Frame(Frame &frame) /** Push a frame from a 44.1KHz stream (PSP's samplerate) */
 {
 	static int timeLastPercentEvent = 500; /** Initialize to something so the percentage event is sent the first time */
 	
-	
-	while ( GetBufferFillPercentage() == 100 )
+	while ( (100 == GetBufferFillPercentage()) && (0 == pPSPSound->GetEventToDecThSize()) )
 	{ 
 		sceKernelDelayThread(50); /** 50us */
-		if ( (pPSPApp->IsExiting() == true) )
-			break;
 	}
 	
-	pushpos++;
-	if (pushpos > ringbuf_end)
-		pushpos = ringbuf_start;
-		
 	m_FrameCount++;
 	
-	memcpy(&pushpos->frame, &frame, sizeof(Frame));
+	m_PushIndex++;
+	if (m_PushIndex > m_RingBufferSize)
+		m_PushIndex = 0;
+		
+	
+	memcpy(&(m_RingBuffer[m_PushIndex].frame), &frame, sizeof(Frame));
 	
 	if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 	{
@@ -201,62 +199,52 @@ void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz s
 
 Frame *CPSPSoundBuffer::PopBuffer()
 {
-	for (int i = 0 ; (i < PSP_BUFFER_SIZE_IN_FRAMES); i++)
+	for (int i = 0 ; i < PSP_BUFFER_SIZE_IN_FRAMES; i++)
 	{
-		pspbuf[i] = PopFrame();
-		//if (true == IsDone() || ( pPSPSound->GetEventToPlayThSize() > 0) ) /** Message Waiting */
-		//{
-			//pPSPSound->SendEvent(MID_THPLAY_DONE);
-		//	break;
-		//}
+		m_DeviceBuffer[i] = PopFrame();
 	}
-	return pspbuf;
+	return m_DeviceBuffer;
 }
 
 Frame CPSPSoundBuffer::PopFrame()
 {
+	static Frame sFrame;
+	
 	if (true == IsDone())
 	{
 		pPSPSound->SendEvent(MID_THPLAY_DONE);
-		poppos->bIsLastFrame = false; /** So we only send this once */
+		m_RingBuffer[m_PopIndex].bIsLastFrame = false; /** So we only send this once */
 		Empty();
 		pPSPSound->Stop();
-		//CPSPEventQ::QEvent event = { 0, 0x0, NULL };
-		//event.EventId = MID_PLAY_STOP;
-		//m_EventToPlayTh->Send(event);
 		return m_EmptyFrame; /** Don't pop more frames */
 	}
-	if (true == m_buffering)
+	if (true == m_bBuffering)
 	{
-		while (GetBufferFillPercentage() != 100)
+		//while ( (100 !=GetBufferFillPercentage()) && (0 == pPSPSound->GetEventToPlayThSize()))
+		while ( (m_FrameCount < PSP_BUFFER_SIZE_IN_FRAMES*10) && (0 == pPSPSound->GetEventToPlayThSize()))
 		{	/** Buffering!! */
 			sceKernelDelayThread(50); /** 500us */
-			if ( pPSPSound->GetEventToPlayThSize() > 0) /** Message Waiting */
-				break;
 		}
-		m_buffering = false;
+		m_bBuffering = false;
 	}
 	else
 	{
-		while (m_FrameCount <= 0)
+		while ( (m_FrameCount <= 0) && (0 == pPSPSound->GetEventToPlayThSize()) )
 		{	/** Buffer Empty!! */
 			sceKernelDelayThread(50); /** 500us */
-			if ( pPSPSound->GetEventToPlayThSize() > 0) /** Message Waiting */
-				break;
 		}
 	}
 
 	if (m_FrameCount > 0)
 	{
-		static Frame ret;
-		memcpy(&ret, &poppos->frame, sizeof(Frame));
-		poppos++;
-		if (poppos > ringbuf_end)
-			poppos = ringbuf_start;
+		memcpy(&sFrame, &(m_RingBuffer[m_PopIndex].frame), sizeof(Frame));
+		m_PopIndex++;
+		if (m_PopIndex > m_RingBufferSize)
+			m_PopIndex = 0;
 	
 		m_FrameCount--;
 
-		return ret;
+		return sFrame;
 	}
 	else
 	{
@@ -266,10 +254,10 @@ Frame CPSPSoundBuffer::PopFrame()
 
 void CPSPSoundBuffer::Done()
 {
-	pushpos->bIsLastFrame = true;
+	m_RingBuffer[m_PushIndex].bIsLastFrame = true;
 }
 
 bool CPSPSoundBuffer::IsDone()
 {
-	return poppos->bIsLastFrame;
+	return m_RingBuffer[m_PopIndex].bIsLastFrame;
 }
