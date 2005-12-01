@@ -159,6 +159,16 @@ int CPSPSound::Play()
 			break;
 			
 		case PLAY:
+			/** Shouldn't get here, let's restart */
+			Log(LOG_ERROR, "Play and state was already playing, restarting decoding/playing");
+			//event.EventId = MID_DECODER_STOP;
+			//m_EventToDecTh->Send(event);
+			//event.EventId = MID_PLAY_STOP;
+			//m_EventToPlayTh->Send(event);
+		
+			event.EventId = MID_DECODER_START;
+			m_EventToDecTh->Send(event);
+			break;
 		default:
 			break;
 	}
@@ -247,9 +257,10 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				break;
 			
 			case MID_PLAY_START:
+			{
 				Log(LOG_VERYLOW, "ThPlay:: Thread Play message received.");
 				pPSPSound->SendEvent(MID_THPLAY_PLAYING);
-				while (m_EventToPlayTh->Size() == 0)
+				while (0 == m_EventToPlayTh->Size())
 				{
 					mybuf = pPSPSound->Buffer.PopBuffer();
 					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
@@ -257,12 +268,12 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 					if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 					{
 						pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
-						timeLastPercentEvent = clock() / 1000;
+						timeLastPercentEvent = clock() * 1000 / CLOCKS_PER_SEC;
 					}
 				}
 				Log(LOG_VERYLOW, "ThPlay:: Thread Play exiting play area - message waiting.");
 				break;
-				
+			}	
 			case MID_PLAY_STOP:
 				if (STOP == pPSPSound->GetPlayState())
 				{
@@ -383,6 +394,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						{
 							if (true == Decoder->Decode())
 							{
+								pPSPSound->Buffer.Done();
 								break;
 							}
 							sceKernelDelayThread(10); /** 100us */
@@ -430,7 +442,9 @@ CPSPSoundBuffer::CPSPSoundBuffer()
 	//m_samplerate = PSP_SAMPLERATE;
 	
 	m_NumBuffers = DEFAULT_NUM_BUFFERS;
-
+	
+	memset(&m_EmptyFrame, 0, sizeof(Frame));
+	
 	AllocateBuffers();
 	
 }
@@ -439,7 +453,7 @@ CPSPSoundBuffer::~CPSPSoundBuffer()
 {
 	if (ringbuf_start)
 	{
-		free(ringbuf_start), ringbuf_start=NULL;
+		delete[] ringbuf_start, ringbuf_start=NULL;
 	}
 	if (pspbuf)
 	{
@@ -453,14 +467,17 @@ void CPSPSoundBuffer::AllocateBuffers()
 {
 	if (ringbuf_start)
 	{
-		free (ringbuf_start), ringbuf_start = NULL;
+		delete[] ringbuf_start, ringbuf_start = NULL;
 	}
 	if (pspbuf)
 	{
 		free (pspbuf), pspbuf = NULL;
 	}
-	ringbuf_start = (Frame *)memalign(64, (FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * (m_NumBuffers + 5))*15/*padding for upsampling*/);
-	ringbuf_end = ringbuf_start+(PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
+	
+	m_FrameTransportSize = (PSP_BUFFER_SIZE_IN_FRAMES*m_NumBuffers);
+	ringbuf_start = new FrameTransport[m_FrameTransportSize*15];
+	
+	ringbuf_end = &ringbuf_start[m_FrameTransportSize];
 	pspbuf = (Frame *)memalign(64, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES));
 	
 	Empty();
@@ -476,7 +493,11 @@ void CPSPSoundBuffer::ChangeBufferSize(size_t buffer_size)
 void  CPSPSoundBuffer::Empty() 
 { 
 	Log(LOG_VERYLOW, "CPSPSoundBuffer::Empty() Called.");
-	memset(ringbuf_start, 0, FRAMES_TO_BYTES(PSP_BUFFER_SIZE_IN_FRAMES) * m_NumBuffers);
+	for (size_t i = 0; i < m_FrameTransportSize ; i++)
+	{
+		memset(&(ringbuf_start[i].frame), 0, sizeof(Frame));
+		ringbuf_start[i].bIsLastFrame = false;
+	}
 	pushpos = poppos = ringbuf_start;
 	m_lastpushpos = 0;
 	m_FrameCount = 0;
@@ -552,7 +573,6 @@ void CPSPSoundBuffer::PushFrame(Frame frame) /** Push a frame at an arbitrary sa
 
 void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz stream */
 {
-	//static int count = 0;
 	static int timeLastPercentEvent = 500; /** Initialize to something so the percentage event is sent the first time */
 	
 	
@@ -563,17 +583,18 @@ void CPSPSoundBuffer::Push44Frame(Frame frame) /** Push a frame from a 44.1KHz s
 			break;
 	}
 	
-	*pushpos = frame;
 	pushpos++;
 	if (pushpos > ringbuf_end)
 		pushpos = ringbuf_start;
 		
 	m_FrameCount++;
 	
-	if ((clock()/1000 - timeLastPercentEvent) > 333) /** 3 times per sec */
+	memcpy(&pushpos->frame, &frame, sizeof(Frame));
+	
+	if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 	{
 		pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
-		timeLastPercentEvent = clock() / 1000;
+		timeLastPercentEvent = clock()*1000/CLOCKS_PER_SEC;
 	}
 }
 
@@ -583,10 +604,11 @@ Frame *CPSPSoundBuffer::PopBuffer()
 	for (int i = 0 ; (i < PSP_BUFFER_SIZE_IN_FRAMES); i++)
 	{
 		pspbuf[i] = PopFrame();
-		if (true == IsDone() || ( pPSPSound->GetEventToPlayThSize() > 0) ) /** Done or Message Waiting */
-		{
-			break;
-		}
+		//if (true == IsDone() || ( pPSPSound->GetEventToPlayThSize() > 0) ) /** Message Waiting */
+		//{
+			//pPSPSound->SendEvent(MID_THPLAY_DONE);
+		//	break;
+		//}
 	}
 	return pspbuf;
 }
@@ -596,7 +618,13 @@ Frame CPSPSoundBuffer::PopFrame()
 	if (true == IsDone())
 	{
 		pPSPSound->SendEvent(MID_THPLAY_DONE);
-		return (Frame)0; /** Don't pop more frames */
+		poppos->bIsLastFrame = false; /** So we only send this once */
+		Empty();
+		pPSPSound->Stop();
+		//CPSPEventQ::QEvent event = { 0, 0x0, NULL };
+		//event.EventId = MID_PLAY_STOP;
+		//m_EventToPlayTh->Send(event);
+		return m_EmptyFrame; /** Don't pop more frames */
 	}
 	if (true == m_buffering)
 	{
@@ -610,31 +638,38 @@ Frame CPSPSoundBuffer::PopFrame()
 	}
 	else
 	{
-		while (GetBufferFillPercentage() <= 0)
+		while (m_FrameCount <= 0)
 		{	/** Buffer Empty!! */
 			sceKernelDelayThread(50); /** 500us */
-			//if ( (pPSPApp->IsExiting() == true) || (IsDone() == true) )
 			if ( pPSPSound->GetEventToPlayThSize() > 0) /** Message Waiting */
 				break;
 		}
 	}
 
-	Frame ret = *poppos;
-	poppos++;
-	if (poppos > ringbuf_end)
-		poppos = ringbuf_start;
-
-	m_FrameCount--;
+	if (m_FrameCount > 0)
+	{
+		static Frame ret;
+		memcpy(&ret, &poppos->frame, sizeof(Frame));
+		poppos++;
+		if (poppos > ringbuf_end)
+			poppos = ringbuf_start;
 	
-	return ret;
+		m_FrameCount--;
+
+		return ret;
+	}
+	else
+	{
+		return m_EmptyFrame;
+	}
 }
 
 void CPSPSoundBuffer::Done()
 {
-	m_lastpushpos = pushpos;
+	pushpos->bIsLastFrame = true;
 }
 
 bool CPSPSoundBuffer::IsDone()
 {
-	return (m_lastpushpos == poppos)?true:false;
+	return poppos->bIsLastFrame;
 }

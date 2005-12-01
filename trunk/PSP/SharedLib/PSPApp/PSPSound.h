@@ -76,6 +76,12 @@
 	};
 	
 	/** Internal use */
+	struct FrameTransport
+	{
+		Frame frame;
+		bool  bIsLastFrame;
+	};
+	
 	class CPSPSoundBuffer
 	{
 	public:
@@ -95,13 +101,15 @@
 		void SampleRateChange(int newRate);
 		
 	private:
-		Frame 	*ringbuf_start, *pspbuf; /** Buffers */
-		Frame 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
+		FrameTransport 	*ringbuf_start;/* *pspbuf; */ /** Buffers */
+		Frame *pspbuf;
+		FrameTransport 	*pushpos,*poppos, *m_lastpushpos, *ringbuf_end; /** Buffer Pointers */
 		bool  	m_buffering;
 		size_t 	/*m_samplerate,*/ m_mult, m_div;
 		size_t 	m_FrameCount; /** Used for buffer percentage */
 		size_t	m_NumBuffers; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
-		
+		size_t  m_FrameTransportSize;
+		Frame   m_EmptyFrame;
 		void AllocateBuffers(); /** Called by constructor/ChangeBufferSize() to (re)allocate buffers */
 
 	};
