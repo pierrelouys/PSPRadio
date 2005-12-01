@@ -101,7 +101,8 @@ bool CPSPSoundDecoder_MAD::Decode()
 		ReadSize = m_InputStreamReader->Read(ReadStart,ReadSize);
 		if(ReadSize<=0)
 		{
-			ReportError("(End of stream)...");
+			//ReportError("(End of stream)...");
+			Log(LOG_INFO, "End Of Stream.");
 			bRet = true;
 			m_FrameCount = 0;
 			return bRet;
