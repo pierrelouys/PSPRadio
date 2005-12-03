@@ -76,16 +76,20 @@ CScreenHandler::~CScreenHandler()
 		Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
 		delete(m_UI);
 		m_UI = NULL;
+		Log(LOG_LOWLEVEL, "Exiting. UI object deleted.");
 	}
 	if (m_strCWD)
 	{
+		Log(LOG_LOWLEVEL, "Exiting. deleting m_strCWD.");
 		free(m_strCWD), m_strCWD = NULL;
 	}
 
 	for (int i=PSPRADIO_SCREEN_LIST_BEGIN; i < PSPRADIO_SCREEN_LIST_END; i++)
 	{
+		Log(LOG_LOWLEVEL, "Exiting. Deleting Screens.");
 		delete(Screens[i]), Screens[i] = NULL;
 	}
+	Log(LOG_LOWLEVEL, "~CScreenHandler() End.");
 }
 
 IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)

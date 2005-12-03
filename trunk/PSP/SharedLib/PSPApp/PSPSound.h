@@ -55,16 +55,16 @@
 	/** Messages from PSPSound to decode thread */
 	enum MessageIDsFromPSPSoundToDecodeThread
 	{
-		MID_DECODER_START,
-		MID_DECODER_STOP,
-		MID_DECODER_THREAD_EXIT_NEEDOK
+		MID_DECODER_START = 0x10,
+		MID_DECODER_STOP  = 0x20,
+		MID_DECODER_THREAD_EXIT_NEEDOK = 0x30
 	};
 	
 	enum MessageIDsFromPSPSoundToPlayThread
 	{
-		MID_PLAY_START,
-		MID_PLAY_STOP,
-		MID_PLAY_THREAD_EXIT_NEEDOK
+		MID_PLAY_START = 0x110,
+		MID_PLAY_STOP  = 0x120,
+		MID_PLAY_THREAD_EXIT_NEEDOK = 0x130
 	};
 	
 	class CPSPSound

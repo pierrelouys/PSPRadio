@@ -65,6 +65,7 @@ CPSPSoundBuffer::~CPSPSoundBuffer()
 
 void CPSPSoundBuffer::AllocateBuffers()
 {
+	Log(LOG_VERYLOW, "AllocateBuffers() called");
 	if (m_RingBuffer)
 	{
 		delete[] m_RingBuffer, m_RingBuffer=NULL;
@@ -86,6 +87,7 @@ void CPSPSoundBuffer::AllocateBuffers()
 /*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
 void CPSPSoundBuffer::ChangeBufferSize(size_t buffer_size) 
 {
+	Log(LOG_VERYLOW, "ChangeBufferSize(%d) Called.", buffer_size);
 	m_NumBuffers = buffer_size;
 	AllocateBuffers();
 }
@@ -188,6 +190,7 @@ void CPSPSoundBuffer::Push44Frame(Frame &frame) /** Push a frame from a 44.1KHz 
 		
 	
 	memcpy(&(m_RingBuffer[m_PushIndex].frame), &frame, sizeof(Frame));
+	m_RingBuffer[m_PushIndex].bIsLastFrame = false;
 	
 	if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 	{
@@ -197,7 +200,7 @@ void CPSPSoundBuffer::Push44Frame(Frame &frame) /** Push a frame from a 44.1KHz 
 }
 
 
-Frame *CPSPSoundBuffer::PopBuffer()
+Frame *CPSPSoundBuffer::PopDeviceBuffer()
 {
 	for (int i = 0 ; i < PSP_BUFFER_SIZE_IN_FRAMES; i++)
 	{
@@ -212,10 +215,14 @@ Frame CPSPSoundBuffer::PopFrame()
 	
 	if (true == IsDone())
 	{
-		pPSPSound->SendEvent(MID_THPLAY_DONE);
+		Log(LOG_VERYLOW, "PopFrame() IsDone is true");
+		//pPSPSound->SendEvent(MID_THPLAY_DONE);
 		m_RingBuffer[m_PopIndex].bIsLastFrame = false; /** So we only send this once */
-		Empty();
+		//Empty();
+		Log(LOG_VERYLOW, "PopFrame() Calling Stop()");
 		pPSPSound->Stop();
+		Log(LOG_VERYLOW, "PopFrame() Sending MID_THPLAY_EOS");
+		pPSPSound->SendEvent(MID_THPLAY_EOS);
 		return m_EmptyFrame; /** Don't pop more frames */
 	}
 	if (true == m_bBuffering)
@@ -232,6 +239,7 @@ Frame CPSPSoundBuffer::PopFrame()
 		while ( (m_FrameCount <= 0) && (0 == pPSPSound->GetEventToPlayThSize()) )
 		{	/** Buffer Empty!! */
 			sceKernelDelayThread(50); /** 500us */
+			m_bBuffering = true;
 		}
 	}
 

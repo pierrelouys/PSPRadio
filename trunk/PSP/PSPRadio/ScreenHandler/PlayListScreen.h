@@ -11,6 +11,14 @@
 		PLAYMODE_SINGLE
 	};
 	
+	enum playstates
+	{
+		PLAYSTATE_PLAY,
+		PLAYSTATE_STOP,
+		PLAYSTATE_PAUSE,
+		PLAYSTATE_EOS
+	};
+	
 	class PlayListScreen : public IScreen
 	{
 		public:
@@ -25,7 +33,7 @@
 
 			virtual void OnHPRMReleased(u32 iHPRMMask);
 			
-			virtual void OnPlayStateChange(CPSPSound::pspsound_state NewPlayState);
+			virtual void OnPlayStateChange(playstates NewPlayState);
 
 		protected:
 			CMetaDataContainer *m_Lists;

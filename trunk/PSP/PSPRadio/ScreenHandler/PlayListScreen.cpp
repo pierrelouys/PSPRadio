@@ -38,7 +38,7 @@ PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(I
 {
 	Log(LOG_VERYLOW,"PlayListScreen Ctor.");
 	m_Lists = NULL;
-	m_PlayMode = PLAYMODE_NORMAL;
+	m_PlayMode = PLAYMODE_NORMAL; //PLAYMODE_SINGLE;//
 
 	m_Lists = new CMetaDataContainer();
 
@@ -330,14 +330,23 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 	}
 }
 
-void PlayListScreen::OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
+void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 {
-	static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
+	//static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
 	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
+	static time_t	LastEOSinMS = 0;
+	time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
+	
+	Log(LOG_VERYLOW, "OnPlayStateChange() Called with %d (%s)",
+		NewPlayState, 
+		(NewPlayState==PLAYSTATE_PLAY)?"PLAY":
+		((NewPlayState==PLAYSTATE_STOP)?"STOP":
+		((NewPlayState==PLAYSTATE_PAUSE)?"PAUSE":
+		((NewPlayState==PLAYSTATE_EOS)?"EOS":"Undefined") ) ) );
 	
 	switch (NewPlayState)
 	{
-		case CPSPSound::PLAY:
+		case PLAYSTATE_PLAY:
 			if (m_UI)
 				m_UI->DisplayActiveCommand(CPSPSound::PLAY);
 			/** Populate m_CurrentMetaData */
@@ -346,73 +355,90 @@ void PlayListScreen::OnPlayStateChange(CPSPSound::pspsound_state NewPlayState)
 			if (m_UI)
 				m_UI->OnNewSongData(pCurrentStream->GetMetaData());
 			break;
-		case CPSPSound::PAUSE:
+		case PLAYSTATE_PAUSE:
 			break;
-		case CPSPSound::STOP:
-			if (CScreenHandler::PLAY_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop)
+		case PLAYSTATE_STOP:
+			if (CurrentStateInMS - LastEOSinMS > 500)
 			{
-				pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-				
-				/** Populate m_CurrentMetaData */
-				///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
-				MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
-				memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-				if (m_UI)
-					m_UI->OnNewSongData(pCurrentStream->GetMetaData());
-				
-				m_ScreenHandler->GetSound()->Play();
-			}
-			else if (CScreenHandler::STOP_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop) 
-			{
-				/** If user selected to stop, just stop */
-				if (m_UI)
-					m_UI->DisplayActiveCommand(CPSPSound::STOP);
+				if (CScreenHandler::PLAY_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop)
+				{
+					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with PLAY_REQUEST");
+					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+					
+					/** Populate m_CurrentMetaData */
+					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+					if (m_UI)
+						m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+					
+					m_ScreenHandler->GetSound()->Play();
+				}
+				else if (CScreenHandler::STOP_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop) 
+				{
+					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with STOP_REQUEST");
+					/** If user selected to stop, just stop */
+					if (m_UI)
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+				}
+				else
+				{
+					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with %d request", m_ScreenHandler->m_RequestOnPlayOrStop);
+					/** Must have stop because of an error */
+					if (m_UI)
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+				}
 			}
 			else
 			{
-				switch(m_PlayMode)
+				Log(LOG_ERROR, "OnPlayStateChange(): newstate = PLAYSTATE_STOP, but we had a EOS %sms ago, so ignoring.",
+					CurrentStateInMS - LastEOSinMS);
+			}
+			break;
+		case PLAYSTATE_EOS:
+			LastEOSinMS = CurrentStateInMS;
+			switch(m_PlayMode)
+			{
+				case PLAYMODE_SINGLE:
+					if (m_UI)
+						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					break;
+				
+				case PLAYMODE_NORMAL:
 				{
-					case PLAYMODE_NORMAL:
-					{
-						//play next strack
-						m_Lists->NextElement();
-						m_UI->DisplayElements(m_Lists);
+					//play next strack
+					m_Lists->NextElement();
+					m_UI->DisplayElements(m_Lists);
 
-						pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-						
-						/** Populate m_CurrentMetaData */
-						///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
-						MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
-						memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-						if (m_UI)
-							m_UI->OnNewSongData(pCurrentStream->GetMetaData());
-						
-						m_ScreenHandler->GetSound()->Play();
-						
-						break;
-					}
-						
-					case PLAYMODE_REPEAT:
-					{
-						MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
-						memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-						if (m_UI)
-							m_UI->OnNewSongData(pCurrentStream->GetMetaData());
-						
-						m_ScreenHandler->GetSound()->Play();
-						break;
-					}
+					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 					
-					case PLAYMODE_SINGLE:
-						//don't do anything
-						break;
+					/** Populate m_CurrentMetaData */
+					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+					if (m_UI)
+						m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+					
+					m_ScreenHandler->GetSound()->Play();
+					
+					break;
 				}
-			
+					
+				case PLAYMODE_REPEAT:
+				{
+					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+					if (m_UI)
+						m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+					
+					m_ScreenHandler->GetSound()->Play();
+					break;
+				}
 			}
 			break;
 	}
 
 	m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
 	
-	OldPlayState = NewPlayState;
+	//OldPlayState = NewPlayState;
 }

@@ -57,10 +57,14 @@ CPSPSoundDecoder_MAD::~CPSPSoundDecoder_MAD()
 {
 	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD start");
 	
+	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD mad_synth_finish");
 	mad_synth_finish(&m_Synth);
+	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD mad_frame_finish");
 	mad_frame_finish(&m_Frame);
+	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD mad_stream_finish");
 	mad_stream_finish(&m_Stream); 
 	
+	Log(LOG_VERYLOW, "~CPSPSoundDecoder_MAD freeing m_pInputBuffer");
 	if (m_pInputBuffer)
 	{
 		free(m_pInputBuffer), m_pInputBuffer = NULL;
@@ -103,6 +107,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 		{
 			//ReportError("(End of stream)...");
 			Log(LOG_INFO, "End Of Stream.");
+			m_Buffer->Done();
 			bRet = true;
 			m_FrameCount = 0;
 			return bRet;

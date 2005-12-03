@@ -46,12 +46,12 @@
 		int Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...);
 		
 	private:
+		clock_t m_timeInitial;
 		char *m_strFilename;
 		loglevel_enum m_LogLevel;
 		FILE *m_fp;
 		CLock *m_lock;
 		char *m_msg;
-		clock_t m_timeInitial;
 		
 		/** fflush() doesn't work, so reopen for now */
 		void Open();

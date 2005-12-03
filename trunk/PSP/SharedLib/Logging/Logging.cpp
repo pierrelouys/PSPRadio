@@ -35,8 +35,8 @@ CLogging::CLogging()
 	m_LogLevel = LOG_INFO;
 	m_fp = NULL;
 	m_lock = new CLock("LogLock");
-	m_msg = (char *) malloc(2500); /** A message this big would fill up the whole screen of the psp if sent to the screen. */
-	m_timeInitial = clock();
+	m_msg = (char *) malloc(4096); /** A message this big would fill up the whole screen of the psp if sent to the screen. */
+	m_timeInitial = clock()*1000/CLOCKS_PER_SEC;
 }
 
 CLogging::~CLogging()
@@ -125,7 +125,7 @@ int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, cha
 	if (m_strFilename && LogLevel >= m_LogLevel) /** Log only if Set() was called and loglevel is correct */
 	{
 		va_start (args, strFormat);         /* Initialize the argument list. */
-		int timeDelta = (int)(clock() - m_timeInitial)*1000/(CLOCKS_PER_SEC); /** we want time in ms */
+		int timeDelta = (int)((clock()*1000/CLOCKS_PER_SEC) - m_timeInitial); /** we want time in ms */
 		
 		Open();
 		if (m_fp)

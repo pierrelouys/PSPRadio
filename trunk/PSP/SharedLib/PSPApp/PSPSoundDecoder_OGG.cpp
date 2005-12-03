@@ -303,6 +303,10 @@ bool CPSPSoundDecoder_OGG::Decode()
 			PCMOutputFrame.LSample = SampleL;
 			
 			m_Buffer->PushFrame(*((::Frame*)&PCMOutputFrame));
+			if (true == m_InputStreamReader->IsEOF())
+			{
+				m_Buffer->Done();
+			}
 		}
 	}
 	

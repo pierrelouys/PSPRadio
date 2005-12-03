@@ -329,15 +329,16 @@ public:
 							m_UI->DisplayBufferPercentage(m_Sound->GetBufferFillPercentage());
 					}
 					break;
+					
 				case MID_THPLAY_DONE: /** Done with the current stream! */
 					Log(LOG_VERYLOW, "MID_THPLAY_DONE received, calling OnPlayStateChange(STOP)");
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
 					{
 						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::STOP);
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_STOP);
 							break;
 						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::STOP);
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_STOP);
 							break;
 						default:
 							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
@@ -355,15 +356,35 @@ public:
 					if (m_UI)
 						m_UI->OnStreamOpening();
 					break;
+					
+				case MID_THPLAY_EOS: /** On end-of-stream */
+				{
+					PlayListScreen *CurrentScreen = (PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
+
+					Log(LOG_VERYLOW, "MID_THPLAY_EOS received, calling OnPlayStateChange(EOS)");
+					switch(CurrentScreen->GetId())
+					{
+						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+							CurrentScreen->OnPlayStateChange(PLAYSTATE_EOS);
+							break;
+						default:
+							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(EOS), but current screen is %d",
+								CurrentScreen->GetId());
+							break;
+					}
+					break;
+				}	
+				//case MID_THDECODE_DECODING_DONE: //until I figure out why IsDone isn't returning true, use this trigger
 				case MID_DECODE_STREAM_OPEN_ERROR:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
 					{
 						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::STOP);
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_STOP);
 							break;
 						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::STOP);
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_STOP);
 							break;
 						default:
 							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
@@ -379,13 +400,13 @@ public:
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
 					{
 						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(CPSPSound::PLAY);
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_PLAY);
 							break;
 						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(CPSPSound::PLAY);							
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_PLAY);
 							break;
 						default:
-							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
+							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(PLAY), but current screen is %d",
 								m_ScreenHandler->GetCurrentScreen()->GetId());
 							break;
 					}

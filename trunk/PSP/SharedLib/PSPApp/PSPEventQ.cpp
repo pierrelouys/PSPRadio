@@ -115,7 +115,9 @@ int CPSPEventQ::SendAndWaitForOK(QEvent &Event)
 	m_RcvBlocker->UnBlock();
 	
 	//now, wait for OK.
+	Log(LOG_VERYLOW, "SendAndWaitForOK() Blocking(0x%x)", m_RcvOKBlocker->GetMutex());
 	m_RcvOKBlocker->Block();
+	Log(LOG_VERYLOW, "SendAndWaitForOK() Unblocked(0x%x)", m_RcvOKBlocker->GetMutex());
 	
 	m_lock->Unlock();
 	
@@ -149,6 +151,7 @@ int CPSPEventQ::Receive(QEvent &Event)
 
 int CPSPEventQ::SendReceiveOK()
 {
+	Log(LOG_VERYLOW, "SendReceiveOK() Unblocking(0x%x)", m_RcvOKBlocker->GetMutex());
 	m_RcvOKBlocker->UnBlock();
 	return 0;
 }

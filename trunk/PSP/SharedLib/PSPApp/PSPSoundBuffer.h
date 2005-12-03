@@ -48,7 +48,7 @@
 		void  Push44Frame(Frame &frame); /* Takes 1 frame for a 44100Hz stream */
 		Frame PopFrame(); 			/* Returns 1 frame */
 		
-		Frame *PopBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
+		Frame *PopDeviceBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
 		size_t GetBufferFillPercentage();
 		void  Empty();
 		void  Done();

@@ -2,8 +2,12 @@ What's New for PSPRadio
 ========================
 
 0.37-pre5
+(raf) Enabled pausing of local streams
+(raf) Cleanup/robustness added for play/stop core.
+(raf) Corrected log times now that clock changed in sdk
+(raf)
 
-0.37-pre4 (r592)
+0.37-pre4 (r592) (11-23-2005)
 (sandberg) Added support for showing the battery status and the current local time.
 (raf) TextUI is now more configurable (for listboxes/textmode(font modes))
 (raf) Added shadowed font mode for textui.

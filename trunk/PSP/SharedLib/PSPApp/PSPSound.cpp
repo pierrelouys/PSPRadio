@@ -80,6 +80,11 @@ void CPSPSound::Initialize()
 	{
 		m_thPlayAudio->Start();
 		m_thDecode->Start();
+		
+		CPSPEventQ::QEvent event = { 0, 0x0, NULL };
+		event.EventId = MID_PLAY_START;
+		m_EventToPlayTh->Send(event);
+
 	}
 	else
 	{
@@ -210,16 +215,20 @@ int CPSPSound::Stop()
 			/** if we were paused, restart threads first! */
 			m_CurrentState = STOP;
 			event.EventId = MID_DECODER_STOP;
-			m_EventToDecTh->Send(event);
-			event.EventId = MID_PLAY_STOP;
+			m_EventToDecTh->SendAndWaitForOK(event);
+			event.EventId = MID_PLAY_START;
 			m_EventToPlayTh->Send(event);
+			//event.EventId = MID_PLAY_STOP;
+			//m_EventToPlayTh->SendAndWaitForOK(event);
 			break;
 		case PLAY:
 			m_CurrentState = STOP;
 			event.EventId = MID_DECODER_STOP;
-			m_EventToDecTh->Send(event);
-			event.EventId = MID_PLAY_STOP;
-			m_EventToPlayTh->Send(event);
+			Log(LOG_VERYLOW, "Stop(): Was Playing. Calling 'm_EventToDecTh->SendAndWaitForOK(STOP)'");
+			m_EventToDecTh->SendAndWaitForOK(event);
+			//event.EventId = MID_PLAY_STOP;
+			//Log(LOG_VERYLOW, "Stop(): Was Playing. Calling 'm_EventToPlayTh->SendAndWaitForOK(STOP)'");
+			//m_EventToPlayTh->SendAndWaitForOK(event);
 			break;
 			
 		case STOP:
@@ -262,7 +271,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				pPSPSound->SendEvent(MID_THPLAY_PLAYING);
 				while (0 == m_EventToPlayTh->Size())
 				{
-					mybuf = pPSPSound->Buffer.PopBuffer();
+					mybuf = pPSPSound->Buffer.PopDeviceBuffer();
 					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
 					
 					if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
@@ -278,12 +287,12 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				if (STOP == pPSPSound->GetPlayState())
 				{
 					Log(LOG_VERYLOW, "ThPlay:: Stop message received.");
-					pPSPSound->SendEvent(MID_THPLAY_DONE);
 					pPSPSound->Buffer.Empty();
+					pPSPSound->SendEvent(MID_THPLAY_DONE);
 				}
 				else
 				{
-					Log(LOG_VERYLOW, "ThPlay:: Stop message received. (But stream not stopped)");
+					Log(LOG_ERROR, "ThPlay:: Stop message received. (But stream not stopped)");
 				}
 				break;
 			}
@@ -383,9 +392,9 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 					if (true == bDecoderCreated)
 					{
 						/** Start play thread */
-						CPSPEventQ::QEvent event = { 0, 0, NULL };
-						event.EventId = MID_PLAY_START;
-						pPSPSound->m_EventToPlayTh->Send(event);
+						//CPSPEventQ::QEvent event = { 0, 0, NULL };
+						//event.EventId = MID_PLAY_START;
+						//pPSPSound->m_EventToPlayTh->Send(event);
 						
 						pPSPSound->SendEvent(MID_THDECODE_DECODING);
 						/** Main decoding loop */
@@ -394,7 +403,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						{
 							if (true == Decoder->Decode())
 							{
-								pPSPSound->Buffer.Done();
+								//pPSPSound->Buffer.Done();
 								break;
 							}
 							sceKernelDelayThread(10); /** 100us */
@@ -419,6 +428,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				break;
 			case MID_DECODER_STOP:
 				Log(LOG_VERYLOW, "ThDecode:: Stop Decoder message received.");
+				m_EventToDecTh->SendReceiveOK();
 				break;
 			case MID_DECODER_THREAD_EXIT_NEEDOK:
 				Log(LOG_VERYLOW, "ThDecode:: Thread Exit message received.");
