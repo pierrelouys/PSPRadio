@@ -116,21 +116,19 @@ void CLogging::SetLevel(loglevel_enum iNewLevel)
 }
 
 int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...)
-//int CLogging::Log_(char *strModuleName,loglevel_enum LogLevel, char *strFormat, ...)
 {
 	va_list args;
-	//char msg[4096];
 	
 	m_lock->Lock();
 	if (m_strFilename && LogLevel >= m_LogLevel) /** Log only if Set() was called and loglevel is correct */
 	{
 		va_start (args, strFormat);         /* Initialize the argument list. */
-		int timeDelta = (int)((clock()*1000/CLOCKS_PER_SEC) - m_timeInitial); /** we want time in ms */
+		clock_t timeDelta = ((clock()*1000/CLOCKS_PER_SEC) - m_timeInitial); /** we want time in ms */
 		
 		Open();
 		if (m_fp)
 		{
-			fprintf(m_fp, "%02d:%02d.%03d:",
+			fprintf(m_fp, "%02lu:%02lu.%03lu:",
 				((timeDelta / 1000) / 60) % 60,
 				(timeDelta / 1000) % 60,
 				timeDelta % 1000);
