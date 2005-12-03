@@ -107,7 +107,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 		{
 			//ReportError("(End of stream)...");
 			Log(LOG_INFO, "End Of Stream.");
-			m_Buffer->Done();
+			//m_Buffer->Done();
 			bRet = true;
 			m_FrameCount = 0;
 			return bRet;
@@ -224,7 +224,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 		PCMOutputFrame.LHalfSampleB = (SampleL>>8) & 0xff;
 		
 		
-		m_Buffer->PushFrame(*((::Frame*)&PCMOutputFrame));
+		m_Buffer->PushPCMFrame(*((::Frame*)&PCMOutputFrame));
 	}
 	
 	return false;

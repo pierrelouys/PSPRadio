@@ -23,18 +23,15 @@
 	
 	/** Configurable */
 	/* (frames are 2ch, 16bits, so 4096frames =16384bytes =8192samples-l-r-combined.)*/
-	//#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(4096)	
 	#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(2048)	
-	//Now configurable: #define NUM_BUFFERS 			20	
 	#define DEFAULT_NUM_BUFFERS		20		/** Default */
 	
 	#define INPUT_BUFFER_SIZE		16302
 	
 	/** Internal use */
-	struct FrameTransport
+	struct DeviceBuffer
 	{
-		Frame frame;
-		bool  bIsLastFrame;
+		Frame data[PSP_BUFFER_SIZE_IN_FRAMES];
 	};
 	
 	class CPSPSoundBuffer
@@ -44,30 +41,26 @@
 		~CPSPSoundBuffer();
 		/*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/
 		void  ChangeBufferSize(size_t buffer_size); 
-		void  PushFrame(Frame &frame); /* Takes 1 frame for any samplerate, set samplate first. */
-		void  Push44Frame(Frame &frame); /* Takes 1 frame for a 44100Hz stream */
-		Frame PopFrame(); 			/* Returns 1 frame */
-		
-		Frame *PopDeviceBuffer();			/* Returns PSP_BUFFER_SIZE_IN_FRAMES frames */
 		size_t GetBufferFillPercentage();
 		void  Empty();
-		void  Done();
-		bool  IsDone();
+		void  SampleRateChange(int newRate);
 		
-		void SampleRateChange(int newRate);
+		/** Pushed by Decoder */
+		void  PushPCMFrame(Frame &frame); /* Takes 1 frame for any samplerate, set samplate first. */
 		
-	private:
-		FrameTransport  *m_RingBuffer;
-		Frame			*m_DeviceBuffer; /** One PSP sound buffer */
-		size_t			m_PopIndex, m_PushIndex;
-		bool  			m_bBuffering;
-		size_t 	/*m_samplerate,*/ m_mult, m_div;
-		size_t 	m_FrameCount; /** Used for buffer percentage */
-		size_t	m_NumBuffers; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
-		size_t  m_RingBufferSize; /** Number of frames in the ring buffer */
-		Frame   m_EmptyFrame;
-		void AllocateBuffers(); /** Called by constructor/ChangeBufferSize() to (re)allocate buffers */
+	protected:
+		friend class CPSPSound;
+		DeviceBuffer *PopDeviceBuffer();
 
+	private:
+		std::list<DeviceBuffer> m_DeviceBufferList;
+		DeviceBuffer		*m_DeviceBuffer; /** One PSP sound buffer */
+		DeviceBuffer   		*m_EmptyDeviceBuffer;
+		bool  				m_bBuffering;
+		size_t 	/*m_samplerate,*/ m_mult, m_div;
+		size_t 	m_DeviceBufferCount; /** Used for buffer percentage */
+		size_t	m_NumBuffers; /** Configurable via config-file. Should be from 20 - 100 or so.. test! */
+		size_t  m_BufferListMaxSize; /** Number of frames in the ring buffer */
 	};
 	
 #endif

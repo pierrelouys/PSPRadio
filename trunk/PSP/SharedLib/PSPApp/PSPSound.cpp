@@ -235,13 +235,16 @@ int CPSPSound::Stop()
 		default:
 			break;
 	}
+	
+	pPSPSound->SendEvent(MID_SOUND_STOPPED);
+	
 	return m_CurrentState;
 }
 
 /** Threads */
 int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
-		Frame *mybuf = NULL;
+		DeviceBuffer *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
 		CPSPEventQ *m_EventToPlayTh = pPSPSound->m_EventToPlayTh;
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
@@ -428,6 +431,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				break;
 			case MID_DECODER_STOP:
 				Log(LOG_VERYLOW, "ThDecode:: Stop Decoder message received.");
+				pPSPSound->Buffer.Empty();
 				m_EventToDecTh->SendReceiveOK();
 				break;
 			case MID_DECODER_THREAD_EXIT_NEEDOK:
