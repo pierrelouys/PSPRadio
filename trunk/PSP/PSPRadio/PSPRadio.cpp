@@ -330,7 +330,6 @@ public:
 					}
 					break;
 					
-				//case MID_THPLAY_DONE: /** Done with the current stream! */
 				case MID_SOUND_STOPPED:
 					Log(LOG_VERYLOW, "MID_SOUND_STOPPED received, calling OnPlayStateChange(STOP)");
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
@@ -348,6 +347,25 @@ public:
 					}
 					break;
 					
+				case MID_SOUND_STARTED:
+					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
+					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
+					{
+						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_PLAY);
+							break;
+						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_PLAY);
+							break;
+						default:
+							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(PLAY), but current screen is %d",
+								m_ScreenHandler->GetCurrentScreen()->GetId());
+							break;
+					}
+					if (m_UI)
+						m_UI->OnStreamOpeningSuccess();
+					break;
+								
 				case MID_THDECODE_DECODING:
 					if (m_UI)
 						m_UI->OnNewStreamStarted();
@@ -358,7 +376,6 @@ public:
 						m_UI->OnStreamOpening();
 					break;
 					
-				//case MID_THPLAY_EOS: /** On end-of-stream */
 				case MID_THDECODE_EOS:
 				{
 					PlayListScreen *CurrentScreen = (PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
@@ -377,7 +394,7 @@ public:
 					}
 					break;
 				}	
-				//case MID_THDECODE_DECODING_DONE: //until I figure out why IsDone isn't returning true, use this trigger
+
 				case MID_DECODE_STREAM_OPEN_ERROR:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
@@ -395,25 +412,6 @@ public:
 					}
 					if (m_UI)
 						m_UI->OnStreamOpeningError();
-					break;
-				//case MID_DECODE_STREAM_OPEN:
-				case MID_THPLAY_PLAYING: /** The play thread sends this on play, which only happens after a stream is successfully opened and decoding started, or after resume from pause */
-					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
-					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
-					{
-						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_PLAY);
-							break;
-						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_PLAY);
-							break;
-						default:
-							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(PLAY), but current screen is %d",
-								m_ScreenHandler->GetCurrentScreen()->GetId());
-							break;
-					}
-					if (m_UI)
-						m_UI->OnStreamOpeningSuccess();
 					break;
 					
 				//case MID_DECODE_DONE:

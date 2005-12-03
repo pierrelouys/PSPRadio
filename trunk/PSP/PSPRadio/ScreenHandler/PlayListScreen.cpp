@@ -257,10 +257,10 @@ void PlayListScreen::InputHandler(int iButtonMask)
 										//the selected stream == current stream, if a file stream, then pause.
 										if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
 										{
-											m_ScreenHandler->GetSound()->GetCurrentStream()->
-												SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-											m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+											//m_ScreenHandler->GetSound()->GetCurrentStream()->
+											//	SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 											m_ScreenHandler->GetSound()->Pause();
+											OnPlayStateChange(PLAYSTATE_PAUSE);
 										}
 									}
 								}
@@ -332,9 +332,9 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 
 void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 {
-	//static CPSPSound::pspsound_state OldPlayState = CPSPSound::STOP;
-	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
+	static playstates OldPlayState = PLAYSTATE_STOP;
 	static time_t	LastEOSinMS = 0;
+	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
 	time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
 	
 	Log(LOG_VERYLOW, "OnPlayStateChange() Called with %d (%s)",
@@ -349,13 +349,18 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 		case PLAYSTATE_PLAY:
 			if (m_UI)
 				m_UI->DisplayActiveCommand(CPSPSound::PLAY);
-			/** Populate m_CurrentMetaData */
-			MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
-			memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-			if (m_UI)
-				m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+			if (PLAYSTATE_PAUSE != OldPlayState)
+			{
+				/** Populate m_CurrentMetaData */
+				MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+				memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+				if (m_UI)
+					m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+			}
 			break;
 		case PLAYSTATE_PAUSE:
+			if (m_UI)
+				m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
 			break;
 		case PLAYSTATE_STOP:
 			if (CurrentStateInMS - LastEOSinMS > 500)
@@ -440,5 +445,5 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 
 	m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
 	
-	//OldPlayState = NewPlayState;
+	OldPlayState = NewPlayState;
 }
