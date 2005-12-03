@@ -330,8 +330,9 @@ public:
 					}
 					break;
 					
-				case MID_THPLAY_DONE: /** Done with the current stream! */
-					Log(LOG_VERYLOW, "MID_THPLAY_DONE received, calling OnPlayStateChange(STOP)");
+				//case MID_THPLAY_DONE: /** Done with the current stream! */
+				case MID_SOUND_STOPPED:
+					Log(LOG_VERYLOW, "MID_SOUND_STOPPED received, calling OnPlayStateChange(STOP)");
 					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
 					{
 						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
@@ -357,7 +358,8 @@ public:
 						m_UI->OnStreamOpening();
 					break;
 					
-				case MID_THPLAY_EOS: /** On end-of-stream */
+				//case MID_THPLAY_EOS: /** On end-of-stream */
+				case MID_THDECODE_EOS:
 				{
 					PlayListScreen *CurrentScreen = (PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
 

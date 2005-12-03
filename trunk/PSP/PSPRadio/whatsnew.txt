@@ -5,7 +5,8 @@ What's New for PSPRadio
 (raf) Enabled pausing of local streams
 (raf) Cleanup/robustness added for play/stop core.
 (raf) Corrected log times now that clock changed in sdk
-(raf)
+(raf) Created playmodes; defaults to NORMAL (will play next track after current one ends), also has SINGLE and REPEAT modes.
+(raf) Completely re-wrote buffering system. (Using stl lists, and optimized buffers)
 
 0.37-pre4 (r592) (11-23-2005)
 (sandberg) Added support for showing the battery status and the current local time.
