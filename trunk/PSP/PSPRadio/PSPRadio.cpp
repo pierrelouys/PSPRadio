@@ -257,6 +257,8 @@ public:
 	{
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
+		IScreen *CurrentScreen = NULL; //(PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
+		IScreen *StreamOwnerScreen = NULL;
 
 		for (;;)
 		{
@@ -270,7 +272,14 @@ public:
 				/** Calling return causes the app to terminate */
 				return 0;
 			}
+			
 			rret = m_EventToPSPApp->Receive(event);
+			
+			
+			CurrentScreen 		= m_ScreenHandler->GetCurrentScreen();
+			StreamOwnerScreen	= m_ScreenHandler->GetStreamOwnerScreen();
+
+			
 			//Log(LOG_VERYLOW, "ProcessMessages()::Receive Ret=%d. eventid=0x%08x.", rret, event.EventId);
 			if (SID_PSPAPP == event.SenderId)
 			{
@@ -330,42 +339,6 @@ public:
 					}
 					break;
 					
-				case MID_SOUND_STOPPED:
-					Log(LOG_VERYLOW, "MID_SOUND_STOPPED received, calling OnPlayStateChange(STOP)");
-					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
-					{
-						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_STOP);
-							break;
-						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_STOP);
-							break;
-						default:
-							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
-								m_ScreenHandler->GetCurrentScreen()->GetId());
-							break;
-					}
-					break;
-					
-				case MID_SOUND_STARTED:
-					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
-					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
-					{
-						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_PLAY);
-							break;
-						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_PLAY);
-							break;
-						default:
-							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(PLAY), but current screen is %d",
-								m_ScreenHandler->GetCurrentScreen()->GetId());
-							break;
-					}
-					if (m_UI)
-						m_UI->OnStreamOpeningSuccess();
-					break;
-								
 				case MID_THDECODE_DECODING:
 					if (m_UI)
 						m_UI->OnNewStreamStarted();
@@ -375,47 +348,60 @@ public:
 					if (m_UI)
 						m_UI->OnStreamOpening();
 					break;
-					
-				case MID_THDECODE_EOS:
-				{
-					PlayListScreen *CurrentScreen = (PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
-
-					Log(LOG_VERYLOW, "MID_THPLAY_EOS received, calling OnPlayStateChange(EOS)");
-					switch(CurrentScreen->GetId())
+				
+				case MID_SOUND_STOPPED:
+					Log(LOG_VERYLOW, "MID_SOUND_STOPPED received, calling OnPlayStateChange(STOP)");
+					if (StreamOwnerScreen)
 					{
-						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							CurrentScreen->OnPlayStateChange(PLAYSTATE_EOS);
-							break;
-						default:
-							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(EOS), but current screen is %d",
-								CurrentScreen->GetId());
-							break;
+						StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_STOP);
+					}
+					else
+					{
+						Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but the stream has no owner.");
 					}
 					break;
-				}	
 
 				case MID_DECODE_STREAM_OPEN_ERROR:
 					Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
-					switch(m_ScreenHandler->GetCurrentScreen()->GetId())
+					if (StreamOwnerScreen)
 					{
-						case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-							((PlayListScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->OnPlayStateChange(PLAYSTATE_STOP);
-							break;
-						case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-							((SHOUTcastScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->OnPlayStateChange(PLAYSTATE_STOP);
-							break;
-						default:
-							Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but current screen is %d",
-								m_ScreenHandler->GetCurrentScreen()->GetId());
-							break;
+						StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_STOP);
+					}
+					else
+					{
+						Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but the stream has no owner.");
 					}
 					if (m_UI)
 						m_UI->OnStreamOpeningError();
 					break;
+
 					
-				//case MID_DECODE_DONE:
-				//	break;
+				case MID_SOUND_STARTED:
+					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
+					if (StreamOwnerScreen)
+					{
+						StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_PLAY);
+					}
+					else
+					{
+						Log(LOG_ERROR, "Wanted to call OnPlayStateChange(PLAY), but the stream has no owner.");
+					}
+					if (m_UI)
+						m_UI->OnStreamOpeningSuccess();
+					break;
+					
+				case MID_THDECODE_EOS:
+					Log(LOG_VERYLOW, "MID_THPLAY_EOS received, calling OnPlayStateChange(EOS)");
+					if (StreamOwnerScreen)
+					{
+						StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_EOS);
+					}
+					else
+					{
+						Log(LOG_ERROR, "Wanted to call OnPlayStateChange(EOS), but the stream has no owner.");
+					}
+					break;
+								
 				case MID_NEW_METADATA_AVAILABLE:
 					if (m_UI)
 						m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());

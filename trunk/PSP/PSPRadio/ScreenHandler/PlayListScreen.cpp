@@ -219,6 +219,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 				if (false == m_Lists->GetElementList()->empty())
 				{
+					m_ScreenHandler->SetStreamOwnerScreen(this);
 					switch(playingstate)
 					{
 						case CPSPSound::STOP:
@@ -336,6 +337,18 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	static time_t	LastEOSinMS = 0;
 	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
 	time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
+	IPSPRadio_UI *UI = NULL;
+	
+	/* Only tell the UI about changes if the current active screen is this */
+	/* This prvents screens like the option screen from getting notified */
+	if (this == m_ScreenHandler->GetCurrentScreen())
+	{
+		UI = m_UI;
+	}
+	else
+	{
+		UI = NULL;
+	}
 	
 	Log(LOG_VERYLOW, "OnPlayStateChange() Called with %d (%s)",
 		NewPlayState, 
@@ -347,20 +360,20 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	switch (NewPlayState)
 	{
 		case PLAYSTATE_PLAY:
-			if (m_UI)
-				m_UI->DisplayActiveCommand(CPSPSound::PLAY);
+			if (UI)
+				UI->DisplayActiveCommand(CPSPSound::PLAY);
 			if (PLAYSTATE_PAUSE != OldPlayState)
 			{
 				/** Populate m_CurrentMetaData */
 				MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
 				memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-				if (m_UI)
-					m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+				if (UI)
+					UI->OnNewSongData(pCurrentStream->GetMetaData());
 			}
 			break;
 		case PLAYSTATE_PAUSE:
-			if (m_UI)
-				m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
+			if (UI)
+				UI->DisplayActiveCommand(CPSPSound::PAUSE);
 			break;
 		case PLAYSTATE_STOP:
 			if (CurrentStateInMS - LastEOSinMS > 500)
@@ -374,8 +387,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
 					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
 					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-					if (m_UI)
-						m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+					if (UI)
+						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
 				}
@@ -383,15 +396,15 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				{
 					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with STOP_REQUEST");
 					/** If user selected to stop, just stop */
-					if (m_UI)
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					if (UI)
+						UI->DisplayActiveCommand(CPSPSound::STOP);
 				}
 				else
 				{
 					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with %d request", m_ScreenHandler->m_RequestOnPlayOrStop);
 					/** Must have stop because of an error */
-					if (m_UI)
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					if (UI)
+						UI->DisplayActiveCommand(CPSPSound::STOP);
 				}
 			}
 			else
@@ -405,15 +418,16 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 			switch(m_PlayMode)
 			{
 				case PLAYMODE_SINGLE:
-					if (m_UI)
-						m_UI->DisplayActiveCommand(CPSPSound::STOP);
+					if (UI)
+						UI->DisplayActiveCommand(CPSPSound::STOP);
 					break;
 				
 				case PLAYMODE_NORMAL:
 				{
 					//play next strack
 					m_Lists->NextElement();
-					m_UI->DisplayElements(m_Lists);
+					if (UI)
+						UI->DisplayElements(m_Lists);
 
 					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 					
@@ -421,8 +435,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
 					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
 					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-					if (m_UI)
-						m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+					if (UI)
+						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
 					
@@ -433,8 +447,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				{
 					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
 					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
-					if (m_UI)
-						m_UI->OnNewSongData(pCurrentStream->GetMetaData());
+					if (UI)
+						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
 					break;

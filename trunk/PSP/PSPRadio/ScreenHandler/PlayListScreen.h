@@ -11,14 +11,6 @@
 		PLAYMODE_SINGLE
 	};
 	
-	enum playstates
-	{
-		PLAYSTATE_PLAY,
-		PLAYSTATE_STOP,
-		PLAYSTATE_PAUSE,
-		PLAYSTATE_EOS
-	};
-	
 	class PlayListScreen : public IScreen
 	{
 		public:

@@ -63,6 +63,7 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 
 	m_CurrentScreen = Screens[InitialScreen];
 	m_PreviousScreen = m_CurrentScreen;
+	m_StreamOwnerScreen = NULL;
 	
 	SetInitialScreen(InitialScreen);
 }

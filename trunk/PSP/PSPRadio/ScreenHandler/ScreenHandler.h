@@ -20,10 +20,19 @@
 	class IPSPRadio_UI;
 
 	class CScreenHandler;
+
+	enum playstates
+	{
+		PLAYSTATE_PLAY,
+		PLAYSTATE_STOP,
+		PLAYSTATE_PAUSE,
+		PLAYSTATE_EOS
+	};
 	
 	class IScreen
 	{
 		public:
+
 			IScreen(int Id, CScreenHandler *ScreenHandler)
 				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_UI = NULL;}
 			virtual ~IScreen(){}
@@ -33,6 +42,9 @@
 			virtual void Activate(IPSPRadio_UI *UI);
 
 			virtual void InputHandler(int iButtonMask){};
+			
+			virtual void OnPlayStateChange(playstates NewPlayState){};
+
 		
 		protected:
 			int m_Id;
@@ -93,6 +105,9 @@
 		Screen GetInitialScreen(){ return m_InitialScreen; }
 		void SetInitialScreen(Screen screen){m_InitialScreen = screen;}
 		
+		IScreen *GetStreamOwnerScreen() { return m_StreamOwnerScreen; }
+		void SetStreamOwnerScreen(IScreen *screen) { m_StreamOwnerScreen = screen; }
+		
 		void OnVBlank();
 		
 		request_on_play_stop m_RequestOnPlayOrStop;
@@ -119,6 +134,7 @@
 	private:
 		IScreen *m_CurrentScreen;
 		IScreen *m_PreviousScreen;
+		IScreen *m_StreamOwnerScreen;
 		Screen   m_InitialScreen;
 		UIs m_CurrentUI;
 		IPSPRadio_UI *m_UI;
