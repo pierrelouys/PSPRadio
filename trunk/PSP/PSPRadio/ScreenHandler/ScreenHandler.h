@@ -55,8 +55,8 @@
 	enum playmodes
 	{
 		PLAYMODE_NORMAL,
+		PLAYMODE_SINGLE,
 		PLAYMODE_REPEAT,
-		PLAYMODE_SINGLE
 	};
 	
 	class CScreenHandler
