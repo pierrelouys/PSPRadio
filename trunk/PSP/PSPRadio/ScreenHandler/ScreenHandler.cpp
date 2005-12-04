@@ -50,7 +50,8 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	m_strCWD = strdup(strCWD);
 	m_Config = Config;
 	m_Sound = Sound;
-
+	m_PlayMode = PLAYMODE_NORMAL; //PLAYMODE_SINGLE;//
+	
 	/** Create Screens... */
 	Screens[PSPRADIO_SCREEN_PLAYLIST] = 
 		new PlayListScreen(PSPRADIO_SCREEN_PLAYLIST, this);

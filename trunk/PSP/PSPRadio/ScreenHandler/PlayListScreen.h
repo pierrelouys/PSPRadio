@@ -4,13 +4,6 @@
 	#include "MetaDataContainer.h"
 	#include "ScreenHandler.h"
 
-	enum playmodes
-	{
-		PLAYMODE_NORMAL,
-		PLAYMODE_REPEAT,
-		PLAYMODE_SINGLE
-	};
-	
 	class PlayListScreen : public IScreen
 	{
 		public:
@@ -29,7 +22,6 @@
 
 		protected:
 			CMetaDataContainer *m_Lists;
-			playmodes m_PlayMode;
 	};
 
 #endif

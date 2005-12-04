@@ -43,6 +43,7 @@ enum OptionIDs
 	OPTION_ID_WIFI_AUTOSTART,
 	OPTION_ID_USB_ENABLE,
 	OPTION_ID_USB_AUTOSTART,
+	OPTION_ID_PLAYMODE,
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
 	OPTION_ID_UI,
@@ -60,6 +61,7 @@ OptionsScreen::Options OptionsData[] =
 	{	OPTION_ID_WIFI_AUTOSTART,	"WiFi AutoStart",			{"No", "Yes"},					1,1,2		},
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_USB_AUTOSTART,	"USB AutoStart",			{"No", "Yes"},					1,1,2		},
+	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat"},	1,1,3		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
 	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
@@ -275,6 +277,10 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iActiveState = (pPSPApp->IsUSBEnabled()==true)?2:1;
 				break;
 				
+			case OPTION_ID_PLAYMODE:
+				Option.iActiveState = (m_ScreenHandler->GetPlayMode())+1;
+				break;
+				
 			case OPTION_ID_CPU_SPEED:
 				switch(scePowerGetCpuClockFrequency())
 				{
@@ -407,6 +413,11 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = true;
 			break;
 		
+		case OPTION_ID_PLAYMODE:
+			m_ScreenHandler->SetPlayMode((playmodes)iSelectionBase0);
+			fOptionActivated = true;
+			break;
+			
 		case OPTION_ID_CPU_SPEED:
 		{
 			int iRet = -1;

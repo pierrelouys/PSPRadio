@@ -52,6 +52,13 @@
 			CScreenHandler *m_ScreenHandler;
 	};
 
+	enum playmodes
+	{
+		PLAYMODE_NORMAL,
+		PLAYMODE_REPEAT,
+		PLAYMODE_SINGLE
+	};
+	
 	class CScreenHandler
 	{
 	public:
@@ -108,6 +115,9 @@
 		IScreen *GetStreamOwnerScreen() { return m_StreamOwnerScreen; }
 		void SetStreamOwnerScreen(IScreen *screen) { m_StreamOwnerScreen = screen; }
 		
+		playmodes GetPlayMode() { return m_PlayMode; }
+		void SetPlayMode(playmodes mode) { m_PlayMode = mode; }
+		
 		void OnVBlank();
 		
 		request_on_play_stop m_RequestOnPlayOrStop;
@@ -142,5 +152,6 @@
 		CPSPSound *m_Sound;
 		char *m_strCWD;
 		IScreen *Screens[PSPRADIO_SCREEN_LIST_END];
+		playmodes m_PlayMode;
 	};
 #endif

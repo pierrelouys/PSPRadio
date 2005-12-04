@@ -38,7 +38,6 @@ PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(I
 {
 	Log(LOG_VERYLOW,"PlayListScreen Ctor.");
 	m_Lists = NULL;
-	m_PlayMode = PLAYMODE_NORMAL; //PLAYMODE_SINGLE;//
 
 	m_Lists = new CMetaDataContainer();
 
@@ -415,7 +414,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 			break;
 		case PLAYSTATE_EOS:
 			LastEOSinMS = CurrentStateInMS;
-			switch(m_PlayMode)
+			switch(m_ScreenHandler->GetPlayMode())
 			{
 				case PLAYMODE_SINGLE:
 					if (UI)
