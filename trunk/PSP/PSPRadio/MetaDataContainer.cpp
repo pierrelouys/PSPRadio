@@ -601,8 +601,15 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 							if (strlen(strLine) > strlen(PLV2_FILE_TAG))
 							{
 								strV2_File[0] = 0;
-								iV2_ParsingTemp = sscanf(strLine, PLV2_FILE_PARSING_STR, &iV2_IgnoredValue, strV2_File);
-								if (2 == iV2_ParsingTemp)
+								//iV2_ParsingTemp = sscanf(strLine, PLV2_FILE_PARSING_STR, &iV2_IgnoredValue, strV2_File);
+								if (strstr(strLine, "File"))
+								{
+									if (strchr(strLine, '='))
+									{
+										strncpy(strV2_File, strchr(strLine, '=') + 1, 256);
+									}
+								}
+								if (strlen(strV2_File))
 								{
 									v2_state = WAITING_FOR_TITLE;
 								}
