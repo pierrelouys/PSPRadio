@@ -1,7 +1,7 @@
 What's New for PSPRadio 
 ========================
 
-0.37-pre5
+0.37-pre5 (r623) (12-06-2005)
 (raf) Enabled pausing of local streams
 (raf) Cleanup/robustness added for play/stop core.
 (raf) Corrected log times now that clock changed in sdk
