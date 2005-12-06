@@ -31,8 +31,6 @@ CScreen::CScreen()
 	
 	X = 0; 
 	Y = 0; 
-	MX = SCREEN_MAX_X;
-	MY = SCREEN_MAX_Y;
 	bg_col = 0; 
 	fg_col = 0xFFFFFFFF;
 	g_vram_base = (u32 *)0x04000000;
@@ -40,8 +38,21 @@ CScreen::CScreen()
 	m_strImage = NULL;
 	m_ImageBuffer = NULL;
 	m_TextMode = TEXTMODE_NORMAL;
+	m_FontWidth = 7; 
+	m_FontHeight = 8;
+	MX = 68;
+	MY = 34;
+	SetFontSize(7, 8);
 	
 	Init();
+}
+
+void CScreen::SetFontSize(int iWidth, int iHeight) 
+{ 
+	m_FontWidth = iWidth; 
+	m_FontHeight = iHeight; 	
+	MX = GetNumberOfTextColumns();//SCREEN_MAX_X;
+	MY = GetNumberOfTextRows();//SCREEN_MAX_Y;
 }
 
 /* baseado nas libs do Duke... */
@@ -166,7 +177,7 @@ extern u8 msx[];
 
 void CScreen::PutChar( int x, int y, u32 color, u8 ch, bool do_background)
 {
-	int 	i,j, l;
+	int 	i,j;
 	u8	*font;
 	u32  pixel;
 	u32 *vram_ptr;
@@ -181,7 +192,7 @@ void CScreen::PutChar( int x, int y, u32 color, u8 ch, bool do_background)
 	vram += (y * PSP_LINE_SIZE);
 	
 	font = &msx[ (int)ch * 8];
-	for (i=l=0; i < 8; i++, l+= 8, font++)
+	for (i=0; i < 8; i++, font++)
 	{
 		vram_ptr  = vram;
 		for (j=0; j < 8; j++)
@@ -221,13 +232,14 @@ void CScreen::PutEraseChar( int x, int y, u32 color)
 	int 	i,j;
 	u32 *vram_ptr;
 	u32 *vram;
-	int iCharHeight = 8, iCharWidth = 8;
+	int iCharHeight = m_FontHeight, iCharWidth = m_FontWidth;
 	
 	if(false == init)
 	{
 	   return;
 	}
 	
+	#if 0
 	switch(m_TextMode)
 	{
 		case TEXTMODE_NORMAL:
@@ -243,7 +255,7 @@ void CScreen::PutEraseChar( int x, int y, u32 color)
 			iCharWidth  = 9;
 			break;
 	}
-
+	#endif
 	
 	if (NULL == m_ImageBuffer)
 	{
@@ -307,7 +319,7 @@ void CScreen::ClearNChars(int X, int Y, int N)
 {
 	for (int i=X; i < X+N; i++)
 	{
-		PutEraseChar( i*7 , Y * 8, bg_col);
+		PutEraseChar( i * m_FontWidth , Y * m_FontHeight, bg_col);
 	}
 }
 
@@ -324,40 +336,40 @@ int CScreen::PrintData(const char *buff, int size)
 		switch (c)
 		{
 			case '\n':
-						X = 0;
-						Y ++;
-						if (Y == MY)
-							Y = 0;
-						ClearLine(Y);
-						break;
+				X = 0;
+				Y ++;
+				if (Y == MY)
+					Y = 0;
+				ClearLine(Y);
+				break;
 			case '\t':
-						for (j = 0; j < 5; j++) {
-							PutChar( X*7 , Y * 8, fg_col, ' ');
-							X++;
-						}
-						break;
+				for (j = 0; j < 5; j++) {
+					PutChar( X * m_FontWidth , Y * m_FontHeight, fg_col, ' ' );
+					X++;
+				}
+				break;
 			default: 
-						switch(m_TextMode)
-						{
-							case TEXTMODE_NORMAL:
-								PutChar( X*7 , Y * 8, fg_col, c);
-								break;
-							case TEXTMODE_OUTLINED:
-								PutCharWithOutline(X*7, Y*8, 0, fg_col, c);
-								break;
-							case TEXTMODE_SHADOWED:
-								PutCharWithShadow(X*7, Y*8, 0, fg_col, c);
-								break;
-						}
-						X++;
-						if (X == MX)
-						{
-							X = 0;
-							Y++;
-							if (Y == MY)
-								Y = 0;
-							ClearLine(Y);
-						}
+				switch(m_TextMode)
+				{
+					case TEXTMODE_NORMAL:
+						PutChar( X * m_FontWidth , Y * m_FontHeight, fg_col, c );
+						break;
+					case TEXTMODE_OUTLINED:
+						PutCharWithOutline( X * m_FontWidth , Y * m_FontHeight, 0, fg_col, c );
+						break;
+					case TEXTMODE_SHADOWED:
+						PutCharWithShadow( X * m_FontWidth , Y * m_FontHeight, 0, fg_col, c );
+						break;
+				}
+				X++;
+				if (X == MX)
+				{
+					X = 0;
+					Y++;
+					if (Y == MY)
+						Y = 0;
+					ClearLine(Y);
+				}
 		}
 	}
 

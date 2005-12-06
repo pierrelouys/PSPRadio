@@ -3,9 +3,6 @@
 
 	#define PSP_SCREEN_WIDTH 480
 	#define PSP_SCREEN_HEIGHT 272
-	#define SCREEN_MAX_X 68
-	#define SCREEN_MAX_Y 34
-	
 	#define PSP_LINE_SIZE 512
 	#define PSP_PIXEL_FORMAT 3
 	
@@ -26,6 +23,9 @@
 		void SetTextColor(u32 colour);
 		void SetBackgroundImage(char *strImage);
 		void SetTextMode(textmode mode){m_TextMode = mode;}
+		void SetFontSize(int iWidth, int iHeight);
+		size_t GetNumberOfTextColumns(){ return PSP_SCREEN_WIDTH/m_FontWidth; }
+		size_t GetNumberOfTextRows(){ return PSP_SCREEN_HEIGHT/m_FontHeight; }
 		void Printf(const char *format, ...);
 		void Clear();
 		void SetXY(int x, int y);
@@ -43,6 +43,7 @@
 		char *m_strImage;
 		u32  *m_ImageBuffer;
 		textmode m_TextMode;
+		int m_FontWidth, m_FontHeight;
 
 		void Init();
 		void PutChar( int x, int y, u32 color, u8 ch, bool do_background = true);
