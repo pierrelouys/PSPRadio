@@ -1,13 +1,16 @@
 What's New for PSPRadio 
 ========================
 
+0.37-pre6
+
+
 0.37-pre5 (r623) (12-06-2005)
 (raf) Enabled pausing of local streams
 (raf) Cleanup/robustness added for play/stop core.
 (raf) Corrected log times now that clock changed in sdk
 (raf) Created playmodes; defaults to NORMAL (will play next track after current one ends), also has SINGLE and REPEAT modes.
 (raf) Completely re-wrote buffering system. (Using stl lists, and optimized buffers). New change from one stream to the next is seamless.
-(raf) Made font size configurable in the textui config file. If these settings are set correctly, then the artifacts produced when using outlined/shadowed text should go away. (The downside, is that the number of columns/rows is also modified as these valies change.)
+(raf) Made font size configurable in the textui config file. If these settings are set correctly, then the artifacts produced when using outlined/shadowed text should go away. (The downside, is that the number of columns/rows is also modified as these values change.)
 
 
 0.37-pre4 (r592) (11-23-2005)
