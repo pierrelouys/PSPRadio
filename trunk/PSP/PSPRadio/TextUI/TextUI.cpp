@@ -33,8 +33,10 @@
 #include <Screen.h>
 #include "TextUI.h"
 
-#define MAX_ROWS 34
-#define MAX_COL  68
+//#define MAX_ROWS 34
+//#define MAX_COL  68
+#define MAX_ROWS 	m_Screen->GetNumberOfTextRows()
+#define MAX_COL 	m_Screen->GetNumberOfTextColumns()
 
 #define TEXT_UI_CFG_FILENAME "TextUI/TextUI.cfg"
 
@@ -116,6 +118,7 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	m_CurrentScreen = screen;
 	
 	m_Screen->SetTextMode((CScreen::textmode)m_Config->GetInteger("OTHER:TEXT_MODE", 0));
+	m_Screen->SetFontSize(m_Config->GetInteger("OTHER:FONT_WIDTH", 7), m_Config->GetInteger("OTHER:FONT_HEIGHT", 8));
 	
 	switch (screen)
 	{
@@ -289,7 +292,7 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 		iRowEnd = iRowStart;
 		
 	m_lockclear->Lock();
-	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
+	for (int iRow = iRowStart ; (iRow < (int)MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
 		m_Screen->ClearLine(iRow);
 	}
@@ -302,7 +305,7 @@ void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowE
 		iRowEnd = iRowStart;
 		
 	m_lockclear->Lock();
-	for (int iRow = iRowStart ; (iRow < MAX_ROWS) && (iRow <= iRowEnd); iRow++)
+	for (int iRow = iRowStart ; (iRow < (int)MAX_ROWS) && (iRow <= iRowEnd); iRow++)
 	{
 		m_Screen->ClearNChars(iColStart, iRow, iColEnd - iColStart);
 	}
