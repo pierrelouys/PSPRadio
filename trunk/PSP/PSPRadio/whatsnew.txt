@@ -7,6 +7,8 @@ What's New for PSPRadio
 (raf) Corrected log times now that clock changed in sdk
 (raf) Created playmodes; defaults to NORMAL (will play next track after current one ends), also has SINGLE and REPEAT modes.
 (raf) Completely re-wrote buffering system. (Using stl lists, and optimized buffers). New change from one stream to the next is seamless.
+(raf) Made font size configurable in the textui config file. If these settings are set correctly, then the artifacts produced when using outlined/shadowed text should go away. (The downside, is that the number of columns/rows is also modified as these valies change.)
+
 
 0.37-pre4 (r592) (11-23-2005)
 (sandberg) Added support for showing the battery status and the current local time.
@@ -17,7 +19,7 @@ What's New for PSPRadio
 (raf) Fixed problem where PSPRadio was exiting when it went into screen blank mode.
 (raf) Now using pngs designed by Semtex/albadross/HalfastII
 (raf) Added better support for suspending/resuming psp.
-
+(Halfast) Minor tweeking of the textui.cfg
 
 0.37-pre3 (r562) (c=r573)
 (raf) The initial screen can now be selected in the PSPRadio.cfg file, under SYSTEM/INITIAL_SCREEN
