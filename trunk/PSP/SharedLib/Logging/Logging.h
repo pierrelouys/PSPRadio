@@ -59,8 +59,10 @@
 		
 	};
 	
-	extern CLogging Logging;
-	#define Log(level, format, args...) Logging.Log_(__FILE__, __LINE__, level, format, ## args)
+	void InstantiateLogging();
+	
+	extern CLogging *pLogging;
+	#define Log(level, format, args...) if (pLogging)pLogging->Log_(__FILE__, __LINE__, level, format, ## args)
 
 #endif
 

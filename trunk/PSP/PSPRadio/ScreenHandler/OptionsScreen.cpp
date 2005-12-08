@@ -128,7 +128,7 @@ void OptionsScreen::LoadFromConfig()
 		/** CPU FREQ */
 		
 		/** LOGLEVEL */
-		Logging.SetLevel((loglevel_enum)pConfig->GetInteger("DEBUGGING:LOGLEVEL", 100));
+		pLogging->SetLevel((loglevel_enum)pConfig->GetInteger("DEBUGGING:LOGLEVEL", 100));
 		/** LOGLEVEL */
 		
 		/** WIFI PROFILE */
@@ -187,7 +187,7 @@ void OptionsScreen::SaveToConfigFile()
 	
 	if (pConfig)
 	{
-		pConfig->SetInteger("DEBUGGING:LOGLEVEL", Logging.GetLevel());
+		pConfig->SetInteger("DEBUGGING:LOGLEVEL", pLogging->GetLevel());
 		pConfig->SetInteger("SYSTEM:CPUFREQ", scePowerGetCpuClockFrequency());
 		pConfig->SetInteger("WIFI:PROFILE", m_iNetworkProfile);
 		switch(m_ScreenHandler->GetCurrentUI())
@@ -305,7 +305,7 @@ void OptionsScreen::UpdateOptionsData()
 				break;
 		
 			case OPTION_ID_LOG_LEVEL:
-				switch(Logging.GetLevel())
+				switch(pLogging->GetLevel())
 				{
 					case 0:
 					case LOG_VERYLOW:
@@ -452,22 +452,22 @@ void OptionsScreen::OnOptionActivation()
 			switch(iSelectionBase1)
 			{
 				case 1:
-					Logging.SetLevel(LOG_VERYLOW);
+					pLogging->SetLevel(LOG_VERYLOW);
 					break;
 				case 2:
-					Logging.SetLevel(LOG_LOWLEVEL);
+					pLogging->SetLevel(LOG_LOWLEVEL);
 					break;
 				case 3:
-					Logging.SetLevel(LOG_INFO);
+					pLogging->SetLevel(LOG_INFO);
 					break;
 				case 4:
-					Logging.SetLevel(LOG_ERROR);
+					pLogging->SetLevel(LOG_ERROR);
 					break;
 				case 5:
-					Logging.SetLevel(LOG_ALWAYS);
+					pLogging->SetLevel(LOG_ALWAYS);
 					break;
 			}
-			Log(LOG_ALWAYS, "Log Level Changed to (%d)", Logging.GetLevel());
+			Log(LOG_ALWAYS, "Log Level Changed to (%d)", pLogging->GetLevel());
 			fOptionActivated = true;
 			break;
 			

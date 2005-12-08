@@ -152,10 +152,12 @@ public:
 		{
 			int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
 			
+			InstantiateLogging();
+			
 			strFilename = (char*)malloc(strlen(strCurrentDir) + 1 + strlen(m_Config->GetStr("DEBUGGING:LOGFILE")) + 10);
 			sprintf(strFilename, "%s/%s", strCurrentDir, m_Config->GetStr("DEBUGGING:LOGFILE"));
 			/** Set Logging Global Object to use the configured logfile and loglevels */
-			Logging.Set(strFilename, (loglevel_enum)iLoglevel);
+			pLogging->Set(strFilename, (loglevel_enum)iLoglevel);
 			free(strFilename), strFilename = NULL;
 			
 			Log(LOG_ALWAYS, "--------------------------------------------------------");

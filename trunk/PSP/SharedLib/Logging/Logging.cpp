@@ -27,7 +27,12 @@
 #include <time.h>
 #include "Logging.h"
 
-CLogging Logging;
+CLogging *pLogging = NULL;
+
+void InstantiateLogging()
+{
+	pLogging = new CLogging;
+}
 
 CLogging::CLogging()
 {
