@@ -275,7 +275,7 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 
 	if (x == -1) /** CENTER */
 	{
-		x = 67/2 - strlen(msg)/2;
+		x = MAX_COL/2 - strlen(msg)/2;
 	}
 	m_Screen->SetXY(x,y);
 	m_Screen->SetTextColor(color);
@@ -698,6 +698,8 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iRowStart, &iRowEnd);
 	iColor = iColorNormal;
 
+	bool bShowFileExtension = m_Config->GetInteger("OTHER:SHOW_FILE_EXTENSION", 0);
+	
 	ClearHalfRows(iStartCol,iEndCol, iRowStart+1,iRowEnd); /** Don't clear Entry title */
 	
 	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
@@ -733,6 +735,8 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 				iColor = iColorNormal;
 			}
 			
+			
+			char *pText = strText;
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
@@ -741,13 +745,26 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			}
 			else
 			{
-				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strURI='%s'", (*ListIterator).strURI);
 				strncpy(strText, (*ListIterator).strURI, (iEndCol-iStartCol));
 				strText[iEndCol-iStartCol] = 0;
+				
+				if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
+				{
+					pText = basename(strText);
+					pText[iEndCol-iStartCol - 2] = 0;
+					if (false == bShowFileExtension)
+					{
+						char *ext = strrchr(pText, '.');
+						if(ext)
+						{
+							ext[0] = 0;
+						}
+					}
+				}
 			}
 		
 			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for strText='%s'", strText);
-			uiPrintf(iStartCol, iNextRow, iColor, strText);
+			uiPrintf(iStartCol, iNextRow, iColor, pText);
 			iNextRow++;
 		}
 	}
