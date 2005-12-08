@@ -47,8 +47,9 @@ typedef unsigned char	uint8_t;
 #define	uint8_t		__uint8_t
 #endif
 
+// Modified to match declaration in stdint.h (pspsdk)
 #ifndef int8_t
-typedef char int8_t;
+typedef signed char int8_t;
 #define __int8_t int8_t
 #endif
 
