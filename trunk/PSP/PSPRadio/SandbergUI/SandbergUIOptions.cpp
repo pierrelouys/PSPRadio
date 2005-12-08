@@ -47,7 +47,7 @@ static char __attribute__((aligned(16))) char_list[] = {'A', 'B', 'C', 'D', 'E',
 							'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5',
 							'6', '7', '8', '9', ':', '.', ',', '-', '+', '(', ')', '[', ']', '?', '=', ';',
 							'\\', '/', '<', '>', '!', '"', '#', '&', '$', '@', '{', '}', '*', '\'', '%', ' '};
-static CSandbergUI::TexCoord __attribute__((aligned(16))) option_frame = { 8, 8, 480-8, 272-8};
+static CSandbergUI::TexCoord __attribute__((aligned(16))) option_frame = { 8, 8, 480-8, 272-4};
 
 
 void CSandbergUI::RenderOptionScreen(void)
@@ -89,7 +89,7 @@ void CSandbergUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator)
 {
 	bool active_item;
-	int y = 6;
+	int y = 4;
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
 
@@ -119,7 +119,7 @@ void CSandbergUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 
 void CSandbergUI::StoreOption(int y, bool active_item, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState)
 {
-	int 			x = 5;
+	int 			x = 3;
 	int 			color = 0xFFFFFFFF;
 	StoredOptionItem	Option;
 
@@ -140,7 +140,7 @@ void CSandbergUI::StoreOption(int y, bool active_item, char *strName, char *strS
 
 	if (iNumberOfStates > 0)
 	{
-		x = 30;
+		x = 28;
 		for (int iStates = 0; iStates < iNumberOfStates ; iStates++)
 		{
 			if (iStates+1 == iActiveState)
