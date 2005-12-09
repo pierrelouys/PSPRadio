@@ -1,5 +1,9 @@
 What's New for PSPRadio 
 ========================
+0.37-pre7 (r)
+BUGS FIXES:
+(raf) Corrected logging timestamping, now using localtime (inspired by sandberg's code).
+NEW FEATURES:
 
 0.37-pre6 (r634)
 BUGS FIXES:
