@@ -4,6 +4,29 @@
 #include "IPSPRadio_UI.h"
 #include "Screen.h"
 
+struct screenconfig
+{
+	CScreen::textmode FontMode;
+	int FontWidth;
+	int FontHeight;
+	char *strBackground;
+	int BgColor;
+	int FgColor;
+	int ContainerListRangeX1;
+	int ContainerListRangeX2;
+	int ContainerListRangeY1;
+	int ContainerListRangeY2;
+	int EntriesListRangeX1;
+	int EntriesListRangeX2;
+	int EntriesListRangeY1;
+	int EntriesListRangeY2;
+	int BufferPercentageX;
+	int BufferPercentageY;
+	int MetadataX1;
+	int MetadataRangeY1;
+	int MetadataRangeY2;
+};
+
 class CTextUI : public IPSPRadio_UI
 {
 public:
@@ -50,6 +73,7 @@ private:
 	char  *m_strTitle;
 	CScreen *m_Screen;
 	CScreenHandler::Screen m_CurrentScreen;
+	screenconfig m_ScreenConfig;
 
 	//helpers
 	enum uicolors
@@ -72,7 +96,7 @@ private:
 	
 	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
 					int iActiveState);
-
+	void LoadConfigSettings(CScreenHandler::Screen screen);
 };
 
 

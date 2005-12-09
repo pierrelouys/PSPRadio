@@ -95,6 +95,8 @@ int CTextUI::Initialize(char *strCWD)
 	
 	free (strCfgFile), strCfgFile = NULL;
 	
+	memset(&m_ScreenConfig, 0, sizeof(m_ScreenConfig));
+	
 	//m_Screen->Init();
 	
 	return 0;
@@ -117,24 +119,84 @@ void CTextUI::Terminate()
 {
 }
 
+void CTextUI::LoadConfigSettings(CScreenHandler::Screen screen)
+{
+	switch (screen)
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_MODE", 0);
+			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_WIDTH", 7);
+			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_HEIGHT", 8);
+			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_SHOUTCAST:BACKGROUND", NULL);
+			m_ScreenConfig.BgColor = GetConfigColor("SCREEN_SHOUTCAST:BG_COLOR");
+			m_ScreenConfig.FgColor = GetConfigColor("SCREEN_SHOUTCAST:FG_COLOR");
+			GetConfigPair("SCREEN_SHOUTCAST:CONTAINERLIST_X_RANGE", 
+									&m_ScreenConfig.ContainerListRangeX1, &m_ScreenConfig.ContainerListRangeX2);
+			GetConfigPair("SCREEN_SHOUTCAST:CONTAINERLIST_Y_RANGE", 
+									&m_ScreenConfig.ContainerListRangeY1, &m_ScreenConfig.ContainerListRangeY2);
+			GetConfigPair("SCREEN_SHOUTCAST:ENTRIESLIST_X_RANGE", 
+									&m_ScreenConfig.EntriesListRangeX1, &m_ScreenConfig.EntriesListRangeX2);
+			GetConfigPair("SCREEN_SHOUTCAST:ENTRIESLIST_Y_RANGE", 
+									&m_ScreenConfig.EntriesListRangeY1, &m_ScreenConfig.EntriesListRangeY2);
+			GetConfigPair("SCREEN_SHOUTCAST:BUFFER_PERCENTAGE", 
+									&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
+			m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_SHOUTCAST:METADATA_X", 7);
+			GetConfigPair("SCREEN_SHOUTCAST:METADATA_Y_RANGE", 
+									&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
+			break;
+			
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_MODE", 0);
+			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_PLAYLIST:FONT_WIDTH", 7);
+			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_PLAYLIST:FONT_HEIGHT", 8);
+			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_PLAYLIST:BACKGROUND", NULL);
+			m_ScreenConfig.BgColor = GetConfigColor("SCREEN_PLAYLIST:BG_COLOR");
+			m_ScreenConfig.FgColor = GetConfigColor("SCREEN_PLAYLIST:FG_COLOR");
+			GetConfigPair("SCREEN_PLAYLIST:CONTAINERLIST_X_RANGE", 
+									&m_ScreenConfig.ContainerListRangeX1, &m_ScreenConfig.ContainerListRangeX2);
+			GetConfigPair("SCREEN_PLAYLIST:CONTAINERLIST_Y_RANGE", 
+									&m_ScreenConfig.ContainerListRangeY1, &m_ScreenConfig.ContainerListRangeY2);
+			GetConfigPair("SCREEN_PLAYLIST:ENTRIESLIST_X_RANGE", 
+									&m_ScreenConfig.EntriesListRangeX1, &m_ScreenConfig.EntriesListRangeX2);
+			GetConfigPair("SCREEN_PLAYLIST:ENTRIESLIST_Y_RANGE", 
+									&m_ScreenConfig.EntriesListRangeY1, &m_ScreenConfig.EntriesListRangeY2);
+			GetConfigPair("SCREEN_SHOUTCAST:BUFFER_PERCENTAGE", 
+									&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
+			m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_SHOUTCAST:METADATA_X", 7);
+			GetConfigPair("SCREEN_SHOUTCAST:METADATA_Y_RANGE", 
+									&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
+			break;
+			
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_MODE", 0);
+			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_OPTIONS:FONT_WIDTH", 7);
+			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_OPTIONS:FONT_HEIGHT", 8);
+			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_OPTIONS:BACKGROUND", NULL);
+			m_ScreenConfig.BgColor = GetConfigColor("SCREEN_OPTIONS:BG_COLOR");
+			m_ScreenConfig.FgColor = GetConfigColor("SCREEN_OPTIONS:FG_COLOR");
+			break;
+	}
+}
+
 void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 {
 	int x,y,c;
 	m_CurrentScreen = screen;
-	
-	m_Screen->SetTextMode((CScreen::textmode)m_Config->GetInteger("OTHER:TEXT_MODE", 0));
-	m_Screen->SetFontSize(m_Config->GetInteger("OTHER:FONT_WIDTH", 7), m_Config->GetInteger("OTHER:FONT_HEIGHT", 8));
+
+	LoadConfigSettings(screen);
+	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
+	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
+	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
+	m_Screen->SetTextColor(m_ScreenConfig.FgColor);
+	if (m_ScreenConfig.strBackground)
+	{
+		m_Screen->SetBackgroundImage(m_ScreenConfig.strBackground);
+	}
+	m_Screen->Clear(); 
 	
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-			m_Screen->SetBackColor(GetConfigColor("COLORS:BACKGROUND"));
-			m_Screen->SetTextColor(GetConfigColor("COLORS:MAINTEXT"));
-			if (m_Config->GetString("IMAGES:SHOUTCAST_SCREEN_BACKGROUND", NULL))
-			{
-				m_Screen->SetBackgroundImage(m_Config->GetStr("IMAGES:SHOUTCAST_SCREEN_BACKGROUND"));
-			}
-			m_Screen->Clear(); 
 			if (m_strTitle)
 			{
 				GetConfigPair("TEXT_POS:TITLE", &x, &y);
@@ -149,13 +211,6 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			break;
 		
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			m_Screen->SetBackColor(GetConfigColor("COLORS:BACKGROUND"));
-			m_Screen->SetTextColor(GetConfigColor("COLORS:MAINTEXT"));
-			if (m_Config->GetString("IMAGES:MAIN_SCREEN_BACKGROUND", NULL))
-			{
-				m_Screen->SetBackgroundImage(m_Config->GetStr("IMAGES:MAIN_SCREEN_BACKGROUND"));
-			}
-			m_Screen->Clear(); 
 			if (m_strTitle)
 			{
 				GetConfigPair("TEXT_POS:TITLE", &x, &y);
@@ -170,13 +225,6 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 			break;
 		
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			m_Screen->SetBackColor(GetConfigColor("COLORS:OPTIONS_SCREEN_BACKGROUND"));
-			m_Screen->SetTextColor(GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"));
-			if (m_Config->GetString("IMAGES:OPTIONS_SCREEN_BACKGROUND", NULL))
-			{
-				m_Screen->SetBackgroundImage(m_Config->GetStr("IMAGES:OPTIONS_SCREEN_BACKGROUND"));
-			}
-			m_Screen->Clear(); 
 			uiPrintf(-1,0, GetConfigColor("COLORS:OPTIONS_SCREEN_MAINTEXT"), "PSPRadio OPTIONS:");
 			break;
 	
@@ -293,7 +341,7 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 	for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
 	{
 		//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
-		m_Screen->ClearLineFromY(iRow);
+		m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, PSP_SCREEN_WIDTH);
 	}
 	m_lockclear->Unlock();
 }
@@ -306,7 +354,7 @@ void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowE
 	m_lockclear->Lock();
 	for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
 	{
-		m_Screen->ClearNCharsFromY(iColStart, iRow, iColEnd);
+		m_Screen->ClearCharsAtYFromX1ToX2(iRow, iColStart, iColEnd);
 	}
 	m_lockclear->Unlock();
 }
@@ -391,12 +439,12 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	case CPSPSound::STOP:
 		{
 			uiPrintf(x, y, c, "STOP");
-			int r1,r2;
-			GetConfigPair("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
-			ClearRows(r1, r2);
-			int px,py;
-			GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &px, &py);
-			ClearRows(py);
+			//int r1,r2;
+			//GetConfigPair("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+			ClearRows(m_ScreenConfig.MetadataRangeY1, m_ScreenConfig.MetadataRangeY2);
+			//int px,py;
+			//GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &px, &py);
+			ClearRows(m_ScreenConfig.BufferPercentageY);
 			break;
 		}
 	case CPSPSound::PLAY:
@@ -478,11 +526,11 @@ int CTextUI::ClearErrorMessage()
 
 int CTextUI::DisplayBufferPercentage(int iPerc)
 {
-	int x,y,c;
+	int c;
 
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{
-		GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
+		//GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
 		c = GetConfigColor("COLORS:BUFFER_PERCENTAGE");
 	
 		if (iPerc >= 95)
@@ -491,7 +539,7 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 			iPerc = 0;
 
 		//uiPrintf(x, y, c, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
-		uiPrintf(x, y, c, "Buffer: %03d%c", iPerc, 37/* 37='%'*/);
+		uiPrintf(m_ScreenConfig.BufferPercentageX, m_ScreenConfig.BufferPercentageY, c, "Buffer: %03d%c", iPerc, 37/* 37='%'*/);
 	}
 	return 0;
 }
@@ -552,50 +600,52 @@ int CTextUI::OnStreamOpeningSuccess()
 
 int CTextUI::OnNewSongData(MetaData *pData)
 {
-	int r1,r2,x1;
+	//int r1,r2,x1;
 
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{
 
-		GetConfigPair("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
-		x1 = m_Config->GetInteger("TEXT_POS:METADATA_START_COLUMN", 0);
-		ClearRows(r1, r2);
+		//GetConfigPair("TEXT_POS:METADATA_ROW_RANGE", &r1, &r2);
+		//x1 = m_Config->GetInteger("TEXT_POS:METADATA_START_COLUMN", 0);
+		int y = m_ScreenConfig.MetadataRangeY1;
+		int x = m_ScreenConfig.MetadataX1;
+		ClearRows(y, m_ScreenConfig.MetadataRangeY2);
 		
-		if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-x1))
-			pData->strTitle[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x1)] = 0;
+		if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
+			pData->strTitle[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
 			
-		if (strlen(pData->strURL) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-x1))
-			pData->strURL[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x1)] = 0;
+		if (strlen(pData->strURL) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
+			pData->strURL[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
 		
 		if (0 != pData->iSampleRate)
 		{
-			uiPrintf(x1,r1, COLOR_WHITE, "%lukbps %dHz (%d channels) stream",
+			uiPrintf(x, y, COLOR_WHITE, "%lukbps %dHz (%d channels) stream",
 					pData->iBitRate/1000, 
 					pData->iSampleRate,
 					pData->iNumberOfChannels);
 					//pData->strMPEGLayer);
-			r1+=m_Screen->GetFontHeight();
+			y+=m_Screen->GetFontHeight();
 		}
 		if (pData->strURL && strlen(pData->strURL))
 		{
-			uiPrintf(x1, r1, COLOR_WHITE,	"URL   : ");
-			uiPrintf(x1+8*m_Screen->GetFontWidth(), r1, COLOR_CYAN,	"%s ", pData->strURL);
+			uiPrintf(x, y, COLOR_WHITE,	"URL   : ");
+			uiPrintf(x+COL_TO_PIXEL(8), y, COLOR_CYAN,	"%s ", pData->strURL);
 		}
 		else
 		{
-			uiPrintf(x1 , r1,	COLOR_WHITE,	"Stream: ");
-			uiPrintf(x1+8*m_Screen->GetFontWidth() , r1,	COLOR_CYAN,		"%s ", pData->strURI);
+			uiPrintf(x , y,	COLOR_WHITE,	"Stream: ");
+			uiPrintf(x+COL_TO_PIXEL(8), y,	COLOR_CYAN,		"%s ", pData->strURI);
 		}
-		r1+=m_Screen->GetFontHeight();
+		y+=m_Screen->GetFontHeight();
 		
-		uiPrintf(x1 , r1,	COLOR_WHITE,	"Title : ");
-		uiPrintf(x1+8*m_Screen->GetFontWidth() , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
-		r1+=m_Screen->GetFontHeight();
+		uiPrintf(x , y,	COLOR_WHITE,	"Title : ");
+		uiPrintf(x+COL_TO_PIXEL(8), y,	COLOR_CYAN, 	"%s ", pData->strTitle);
+		y+=m_Screen->GetFontHeight();
 		
 		if (pData->strArtist && strlen(pData->strArtist))
 		{
-			uiPrintf(x1 , r1,	COLOR_WHITE,	"Artist: ");
-			uiPrintf(x1+8*m_Screen->GetFontWidth() , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
+			uiPrintf(x , y,	COLOR_WHITE,	"Artist: ");
+			uiPrintf(x+COL_TO_PIXEL(8), y,	COLOR_CYAN, 	"%s ", pData->strArtist);
 		}
 	}
 	return 0;
@@ -603,7 +653,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
-	int iStartCol, iEndCol, iRowStart, iRowEnd;
+//	int iStartCol, iEndCol, iRowStart, iRowEnd;
 	int iColorNormal, iColorSelected, iColorTitle, iColor;
 	int iNextRow = 0;
 	char *strText = NULL;
@@ -614,16 +664,16 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	iColorNormal   = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
 	iColorTitle    = GetConfigColor("COLORS:PLAYLIST_TITLE");
 	iColorSelected = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
-	iStartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_START_COLUMN", 0);
-	iEndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_END_COLUMN", 0);
-	GetConfigPair("TEXT_POS:PLAYLIST_CONTAINERLIST_ROW_RANGE", &iRowStart, &iRowEnd);
+//	iStartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_START_COLUMN", 0);
+//	iEndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_END_COLUMN", 0);
+//	GetConfigPair("TEXT_POS:PLAYLIST_CONTAINERLIST_ROW_RANGE", &iRowStart, &iRowEnd);
 	iColor = iColorNormal;
 	
 	bool bShowFileExtension = m_Config->GetInteger("OTHER:SHOW_FILE_EXTENSION", 0);
 
-	ClearHalfRows(iStartCol, iEndCol, iRowStart+ROW_TO_PIXEL(1), iRowEnd); /** Don't clear title (+1) */
+	ClearHalfRows(m_ScreenConfig.ContainerListRangeX1, m_ScreenConfig.ContainerListRangeX2, m_ScreenConfig.ContainerListRangeY1+ROW_TO_PIXEL(1), m_ScreenConfig.ContainerListRangeY2); /** Don't clear title (+1) */
 
-	iNextRow = iRowStart + ROW_TO_PIXEL(1); /** Start after the title */
+	iNextRow = m_ScreenConfig.ContainerListRangeY1 + ROW_TO_PIXEL(1); /** Start after the title */
 	
 	strText = (char *)malloc (MAXPATHLEN);
 	
@@ -632,7 +682,7 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	{
 		//Log(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
 		ListIterator = *CurrentElement;
-		for (int i = 0; i < (iRowEnd-iRowStart)/2/m_Screen->GetFontHeight(); i++)
+		for (int i = 0; i < PIXEL_TO_ROW(m_ScreenConfig.ContainerListRangeY2-m_ScreenConfig.ContainerListRangeY1)/2; i++)
 		{
 			if (ListIterator == List->begin())
 				break;
@@ -644,7 +694,7 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 		//Log(LOG_VERYLOW, "DisplayContainers(): Populating Screen (total elements %d)", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
-			if (iNextRow > iRowEnd)
+			if (iNextRow > m_ScreenConfig.ContainerListRangeY2)
 			{
 				break;
 			}
@@ -672,13 +722,13 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 						ext[0] = 0;
 					}
 				}
-				pText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
-				uiPrintf(iStartCol, iNextRow, iColor, pText);
+				pText[PIXEL_TO_COL(m_ScreenConfig.ContainerListRangeX2-m_ScreenConfig.ContainerListRangeX1)] = 0;
+				uiPrintf(m_ScreenConfig.ContainerListRangeX1, iNextRow, iColor, pText);
 			}
 			else
 			{
-				strText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
-				uiPrintf(iStartCol, iNextRow, iColor, strText);
+				strText[PIXEL_TO_COL(m_ScreenConfig.ContainerListRangeX2-m_ScreenConfig.ContainerListRangeX1)] = 0;
+				uiPrintf(m_ScreenConfig.ContainerListRangeX1, iNextRow, iColor, strText);
 			}
 			iNextRow+=m_Screen->GetFontHeight();
 		}
@@ -694,29 +744,29 @@ PLAYLIST_ENTRIESLIST_ROW_RANGE=14,28
 */
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
-	int iStartCol,iEndCol,iRowStart,iRowEnd, iNextRow;
+	//int iStartCol,iEndCol,iRowStart,iRowEnd, 
+	int iNextRow;
 	int iColorNormal,iColorTitle,iColorSelected, iColor;
 	char *strText = NULL;
 	
 	list<MetaData>::iterator ListIterator;
 	list<MetaData>::iterator *CurrentElement = Container->GetCurrentElementIterator();
 	list<MetaData> *List = Container->GetElementList();
-	//GetConfigPair("TEXT_POS:PLAYLIST_ENTRIES", &x, &y);
-	//GetConfigPair("TEXT_POS:PLAYLIST_ROW_RANGE", &iRowStart, &iRowEnd);
 	iColorNormal = GetConfigColor("COLORS:PLAYLIST_ENTRIES");
 	iColorSelected = GetConfigColor("COLORS:PLAYLIST_SELECTED_ENTRY");
 	iColorTitle = GetConfigColor("COLORS:PLAYLIST_TITLE");
-	iStartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_START_COLUMN", 0);
-	iEndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_END_COLUMN", 0);
-	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iRowStart, &iRowEnd);
+//	iStartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_START_COLUMN", 0);
+//	iEndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_END_COLUMN", 0);
+//	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iRowStart, &iRowEnd);
 	iColor = iColorNormal;
 
 	bool bShowFileExtension = m_Config->GetInteger("OTHER:SHOW_FILE_EXTENSION", 0);
 	
-	ClearHalfRows(iStartCol,iEndCol, iRowStart+ROW_TO_PIXEL(1),iRowEnd); /** Don't clear Entry title */
+	ClearHalfRows(m_ScreenConfig.EntriesListRangeX1,m_ScreenConfig.EntriesListRangeX2,
+				  m_ScreenConfig.EntriesListRangeY1+ROW_TO_PIXEL(1),m_ScreenConfig.EntriesListRangeY2); /** Don't clear Entry title */
 	
 	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
-	iNextRow = iRowStart + ROW_TO_PIXEL(1);
+	iNextRow = m_ScreenConfig.EntriesListRangeY1 + ROW_TO_PIXEL(1);
 	
 	strText = (char *)malloc (MAXPATHLEN);
 	
@@ -724,7 +774,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	if (List->size() > 0)
 	{
 		ListIterator = *CurrentElement;
-		for (int i = 0; i < (iRowEnd-iRowStart)/2/m_Screen->GetFontHeight(); i++)
+		for (int i = 0; i < PIXEL_TO_ROW(m_ScreenConfig.EntriesListRangeY2-m_ScreenConfig.EntriesListRangeY1)/2; i++)
 		{
 			if (ListIterator == List->begin())
 				break;
@@ -734,7 +784,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
-			if (iNextRow > iRowEnd)
+			if (iNextRow > m_ScreenConfig.EntriesListRangeY2)
 			{
 				break;
 			}
@@ -753,13 +803,13 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
-				strncpy(strText, (*ListIterator).strTitle, PIXEL_TO_COL(iEndCol-iStartCol));
-				strText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
+				strncpy(strText, (*ListIterator).strTitle, PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1));
+				strText[PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1)] = 0;
 			}
 			else
 			{
-				strncpy(strText, (*ListIterator).strURI, PIXEL_TO_COL(iEndCol-iStartCol));
-				strText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
+				strncpy(strText, (*ListIterator).strURI, PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1));
+				strText[PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1)] = 0;
 				
 				if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 				{
@@ -775,7 +825,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 				}
 			}
 		
-			uiPrintf(iStartCol, iNextRow, iColor, pText);
+			uiPrintf(m_ScreenConfig.EntriesListRangeX1, iNextRow, iColor, pText);
 			iNextRow+=m_Screen->GetFontHeight();
 		}
 	}
@@ -785,44 +835,35 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 
 void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 {
-	//int r1,r2, ct, iListX, iEntryX, y;
-	//GetConfigPair("TEXT_POS:PLAYLIST_ENTRIES", &iEntryX, &y);
-	//GetConfigPair("TEXT_POS:PLAYLIST_DIRS", &iListX, &y);
-	//GetConfigPair("TEXT_POS:PLAYLIST_ROW_RANGE", &r1, &r2);
-	//ct = GetConfigColor("COLORS:PLAYLIST_TITLE");
-	int iContainer_StartCol, iContainer_EndCol, iContainer_RowStart, iContainer_RowEnd;
-	int iEntries_StartCol, iEntries_EndCol, iEntries_RowStart, iEntries_RowEnd;
+//	int iContainer_StartCol, iContainer_EndCol, iContainer_RowStart, iContainer_RowEnd;
+//	int iEntries_StartCol, iEntries_EndCol, iEntries_RowStart, iEntries_RowEnd;
 	int iColorTitle;
 	
-	iContainer_StartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_START_COLUMN", 0);
-	iContainer_EndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_END_COLUMN", 0);
-	GetConfigPair("TEXT_POS:PLAYLIST_CONTAINERLIST_ROW_RANGE", &iContainer_RowStart, &iContainer_RowEnd);
+//	iContainer_StartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_START_COLUMN", 0);
+//	iContainer_EndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_CONTAINERLIST_END_COLUMN", 0);
+//	GetConfigPair("TEXT_POS:PLAYLIST_CONTAINERLIST_ROW_RANGE", &iContainer_RowStart, &iContainer_RowEnd);
 	
-	iEntries_StartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_START_COLUMN", 0);
-	iEntries_EndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_END_COLUMN", 0);
-	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iEntries_RowStart, &iEntries_RowEnd);
+//	iEntries_StartCol = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_START_COLUMN", 0);
+//	iEntries_EndCol   = m_Config->GetInteger("TEXT_POS:PLAYLIST_ENTRIESLIST_END_COLUMN", 0);
+//	GetConfigPair("TEXT_POS:PLAYLIST_ENTRIESLIST_ROW_RANGE", &iEntries_RowStart, &iEntries_RowEnd);
 	
 	iColorTitle = GetConfigColor("COLORS:PLAYLIST_TITLE");
 
-	ClearRows(iContainer_RowStart);
-	if (iContainer_RowStart != iEntries_RowStart)
-		ClearRows(iEntries_RowStart);
+	ClearRows(m_ScreenConfig.ContainerListRangeY1);
+	if (m_ScreenConfig.ContainerListRangeY1 != m_ScreenConfig.EntriesListRangeY1)
+		ClearRows(m_ScreenConfig.EntriesListRangeY1);
 	
 	
 	switch (Container->GetCurrentSide())
 	{
 		case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
-// 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
-// 			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
-			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2+iContainer_StartCol - COL_TO_PIXEL(4)/*entry/2*/,  iContainer_RowStart, iColorTitle, "*List*");
-			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - COL_TO_PIXEL(4)/*entry/2*/, iEntries_RowStart, iColorTitle, "Entries");
+			uiPrintf((m_ScreenConfig.ContainerListRangeX2 - m_ScreenConfig.ContainerListRangeX1)/2 + m_ScreenConfig.ContainerListRangeX1 - COL_TO_PIXEL(4)/*entry/2*/,  m_ScreenConfig.ContainerListRangeY1, iColorTitle, "*List*");
+			uiPrintf((m_ScreenConfig.EntriesListRangeX2 - m_ScreenConfig.EntriesListRangeX1)/2 + m_ScreenConfig.EntriesListRangeX1 - COL_TO_PIXEL(4)/*entry/2*/, m_ScreenConfig.EntriesListRangeY1, iColorTitle, "Entries");
 			break;
 		
 		case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
-//			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
-//			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
-			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2+iContainer_StartCol - COL_TO_PIXEL(3)/*entry/2*/,  iContainer_RowStart, iColorTitle, "List");
-			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - COL_TO_PIXEL(5)/*entry/2*/, iEntries_RowStart, iColorTitle, "*Entries*");
+			uiPrintf((m_ScreenConfig.ContainerListRangeX2 - m_ScreenConfig.ContainerListRangeX1)/2 + m_ScreenConfig.ContainerListRangeX1 - COL_TO_PIXEL(3)/*entry/2*/,  m_ScreenConfig.ContainerListRangeY1, iColorTitle, "List");
+			uiPrintf((m_ScreenConfig.EntriesListRangeX2 - m_ScreenConfig.EntriesListRangeX1)/2 + m_ScreenConfig.EntriesListRangeX1 - COL_TO_PIXEL(5)/*entry/2*/, m_ScreenConfig.EntriesListRangeY1, iColorTitle, "*Entries*");
 			break;
 	
 	}
