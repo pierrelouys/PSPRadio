@@ -135,6 +135,8 @@ public:
 	void DisplayContainers(CMetaDataContainer *Container);
 	void DisplayElements(CMetaDataContainer *Container);
 	void OnCurrentContainerSideChange(CMetaDataContainer *Container);
+	void OnTimeChange(pspTime *LocalTime);
+	void OnBatteryChange(int Percentage);
 
 	/** Screen Handling */
 	void Initialize_Screen(CScreenHandler::Screen screen);
@@ -184,6 +186,8 @@ private:
 		TEXT_PL_ENTRY3,
 		TEXT_PL_ENTRY4,
 		TEXT_PL_ENTRY5,
+		TEXT_TIME,
+		TEXT_BATTERY
 	};
 
 	struct StoredOptionItem

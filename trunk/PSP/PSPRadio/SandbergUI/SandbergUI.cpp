@@ -38,6 +38,8 @@
 #include <pspdisplay.h>
 #include <pspgu.h>
 #include <pspgum.h>
+#include <psprtc.h>
+#include <psppower.h>
 
 #include "SandbergUI.h"
 
@@ -60,6 +62,11 @@
 #define META_FORMAT_Y	 9
 #define META_ERROR_X	 9
 #define META_ERROR_Y	10
+
+#define TIME_X			28
+#define TIME_Y			12
+#define BATTERY_X		24
+#define BATTERY_Y		13
 
 
 #define NETWORK_INACTIVE_COLOR		0xFF444444
@@ -156,6 +163,8 @@ void CSandbergUI::LoadTextures(char *strCWD)
 
 int CSandbergUI::Initialize(char *strCWD)
 {
+char local_time[64];
+
 	Log(LOG_LOWLEVEL, "Initialize:");
 
 	/* Allocate space in VRAM for 2 displaybuffer and the Zbuffer */
@@ -192,6 +201,11 @@ int CSandbergUI::Initialize(char *strCWD)
 	sceKernelDcacheWritebackAll();
 
 	InitFX(strCWD);
+
+	sprintf(local_time, "%02d:%02d", 0, 0);
+	UpdateTextItem(TEXT_TIME, TIME_X, TIME_Y, local_time, 0xFFFFFFFF);
+	sprintf(local_time, "Battery:%03d%%", scePowerGetBatteryLifePercent());
+	UpdateTextItem(TEXT_BATTERY, BATTERY_X, BATTERY_Y, local_time, 0xFFFFFFFF);
 
 	Log(LOG_LOWLEVEL, "Initialize: completed");
 	return 0;
@@ -452,11 +466,22 @@ void CSandbergUI::RenderIcon(IconStr *icon_info)
 
 void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
 {
+
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 		{
+			char	strText[64];
+			pspTime local_time;
+
+			sceRtcGetCurrentClockLocalTime(&local_time);
+
+			sprintf(strText, "%02d:%02d", local_time.hour, local_time.minutes);
+			UpdateTextItem(TEXT_TIME, TIME_X, TIME_Y, strText, 0xFFFFFFFF);
+			sprintf(strText, "Battery:%03d%%", scePowerGetBatteryLifePercent());
+			UpdateTextItem(TEXT_BATTERY, BATTERY_X, BATTERY_Y, strText, 0xFFFFFFFF);
+
 			screen_state = SCREEN_PLAYING;
 		}
 		break;
@@ -531,4 +556,20 @@ void *CSandbergUI::LoadFile(char *filename)
 	}
 	sceKernelDcacheWritebackAll();
 	return mem_buffer;
+}
+
+void CSandbergUI::OnTimeChange(pspTime *LocalTime)
+{
+	char local_time[64];
+
+	sprintf(local_time, "%02d:%02d", LocalTime->hour, LocalTime->minutes);
+	UpdateTextItem(TEXT_TIME, TIME_X, TIME_Y, local_time, 0xFFFFFFFF);
+}
+
+void CSandbergUI::OnBatteryChange(int Percentage)
+{
+	char level[64];
+
+	sprintf(level, "Battery:%03d%%", Percentage);
+	UpdateTextItem(TEXT_BATTERY, BATTERY_X, BATTERY_Y, level, 0xFFFFFFFF);
 }

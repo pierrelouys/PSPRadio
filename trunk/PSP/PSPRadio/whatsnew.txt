@@ -3,6 +3,7 @@ What's New for PSPRadio
 
 0.37-pre6
 (sandberg) Updated the 3D UI so all options are fitted to the screen.
+(sandberg) Added support for showing the time and the battery level on the 3D UI.
 
 0.37-pre5 (r623) (12-06-2005)
 (raf) Enabled pausing of local streams
