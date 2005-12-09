@@ -280,23 +280,20 @@ void CScreen::PutEraseChar( int x, int y, u32 color)
 
 void CScreen::PutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
-	int xminusone = (x>0?(x-1):0);
-	int yminusone = (y>0?(y-1):0);
-	
 	PutEraseChar(x,y, 0);
 
-	/** y - 1 */	
-	PutChar(xminusone, yminusone, bg_color, ch, false);
-	PutChar(x, yminusone, bg_color, ch, false);	
-	PutChar(x+1, yminusone, bg_color, ch, false);
+	/** y */	
+	PutChar(x,   y, bg_color, ch, false);
+	PutChar(x+1, y, bg_color, ch, false);	
+	PutChar(x+2, y, bg_color, ch, false);
+	/** y + 2 */
+	PutChar(x,   y+2, bg_color, ch, false);
+	PutChar(x+1, y+2, bg_color, ch, false);	
+	PutChar(x+2, y+2, bg_color, ch, false);
 	/** y + 1 */
-	PutChar(xminusone, y+1, bg_color, ch, false);
-	PutChar(x, y+1, bg_color, ch, false);	
-	PutChar(x+1, y+1, bg_color, ch, false);
-	/** y */
-	PutChar(xminusone, y, bg_color, ch, false);
-	PutChar(x+1, y, bg_color, ch, false);
-	PutChar(x, y, fg_color, ch, false);	
+	PutChar(x,   y+1, bg_color, ch, false);
+	PutChar(x+2, y+1, bg_color, ch, false);
+	PutChar(x+1, y+1, fg_color, ch, false);	
 }
 
 void CScreen::PutCharWithShadow(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
@@ -315,11 +312,24 @@ void CScreen::ClearLine(int Y)
 	ClearNChars(0, Y, MX);
 }
 
+void CScreen::ClearLineFromY(int pixel_y)
+{
+	ClearNCharsFromY(0, pixel_y, PSP_SCREEN_WIDTH);
+}
+
 void CScreen::ClearNChars(int X, int Y, int N)
 {
 	for (int i=X; i < X+N; i++)
 	{
 		PutEraseChar( i * m_FontWidth , Y * m_FontHeight, bg_col);
+	}
+}
+
+void CScreen::ClearNCharsFromY(int pixel_x1, int pixel_y, int pixel_x2)
+{
+	for (int i=pixel_x1; i <= pixel_x2; i++)
+	{
+		PutEraseChar( i, pixel_y, bg_col);
 	}
 }
 
@@ -392,6 +402,41 @@ void CScreen::Printf(const char *format, ...)
    PrintData(buff, bufsz);
 }
 
+void CScreen::PrintText(int pixel_x, int pixel_y, int color, char *string)
+{
+	int i = 0;
+	char c;
+
+	for (;;i++)
+	{
+		c = string[i];
+		if (0 == c || pixel_x > PSP_SCREEN_WIDTH || pixel_y > PSP_SCREEN_HEIGHT)
+			break;
+			
+		switch (c)
+		{
+			case '\n':
+			case '\t':
+				PutChar( pixel_x, pixel_y, color, ' ' );
+				pixel_x+=m_FontWidth;
+				break;
+			default: 
+				switch(m_TextMode)
+				{
+					case TEXTMODE_NORMAL:
+						PutChar( pixel_x, pixel_y, color, c );
+						break;
+					case TEXTMODE_OUTLINED:
+						PutCharWithOutline( pixel_x, pixel_y, 0, color, c );
+						break;
+					case TEXTMODE_SHADOWED:
+						PutCharWithShadow( pixel_x, pixel_y, 0, color, c );
+						break;
+				}
+				pixel_x+=m_FontWidth;
+		}
+	}
+}
 
 void CScreen::SetXY(int x, int y)
 {

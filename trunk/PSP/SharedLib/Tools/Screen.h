@@ -24,15 +24,20 @@
 		void SetBackgroundImage(char *strImage);
 		void SetTextMode(textmode mode){m_TextMode = mode;}
 		void SetFontSize(int iWidth, int iHeight);
+		int  GetFontHeight(){return m_FontHeight;}
+		int  GetFontWidth(){return m_FontWidth;}
 		size_t GetNumberOfTextColumns(){ return PSP_SCREEN_WIDTH/m_FontWidth; }
 		size_t GetNumberOfTextRows(){ return PSP_SCREEN_HEIGHT/m_FontHeight; }
 		void Printf(const char *format, ...);
+		void PrintText(int pixel_x, int pixel_y, int color, char *string);
 		void Clear();
 		void SetXY(int x, int y);
 		int  GetX();
 		int  GetY();
 		void ClearNChars(int X, int Y, int N);
 		void ClearLine(int Y);
+		void ClearLineFromY(int pixel_y);
+		void ClearNCharsFromY(int pixel_x, int pixel_y, int N);
 		
 	private:
 		int X, Y;
