@@ -1,8 +1,18 @@
 What's New for PSPRadio 
 ========================
 
-0.37-pre6
+0.37-pre6 (r634)
+BUGS FIXES:
+(raf) Core: Logging instantiated in the heap instead of the data segment.
+(raf) Core: Modifications to make it compatible with the latest pspsdk (r1542)
+(raf) Playback: Corrected bug that caused app to crash when a stream failed.
+(raf) TextUI: Made the title shorter so it fits no matter what font is used.
 (sandberg) Updated the 3D UI so all options are fitted to the screen.
+NEW FEATURES:
+(raf) TextUI: Now files defined in playlists are displayed without the path, and the extension is only shown if configured to in the config file.
+(raf) Compiled against latest pspsdk (r1542). There should be some speed improvements, as things like memcpy are now optimized.
+(raf) Core/TextUI: Added support to print text using pixel coordinates
+(raf) TexUI: Removed cleaning code that was unnecessary in the options screen renderer. This should speed it up a bit.
 (sandberg) Added support for showing the time and the battery level on the 3D UI.
 
 0.37-pre5 (r623) (12-06-2005)
@@ -12,6 +22,7 @@ What's New for PSPRadio
 (raf) Created playmodes; defaults to NORMAL (will play next track after current one ends), also has SINGLE and REPEAT modes.
 (raf) Completely re-wrote buffering system. (Using stl lists, and optimized buffers). New change from one stream to the next is seamless.
 (raf) Made font size configurable in the textui config file. If these settings are set correctly, then the artifacts produced when using outlined/shadowed text should go away. (The downside, is that the number of columns/rows is also modified as these values change.)
+(raf) Corrected bug with playlists v2, where streams with spaces were getting truncated.
 
 
 0.37-pre4 (r592) (11-23-2005)
