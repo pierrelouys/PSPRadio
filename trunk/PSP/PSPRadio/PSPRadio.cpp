@@ -80,7 +80,7 @@ public:
 		char *strDir = NULL;
 		char strAppTitle[140];
 		
-		sprintf(strAppTitle, "%s by Raf (http://rafpsp.blogspot.com/) Version %s\n",
+		sprintf(strAppTitle, "%s %s - rafpsp.blogspot.com\n",
 			GetProgramName(),
 			GetProgramVersion());
 		
@@ -341,10 +341,10 @@ public:
 					}
 					break;
 					
-				case MID_THDECODE_DECODING:
-					if (m_UI)
-						m_UI->OnNewStreamStarted();
-					break;
+//				case MID_THDECODE_DECODING:
+//					if (m_UI)
+//						m_UI->OnNewStreamStarted();
+//					break;
 					
 				case MID_DECODE_STREAM_OPENING:
 					if (m_UI)
@@ -377,7 +377,7 @@ public:
 						m_UI->OnStreamOpeningError();
 					break;
 
-					
+				case MID_THDECODE_DECODING:
 				case MID_SOUND_STARTED:
 					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
 					if (StreamOwnerScreen)
