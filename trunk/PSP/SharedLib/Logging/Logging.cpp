@@ -25,6 +25,9 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <time.h>
+#include <pspkernel.h>
+#include <psprtc.h>
+#include <psputility_sysparam.h>
 #include "Logging.h"
 
 CLogging *pLogging = NULL;
@@ -41,7 +44,6 @@ CLogging::CLogging()
 	m_fp = NULL;
 	m_lock = new CLock("LogLock");
 	m_msg = (char *) malloc(4096); /** A message this big would fill up the whole screen of the psp if sent to the screen. */
-	m_timeInitial = clock()*1000/CLOCKS_PER_SEC;
 }
 
 CLogging::~CLogging()
@@ -128,15 +130,19 @@ int CLogging::Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, cha
 	if (m_strFilename && LogLevel >= m_LogLevel) /** Log only if Set() was called and loglevel is correct */
 	{
 		va_start (args, strFormat);         /* Initialize the argument list. */
-		clock_t timeDelta = ((clock()*1000/CLOCKS_PER_SEC) - m_timeInitial); /** we want time in ms */
+		pspTime local_time;
 		
+		sceRtcGetCurrentClockLocalTime(&local_time);
+
 		Open();
 		if (m_fp)
 		{
-			fprintf(m_fp, "%02lu:%02lu.%03lu:",
-				((timeDelta / 1000) / 60) % 60,
-				(timeDelta / 1000) % 60,
-				timeDelta % 1000);
+			fprintf(m_fp, "%02d:%02d:%02d.%03d:",
+					local_time.hour, 
+					local_time.minutes,
+					local_time.seconds,
+					(int)(local_time.microseconds/1000)
+					);
 
 			fprintf(m_fp, "%s@%d<%d>: ", strModuleName, iLineNo, LogLevel);
 
