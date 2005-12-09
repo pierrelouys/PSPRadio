@@ -338,6 +338,15 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
 	IPSPRadio_UI *UI = NULL;
 	
+	Log(LOG_VERYLOW, "OnPlayStateChange(%d) called. (this=0x%x)", (int)NewPlayState, this);
+#if 0
+	Log(LOG_VERYLOW, "OnPlayStateChange() Called with %d (%s)",
+		NewPlayState, 
+		(NewPlayState==PLAYSTATE_PLAY)?"PLAY":
+		((NewPlayState==PLAYSTATE_STOP)?"STOP":
+		((NewPlayState==PLAYSTATE_PAUSE)?"PAUSE":
+		((NewPlayState==PLAYSTATE_EOS)?"EOS":"Undefined") ) ) );
+#endif	
 	/* Only tell the UI about changes if the current active screen is this */
 	/* This prvents screens like the option screen from getting notified */
 	if (this == m_ScreenHandler->GetCurrentScreen())
@@ -348,17 +357,11 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	{
 		UI = NULL;
 	}
-	
-	Log(LOG_VERYLOW, "OnPlayStateChange() Called with %d (%s)",
-		NewPlayState, 
-		(NewPlayState==PLAYSTATE_PLAY)?"PLAY":
-		((NewPlayState==PLAYSTATE_STOP)?"STOP":
-		((NewPlayState==PLAYSTATE_PAUSE)?"PAUSE":
-		((NewPlayState==PLAYSTATE_EOS)?"EOS":"Undefined") ) ) );
-	
-	switch (NewPlayState)
+	Log(LOG_VERYLOW, "OnPlayStateChange() Right before the switch");
+ 	switch (NewPlayState)
 	{
 		case PLAYSTATE_PLAY:
+			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_PLAY");
 			if (UI)
 				UI->DisplayActiveCommand(CPSPSound::PLAY);
 			if (PLAYSTATE_PAUSE != OldPlayState)
@@ -371,10 +374,12 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 			}
 			break;
 		case PLAYSTATE_PAUSE:
+			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_PAUSE");
 			if (UI)
 				UI->DisplayActiveCommand(CPSPSound::PAUSE);
 			break;
 		case PLAYSTATE_STOP:
+			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_STOP");
 			if (CurrentStateInMS - LastEOSinMS > 500)
 			{
 				if (CScreenHandler::PLAY_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop)
@@ -408,7 +413,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 			}
 			else
 			{
-				Log(LOG_ERROR, "OnPlayStateChange(): newstate = PLAYSTATE_STOP, but we had a EOS %sms ago, so ignoring.",
+				Log(LOG_ERROR, "OnPlayStateChange(): newstate = PLAYSTATE_STOP, but we had an EOS %dms ago, so ignoring.",
 					CurrentStateInMS - LastEOSinMS);
 			}
 			break;
