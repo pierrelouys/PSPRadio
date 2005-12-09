@@ -35,8 +35,13 @@
 
 //#define MAX_ROWS 34
 //#define MAX_COL  68
-#define MAX_ROWS 	m_Screen->GetNumberOfTextRows()
-#define MAX_COL 	m_Screen->GetNumberOfTextColumns()
+#define MAX_ROWS 		m_Screen->GetNumberOfTextRows()
+#define MAX_COL 		m_Screen->GetNumberOfTextColumns()
+#define PIXEL_TO_ROW(y)	((y)/m_Screen->GetFontHeight())
+#define PIXEL_TO_COL(x) ((x)/m_Screen->GetFontWidth())
+#define COL_TO_PIXEL(c) ((c)*m_Screen->GetFontWidth())
+#define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
+
 
 #define TEXT_UI_CFG_FILENAME "TextUI/TextUI.cfg"
 
@@ -194,7 +199,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
 	
-	int x=-1,y=5,c=0xFFFFFF;
+	int x=-1,y=m_Config->GetInteger("SCREEN_OPTIONS:FIRST_ENTRY_Y",40),c=0xFFFFFF;
 	
 	if (OptionsList.size() > 0)
 	{
@@ -211,11 +216,11 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			
 			Option = (*OptionIterator);
 			
-			ClearRows(y);
+			//ClearRows(y);
 			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
 						Option.iActiveState);
 			
-			y+=2;
+			y+=m_Config->GetInteger("SCREEN_OPTIONS:ROW_SEPARATION",16); //was 2*
 		}
 	}
 }
@@ -223,11 +228,11 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
 						  int iActiveState)
 {
-	int iTextPos = 5;
+	int iTextPos = PIXEL_TO_COL(m_Config->GetInteger("SCREEN_OPTIONS:FIRST_ENTRY_X",40));
 	int color = 0xFFFFFF;
 	
 	//uiPrintf(x,y,c, "%s(%d): %s", strName, iSelectedState, strStates);
-	uiPrintf(iTextPos,y,c, "%s: ", strName);
+	uiPrintf(iTextPos*m_Screen->GetFontWidth(),y,c, "%s: ", strName);
 	if (iNumberOfStates > 0)
 	{
 		iTextPos += strlen(strName)+2;
@@ -251,7 +256,7 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 				color =  GetConfigColor("COLORS:OPTIONS_SCREEN_ACTIVE_AND_SELECTED_STATE");//0x9090E3;
 			}
 			
-			uiPrintf(iTextPos,y,color, "%s ", strStates[iStates]);
+			uiPrintf(iTextPos*m_Screen->GetFontWidth(),y,color, "%s ", strStates[iStates]);
 			iTextPos += strlen(strStates[iStates])+1;
 		}
 	}	
@@ -261,8 +266,6 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 {
 	va_list args;
 	char msg[70*5/** 5 lines worth of text...*/];
-	
-	m_lockprint->Lock();
 
 	va_start (args, strFormat);         /* Initialize the argument list. */
 	
@@ -275,15 +278,10 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 
 	if (x == -1) /** CENTER */
 	{
-		x = MAX_COL/2 - strlen(msg)/2;
+		x = PSP_SCREEN_WIDTH/2 - ((strlen(msg)/2)*m_Screen->GetFontWidth());
 	}
-	m_Screen->SetXY(x,y);
-	m_Screen->SetTextColor(color);
-	m_Screen->Printf(msg);
-	
+	m_Screen->PrintText(x, y, color, msg);
 	va_end (args);                  /* Clean up. */
-
-	m_lockprint->Unlock();
 }
 
 void CTextUI::ClearRows(int iRowStart, int iRowEnd)
@@ -292,9 +290,10 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 		iRowEnd = iRowStart;
 		
 	m_lockclear->Lock();
-	for (int iRow = iRowStart ; (iRow < (int)MAX_ROWS) && (iRow <= iRowEnd); iRow++)
+	for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
 	{
-		m_Screen->ClearLine(iRow);
+		//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
+		m_Screen->ClearLineFromY(iRow);
 	}
 	m_lockclear->Unlock();
 }
@@ -305,9 +304,9 @@ void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowE
 		iRowEnd = iRowStart;
 		
 	m_lockclear->Lock();
-	for (int iRow = iRowStart ; (iRow < (int)MAX_ROWS) && (iRow <= iRowEnd); iRow++)
+	for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
 	{
-		m_Screen->ClearNChars(iColStart, iRow, iColEnd - iColStart);
+		m_Screen->ClearNCharsFromY(iColStart, iRow, iColEnd);
 	}
 	m_lockclear->Unlock();
 }
@@ -428,12 +427,12 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 			break;
 	}
 	
-	/** If message is longer than 2 lines, then truncate;
+	/** If message is longer than 1 lines, then truncate;
 	The -10 is to accomodate for the "Error: " plus a bit.
 	*/
-	if (strlen(strMsg)>(MAX_COL*2 - 10))
+	if (strlen(strMsg)>(size_t)(PSP_SCREEN_WIDTH/m_Screen->GetFontWidth() - 10))
 	{
-		strMsg[MAX_COL*2 - 10] = 0;
+		strMsg[(PSP_SCREEN_WIDTH/m_Screen->GetFontWidth() - 10)] = 0;
 	}
 	uiPrintf(x, y, c, "Error: %s", strMsg);
 	
@@ -457,12 +456,12 @@ int CTextUI::DisplayMessage(char *strMsg)
 			break;
 	}
 	
-	/** If message is longer than 2 lines, then truncate;
+	/** If message is longer than 1 lines, then truncate;
 	 *  The -3 is just in case.
 	 */
-	if (strlen(strMsg)>(MAX_COL*2 - 10))
+	if (strlen(strMsg)>(size_t)(PSP_SCREEN_WIDTH/m_Screen->GetFontWidth() - 3))
 	{
-		strMsg[MAX_COL*2 - 3] = 0;
+		strMsg[(PSP_SCREEN_WIDTH/m_Screen->GetFontWidth() - 3)] = 0;
 	}
 	uiPrintf(-1, y, c, "%s", strMsg);
 	
@@ -486,12 +485,13 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 		GetConfigPair("TEXT_POS:BUFFER_PERCENTAGE", &x, &y);
 		c = GetConfigColor("COLORS:BUFFER_PERCENTAGE");
 	
-		if (iPerc > 97)
+		if (iPerc >= 95)
 			iPerc = 100;
 		if (iPerc < 2)
 			iPerc = 0;
 
-		uiPrintf(x, y, c, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
+		//uiPrintf(x, y, c, "Buffer: %03d%c%c", iPerc, 37, 37/* 37='%'*/);
+		uiPrintf(x, y, c, "Buffer: %03d%c", iPerc, 37/* 37='%'*/);
 	}
 	return 0;
 }
@@ -513,6 +513,21 @@ int CTextUI::OnStreamOpening()
 	return 0;
 }
 
+int CTextUI::OnConnectionProgress()
+{
+	int x,y,c;
+	GetConfigPair("TEXT_POS:STREAM_OPENING", &x, &y);
+	c = GetConfigColor("COLORS:STREAM_OPENING");
+	char *strIndicator[] = {"OpEnInG StReAm", "oPeNiNg sTrEaM"};
+	static int sIndex = 0;
+	
+	uiPrintf(x, y, c, "%s", strIndicator[sIndex]);
+	
+	sIndex = (sIndex+1)%2;
+
+	return 0;
+}
+
 int CTextUI::OnStreamOpeningError()
 {
 	int x,y,c;
@@ -531,7 +546,7 @@ int CTextUI::OnStreamOpeningSuccess()
 	c = GetConfigColor("COLORS:STREAM_OPENING_SUCCESS");
 	
 	ClearRows(y);
-	uiPrintf(x, y, c, "Stream Opened");
+	//uiPrintf(x, y, c, "Stream Opened");
 	return 0;
 }
 
@@ -546,11 +561,11 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		x1 = m_Config->GetInteger("TEXT_POS:METADATA_START_COLUMN", 0);
 		ClearRows(r1, r2);
 		
-		if (strlen(pData->strTitle) >= (size_t)(59-x1))
-			pData->strTitle[59-x1] = 0;
+		if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-x1))
+			pData->strTitle[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x1)] = 0;
 			
-		if (strlen(pData->strURL) >= (size_t)(59-x1))
-			pData->strURL[59-x1] = 0;
+		if (strlen(pData->strURL) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-x1))
+			pData->strURL[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x1)] = 0;
 		
 		if (0 != pData->iSampleRate)
 		{
@@ -559,32 +574,30 @@ int CTextUI::OnNewSongData(MetaData *pData)
 					pData->iSampleRate,
 					pData->iNumberOfChannels);
 					//pData->strMPEGLayer);
-			r1++;
-		}
-		uiPrintf(x1 , r1,	COLOR_WHITE,	"Stream: ");
-		uiPrintf(x1+8 , r1,	COLOR_CYAN,		"%s ", pData->strURI);
-		r1++;
-		uiPrintf(x1 , r1,	COLOR_WHITE,	"Title : ");
-		uiPrintf(x1+8 , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
-		r1++;
-		if (pData->strArtist && strlen(pData->strArtist))
-		{
-			uiPrintf(x1 , r1,	COLOR_WHITE,	"Artist: ");
-			uiPrintf(x1+8 , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
-			r1++;
+			r1+=m_Screen->GetFontHeight();
 		}
 		if (pData->strURL && strlen(pData->strURL))
 		{
 			uiPrintf(x1, r1, COLOR_WHITE,	"URL   : ");
-			uiPrintf(x1+8, r1, COLOR_CYAN,	"%s ", pData->strURL);
+			uiPrintf(x1+8*m_Screen->GetFontWidth(), r1, COLOR_CYAN,	"%s ", pData->strURL);
+		}
+		else
+		{
+			uiPrintf(x1 , r1,	COLOR_WHITE,	"Stream: ");
+			uiPrintf(x1+8*m_Screen->GetFontWidth() , r1,	COLOR_CYAN,		"%s ", pData->strURI);
+		}
+		r1+=m_Screen->GetFontHeight();
+		
+		uiPrintf(x1 , r1,	COLOR_WHITE,	"Title : ");
+		uiPrintf(x1+8*m_Screen->GetFontWidth() , r1,	COLOR_CYAN, 	"%s ", pData->strTitle);
+		r1+=m_Screen->GetFontHeight();
+		
+		if (pData->strArtist && strlen(pData->strArtist))
+		{
+			uiPrintf(x1 , r1,	COLOR_WHITE,	"Artist: ");
+			uiPrintf(x1+8*m_Screen->GetFontWidth() , r1,	COLOR_CYAN, 	"%s ", pData->strArtist);
 		}
 	}
-	return 0;
-}
-
-int CTextUI::OnConnectionProgress()
-{
-	m_Screen->Printf(".");
 	return 0;
 }
 
@@ -608,9 +621,9 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	
 	bool bShowFileExtension = m_Config->GetInteger("OTHER:SHOW_FILE_EXTENSION", 0);
 
-	ClearHalfRows(iStartCol, iEndCol, iRowStart+1, iRowEnd); /** Don't clear title (+1) */
+	ClearHalfRows(iStartCol, iEndCol, iRowStart+ROW_TO_PIXEL(1), iRowEnd); /** Don't clear title (+1) */
 
-	iNextRow = iRowStart + 1; /** Start after the title */
+	iNextRow = iRowStart + ROW_TO_PIXEL(1); /** Start after the title */
 	
 	strText = (char *)malloc (MAXPATHLEN);
 	
@@ -619,7 +632,7 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	{
 		//Log(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
 		ListIterator = *CurrentElement;
-		for (int i = 0; i < (iRowEnd-iRowStart)/2; i++)
+		for (int i = 0; i < (iRowEnd-iRowStart)/2/m_Screen->GetFontHeight(); i++)
 		{
 			if (ListIterator == List->begin())
 				break;
@@ -651,7 +664,6 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 			if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 			{
 				char *pText = basename(strText);
-				pText[iEndCol-iStartCol - 2] = 0;
 				if (false == bShowFileExtension)
 				{
 					char *ext = strrchr(pText, '.');
@@ -660,14 +672,15 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 						ext[0] = 0;
 					}
 				}
+				pText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
 				uiPrintf(iStartCol, iNextRow, iColor, pText);
 			}
 			else
 			{
-				strText[iEndCol-iStartCol - 2] = 0;
+				strText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
 				uiPrintf(iStartCol, iNextRow, iColor, strText);
 			}
-			iNextRow++;
+			iNextRow+=m_Screen->GetFontHeight();
 		}
 	}
 	
@@ -700,10 +713,10 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 
 	bool bShowFileExtension = m_Config->GetInteger("OTHER:SHOW_FILE_EXTENSION", 0);
 	
-	ClearHalfRows(iStartCol,iEndCol, iRowStart+1,iRowEnd); /** Don't clear Entry title */
+	ClearHalfRows(iStartCol,iEndCol, iRowStart+ROW_TO_PIXEL(1),iRowEnd); /** Don't clear Entry title */
 	
 	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
-	iNextRow = iRowStart + 1;
+	iNextRow = iRowStart + ROW_TO_PIXEL(1);
 	
 	strText = (char *)malloc (MAXPATHLEN);
 	
@@ -711,7 +724,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	if (List->size() > 0)
 	{
 		ListIterator = *CurrentElement;
-		for (int i = 0; i < (iRowEnd-iRowStart)/2; i++)
+		for (int i = 0; i < (iRowEnd-iRowStart)/2/m_Screen->GetFontHeight(); i++)
 		{
 			if (ListIterator == List->begin())
 				break;
@@ -740,18 +753,17 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
-				strncpy(strText, (*ListIterator).strTitle, (iEndCol-iStartCol));
-				strText[iEndCol-iStartCol] = 0;
+				strncpy(strText, (*ListIterator).strTitle, PIXEL_TO_COL(iEndCol-iStartCol));
+				strText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
 			}
 			else
 			{
-				strncpy(strText, (*ListIterator).strURI, (iEndCol-iStartCol));
-				strText[iEndCol-iStartCol] = 0;
+				strncpy(strText, (*ListIterator).strURI, PIXEL_TO_COL(iEndCol-iStartCol));
+				strText[PIXEL_TO_COL(iEndCol-iStartCol)] = 0;
 				
 				if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 				{
 					pText = basename(strText);
-					pText[iEndCol-iStartCol - 2] = 0;
 					if (false == bShowFileExtension)
 					{
 						char *ext = strrchr(pText, '.');
@@ -763,9 +775,8 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 				}
 			}
 		
-			//Log(LOG_VERYLOW, "DisplayPLEntries(): Calling Print for strText='%s'", strText);
 			uiPrintf(iStartCol, iNextRow, iColor, pText);
-			iNextRow++;
+			iNextRow+=m_Screen->GetFontHeight();
 		}
 	}
 	
@@ -803,15 +814,15 @@ void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 		case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 // 			uiPrintf(33/2 + iListX - 4/*entry/2*/,  r1, ct, "*List*");
 // 			uiPrintf(33/2 + iEntryX - 4/*entry/2*/, r1, ct, "Entries");
-			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2+iContainer_StartCol - 4/*entry/2*/,  iContainer_RowStart, iColorTitle, "*List*");
-			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - 4/*entry/2*/, iEntries_RowStart, iColorTitle, "Entries");
+			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2+iContainer_StartCol - COL_TO_PIXEL(4)/*entry/2*/,  iContainer_RowStart, iColorTitle, "*List*");
+			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - COL_TO_PIXEL(4)/*entry/2*/, iEntries_RowStart, iColorTitle, "Entries");
 			break;
 		
 		case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 //			uiPrintf(33/2 + iListX - 3/*entry/2*/,  r1, ct, "List");
 //			uiPrintf(33/2 + iEntryX - 5/*entry/2*/, r1, ct, "*Entries*");
-			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2+iContainer_StartCol - 3/*entry/2*/,  iContainer_RowStart, iColorTitle, "List");
-			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - 5/*entry/2*/, iEntries_RowStart, iColorTitle, "*Entries*");
+			uiPrintf((iContainer_EndCol - iContainer_StartCol)/2+iContainer_StartCol - COL_TO_PIXEL(3)/*entry/2*/,  iContainer_RowStart, iColorTitle, "List");
+			uiPrintf((iEntries_EndCol - iEntries_StartCol)/2+iEntries_StartCol - COL_TO_PIXEL(5)/*entry/2*/, iEntries_RowStart, iColorTitle, "*Entries*");
 			break;
 	
 	}
