@@ -36,8 +36,7 @@
 		int  GetY();
 		void ClearNChars(int X, int Y, int N);
 		void ClearLine(int Y);
-		void ClearLineFromY(int pixel_y);
-		void ClearNCharsFromY(int pixel_x, int pixel_y, int N);
+		void ClearCharsAtYFromX1ToX2(int pixel_y, int pixel_x1, int pixel_x2);
 		
 	private:
 		int X, Y;

@@ -312,11 +312,6 @@ void CScreen::ClearLine(int Y)
 	ClearNChars(0, Y, MX);
 }
 
-void CScreen::ClearLineFromY(int pixel_y)
-{
-	ClearNCharsFromY(0, pixel_y, PSP_SCREEN_WIDTH);
-}
-
 void CScreen::ClearNChars(int X, int Y, int N)
 {
 	for (int i=X; i < X+N; i++)
@@ -325,9 +320,9 @@ void CScreen::ClearNChars(int X, int Y, int N)
 	}
 }
 
-void CScreen::ClearNCharsFromY(int pixel_x1, int pixel_y, int pixel_x2)
+void CScreen::ClearCharsAtYFromX1ToX2(int pixel_y, int pixel_x1, int pixel_x2)
 {
-	for (int i=pixel_x1; i <= pixel_x2; i++)
+	for (int i=pixel_x1; i <= pixel_x2; i+=m_FontWidth)
 	{
 		PutEraseChar( i, pixel_y, bg_col);
 	}
