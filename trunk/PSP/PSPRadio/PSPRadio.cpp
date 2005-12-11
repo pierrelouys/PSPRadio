@@ -80,8 +80,8 @@ public:
 		char *strDir = NULL;
 		char strAppTitle[140];
 		
-		sprintf(strAppTitle, "%s %s - rafpsp.blogspot.com\n",
-			GetProgramName(),
+		sprintf(strAppTitle, "%s",
+			//GetProgramName(),
 			GetProgramVersion());
 		
 		strDir = (char*)malloc(MAXPATHLEN);
