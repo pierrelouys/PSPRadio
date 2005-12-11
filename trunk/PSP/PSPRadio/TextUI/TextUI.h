@@ -20,11 +20,27 @@ struct screenconfig
 	int EntriesListRangeX2;
 	int EntriesListRangeY1;
 	int EntriesListRangeY2;
-	int BufferPercentageX;
-	int BufferPercentageY;
+	int BufferPercentageX, BufferPercentageY, BufferPercentageColor;
 	int MetadataX1;
 	int MetadataRangeY1;
 	int MetadataRangeY2;
+	int ListsTitleColor;
+	int EntriesListColor;
+	int SelectedEntryColor;
+	int ProgramVersionX, ProgramVersionY, ProgramVersionColor;
+	int StreamOpeningX, StreamOpeningY, StreamOpeningColor;
+	int StreamOpeningErrorX, StreamOpeningErrorY, StreamOpeningErrorColor;
+	int StreamOpeningSuccessX, StreamOpeningSuccessY, StreamOpeningSuccessColor;
+	int CleanOnNewStreamRangeY1, CleanOnNewStreamRangeY2;
+	int ActiveCommandX, ActiveCommandY, ActiveCommandColor;
+	int ErrorMessageX, ErrorMessageY, ErrorMessageColor;
+	int NetworkEnablingX, NetworkEnablingY;
+	int NetworkDisablingX, NetworkDisablingY;
+	int NetworkReadyX, NetworkReadyY;
+	int NetworkEnablingColor,NetworkDisablingColor, NetworkReadyColor;
+	int ClockX, ClockY, ClockColor;
+	int BatteryX, BatteryY, BatteryColor;
+	
 };
 
 class CTextUI : public IPSPRadio_UI
@@ -65,6 +81,9 @@ public:
 	void DisplayElements(CMetaDataContainer *Container);
 	void OnCurrentContainerSideChange(CMetaDataContainer *Container);
 	
+	void OnBatteryChange(int Percentage);
+	void OnTimeChange(pspTime *LocalTime);
+	
 private:
 	bool  m_isdirty;
 	CLock *m_lockprint;
@@ -74,7 +93,9 @@ private:
 	CScreen *m_Screen;
 	CScreenHandler::Screen m_CurrentScreen;
 	screenconfig m_ScreenConfig;
-
+	int 	m_LastBatteryPercentage;
+	pspTime m_LastLocalTime;
+	
 	//helpers
 	enum uicolors
 	{
