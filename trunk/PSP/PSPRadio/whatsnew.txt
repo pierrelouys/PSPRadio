@@ -1,12 +1,13 @@
 What's New for PSPRadio 
 ========================
 
-req's:
--text 'Options' to be printed in the bg
--button reminders to be printed in the bg
+0.37-pre8
+BUG FIXES
 
-0.37-pre7 (r639)
-BUGS FIXES:
+NEW FEATURES
+
+0.37-pre7 (r641)
+BUG FIXES:
 (raf) Corrected logging timestamping, now using localtime (inspired by sandberg's code).
 NEW FEATURES:
 (raf) TextUI: -2 in the X position for configuration items makes the item not be printed (suggested by HalfastII)
@@ -14,7 +15,7 @@ NEW FEATURES:
 (raf) TextUI: Added support for showing the time and the battery level.
 
 0.37-pre6 (r634)
-BUGS FIXES:
+BUG FIXES:
 (raf) Core: Logging instantiated in the heap instead of the data segment.
 (raf) Core: Modifications to make it compatible with the latest pspsdk (r1542)
 (raf) Playback: Corrected bug that caused app to crash when a stream failed.
