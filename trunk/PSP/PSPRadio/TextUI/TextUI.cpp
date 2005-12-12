@@ -587,7 +587,7 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 			break;
 	}
 	#endif
-	
+	ClearErrorMessage();
 	/** If message is longer than 1 lines, then truncate;
 	The -10 is to accomodate for the "Error: " plus a bit.
 	*/
@@ -621,6 +621,7 @@ int CTextUI::DisplayMessage(char *strMsg)
 			break;
 	}
 	#endif
+	ClearErrorMessage();
 	/** If message is longer than 1 lines, then truncate;
 	 *  The -3 is just in case.
 	 */
