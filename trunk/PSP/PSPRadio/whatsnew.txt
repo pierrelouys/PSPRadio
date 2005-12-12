@@ -3,7 +3,7 @@ What's New for PSPRadio
 
 0.37-pre8
 BUG FIXES
-
+(sandberg) Core: Updated to use socket headers from the new pspsdk.
 NEW FEATURES
 
 0.37-pre7 (r641)

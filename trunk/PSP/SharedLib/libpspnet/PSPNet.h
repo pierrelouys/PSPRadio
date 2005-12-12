@@ -28,6 +28,7 @@
  
 
 	#include <pspkerneltypes.h>
+	#include <pspnet.h>
 	#include <sys/types.h>
 	#include <psputility.h>
 	#include <reent.h>

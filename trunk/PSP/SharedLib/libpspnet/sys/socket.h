@@ -584,9 +584,6 @@ int	sockatmark(int);
 int	sceNetInetSocket(int, int, int);
 #define socket sceNetInetSocket
 int	socketpair(int, int, int, int *);
-int sceNetInetSelect(int numfds, fd_set *readfds, fd_set *writefds,
-                  fd_set *exceptfds, struct timeval *timeout);
-#define select sceNetInetSelect
 //__END_DECLS
 #endif /* !_KERNEL */
 
