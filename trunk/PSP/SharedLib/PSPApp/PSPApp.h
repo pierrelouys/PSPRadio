@@ -24,7 +24,7 @@
 	#include <pspkerneltypes.h>
 	#include <psppower.h>
 	#include <psprtc.h>
-	#include <PSPNet.h>
+//	#include <PSPNet.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
@@ -106,6 +106,7 @@
 		bool IsNetworkEnabled() { return m_NetworkEnabled; };
 		int  GetNumberOfNetworkProfiles();
 		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
+		int  ResolveHostname(char *strHostname, struct in_addr *addr);
 		
 		/** USB */
 		int  EnableUSB();
@@ -200,5 +201,8 @@
 	private:
 		int m_thid;
 	};
-
+	
+	/** Implemented in PSPApp_Network.cpp */
+	typedef int SOCKET;
+	int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in s */);
 #endif

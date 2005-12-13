@@ -4,7 +4,7 @@ OBJS = PSPApp.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
 		PSPSoundBuffer.o \
 		PSPSound.o PSPSoundDecoder.o \
 		PSPSoundDecoder_MAD.o \
-		PSPSoundDecoder_OGG.o
+		PSPSoundDecoder_OGG.o 
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging

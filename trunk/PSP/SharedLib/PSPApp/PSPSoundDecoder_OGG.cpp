@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include <PSPNet.h>
+#include <sys/socket.h>
 #include <ivorbisfile.h>
 #include "bstdfile.h"
 #include <malloc.h>
@@ -47,7 +47,7 @@ int ogg_socket_seek_wrapper(void *pSocket, ogg_int64_t offset, int whence)
 
 int ogg_socket_close_wrapper(void *pSocket)
 {
-	return sceNetInetClose(*(int*)pSocket);
+	return close(*(int*)pSocket);
 }
 
 long ogg_socket_tell_wrapper(void *datasource)

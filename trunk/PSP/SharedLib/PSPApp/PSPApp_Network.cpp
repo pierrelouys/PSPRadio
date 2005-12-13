@@ -16,6 +16,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#include <stdio.h>
 #include <pspkernel.h>
 #ifdef DEBUG
 	#include <pspdebug.h>
@@ -24,12 +25,292 @@
 #include <string.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <PSPNet.h>
+//#include <PSPNet.h>
+#include <pspnet.h>
+#include <pspnet_resolver.h>
+#include <pspnet_apctl.h>
+#include <psputility_netparam.h>
+#include <pspnet_inet.h>
 #include <pspusb.h>
 #include <pspusbstor.h>
 #include "PSPApp.h"
 
 #undef ReportError
+
+	//From PSPNEt.h
+	////////////////////////////////////////////////////////////////////
+	extern char __lib_stub_top[], __lib_stub_bottom[];
+	
+	static u32 FindProcEntry(u32 oid, u32 nid)
+	{
+		typedef u32* (*MAP_PROC)(u32);
+		MAP_PROC pfnMap;
+		u32* modPtr;
+	
+		u32* addr = (u32*)0x88014318;
+		if (*addr != 0x27bdffd0)
+		{
+			addr = (u32*)0x88017308;
+			if (*addr != 0x27bdffd0)
+			{
+				printf("ERROR: version error (find)!\n");
+				return 0;   // something terribly wrong
+			}
+		}
+		pfnMap = (MAP_PROC)addr;
+		modPtr = (*pfnMap)(oid);
+	
+		if ((((long)modPtr) & 0xFF000000) != 0x88000000)
+			return 0;
+		if ((modPtr[18] - modPtr[16]) < 40)
+			return 0;
+	
+		/* assume standard library order */
+		{
+			u32* modPtr2 = (u32*)modPtr[16];
+			int count = (modPtr2[6] >> 16) & 0xFFFF;
+			u32* idPtr = (u32*)modPtr2[7];
+			u32* procAddrPtr = idPtr + count;
+			int i;
+		
+			for (i = 0; i < count; i++)
+			{
+				if (*idPtr == nid)
+					return (*procAddrPtr);
+				idPtr++;
+				procAddrPtr++;
+			}
+		}
+		return 0;
+	}
+	
+	static int PatchMyLibraryEntries(SceModuleInfo * modInfoPtr, u32 oid)
+	{
+		int nPatched = 0;
+	
+		int* stubPtr; // 20 byte structure
+		for (stubPtr = (int*)modInfoPtr->stub_top;
+		 stubPtr + 5 <= (int*)modInfoPtr->stub_end;
+		  stubPtr += 5)
+		{
+			int count = (stubPtr[2] >> 16) & 0xFFFF;
+			int* idPtr = (int*)stubPtr[3];
+			int* procPtr = (int*)stubPtr[4];
+	
+			if (stubPtr[1] != 0x90000)
+				continue;   // skip non-lazy loaded modules
+			while (count--)
+			{
+				if (procPtr[0] == 0x54C && procPtr[1] == 0)
+				{
+					// SWI - scan for NID
+					u32 proc = FindProcEntry(oid, *idPtr);
+					if (proc != 0)
+					{
+						if (((u32)procPtr & 0xF0000000) != (proc & 0xF0000000))
+						{
+							// if not in user space we can't use it
+							printf("!! NOT PATCH\n");
+						}
+						else
+						{
+							u32 val = (proc & 0x03FFFFFF) >> 2;
+							procPtr[0] = 0x0A000000 | val;
+							procPtr[1] = 0;
+							
+							nPatched++;
+						}
+					}
+				}
+				idPtr++;
+				procPtr += 2; // 2 opcodes
+			}
+		}
+		return nPatched;
+	}
+	
+	/* return oid or error code */
+	u32 LoadAndStartAndPatch(SceModuleInfo * modInfoPtr, const char* szFile)
+	{
+		u32 oid;
+	
+		oid = sceKernelLoadModule(szFile, 0, NULL);
+	
+		if (oid == 0x80020146)
+		{
+			printf("Not allowed to load module!");
+		}
+		if (oid & 0x80000000)
+		{
+			printf("Error Loading Module: %s = %i\n", szFile, oid);
+			return oid; // error code
+		}
+	
+		/* Start it */
+		u32 err;
+		s32 fake = 0;
+		err = sceKernelStartModule(oid, 0, 0, &fake, 0);
+	
+		if (err != oid)
+		{
+			printf(" -- DID NOT START\n");
+			return err;
+		}
+	
+		PatchMyLibraryEntries(modInfoPtr, oid);
+		
+		return oid;
+	}
+	
+	static void FlushCaches()
+	{
+		typedef void (*VOID_PROC)(void);
+		VOID_PROC pfnFlush;
+		u32* addr = (u32*)0x88054618;
+		if (*addr != 0x40088000)
+		{
+			addr = (u32*)0x880584f0;
+			if (*addr != 0x40088000)
+			{
+				printf("ERROR: version error (flush)!\n");
+				return;   // something terribly wrong
+			}
+		}
+		pfnFlush = (VOID_PROC)addr;
+	
+		sceKernelDcacheWritebackAll();
+		(*pfnFlush)();
+	}
+	
+	/** This function loads and starts the network drivers.
+	 *  It is called from a kernel level thread on startup.
+	 */
+	int nlhLoadDrivers(SceModuleInfo * modInfoPtr)
+	{
+		LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/ifhandle.prx"); // kernel
+		LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet.prx");
+		LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_inet.prx");
+		LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_apctl.prx");
+		LoadAndStartAndPatch(modInfoPtr, "flash0:/kd/pspnet_resolver.prx");
+	
+		// jumps have been patched - flush DCache and ICache
+		FlushCaches();
+	
+		return 0;
+	}
+	
+	/** This function inializes the Network Drivers.
+	 *  It needs to be called only once. It has to be called
+	 *  from a userlevel thread.
+	 */
+	int nlhInit()
+	{
+		u32 err = 0;
+		
+		err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
+		if (err != 0)
+		{
+			printf("nlhInit(): sceNetInit returns %i\n", err);
+			return err;
+		}
+		
+		err = sceNetInetInit();
+		if (err != 0)
+		{
+			printf("nlhInit(): sceNetInetInit returns %i\n", err);
+			return err;
+		}
+	
+		err = sceNetResolverInit();
+		if (err != 0)
+		{
+			printf("nlhInit(): sceNetResolverInit returns %i\n", err);
+			return err;
+		}
+		err = sceNetApctlInit(0x1000, 0x42);
+		if (err != 0)
+		{
+			printf("nlhInit(): sceNetApctlInit returns %i\n", err);
+			return err;
+		}
+	
+		return 0;
+	}
+
+	#define SCE_NET_APCTL_INFO_IP_ADDRESS		8
+	#define apctl_state_IPObtained				4
+	/** Resolver */
+	#include <netinet/in.h>
+
+	extern "C" {
+	int sceNetResolverInit();
+	int sceNetResolverTerm();
+	int sceNetResolverCreate(int *rid, void *buf, SceSize buflen);
+ 	int sceNetResolverDelete(int rid);
+	int sceNetResolverStartNtoA(int rid, const char *hostname, struct in_addr *addr, unsigned int timeout, int retry);
+	int sceNetResolverStartAtoN(int rid, const struct in_addr *in_addr, char *hostname, SceSize hostname_len, unsigned int timeout, int retry);
+	int sceNetResolverStop(int rid);
+	int sceNetInetInetAton(char const*, in_addr*);
+	};
+	int  CPSPApp::ResolveHostname(char *strHostname, struct in_addr *addr)
+	{
+		/* RC Let's try aton first in case the address is in dotted numerical form */
+		Log(LOG_LOWLEVEL, "ResolveHostname: Calling aton.. (host='%s')", strHostname );
+		memset(addr, 0, sizeof(in_addr));
+		int rc = sceNetInetInetAton(strHostname, addr);
+		if (rc == 0)
+		{
+			/** That didn't work!, it must be a hostname, let's try the resolver... */
+			Log(LOG_LOWLEVEL, "ResolveHostname: Calling sceNetResolverStartNtoA() with resolverid = %d",
+				 pPSPApp->GetResolverId());
+			rc = sceNetResolverStartNtoA(GetResolverId(), strHostname, addr, 2, 3);
+		}
+
+		return rc;
+	}
+	/** Based on Code from VNC for PSP*/
+	#define      SO_NONBLOCK     0x1009          /* non-blocking I/O */
+	int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in s */) 
+	{
+		u32 err = 0;
+		int one = 1, zero = 0;
+		setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
+		
+		err = connect(sock, addr, sizeof(struct sockaddr));
+		if (err == 0)
+		{
+			setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
+			pPSPApp->SendEvent(MID_TCP_CONNECTING_SUCCESS);
+			return 0;
+		}
+		
+		if (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x77)
+		{
+			size_t ticks;
+			for (ticks = 0; ticks < timeout; ticks++) 
+			{
+				err = connect(sock, addr, sizeof(struct sockaddr));
+				if (err == 0 || (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x7F)) 
+				{
+					setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
+					pPSPApp->SendEvent(MID_TCP_CONNECTING_SUCCESS);
+					return 0;
+				}
+				sceKernelDelayThread(1000000); /* 1 s */
+				pPSPApp->SendEvent(MID_TCP_CONNECTING_PROGRESS);
+			}
+		}
+		
+		//Log(LOG_LOWLEVEL, "Could not connect (Timeout?) geterrno = 0x%x", sceNetInetGetErrno());
+		
+		setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
+		pPSPApp->SendEvent(MID_TCP_CONNECTING_FAILED);
+		return err;
+	}
+
+	/** End Resolver */
+
+
 extern SceModuleInfo module_info;
 u32 LoadStartModule(char *path);
 
@@ -231,20 +512,20 @@ int CPSPApp::WLANConnectionHandler(int profile)
 int CPSPApp::NetApctlHandler() 
 {
 	int iRet = 0;
-	u32 state1 = 0;
-	u32 err = sceNetApctlGetState(&state1);
+	int state1 = 0;
+	int err = sceNetApctlGetState(&state1);
 	if (err != 0)
 	{
 		ReportError("NetApctlHandler: getstate: err=%d state=%d\n", err, state1);
 		iRet = -1;
 	}
 	
-	u32 statechange=0;
-	u32 ostate=0xffffffff;
+	int statechange=0;
+	int ostate=0xffffffff;
 
 	while ((false == IsExiting()) && iRet == 0)
 	{
-		u32 state;
+		int state;
 		
 		err = sceNetApctlGetState(&state);
 		if (err != 0)

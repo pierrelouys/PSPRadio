@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <PSPNet.h>
-#include <netdb.h>
+//#include <PSPNet.h>
+//#include <netdb.h>
+#include <sys/socket.h>
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -417,28 +418,19 @@ int CPSPStream::http_open(char *url)
 		memset(&addr, 0, sizeof(in_addr));
 
 		/* RC Let's try aton first in case the address is in dotted numerical form */
-		Log(LOG_LOWLEVEL, "Calling aton.. (host='%s')",host);
-		memset(&addr, 0, sizeof(in_addr));
-		rc = inet_aton(host, &addr);
-		if (rc == 0)
+		Log(LOG_LOWLEVEL, "Resolving host='%s'",host);
+		rc = pPSPApp->ResolveHostname(host, &addr);
+		if (rc < 0)
 		{
-			/** That didn't work!, it must be a hostname, let's try the resolver... */
-			Log(LOG_LOWLEVEL, "http_connect(): Calling sceNetResolverStartNtoA() with resolverid = %d",
-				 pPSPApp->GetResolverId());
-			rc = sceNetResolverStartNtoA(pPSPApp->GetResolverId(), host, &addr, 2, 3);
-			if (rc < 0)
-			{
-				ReportError("Could not resolve host!\n");
-				goto fail;
-			}
-			
+			ReportError("Could not resolve host!\n");
+			goto fail;
 		}
 		Log(LOG_LOWLEVEL, "aton/ntoa succeeded, returned addr='0x%x'", addr);
 
 		
 		Log(LOG_LOWLEVEL, "http_connect(): Opening socket...");
 		//ReportError ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
-		sock = socket(AF_INET, SOCK_STREAM, 0);
+		sock = socket(AF_INET, SOCK_STREAM, 0); //sceNetInetSocket
 		Log(LOG_LOWLEVEL, "http_connect(): Aquired socket fd=%d...", sock);
 		if (sock < 0)
 			goto fail;
@@ -478,7 +470,7 @@ int CPSPStream::http_open(char *url)
 		{
 			ReportError("Error Connecting - Timeout.");
 			Log(LOG_ERROR, "Connection timeout. iCon=0x%x", iCon);
-			sceNetInetClose(sock);
+			close(sock);
 			sock = -1;
 		}
         Log(LOG_LOWLEVEL, "http_connect(): Back from Connect...");
@@ -517,7 +509,7 @@ fail:
 		//	perror ("fdopen");
 		//	exit (1);
 		//};
-		relocate = FALSE;
+		relocate = false;
 		purl[0] = '\0';
 		request[0] = 0;
 		/** Bail out if app exiting */
@@ -541,7 +533,7 @@ fail:
 			{
 				case '3':
 					Log(LOG_LOWLEVEL, "Setting relocate to true");
-					relocate = TRUE;
+					relocate = true;
 					break;
 				case '2': /** OK */
 					Log(LOG_LOWLEVEL, "Good.");
@@ -627,43 +619,3 @@ fail:
 }
 
 /* EOF */
-
-/** Based on Code from VNC for PSP*/
-int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in s */) 
-{
-	u32 err = 0;
-	int one = 1, zero = 0;
-	sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
-	
-	err = sceNetInetConnect(sock, addr, sizeof(struct sockaddr));
-	if (err == 0)
-	{
-		sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
-		SendEvent(MID_TCP_CONNECTING_SUCCESS);
-		return 0;
-	}
-	
-	if (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x77)
-	{
-		size_t ticks;
-		for (ticks = 0; ticks < timeout; ticks++) 
-		{
-			
-			err = sceNetInetConnect(sock, addr, sizeof(struct sockaddr));
-			if (err == 0 || (err == 0xFFFFFFFF && sceNetInetGetErrno() == 0x7F)) 
-			{
-				sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
-				SendEvent(MID_TCP_CONNECTING_SUCCESS);
-				return 0;
-			}
-			sceKernelDelayThread(1000000); /* 1 s */
-			SendEvent(MID_TCP_CONNECTING_PROGRESS);
-		}
-	}
-	
-	//Log(LOG_LOWLEVEL, "Could not connect (Timeout?) geterrno = 0x%x", sceNetInetGetErrno());
-	
-	sceNetInetSetsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
-	SendEvent(MID_TCP_CONNECTING_FAILED);
-	return err;
-}

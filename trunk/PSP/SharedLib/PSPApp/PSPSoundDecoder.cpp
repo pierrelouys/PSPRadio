@@ -27,7 +27,6 @@
 #include <malloc.h>
 #include <errno.h>
 #include <sys/socket.h>
-#include <PSPNet.h>
 #include "PSPSound.h"
 #include "PSPSoundDecoder.h"
 

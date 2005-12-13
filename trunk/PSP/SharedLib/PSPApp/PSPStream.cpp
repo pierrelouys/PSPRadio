@@ -27,7 +27,6 @@
 #include <malloc.h>
 #include <errno.h>
 #include <sys/socket.h>
-#include <PSPNet.h>
 #include "PSPSound.h"
 #include "PSPStream.h"
 
@@ -184,7 +183,8 @@ void CPSPStream::Close()
 			case STREAM_TYPE_URL:
 				if (m_fdSocket >= 0)
 				{
-					sceNetInetClose(m_fdSocket);
+					//sceNetInetClose(m_fdSocket);
+					close(m_fdSocket);
 				}
 				m_fdSocket = -1;
 				break;
