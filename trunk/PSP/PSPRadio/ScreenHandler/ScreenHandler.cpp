@@ -29,7 +29,6 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
-#include <PSPNet.h>
 #include <pspdisplay.h>
 #include <png.h>
 #include "ScreenHandler.h"
