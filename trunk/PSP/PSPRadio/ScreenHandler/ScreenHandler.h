@@ -64,6 +64,7 @@
 	public:
 		enum Screen
 		{
+			PSPRADIO_SCREEN_LOCALFILES,
 			PSPRADIO_SCREEN_PLAYLIST,
 			PSPRADIO_SCREEN_SHOUTCAST_BROWSER,
 			/** Add more elements here **/
@@ -74,7 +75,7 @@
 			list; just like in a sdl list. This to allow for easy iteration
 			though the list with a for loop/etc. 
 		*/
-		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_PLAYLIST
+		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_LOCALFILES
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 		
 		enum UIs
@@ -100,7 +101,6 @@
 		void OnHPRMReleased(u32 iHPRMMask);
 
 		bool DownloadSHOUTcastDB();
-
 
 		IScreen *GetCurrentScreen(){return m_CurrentScreen;}
 		UIs GetCurrentUI(){return m_CurrentUI;}

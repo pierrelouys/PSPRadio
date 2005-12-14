@@ -442,7 +442,124 @@ void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 	m_currentElementList->push_back(*metadata);
 }
 
-void CMetaDataContainer::LoadDirectory(char *strDirName)
+void CMetaDataContainer::LoadDirectory(char *strPath)
+{
+	char strFilename[MAXPATHLEN];
+	int dfd;
+	SceIoDirent direntry;
+	
+	#if 0
+	/** Insert . and .. */
+	m_currentElementList = new list<MetaData>;
+	/** Add to the container map */
+	//m_containerListMap.insert( map<string, list<MetaData>* >::value_type(".", m_currentElementList) );
+	m_containerListMap.insert( map<string, list<MetaData>* >::value_type("..", m_currentElementList) );
+	#endif
+	
+	Log(LOG_LOWLEVEL, "LoadDirectory: Reading '%s' Directory", strPath);
+	dfd = sceIoDopen(strPath);
+	
+	/** Get all directories */
+	if (dfd > 0)
+	{
+		//Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Calling sceIoDread(%d,0x%x).",dfd, &direntry);
+		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
+		memset(&direntry, 0, sizeof(SceIoDirent));
+		while(sceIoDread(dfd, &direntry) > 0)
+		{
+			//Log(LOG_LOWLEVEL, "Processing '%s'", direntry.d_name)
+			if((direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a file */
+			{
+				if (strcmp(direntry.d_name, ".") == 0)
+					continue;
+				else if (strcmp(direntry.d_name, "..") == 0)
+					continue;
+				memset(strFilename, 0, MAXPATHLEN);
+				sprintf(strFilename, "%s/%s", strPath, direntry.d_name);
+ 				Log(LOG_LOWLEVEL, "LoadDirectory(): Adding '%s' to list of containers.", strFilename);
+				//mydata->iItemIndex = m_dirlist.size(); /** jpf added unique id for list item */
+				map<string, list<MetaData>* >::iterator found;
+				found = m_containerListMap.find(strFilename);
+				
+				if (found == m_containerListMap.end()) /** Didn't find it */
+				{
+					m_currentElementList = new list<MetaData>;
+					/** Add new genre to the container map */
+					m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strFilename, m_currentElementList) );
+				}
+				else
+				{
+					m_currentElementList = found->second;
+				}
+
+				/** Populate Listbox */
+				LoadFilesIntoCurrentElementList(strFilename);
+
+			}
+		}
+		sceIoDclose(dfd);
+		m_currentContainerIterator = m_containerListMap.begin();
+		m_currentElementList = m_currentContainerIterator->second;
+		if (m_currentElementList)	
+		{
+			m_currentElementIterator = m_currentElementList->begin();
+		}
+	}
+	else
+	{
+		Log(LOG_ERROR, "Unable to open '%s' Directory!", strPath);
+	}
+}
+
+void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
+{
+	char strFilename[MAXPATHLEN];
+	int dfd;
+	SceIoDirent direntry;
+	MetaData *songdata;
+	
+	songdata = new MetaData;
+	
+	Log(LOG_LOWLEVEL, "LoadFilesIntoCurrentElementList: Reading '%s' Directory", dirname);
+	dfd = sceIoDopen(dirname);
+	
+	/** Get all files */
+	if (dfd > 0)
+	{
+		//Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Calling sceIoDread(%d,0x%x).",dfd, &direntry);
+		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
+		memset(&direntry, 0, sizeof(SceIoDirent));
+		while(sceIoDread(dfd, &direntry) > 0)
+		{
+			if(false == (direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a file */
+			{
+				memset(strFilename, 0, MAXPATHLEN);
+				sprintf(strFilename, "%s/%s", dirname, direntry.d_name);
+ 				Log(LOG_LOWLEVEL, "LoadFilesIntoCurrentElementList(): Adding '%s' to list.", strFilename);
+				//mydata->iItemIndex = m_dirlist.size(); /** jpf added unique id for list item */
+				memset(songdata, 0, sizeof(MetaData));
+				memcpy(songdata->strURI,  strFilename,  256);
+				songdata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
+				m_currentElementList->push_back(*songdata);
+
+			}
+		}
+		sceIoDclose(dfd);
+		m_currentContainerIterator = m_containerListMap.begin();
+		m_currentElementList = m_currentContainerIterator->second;
+		if (m_currentElementList)	
+		{
+			m_currentElementIterator = m_currentElementList->begin();
+		}
+		delete(songdata); songdata = NULL;
+	}
+	else
+	{
+		Log(LOG_ERROR, "Unable to open '%s' Directory!", dirname);
+	}
+}
+
+void CMetaDataContainer::LoadPlaylistsFromDirectory(char *strDirName)
 {
 	char strFilename[MAXPATHLEN];
 	int dfd;
@@ -654,7 +771,7 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 								{
 									/** Good!, all fields for this entry aquired, let's insert in the list! */
 									memset(songdata, 0, sizeof(MetaData));
-									Log(LOG_INFO, "Adding V2 Entry: File='%s' Title='%s' Length='%i' to the list.", 
+									Log(LOG_LOWLEVEL, "Adding V2 Entry: File='%s' Title='%s' Length='%i' to the list.", 
 										strV2_File, strV2_Title, iV2_Length);
 									memcpy(songdata->strURI,  strV2_File,  256);
 									memcpy(songdata->strTitle, strV2_Title, 256);

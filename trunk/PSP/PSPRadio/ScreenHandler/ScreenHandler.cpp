@@ -35,6 +35,7 @@
 #include "PlayListScreen.h"
 #include "OptionsScreen.h"
 #include "SHOUTcastScreen.h"
+#include "LocalFilesScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
@@ -51,16 +52,24 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	m_Sound = Sound;
 	m_PlayMode = PLAYMODE_NORMAL; //PLAYMODE_SINGLE;//
 	
+	Log(LOG_VERYLOW, "CScreenHandler Ctor");
 	/** Create Screens... */
+	Screens[PSPRADIO_SCREEN_LOCALFILES] = 
+		new LocalFilesScreen(PSPRADIO_SCREEN_LOCALFILES, this);
+	((LocalFilesScreen*)Screens[PSPRADIO_SCREEN_LOCALFILES])->LoadLists();
+	
 	Screens[PSPRADIO_SCREEN_PLAYLIST] = 
 		new PlayListScreen(PSPRADIO_SCREEN_PLAYLIST, this);
+	((PlayListScreen*)Screens[PSPRADIO_SCREEN_PLAYLIST])->LoadLists();
 
 	Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER] = 
 		new SHOUTcastScreen(PSPRADIO_SCREEN_SHOUTCAST_BROWSER, this);
+	((SHOUTcastScreen*)Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER])->LoadLists();
 
 	Screens[PSPRADIO_SCREEN_OPTIONS] = 
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
 
+		
 	m_CurrentScreen = Screens[InitialScreen];
 	m_PreviousScreen = m_CurrentScreen;
 	m_StreamOwnerScreen = NULL;
@@ -154,6 +163,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask)
 {
 	switch (m_CurrentScreen->GetId())
 	{
+		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 			if (iButtonMask & PSP_CTRL_HOME)

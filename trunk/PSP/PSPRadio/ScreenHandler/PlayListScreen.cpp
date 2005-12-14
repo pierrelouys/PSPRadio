@@ -39,9 +39,9 @@ PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(I
 	Log(LOG_VERYLOW,"PlayListScreen Ctor.");
 	m_Lists = NULL;
 
-	m_Lists = new CMetaDataContainer();
+	//m_Lists = new CMetaDataContainer();
 
-	LoadLists();
+	//LoadLists();
 }
 
 PlayListScreen::~PlayListScreen()
@@ -54,6 +54,11 @@ PlayListScreen::~PlayListScreen()
 
 void PlayListScreen::LoadLists()
 {
+	if (!m_Lists)
+	{
+		m_Lists = new CMetaDataContainer();
+	}
+	
 	if (m_Lists)
 	{
 		Log(LOG_LOWLEVEL, "Loading playlists");
@@ -62,7 +67,7 @@ void PlayListScreen::LoadLists()
 		char *strFileName = NULL;
 		strFileName = (char *)malloc(strlen(m_ScreenHandler->GetCWD()) + strlen("PlayLists") + 10);
 		sprintf(strFileName, "%s/PlayLists", m_ScreenHandler->GetCWD());
-		m_Lists->LoadDirectory(strFileName); //**//
+		m_Lists->LoadPlaylistsFromDirectory(strFileName); //**//
 
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 

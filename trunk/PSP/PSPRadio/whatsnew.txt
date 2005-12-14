@@ -5,6 +5,9 @@ What's New for PSPRadio
 BUG FIXES
 (sandberg) Core: Updated to use socket headers from the new pspsdk.
 NEW FEATURES
+(raf) Core: Removed local LibPSPNet; using pspsdk's pspnet now.
+(raf) Core: Added new LocalFiles screen.
+
 
 0.37-pre7 (r641)
 BUG FIXES:

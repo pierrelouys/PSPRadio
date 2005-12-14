@@ -471,6 +471,7 @@ void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
 		{
 			char	strText[64];
 			pspTime local_time;

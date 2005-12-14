@@ -45,7 +45,8 @@
 			void NextElement();
 			void PrevElement();
 
-			void LoadDirectory(char *strDirectory);
+			void LoadDirectory(char *strPath);
+			void LoadPlaylistsFromDirectory(char *strDirectory);
 			void LoadSHOUTcastXML(char *strFileName);
 			Side GetCurrentSide() { return m_CurrentSide; }
 			void SetCurrentSide(Side side) { m_CurrentSide = side; }
@@ -68,5 +69,6 @@
 			void AddToGenre(MetaData *metadata, char *strGenre);
 
 			void LoadPlayListURIIntoCurrentElementList(char *strFileName);
+			void LoadFilesIntoCurrentElementList(char *dirname);
 	};
 #endif

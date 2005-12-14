@@ -65,6 +65,7 @@ void CGraphicsUI::Initialize_Screen(CScreenHandler::Screen screen)
 		} break;
 		
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
 		{
 			m_theme.DisplayMainScreen();
 		} break;

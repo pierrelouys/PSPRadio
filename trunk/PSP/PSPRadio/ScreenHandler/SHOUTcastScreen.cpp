@@ -46,9 +46,9 @@ SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
 	m_Lists = NULL;
 
-	m_Lists = new CMetaDataContainer();
+//	m_Lists = new CMetaDataContainer();
 
-	LoadLists();
+//	LoadLists();
 
 }
 
@@ -60,6 +60,11 @@ SHOUTcastScreen::~SHOUTcastScreen()
 
 void SHOUTcastScreen::LoadLists()
 {
+	if (!m_Lists)
+	{
+		m_Lists = new CMetaDataContainer();
+	}
+
 	if (m_Lists)
 	{
 		Log(LOG_LOWLEVEL, "StartScreen::PSPRADIO_SCREEN_SHOUTCAST_BROWSER");

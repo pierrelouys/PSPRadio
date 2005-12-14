@@ -187,7 +187,8 @@ void CTextUI::LoadConfigSettings(CScreenHandler::Screen screen)
 			break;
 			
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_MODE", 0);
+		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
+			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_PLAYLIST:FONT_MODE", 0);
 			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_PLAYLIST:FONT_WIDTH", 7);
 			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_PLAYLIST:FONT_HEIGHT", 8);
 			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_PLAYLIST:BACKGROUND", NULL);
@@ -835,7 +836,7 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 				iColor = iColorNormal;
 			}
 			
-			strncpy(strText, ListIterator->first.c_str(), MAXPATHLEN - 1);
+			strncpy(strText, ListIterator->first.c_str(), MAXPATHLEN);
 			strText[MAXPATHLEN - 1] = 0;
 
 			if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
@@ -887,6 +888,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	iNextRow = m_ScreenConfig.EntriesListRangeY1 + ROW_TO_PIXEL(1);
 	
 	strText = (char *)malloc (MAXPATHLEN);
+	memset(strText, 0, MAXPATHLEN);
 	
 	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
@@ -921,13 +923,13 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
-				strncpy(strText, (*ListIterator).strTitle, PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1));
-				strText[PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1)] = 0;
+				strncpy(strText, (*ListIterator).strTitle, MAXPATHLEN);
+				strText[MAXPATHLEN -  1] = 0;
 			}
 			else
 			{
-				strncpy(strText, (*ListIterator).strURI, PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1));
-				strText[PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1)] = 0;
+				strncpy(strText, (*ListIterator).strURI, MAXPATHLEN);
+				strText[MAXPATHLEN -  1] = 0;
 				
 				if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 				{
@@ -943,6 +945,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 				}
 			}
 		
+			pText[PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1)] = 0;
 			uiPrintf(m_ScreenConfig.EntriesListRangeX1, iNextRow, iColor, pText);
 			iNextRow+=m_Screen->GetFontHeight();
 		}
