@@ -184,6 +184,30 @@ void CTextUI::LoadConfigSettings(CScreenHandler::Screen screen)
 			GetConfigPair("SCREEN_SHOUTCAST:BATTERY_XY", 
 									&m_ScreenConfig.BatteryX, &m_ScreenConfig.BatteryY);
 			m_ScreenConfig.BatteryColor = GetConfigColor("SCREEN_SHOUTCAST:BATTERY_COLOR");
+			GetConfigPair("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_XY", 
+				&m_ScreenConfig.ContainerListTitleX, &m_ScreenConfig.ContainerListTitleY);
+			m_ScreenConfig.ContainerListTitleUnselectedColor =
+				GetConfigColor("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_UNSELECTED_COLOR");
+			m_ScreenConfig.strContainerListTitleUnselected =
+				m_Config->GetString("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_UNSELECTED_STRING", "List");
+			m_ScreenConfig.strContainerListTitleSelected =
+				m_Config->GetString("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_SELECTED_STRING", "*List*");
+			m_ScreenConfig.ContainerListTitleSelectedColor =
+				GetConfigColor("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_SELECTED_COLOR");
+			GetConfigPair("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_XY", 
+				&m_ScreenConfig.EntriesListTitleX, &m_ScreenConfig.EntriesListTitleY);
+			m_ScreenConfig.EntriesListTitleUnselectedColor =
+				GetConfigColor("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_UNSELECTED_COLOR");
+			m_ScreenConfig.strEntriesListTitleUnselected =
+				m_Config->GetString("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_UNSELECTED_STRING", "Entries");
+			m_ScreenConfig.strEntriesListTitleSelected =
+				m_Config->GetString("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_SELECTED_STRING", "*Entries*");
+			m_ScreenConfig.EntriesListTitleSelectedColor =
+				GetConfigColor("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_SELECTED_COLOR");
+			m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
+														strlen(m_ScreenConfig.strContainerListTitleUnselected));
+			m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
+														strlen(m_ScreenConfig.strEntriesListTitleUnselected));
 			break;
 			
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
@@ -246,6 +270,30 @@ void CTextUI::LoadConfigSettings(CScreenHandler::Screen screen)
 			GetConfigPair("SCREEN_PLAYLIST:BATTERY_XY", 
 									&m_ScreenConfig.BatteryX, &m_ScreenConfig.BatteryY);
 			m_ScreenConfig.BatteryColor = GetConfigColor("SCREEN_PLAYLIST:BATTERY_COLOR");
+			GetConfigPair("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_XY", 
+				&m_ScreenConfig.ContainerListTitleX, &m_ScreenConfig.ContainerListTitleY);
+			m_ScreenConfig.ContainerListTitleUnselectedColor =
+				GetConfigColor("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_UNSELECTED_COLOR");
+			m_ScreenConfig.strContainerListTitleUnselected =
+				m_Config->GetString("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_UNSELECTED_STRING", "List");
+			m_ScreenConfig.strContainerListTitleSelected =
+				m_Config->GetString("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_SELECTED_STRING", "*List*");
+			m_ScreenConfig.ContainerListTitleSelectedColor =
+				GetConfigColor("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_SELECTED_COLOR");
+			GetConfigPair("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_XY", 
+				&m_ScreenConfig.EntriesListTitleX, &m_ScreenConfig.EntriesListTitleY);
+			m_ScreenConfig.EntriesListTitleUnselectedColor =
+				GetConfigColor("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_UNSELECTED_COLOR");
+			m_ScreenConfig.strEntriesListTitleUnselected =
+				m_Config->GetString("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_UNSELECTED_STRING", "Entries");
+			m_ScreenConfig.strEntriesListTitleSelected =
+				m_Config->GetString("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_SELECTED_STRING", "*Entries*");
+			m_ScreenConfig.EntriesListTitleSelectedColor =
+				GetConfigColor("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_SELECTED_COLOR");
+			m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
+														strlen(m_ScreenConfig.strContainerListTitleUnselected));
+			m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
+														strlen(m_ScreenConfig.strEntriesListTitleUnselected));
 			break;
 			
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
@@ -799,9 +847,9 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	
 	bool bShowFileExtension = m_Config->GetInteger("GENERAL:SHOW_FILE_EXTENSION", 0);
 
-	ClearHalfRows(m_ScreenConfig.ContainerListRangeX1, m_ScreenConfig.ContainerListRangeX2, m_ScreenConfig.ContainerListRangeY1+ROW_TO_PIXEL(1), m_ScreenConfig.ContainerListRangeY2); /** Don't clear title (+1) */
+	ClearHalfRows(m_ScreenConfig.ContainerListRangeX1, m_ScreenConfig.ContainerListRangeX2, m_ScreenConfig.ContainerListRangeY1, m_ScreenConfig.ContainerListRangeY2);
 
-	iNextRow = m_ScreenConfig.ContainerListRangeY1 + ROW_TO_PIXEL(1); /** Start after the title */
+	iNextRow = m_ScreenConfig.ContainerListRangeY1;
 	
 	strText = (char *)malloc (MAXPATHLEN);
 	
@@ -882,10 +930,9 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	bool bShowFileExtension = m_Config->GetInteger("GENERAL:SHOW_FILE_EXTENSION", 0);
 	
 	ClearHalfRows(m_ScreenConfig.EntriesListRangeX1,m_ScreenConfig.EntriesListRangeX2,
-				  m_ScreenConfig.EntriesListRangeY1+ROW_TO_PIXEL(1),m_ScreenConfig.EntriesListRangeY2); /** Don't clear Entry title */
+				  m_ScreenConfig.EntriesListRangeY1,m_ScreenConfig.EntriesListRangeY2);
 	
-	//uiPrintf(33/2 + x - 3/*entry/2*/, y, ct, "Entry");
-	iNextRow = m_ScreenConfig.EntriesListRangeY1 + ROW_TO_PIXEL(1);
+	iNextRow = m_ScreenConfig.EntriesListRangeY1;
 	
 	strText = (char *)malloc (MAXPATHLEN);
 	memset(strText, 0, MAXPATHLEN);
@@ -956,23 +1003,29 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 
 void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 {
-	int iColorTitle = m_ScreenConfig.ListsTitleColor;
-
-	ClearRows(m_ScreenConfig.ContainerListRangeY1);
-	if (m_ScreenConfig.ContainerListRangeY1 != m_ScreenConfig.EntriesListRangeY1)
-		ClearRows(m_ScreenConfig.EntriesListRangeY1);
+	ClearHalfRows(m_ScreenConfig.ContainerListTitleX,
+				m_ScreenConfig.ContainerListTitleX + COL_TO_PIXEL(m_ScreenConfig.ContainerListTitleLen),
+				m_ScreenConfig.ContainerListTitleY,m_ScreenConfig.ContainerListTitleY);
+	
+	ClearHalfRows(m_ScreenConfig.EntriesListTitleX,
+				m_ScreenConfig.EntriesListTitleX + COL_TO_PIXEL(m_ScreenConfig.EntriesListTitleLen),
+				m_ScreenConfig.EntriesListTitleY,m_ScreenConfig.EntriesListTitleY);
 	
 	
 	switch (Container->GetCurrentSide())
 	{
 		case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
-			uiPrintf((m_ScreenConfig.ContainerListRangeX2 - m_ScreenConfig.ContainerListRangeX1)/2 + m_ScreenConfig.ContainerListRangeX1 - COL_TO_PIXEL(4)/*entry/2*/,  m_ScreenConfig.ContainerListRangeY1, iColorTitle, "*List*");
-			uiPrintf((m_ScreenConfig.EntriesListRangeX2 - m_ScreenConfig.EntriesListRangeX1)/2 + m_ScreenConfig.EntriesListRangeX1 - COL_TO_PIXEL(4)/*entry/2*/, m_ScreenConfig.EntriesListRangeY1, iColorTitle, "Entries");
+			uiPrintf(m_ScreenConfig.ContainerListTitleX, m_ScreenConfig.ContainerListTitleY,
+					m_ScreenConfig.ContainerListTitleSelectedColor, m_ScreenConfig.strContainerListTitleSelected);
+			uiPrintf(m_ScreenConfig.EntriesListTitleX, m_ScreenConfig.EntriesListTitleY, 
+					m_ScreenConfig.EntriesListTitleUnselectedColor, m_ScreenConfig.strEntriesListTitleUnselected);
 			break;
 		
 		case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
-			uiPrintf((m_ScreenConfig.ContainerListRangeX2 - m_ScreenConfig.ContainerListRangeX1)/2 + m_ScreenConfig.ContainerListRangeX1 - COL_TO_PIXEL(3)/*entry/2*/,  m_ScreenConfig.ContainerListRangeY1, iColorTitle, "List");
-			uiPrintf((m_ScreenConfig.EntriesListRangeX2 - m_ScreenConfig.EntriesListRangeX1)/2 + m_ScreenConfig.EntriesListRangeX1 - COL_TO_PIXEL(5)/*entry/2*/, m_ScreenConfig.EntriesListRangeY1, iColorTitle, "*Entries*");
+			uiPrintf(m_ScreenConfig.ContainerListTitleX, m_ScreenConfig.ContainerListTitleY, 	
+					m_ScreenConfig.ContainerListTitleUnselectedColor, m_ScreenConfig.strContainerListTitleUnselected);
+			uiPrintf(m_ScreenConfig.EntriesListTitleX, m_ScreenConfig.EntriesListTitleY, 
+					m_ScreenConfig.EntriesListTitleSelectedColor, m_ScreenConfig.strEntriesListTitleSelected);
 			break;
 	
 	}

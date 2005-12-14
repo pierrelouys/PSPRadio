@@ -4,10 +4,12 @@ What's New for PSPRadio
 0.37-pre8
 BUG FIXES
 (sandberg) Core: Updated to use socket headers from the new pspsdk.
+(raf) TextUI: Fixed bug where localfiles where getting truncated as they were displayed.
 NEW FEATURES
 (raf) Core: Removed local LibPSPNet; using pspsdk's pspnet now.
 (raf) Core: Added new LocalFiles screen.
-
+(raf) TextUI: Using new screens by semtex199.
+(raf) TextUI: Added configuration items to cfg file to configure the list's titles.
 
 0.37-pre7 (r641)
 BUG FIXES:
