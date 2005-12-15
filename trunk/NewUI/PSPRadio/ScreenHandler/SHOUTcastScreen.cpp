@@ -32,7 +32,7 @@
 #include "SHOUTcastScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
-#include "SandbergUI.h" 
+#include "TextUI3D.h" 
 
 #define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
 #define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"

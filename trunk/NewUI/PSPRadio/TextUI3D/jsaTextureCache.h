@@ -45,6 +45,8 @@ public:
 
 	bool jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info, void *tbuffer);
 	bool jsaTCacheSetTexture(int ID);
+	int jsaTCacheLoadPngImage(const char* filename, u32 *ImageBuffer);
+	float jsaTCacheTexturePixelSize(int format);
 
 private:
 	struct jsaTextureItem
@@ -58,7 +60,6 @@ private:
 	};
 
 private:
-	float jsaTCacheTexturePixelSize(int format);
 	void jsaTCacheSwizzleUpload(unsigned char *dest, unsigned char *source, int width, int height);
 
 private:

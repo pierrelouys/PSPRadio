@@ -32,7 +32,7 @@
 #include "OptionsScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
-#include "SandbergUI.h" 
+#include "TextUI3D.h" 
 #include "SHOUTcastScreen.h"
 
 #define ReportError pPSPApp->ReportError
@@ -64,7 +64,7 @@ OptionsScreen::Options OptionsData[] =
 	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat"},	1,1,3		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
-	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","3D"},		1,1,3		},
+	{	OPTION_ID_UI,				"User Interface",			{"Text","Graphics","Text 3D"},		1,1,3		},
 	{	OPTION_ID_INITIAL_SCREEN,	"Initial Screen",			{"Files", "Playlist","SHOUT","Options"}, 1,1,4 },
 	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{"Yes"},						0,1,1		},
 	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Yes"},						0,1,1		},
@@ -198,8 +198,8 @@ void OptionsScreen::SaveToConfigFile()
 			case CScreenHandler::UI_GRAPHICS:
 				pConfig->SetString("UI:MODE", "Graphics");
 				break;
-			case CScreenHandler::UI_3D:
-				pConfig->SetString("UI:MODE", "3D");
+			case CScreenHandler::UI_TEXT_3D:
+				pConfig->SetString("UI:MODE", "Text_3D");
 				break;
 		}
 		/** OPTION_ID_INITIAL_SCREEN */

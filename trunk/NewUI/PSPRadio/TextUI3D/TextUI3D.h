@@ -1,7 +1,7 @@
 /* 
 	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
 	PSPRadio Copyright (C) 2005 Rafael Cabezas a.k.a. Raf
-	SandbergUI Copyright (C) 2005 Jesper Sandberg
+	TextUI3D Copyright (C) 2005 Jesper Sandberg & Raf
 
 	
 	This program is free software; you can redistribute it and/or
@@ -18,72 +18,40 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifndef _PSPRADIOSANDBERGUI_
-#define _PSPRADIOSANDBERGUI_
+#ifndef _PSPRADIOTEXTUI3D_
+#define _PSPRADIOTEXTUI3D_
 
 #include "IPSPRadio_UI.h"
 #include "jsaVRAMManager.h"
 #include "jsaTextureCache.h"
-#include "jsaP3OLoad.h"
-#include "jsaParticleSystem.h"
 
 
-class CSandbergUI : public IPSPRadio_UI
+class CTextUI3D : public IPSPRadio_UI
 {
 public:
 	enum texture_enum
 	{
-		TEX_LOGO,
-		TEX_COMMANDS,
-		TEX_PLATE,
-		TEX_FONT_LARGE,
-		TEX_FONT_SMALL,
-		TEX_PLAY,
-		TEX_STOP,
-		TEX_NETWORK,
-		TEX_LOAD,
-		TEX_SOUND,
-		TEX_OPTIONS,
-		TEX_PARTICLE_01,
-		TEX_BLUR
-	};
-
-	enum fx_list_enum
-	{
-		FX_CUBES,
-		FX_HEART,
-		FX_PARTICLES,
-		FX_BLUR
+		TEX_BACKGROUND,
+		TEX_CORNER,
+		TEX_VERTICAL,
+		TEX_HORIZONTAL,
+		TEX_FILL,
+		TEX_FONT,
 	};
 
 	typedef struct texture_file
 	{
-		int	ID;
-		int	format;
-		int	width;
-		int	height;
+		int		ID;
+		int		format;
+		int		width;
+		int		height;
 		bool	swizzle;
 		char	filename[MAXPATHLEN];
-	};
-
-	typedef struct IconStr
-	{
-		float		x1, y1;
-		float		x2, y2;
-		unsigned int	color;
-		int		ID;
 	};
 
 	struct NCVertex
 	{
 		float u, v;
-		unsigned int color;
-		float nx,ny,nz;
-		float x,y,z;
-	};
-
-	struct NVertex
-	{
 		unsigned int color;
 		float nx,ny,nz;
 		float x,y,z;
@@ -96,11 +64,6 @@ public:
 		float x,y,z;
 	};
 
-	struct SVertex
-	{
-		float x,y,z;
-	};
-
 	struct TexCoord
 	{
 		int  		x1, y1;
@@ -108,8 +71,8 @@ public:
 	};
 
 public:
-	CSandbergUI();
-	~CSandbergUI();
+	CTextUI3D();
+	~CTextUI3D();
 	
 public:
 	int Initialize(char *strCWD);
@@ -151,99 +114,37 @@ private:
 		SCREEN_OPTIONS
 	};
 
-	enum render_option_enum
-	{
-		RENDER_OPTIONS,
-		RENDER_METADATA
-	};
-
-	enum icon_list_enum
-	{
-		ICON_NETWORK,
-		ICON_LOAD,
-		ICON_SOUND,
-		ICON_PLAY,
-		ICON_STOP
-	};
-
 	enum text_enum
 	{
-		TEXT_OPTION,
-		TEXT_IP,
-		TEXT_ERROR,
-		TEXT_BUFFER,
-		TEXT_STREAM_FORMAT,
-		TEXT_STREAM_URL,
-		TEXT_STREAM_NAME,
-		TEXT_STREAM_ARTIST,
-		TEXT_PL_LIST1,
-		TEXT_PL_LIST2,
-		TEXT_PL_LIST3,
-		TEXT_PL_LIST4,
-		TEXT_PL_LIST5,
-		TEXT_PL_ENTRY1,
-		TEXT_PL_ENTRY2,
-		TEXT_PL_ENTRY3,
-		TEXT_PL_ENTRY4,
-		TEXT_PL_ENTRY5,
-		TEXT_TIME,
-		TEXT_BATTERY
+		TEXT_STATIC,
+		TEXT_PLAYLIST,
+		TEXT_LOCAL_LIST,
+		TEXT_OPTIONS,
 	};
 
 	struct StoredOptionItem
 	{
-		int		ID;
-		int  		x, y;
+		int				ID;
+		int  			x, y;
 		unsigned int	color;
-		char 		strText[MAXPATHLEN];
+		char 			strText[MAXPATHLEN];
 	};
 
 	void *LoadFile(char *filename);
-	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
 	void UpdateTextItem(int ID, int x, int y, char *strText, unsigned int color);
 	void LoadTextures(char *strCWD);
 	int FindFirstEntry(int list_cnt, int current);
-
-	void InitFX(char *strCWD);
-
-	void RenderFX(void);
-	void RenderFX_1(void);
-	void RenderFX_2(void);
-	void RenderFX_3(void);
-	void RenderFX_4(void);
-	void RenderLogo(void);
-	void RenderCommands(void);
-	void RenderPL(void);
-	void RenderState(void);
-	void RenderScroller(char *text, struct NCVertex *vertices, int rotate, float x_offset);
-	void RenderNetwork(void);
-	void RenderLoad(void);
-	void RenderSound(void);
-	void RenderIcon(IconStr *icon_info);
-	void RenderFrame(TexCoord &area, unsigned int tex_color);
-	void RenderActiveList(void);
-
-	void RenderPlayScreen(void);
-	void RenderOptionScreen(void);
-	void RenderOptionLogo(void);
-	void StoreOption(int y, bool active_item, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState);
-	void RenderOptions(int render_option);
+	void RenderFrame1(void);
+	void RenderFrame2(void);
 
 private:
-	jsaTextureCache				tcache;
-	jsaP3OLoad				p3oloader;
-	jsaParticleSystem			psystem;
-	list<StoredOptionItem>			OptionsItems;
+	jsaTextureCache						tcache;
+	list<StoredOptionItem>				OptionsItems;
 	CScreenHandler::ScreenShotState 	m_state;
+	unsigned char						*backimage;
 
 	void* 	framebuffer;
-	float 	start, curr;
-	struct	timeval tval;
-	int	current_fx;
-	int	screen_state;
-	int	select_state, select_target;
-
-	jsaP3OLoad::jsaP3OInfo	object_info;
+	int		screen_state;
 };
 
 #endif

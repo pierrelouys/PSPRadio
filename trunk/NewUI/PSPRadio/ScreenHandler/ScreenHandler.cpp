@@ -37,8 +37,8 @@
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "TextUI.h"
+#include "TextUI3D.h"
 #include "GraphicsUI.h"
-#include "SandbergUI.h" 
 
 #define ReportError pPSPApp->ReportError
 
@@ -132,9 +132,9 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 			Log(LOG_INFO, "StartUI: Starting Graphics UI");
 			m_UI = new CGraphicsUI();
 			break;
-		case UI_3D:
-			Log(LOG_INFO, "StartUI: Starting 3D UI");
-			m_UI = new CSandbergUI();
+		case UI_TEXT_3D:
+			Log(LOG_INFO, "StartUI: Starting Text3D UI");
+			m_UI = new CTextUI3D();
 			break;
 	}
 	m_CurrentUI = UI;
