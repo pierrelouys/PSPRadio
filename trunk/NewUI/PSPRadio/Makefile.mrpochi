@@ -1,8 +1,0 @@
-include ./Makefile
-
-KXPLOIT_PRIMARY_DIR = "MrPochi-iconset/PSPRadio"
-KXPLOIT_SECONDARY_DIR = "MrPochi-iconset/PSPRadio%"
-
-PSP_EBOOT_ICON = "resources_mrpochi/PSPRadio_logo01 trim.png"
-PSP_EBOOT_PIC1 = resources_mrpochi/PSPRadio_launch_BG01.png
-
