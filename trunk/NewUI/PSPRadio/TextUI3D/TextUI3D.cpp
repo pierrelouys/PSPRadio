@@ -54,9 +54,14 @@
 static CTextUI3D::texture_file __attribute__((aligned(16))) texture_list[] =
 	{
 	{CTextUI3D::TEX_BACKGROUND, GU_PSM_8888, 480, 272, true, "BackgroundImage.png"},
-	{CTextUI3D::TEX_CORNER, 	GU_PSM_8888,  32,  32, true, "Corner.png"},
-	{CTextUI3D::TEX_VERTICAL, 	GU_PSM_8888,  32,  32, true, "Vertical.png"},
-	{CTextUI3D::TEX_HORIZONTAL, GU_PSM_8888,  32,  32, true, "Horizontal.png"},
+	{CTextUI3D::TEX_CORNER_UL, 	GU_PSM_8888,  32,  32, true, "Corner_UL.png"},
+	{CTextUI3D::TEX_CORNER_UR, 	GU_PSM_8888,  32,  32, true, "Corner_UR.png"},
+	{CTextUI3D::TEX_CORNER_LL, 	GU_PSM_8888,  32,  32, true, "Corner_LL.png"},
+	{CTextUI3D::TEX_CORNER_LR, 	GU_PSM_8888,  32,  32, true, "Corner_LR.png"},
+	{CTextUI3D::TEX_FRAME_T, 	GU_PSM_8888,  32,  32, true, "Frame_T.png"},
+	{CTextUI3D::TEX_FRAME_B, 	GU_PSM_8888,  32,  32, true, "Frame_B.png"},
+	{CTextUI3D::TEX_FRAME_L, 	GU_PSM_8888,  32,  32, true, "Frame_L.png"},
+	{CTextUI3D::TEX_FRAME_R, 	GU_PSM_8888,  32,  32, true, "Frame_R.png"},
 	{CTextUI3D::TEX_FILL, 		GU_PSM_8888,  32,  32, true, "Fill.png"},
 	{CTextUI3D::TEX_FONT, 		GU_PSM_8888, 512,   8, true, "SmallFont.png"},
 	};

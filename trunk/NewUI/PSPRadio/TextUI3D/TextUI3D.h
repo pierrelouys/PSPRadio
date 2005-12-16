@@ -32,9 +32,14 @@ public:
 	enum texture_enum
 	{
 		TEX_BACKGROUND,
-		TEX_CORNER,
-		TEX_VERTICAL,
-		TEX_HORIZONTAL,
+		TEX_CORNER_UL,
+		TEX_CORNER_UR,
+		TEX_CORNER_LL,
+		TEX_CORNER_LR,
+		TEX_FRAME_T,
+		TEX_FRAME_B,
+		TEX_FRAME_L,
+		TEX_FRAME_R,
 		TEX_FILL,
 		TEX_FONT,
 	};
@@ -49,25 +54,11 @@ public:
 		char	filename[MAXPATHLEN];
 	};
 
-	struct NCVertex
-	{
-		float u, v;
-		unsigned int color;
-		float nx,ny,nz;
-		float x,y,z;
-	};
-
 	struct Vertex
 	{
 		float u, v;
 		unsigned int color;
 		float x,y,z;
-	};
-
-	struct TexCoord
-	{
-		int  		x1, y1;
-		int  		x2, y2;
 	};
 
 public:
