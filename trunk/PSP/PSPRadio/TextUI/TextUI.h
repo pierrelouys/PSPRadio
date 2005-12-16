@@ -38,7 +38,7 @@ struct screenconfig
 	int NetworkDisablingX, NetworkDisablingY;
 	int NetworkReadyX, NetworkReadyY;
 	int NetworkEnablingColor,NetworkDisablingColor, NetworkReadyColor;
-	int ClockX, ClockY, ClockColor;
+	int ClockX, ClockY, ClockColor, ClockFormat;
 	int BatteryX, BatteryY, BatteryColor;
 	
 };

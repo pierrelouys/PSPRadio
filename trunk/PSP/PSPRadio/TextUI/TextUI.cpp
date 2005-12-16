@@ -123,6 +123,9 @@ void CTextUI::Terminate()
 
 void CTextUI::LoadConfigSettings(CScreenHandler::Screen screen)
 {
+	/** General */
+	m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 12);
+	
 	switch (screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
@@ -529,8 +532,19 @@ void CTextUI::OnBatteryChange(int Percentage)
 
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
-	uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d", 
-				LocalTime->hour, LocalTime->minutes);
+	if (m_ScreenConfig.ClockFormat == 24)
+	{
+		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d", 
+					LocalTime->hour, LocalTime->minutes);
+	}
+	else
+	{
+		bool bIsPM = (LocalTime->hour)>12;
+		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d %s", 
+					bIsPM?(12-LocalTime->hour):(LocalTime->hour), 
+					LocalTime->minutes,
+					bIsPM?"PM":"AM");
+	}
 	m_LastLocalTime = *LocalTime;
 }
 

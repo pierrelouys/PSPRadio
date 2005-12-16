@@ -1,7 +1,13 @@
 What's New for PSPRadio 
 ========================
 
-0.37-pre8
+0.37-pre9 ()
+BUG FIXES
+
+NEW FEATURES
+(raf) TextUI: Added config item/implementation to provide 24/12-hour clock configuration.
+
+0.37-pre8 (r649) (12-14-2005)
 BUG FIXES
 (sandberg) Core: Updated to use socket headers from the new pspsdk.
 (raf) TextUI: Fixed bug where localfiles where getting truncated as they were displayed.
