@@ -69,9 +69,17 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	Screens[PSPRADIO_SCREEN_OPTIONS] = 
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
 
-		
+
 	m_CurrentScreen = Screens[InitialScreen];
-	m_PreviousScreen = m_CurrentScreen;
+	/* To avoid getting stuck when Options are the initial screen */
+	if (InitialScreen == PSPRADIO_SCREEN_OPTIONS)
+	{
+		m_PreviousScreen = Screens[PSPRADIO_SCREEN_LOCALFILES];
+	}
+	else
+	{
+		m_PreviousScreen = m_CurrentScreen;
+	}
 	m_StreamOwnerScreen = NULL;
 	
 	SetInitialScreen(InitialScreen);
