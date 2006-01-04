@@ -164,7 +164,10 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 
 void CScreenHandler::OnVBlank()
 {
-	m_UI->OnVBlank();
+	if (m_UI)
+	{
+		m_UI->OnVBlank();
+	}
 }
 
 void CScreenHandler::CommonInputHandler(int iButtonMask)
