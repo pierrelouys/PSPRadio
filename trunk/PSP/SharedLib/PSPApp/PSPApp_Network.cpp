@@ -25,7 +25,6 @@
 #include <string.h>
 #include <limits.h>
 #include <stdarg.h>
-//#include <PSPNet.h>
 #include <pspnet.h>
 #include <pspnet_resolver.h>
 #include <pspnet_apctl.h>
