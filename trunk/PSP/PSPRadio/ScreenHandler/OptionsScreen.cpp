@@ -34,6 +34,7 @@
 #include "GraphicsUI.h"
 #include "SandbergUI.h" 
 #include "SHOUTcastScreen.h"
+#include "LocalFilesScreen.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -485,6 +486,7 @@ void OptionsScreen::OnOptionActivation()
 			m_UI->DisplayMessage("Refreshing Playlists");
 			m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 			((PlayListScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->LoadLists();
+			((LocalFilesScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_LOCALFILES))->LoadLists();
 			m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
 			break;
