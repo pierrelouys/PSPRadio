@@ -4,8 +4,9 @@ What's New for PSPRadio
 0.37-pre9 ()
 BUG FIXES
 (raf) ScreenHandler: Now selecting to refresh playlists in Options screen will also refresh the local files screen virtual playlists. (Bug #5904).
-(raf) Corrected basename implementation bug #5982. (files shorter than 4 chars weren't getting displayed).
-(raf) Corrected bug #5924, if PSP/MUSIC folder was empty, the app would crash.
+(raf) Core: Corrected basename implementation bug #5982. (files shorter than 4 chars weren't getting displayed).
+(raf) Core: Corrected bug #5924, if PSP/MUSIC folder was empty, the app would crash.
+(raf) Core: Corrected problem where if no playlist or local files where present, the app would crash when the user tried to access the next track/playlist using UP/DOWN.
 
 NEW FEATURES
 (raf) TextUI: Added config item/implementation to provide 24/12-hour clock configuration.
