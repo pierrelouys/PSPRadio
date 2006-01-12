@@ -442,6 +442,8 @@ void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 	m_currentElementList->push_back(*metadata);
 }
 
+
+/** This method is used by the LocalFilesScreen */
 void CMetaDataContainer::LoadDirectory(char *strPath)
 {
 	char strFilename[MAXPATHLEN];
@@ -498,11 +500,14 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 			}
 		}
 		sceIoDclose(dfd);
-		m_currentContainerIterator = m_containerListMap.begin();
-		m_currentElementList = m_currentContainerIterator->second;
-		if (m_currentElementList)	
+		if (false == m_containerListMap.empty())
 		{
-			m_currentElementIterator = m_currentElementList->begin();
+			m_currentContainerIterator = m_containerListMap.begin();
+			m_currentElementList = m_currentContainerIterator->second;
+			if (m_currentElementList)	
+			{
+				m_currentElementIterator = m_currentElementList->begin();
+			}
 		}
 	}
 	else
