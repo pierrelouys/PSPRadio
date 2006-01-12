@@ -464,10 +464,9 @@ void CSandbergUI::RenderIcon(IconStr *icon_info)
 	sceGuDisable(GU_TEXTURE_2D);
 }
 
-void CSandbergUI::Initialize_Screen(CScreenHandler::Screen screen)
+void CSandbergUI::Initialize_Screen(IScreen *Screen)
 {
-
-	switch (screen)
+	switch ((CScreenHandler::Screen)Screen->GetId())
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:

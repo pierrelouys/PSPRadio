@@ -37,7 +37,7 @@ public:
 	void OnCurrentContainerSideChange(CMetaDataContainer *Container){return;};
 
 	/** Screen Handling */
-	void Initialize_Screen(CScreenHandler::Screen screen);
+	void Initialize_Screen(IScreen *Screen);
 	void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator);
 		

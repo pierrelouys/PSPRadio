@@ -55,9 +55,9 @@ void CGraphicsUI::Terminate()
 	m_theme.Terminate();
 }
 
-void CGraphicsUI::Initialize_Screen(CScreenHandler::Screen screen)
+void CGraphicsUI::Initialize_Screen(IScreen *Screen)
 {
-	switch (screen)
+	switch ((CScreenHandler::Screen)Screen->GetId())
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 		{

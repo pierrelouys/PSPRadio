@@ -139,7 +139,7 @@ public:
 	void OnBatteryChange(int Percentage);
 
 	/** Screen Handling */
-	void Initialize_Screen(CScreenHandler::Screen screen);
+	void Initialize_Screen(IScreen *Screen);
 	void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator);
 	void OnScreenshot(CScreenHandler::ScreenShotState state);
