@@ -57,34 +57,40 @@ void CMetaDataContainer::Clear()
 	
 void CMetaDataContainer::NextContainer()
 {
-	m_currentContainerIterator++;
-	if (m_currentContainerIterator == m_containerListMap.end())
+	if (false == m_containerListMap.empty())
 	{
-		m_currentContainerIterator = m_containerListMap.begin();
+		m_currentContainerIterator++;
+		if (m_currentContainerIterator == m_containerListMap.end())
+		{
+			m_currentContainerIterator = m_containerListMap.begin();
+		}
 	}
 }
 
 void CMetaDataContainer::AssociateElementList()
 {
-	m_currentElementList = m_currentContainerIterator->second;
-	m_currentElementIterator = m_currentElementList->begin();
+	if (false == m_containerListMap.empty())
+	{
+		m_currentElementList = m_currentContainerIterator->second;
+		m_currentElementIterator = m_currentElementList->begin();
+	}
 }
 
 void CMetaDataContainer::PrevContainer()
 {
-	if (m_currentContainerIterator == m_containerListMap.begin())
+	if (false == m_containerListMap.empty())
 	{
-		m_currentContainerIterator = m_containerListMap.end();
-	}
-	m_currentContainerIterator--;
-	
-//	m_currentElementList = m_currentContainerIterator->second;
-//	m_currentElementIterator = m_currentElementList->begin();
+		if (m_currentContainerIterator == m_containerListMap.begin())
+		{
+			m_currentContainerIterator = m_containerListMap.end();
+		}
+		m_currentContainerIterator--;
+	}	
 }
 
 void CMetaDataContainer::NextElement()
 {
-	if (NULL != m_currentElementList)
+	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
 	{
 		m_currentElementIterator++;
 		if (m_currentElementIterator == m_currentElementList->end())
@@ -96,7 +102,7 @@ void CMetaDataContainer::NextElement()
 
 void CMetaDataContainer::PrevElement()
 {
-	if (NULL != m_currentElementList)
+	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
 	{
 		if (m_currentElementIterator == m_currentElementList->begin())
 		{
