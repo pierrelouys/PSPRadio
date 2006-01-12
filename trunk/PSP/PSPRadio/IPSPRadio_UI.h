@@ -38,7 +38,7 @@
 		virtual int OnNewSongData(MetaData *pData){return 0;};
 		
 		/** Screen Handling */
-		virtual void Initialize_Screen(CScreenHandler::Screen screen){};
+		virtual void Initialize_Screen(IScreen *Screen){};
 		virtual void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator){};
 		virtual void OnScreenshot(CScreenHandler::ScreenShotState state){};
