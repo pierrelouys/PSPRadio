@@ -42,16 +42,21 @@ char *dirname (char *strPath)
 
 char *basename (char *strPath)
 {
-	char *pRet="";
+	static char *pRet;
 	
-	if (strPath && strPath[0] != 0)
+	pRet = "";
+	
+	if (strPath && strlen(strPath) <  4) /** 4 = length of 'ms0:' */
+	{
+		pRet = "";
+	}
+	else
 	{
 		pRet = strrchr(strPath, '/') + 1;
-	}
-	
-	if (strlen(pRet) <  4)
-	{
-		pRet="";
+		if (NULL == pRet)
+		{
+			pRet = "";
+		}
 	}
 	
 	return pRet;
