@@ -21,9 +21,7 @@ struct screenconfig
 	int EntriesListTitleUnselectedColor, EntriesListTitleSelectedColor;
 	char *strEntriesListTitleUnselected, *strEntriesListTitleSelected;
 	int BufferPercentageX, BufferPercentageY, BufferPercentageColor;
-	int MetadataX1;
-	int MetadataRangeY1;
-	int MetadataRangeY2;
+	int MetadataX1, MetadataRangeY1, MetadataRangeY2, MetadataColor, MetadataTitleColor;
 	int ListsTitleColor;
 	int EntriesListColor;
 	int SelectedEntryColor;
@@ -73,7 +71,7 @@ public:
 	int OnNewSongData(MetaData *pData);
 	
 	/** Screen Handling */
-	void Initialize_Screen(CScreenHandler::Screen screen);
+	void Initialize_Screen(IScreen *Screen);
 	void UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator);
 
@@ -95,6 +93,7 @@ private:
 	screenconfig m_ScreenConfig;
 	int 	m_LastBatteryPercentage;
 	pspTime m_LastLocalTime;
+	char *m_strCWD;
 	
 	//helpers
 	enum uicolors
@@ -117,7 +116,7 @@ private:
 	
 	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
 					int iActiveState);
-	void LoadConfigSettings(CScreenHandler::Screen screen);
+	void LoadConfigSettings(IScreen *Screen);
 };
 
 

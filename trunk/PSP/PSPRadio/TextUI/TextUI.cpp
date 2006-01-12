@@ -49,6 +49,8 @@
 
 CTextUI::CTextUI()
 {
+	Log(LOG_VERYLOW, "CtextUI: Constructor start");
+	m_Config = NULL;
 	m_lockprint = NULL;
 	m_lockclear = NULL;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
@@ -61,6 +63,7 @@ CTextUI::CTextUI()
 	m_isdirty = false;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
+	Log(LOG_VERYLOW, "CtextUI: Constructor end.");
 }
 
 CTextUI::~CTextUI()
@@ -81,6 +84,10 @@ CTextUI::~CTextUI()
 		delete(m_Config);
 		m_Config = NULL;
 	}
+	if (m_strCWD)
+	{
+		free(m_strCWD), m_strCWD = NULL;
+	}
 	
 	delete(m_Screen), m_Screen = NULL;
 	Log(LOG_VERYLOW, "~CTextUI(): End");
@@ -88,18 +95,11 @@ CTextUI::~CTextUI()
 
 int CTextUI::Initialize(char *strCWD)
 {
-	char *strCfgFile = NULL;
-
-	strCfgFile = (char *)malloc(strlen(strCWD) + strlen(TEXT_UI_CFG_FILENAME) + 10);
-	sprintf(strCfgFile, "%s/%s", strCWD, TEXT_UI_CFG_FILENAME);
-
-	m_Config = new CIniParser(strCfgFile);
-	
-	free (strCfgFile), strCfgFile = NULL;
-	
-	memset(&m_ScreenConfig, 0, sizeof(m_ScreenConfig));
-	
+	Log(LOG_VERYLOW, "CTextUI::Initialize Start");
+	m_strCWD = strdup(strCWD);
 	//m_Screen->Init();
+	
+	Log(LOG_VERYLOW, "CTextUI::Initialize End");
 	
 	return 0;
 }
@@ -121,241 +121,128 @@ void CTextUI::Terminate()
 {
 }
 
-void CTextUI::LoadConfigSettings(CScreenHandler::Screen screen)
+void CTextUI::LoadConfigSettings(IScreen *Screen)
 {
-	/** General */
-	m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 12);
+	char *strCfgFile = NULL;
+
+	Log(LOG_LOWLEVEL, "LoadConfigSettings() start");
 	
-	switch (screen)
+	if (Screen->GetConfigFilename())
 	{
-		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_MODE", 0);
-			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_WIDTH", 7);
-			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_HEIGHT", 8);
-			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_SHOUTCAST:BACKGROUND", NULL);
-			m_ScreenConfig.BgColor = GetConfigColor("SCREEN_SHOUTCAST:BG_COLOR");
-			m_ScreenConfig.FgColor = GetConfigColor("SCREEN_SHOUTCAST:FG_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:CONTAINERLIST_X_RANGE", 
-									&m_ScreenConfig.ContainerListRangeX1, &m_ScreenConfig.ContainerListRangeX2);
-			GetConfigPair("SCREEN_SHOUTCAST:CONTAINERLIST_Y_RANGE", 
-									&m_ScreenConfig.ContainerListRangeY1, &m_ScreenConfig.ContainerListRangeY2);
-			GetConfigPair("SCREEN_SHOUTCAST:ENTRIESLIST_X_RANGE", 
-									&m_ScreenConfig.EntriesListRangeX1, &m_ScreenConfig.EntriesListRangeX2);
-			GetConfigPair("SCREEN_SHOUTCAST:ENTRIESLIST_Y_RANGE", 
-									&m_ScreenConfig.EntriesListRangeY1, &m_ScreenConfig.EntriesListRangeY2);
-			GetConfigPair("SCREEN_SHOUTCAST:BUFFER_PERCENTAGE_XY", 
-									&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
-			m_ScreenConfig.BufferPercentageColor = GetConfigColor("SCREEN_SHOUTCAST:BUFFER_PERCENTAGE_COLOR");
-			m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_SHOUTCAST:METADATA_X", 7);
-			GetConfigPair("SCREEN_SHOUTCAST:METADATA_Y_RANGE", 
-									&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
-			m_ScreenConfig.ListsTitleColor = GetConfigColor("SCREEN_SHOUTCAST:LISTS_TITLE_COLOR");
-			m_ScreenConfig.EntriesListColor = GetConfigColor("SCREEN_SHOUTCAST:ENTRIESLIST_COLOR");
-			m_ScreenConfig.SelectedEntryColor = GetConfigColor("SCREEN_SHOUTCAST:SELECTED_ENTRY_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:PROGRAM_VERSION_XY", 
-									&m_ScreenConfig.ProgramVersionX, &m_ScreenConfig.ProgramVersionY);
-			m_ScreenConfig.ProgramVersionColor = GetConfigColor("SCREEN_SHOUTCAST:PROGRAM_VERSION_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:STREAM_OPENING_XY", 
-									&m_ScreenConfig.StreamOpeningX, &m_ScreenConfig.StreamOpeningY);
-			GetConfigPair("SCREEN_SHOUTCAST:STREAM_OPENING_ERROR_XY", 
-									&m_ScreenConfig.StreamOpeningErrorX, &m_ScreenConfig.StreamOpeningErrorY);
-			GetConfigPair("SCREEN_SHOUTCAST:STREAM_OPENING_SUCCESS_XY", 
-									&m_ScreenConfig.StreamOpeningSuccessX, &m_ScreenConfig.StreamOpeningSuccessY);
-			m_ScreenConfig.StreamOpeningColor = GetConfigColor("SCREEN_SHOUTCAST:STREAM_OPENING_COLOR");
-			m_ScreenConfig.StreamOpeningErrorColor = GetConfigColor("SCREEN_SHOUTCAST:STREAM_OPENING_ERROR_COLOR");
-			m_ScreenConfig.StreamOpeningSuccessColor = GetConfigColor("SCREEN_SHOUTCAST:STREAM_OPENING_SUCCESS_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:CLEAN_ON_NEW_STREAM_Y_RANGE", 
-									&m_ScreenConfig.CleanOnNewStreamRangeY1, &m_ScreenConfig.CleanOnNewStreamRangeY2);
-			GetConfigPair("SCREEN_SHOUTCAST:ACTIVE_COMMAND_XY", 
-									&m_ScreenConfig.ActiveCommandX, &m_ScreenConfig.ActiveCommandY);
-			GetConfigPair("SCREEN_SHOUTCAST:ERROR_MESSAGE_XY", 
-									&m_ScreenConfig.ErrorMessageX, &m_ScreenConfig.ErrorMessageY);
-			m_ScreenConfig.ActiveCommandColor = GetConfigColor("SCREEN_SHOUTCAST:ACTIVE_COMMAND_COLOR");
-			m_ScreenConfig.ErrorMessageColor = GetConfigColor("SCREEN_SHOUTCAST:ERROR_MESSAGE_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:NETWORK_ENABLING_XY", 
-									&m_ScreenConfig.NetworkEnablingX, &m_ScreenConfig.NetworkEnablingY);
-			GetConfigPair("SCREEN_SHOUTCAST:NETWORK_DISABLING_XY", 
-									&m_ScreenConfig.NetworkDisablingX, &m_ScreenConfig.NetworkDisablingY);
-			GetConfigPair("SCREEN_SHOUTCAST:NETWORK_READY_XY", 
-									&m_ScreenConfig.NetworkReadyX, &m_ScreenConfig.NetworkReadyY);
-			m_ScreenConfig.NetworkEnablingColor = GetConfigColor("SCREEN_SHOUTCAST:NETWORK_ENABLING_COLOR");
-			m_ScreenConfig.NetworkDisablingColor = GetConfigColor("SCREEN_SHOUTCAST:NETWORK_DISABLING_COLOR");
-			m_ScreenConfig.NetworkReadyColor = GetConfigColor("SCREEN_SHOUTCAST:NETWORK_READY_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:CLOCK_XY", 
-									&m_ScreenConfig.ClockX, &m_ScreenConfig.ClockY);
-			m_ScreenConfig.ClockColor = GetConfigColor("SCREEN_SHOUTCAST:CLOCK_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:BATTERY_XY", 
-									&m_ScreenConfig.BatteryX, &m_ScreenConfig.BatteryY);
-			m_ScreenConfig.BatteryColor = GetConfigColor("SCREEN_SHOUTCAST:BATTERY_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_XY", 
-				&m_ScreenConfig.ContainerListTitleX, &m_ScreenConfig.ContainerListTitleY);
-			m_ScreenConfig.ContainerListTitleUnselectedColor =
-				GetConfigColor("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_UNSELECTED_COLOR");
-			m_ScreenConfig.strContainerListTitleUnselected =
-				m_Config->GetString("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_UNSELECTED_STRING", "List");
-			m_ScreenConfig.strContainerListTitleSelected =
-				m_Config->GetString("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_SELECTED_STRING", "*List*");
-			m_ScreenConfig.ContainerListTitleSelectedColor =
-				GetConfigColor("SCREEN_SHOUTCAST:CONTAINERLIST_TITLE_SELECTED_COLOR");
-			GetConfigPair("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_XY", 
-				&m_ScreenConfig.EntriesListTitleX, &m_ScreenConfig.EntriesListTitleY);
-			m_ScreenConfig.EntriesListTitleUnselectedColor =
-				GetConfigColor("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_UNSELECTED_COLOR");
-			m_ScreenConfig.strEntriesListTitleUnselected =
-				m_Config->GetString("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_UNSELECTED_STRING", "Entries");
-			m_ScreenConfig.strEntriesListTitleSelected =
-				m_Config->GetString("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_SELECTED_STRING", "*Entries*");
-			m_ScreenConfig.EntriesListTitleSelectedColor =
-				GetConfigColor("SCREEN_SHOUTCAST:ENTRIESLIST_TITLE_SELECTED_COLOR");
-			m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
-														strlen(m_ScreenConfig.strContainerListTitleUnselected));
-			m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
-														strlen(m_ScreenConfig.strEntriesListTitleUnselected));
-			break;
+		if (m_Config)
+		{
+			delete(m_Config);
+		}
+		strCfgFile = (char *)malloc(strlen(m_strCWD) + strlen(Screen->GetConfigFilename()) + 10);
+		sprintf(strCfgFile, "%sTextUI/%s", m_strCWD, Screen->GetConfigFilename());
+	
+		Log(LOG_LOWLEVEL, "LoadConfigSettings(): Using '%s' config file", strCfgFile);
+		
+		m_Config = new CIniParser(strCfgFile);
+		
+		free (strCfgFile), strCfgFile = NULL;
+		
+		memset(&m_ScreenConfig, 0, sizeof(m_ScreenConfig));
+		
+		/** General */
+		m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 12);
+		
+		m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SETTINGS:FONT_MODE", 0);
+		m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_SETTINGS:FONT_WIDTH", 7);
+		m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_SETTINGS:FONT_HEIGHT", 8);
+		m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_SETTINGS:BACKGROUND", NULL);
+		m_ScreenConfig.BgColor = GetConfigColor("SCREEN_SETTINGS:BG_COLOR");
+		m_ScreenConfig.FgColor = GetConfigColor("SCREEN_SETTINGS:FG_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:CONTAINERLIST_X_RANGE", 
+								&m_ScreenConfig.ContainerListRangeX1, &m_ScreenConfig.ContainerListRangeX2);
+		GetConfigPair("SCREEN_SETTINGS:CONTAINERLIST_Y_RANGE", 
+								&m_ScreenConfig.ContainerListRangeY1, &m_ScreenConfig.ContainerListRangeY2);
+		GetConfigPair("SCREEN_SETTINGS:ENTRIESLIST_X_RANGE", 
+								&m_ScreenConfig.EntriesListRangeX1, &m_ScreenConfig.EntriesListRangeX2);
+		GetConfigPair("SCREEN_SETTINGS:ENTRIESLIST_Y_RANGE", 
+								&m_ScreenConfig.EntriesListRangeY1, &m_ScreenConfig.EntriesListRangeY2);
+		GetConfigPair("SCREEN_SETTINGS:BUFFER_PERCENTAGE_XY", 
+								&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
+		m_ScreenConfig.BufferPercentageColor = GetConfigColor("SCREEN_SETTINGS:BUFFER_PERCENTAGE_COLOR");
+		m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_SETTINGS:METADATA_X", 7);
+		GetConfigPair("SCREEN_SETTINGS:METADATA_Y_RANGE", 
+								&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
+		m_ScreenConfig.MetadataColor = GetConfigColor("SCREEN_SETTINGS:METADATA_COLOR");
+		m_ScreenConfig.MetadataTitleColor = GetConfigColor("SCREEN_SETTINGS:METADATA_TITLE_COLOR");
+		m_ScreenConfig.ListsTitleColor = GetConfigColor("SCREEN_SETTINGS:LISTS_TITLE_COLOR");
+		m_ScreenConfig.EntriesListColor = GetConfigColor("SCREEN_SETTINGS:ENTRIESLIST_COLOR");
+		m_ScreenConfig.SelectedEntryColor = GetConfigColor("SCREEN_SETTINGS:SELECTED_ENTRY_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:PROGRAM_VERSION_XY", 
+								&m_ScreenConfig.ProgramVersionX, &m_ScreenConfig.ProgramVersionY);
+		m_ScreenConfig.ProgramVersionColor = GetConfigColor("SCREEN_SETTINGS:PROGRAM_VERSION_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:STREAM_OPENING_XY", 
+								&m_ScreenConfig.StreamOpeningX, &m_ScreenConfig.StreamOpeningY);
+		GetConfigPair("SCREEN_SETTINGS:STREAM_OPENING_ERROR_XY", 
+								&m_ScreenConfig.StreamOpeningErrorX, &m_ScreenConfig.StreamOpeningErrorY);
+		GetConfigPair("SCREEN_SETTINGS:STREAM_OPENING_SUCCESS_XY", 
+								&m_ScreenConfig.StreamOpeningSuccessX, &m_ScreenConfig.StreamOpeningSuccessY);
+		m_ScreenConfig.StreamOpeningColor = GetConfigColor("SCREEN_SETTINGS:STREAM_OPENING_COLOR");
+		m_ScreenConfig.StreamOpeningErrorColor = GetConfigColor("SCREEN_SETTINGS:STREAM_OPENING_ERROR_COLOR");
+		m_ScreenConfig.StreamOpeningSuccessColor = GetConfigColor("SCREEN_SETTINGS:STREAM_OPENING_SUCCESS_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:CLEAN_ON_NEW_STREAM_Y_RANGE", 
+								&m_ScreenConfig.CleanOnNewStreamRangeY1, &m_ScreenConfig.CleanOnNewStreamRangeY2);
+		GetConfigPair("SCREEN_SETTINGS:ACTIVE_COMMAND_XY", 
+								&m_ScreenConfig.ActiveCommandX, &m_ScreenConfig.ActiveCommandY);
+		GetConfigPair("SCREEN_SETTINGS:ERROR_MESSAGE_XY", 
+								&m_ScreenConfig.ErrorMessageX, &m_ScreenConfig.ErrorMessageY);
+		m_ScreenConfig.ActiveCommandColor = GetConfigColor("SCREEN_SETTINGS:ACTIVE_COMMAND_COLOR");
+		m_ScreenConfig.ErrorMessageColor = GetConfigColor("SCREEN_SETTINGS:ERROR_MESSAGE_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:NETWORK_ENABLING_XY", 
+								&m_ScreenConfig.NetworkEnablingX, &m_ScreenConfig.NetworkEnablingY);
+		GetConfigPair("SCREEN_SETTINGS:NETWORK_DISABLING_XY", 
+								&m_ScreenConfig.NetworkDisablingX, &m_ScreenConfig.NetworkDisablingY);
+		GetConfigPair("SCREEN_SETTINGS:NETWORK_READY_XY", 
+								&m_ScreenConfig.NetworkReadyX, &m_ScreenConfig.NetworkReadyY);
+		m_ScreenConfig.NetworkEnablingColor = GetConfigColor("SCREEN_SETTINGS:NETWORK_ENABLING_COLOR");
+		m_ScreenConfig.NetworkDisablingColor = GetConfigColor("SCREEN_SETTINGS:NETWORK_DISABLING_COLOR");
+		m_ScreenConfig.NetworkReadyColor = GetConfigColor("SCREEN_SETTINGS:NETWORK_READY_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:CLOCK_XY", 
+								&m_ScreenConfig.ClockX, &m_ScreenConfig.ClockY);
+		m_ScreenConfig.ClockColor = GetConfigColor("SCREEN_SETTINGS:CLOCK_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:BATTERY_XY", 
+								&m_ScreenConfig.BatteryX, &m_ScreenConfig.BatteryY);
+		m_ScreenConfig.BatteryColor = GetConfigColor("SCREEN_SETTINGS:BATTERY_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:CONTAINERLIST_TITLE_XY", 
+			&m_ScreenConfig.ContainerListTitleX, &m_ScreenConfig.ContainerListTitleY);
+		m_ScreenConfig.ContainerListTitleUnselectedColor =
+			GetConfigColor("SCREEN_SETTINGS:CONTAINERLIST_TITLE_UNSELECTED_COLOR");
+		m_ScreenConfig.strContainerListTitleUnselected =
+			m_Config->GetString("SCREEN_SETTINGS:CONTAINERLIST_TITLE_UNSELECTED_STRING", "List");
+		m_ScreenConfig.strContainerListTitleSelected =
+			m_Config->GetString("SCREEN_SETTINGS:CONTAINERLIST_TITLE_SELECTED_STRING", "*List*");
+		m_ScreenConfig.ContainerListTitleSelectedColor =
+			GetConfigColor("SCREEN_SETTINGS:CONTAINERLIST_TITLE_SELECTED_COLOR");
+		GetConfigPair("SCREEN_SETTINGS:ENTRIESLIST_TITLE_XY", 
+			&m_ScreenConfig.EntriesListTitleX, &m_ScreenConfig.EntriesListTitleY);
+		m_ScreenConfig.EntriesListTitleUnselectedColor =
+			GetConfigColor("SCREEN_SETTINGS:ENTRIESLIST_TITLE_UNSELECTED_COLOR");
+		m_ScreenConfig.strEntriesListTitleUnselected =
+			m_Config->GetString("SCREEN_SETTINGS:ENTRIESLIST_TITLE_UNSELECTED_STRING", "Entries");
+		m_ScreenConfig.strEntriesListTitleSelected =
+			m_Config->GetString("SCREEN_SETTINGS:ENTRIESLIST_TITLE_SELECTED_STRING", "*Entries*");
+		m_ScreenConfig.EntriesListTitleSelectedColor =
+			GetConfigColor("SCREEN_SETTINGS:ENTRIESLIST_TITLE_SELECTED_COLOR");
 			
-		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
-			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_PLAYLIST:FONT_MODE", 0);
-			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_PLAYLIST:FONT_WIDTH", 7);
-			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_PLAYLIST:FONT_HEIGHT", 8);
-			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_PLAYLIST:BACKGROUND", NULL);
-			m_ScreenConfig.BgColor = GetConfigColor("SCREEN_PLAYLIST:BG_COLOR");
-			m_ScreenConfig.FgColor = GetConfigColor("SCREEN_PLAYLIST:FG_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:CONTAINERLIST_X_RANGE", 
-									&m_ScreenConfig.ContainerListRangeX1, &m_ScreenConfig.ContainerListRangeX2);
-			GetConfigPair("SCREEN_PLAYLIST:CONTAINERLIST_Y_RANGE", 
-									&m_ScreenConfig.ContainerListRangeY1, &m_ScreenConfig.ContainerListRangeY2);
-			GetConfigPair("SCREEN_PLAYLIST:ENTRIESLIST_X_RANGE", 
-									&m_ScreenConfig.EntriesListRangeX1, &m_ScreenConfig.EntriesListRangeX2);
-			GetConfigPair("SCREEN_PLAYLIST:ENTRIESLIST_Y_RANGE", 
-									&m_ScreenConfig.EntriesListRangeY1, &m_ScreenConfig.EntriesListRangeY2);
-			m_ScreenConfig.ListsTitleColor = GetConfigColor("SCREEN_PLAYLIST:LISTS_TITLE_COLOR");
-			m_ScreenConfig.EntriesListColor = GetConfigColor("SCREEN_PLAYLIST:ENTRIESLIST_COLOR");
-			m_ScreenConfig.SelectedEntryColor = GetConfigColor("SCREEN_PLAYLIST:SELECTED_ENTRY_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:BUFFER_PERCENTAGE_XY", 
-									&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
-			m_ScreenConfig.BufferPercentageColor = GetConfigColor("SCREEN_PLAYLIST:BUFFER_PERCENTAGE_COLOR");
-			m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_PLAYLIST:METADATA_X", 7);
-			GetConfigPair("SCREEN_PLAYLIST:METADATA_Y_RANGE", 
-									&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
-			GetConfigPair("SCREEN_PLAYLIST:PROGRAM_VERSION_XY", 
-									&m_ScreenConfig.ProgramVersionX, &m_ScreenConfig.ProgramVersionY);
-			m_ScreenConfig.ProgramVersionColor = GetConfigColor("SCREEN_PLAYLIST:PROGRAM_VERSION_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:STREAM_OPENING_XY", 
-									&m_ScreenConfig.StreamOpeningX, &m_ScreenConfig.StreamOpeningY);
-			GetConfigPair("SCREEN_PLAYLIST:STREAM_OPENING_ERROR_XY", 
-									&m_ScreenConfig.StreamOpeningErrorX, &m_ScreenConfig.StreamOpeningErrorY);
-			GetConfigPair("SCREEN_PLAYLIST:STREAM_OPENING_SUCCESS_XY", 
-									&m_ScreenConfig.StreamOpeningSuccessX, &m_ScreenConfig.StreamOpeningSuccessY);
-			m_ScreenConfig.StreamOpeningColor = GetConfigColor("SCREEN_PLAYLIST:STREAM_OPENING_COLOR");
-			m_ScreenConfig.StreamOpeningErrorColor = GetConfigColor("SCREEN_PLAYLIST:STREAM_OPENING_ERROR_COLOR");
-			m_ScreenConfig.StreamOpeningSuccessColor = GetConfigColor("SCREEN_PLAYLIST:STREAM_OPENING_SUCCESS_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:CLEAN_ON_NEW_STREAM_Y_RANGE", 
-									&m_ScreenConfig.CleanOnNewStreamRangeY1, &m_ScreenConfig.CleanOnNewStreamRangeY2);
-			GetConfigPair("SCREEN_PLAYLIST:ACTIVE_COMMAND_XY", 
-									&m_ScreenConfig.ActiveCommandX, &m_ScreenConfig.ActiveCommandY);
-			GetConfigPair("SCREEN_PLAYLIST:ERROR_MESSAGE_XY", 
-									&m_ScreenConfig.ErrorMessageX, &m_ScreenConfig.ErrorMessageY);
-			m_ScreenConfig.ActiveCommandColor = GetConfigColor("SCREEN_PLAYLIST:ACTIVE_COMMAND_COLOR");
-			m_ScreenConfig.ErrorMessageColor = GetConfigColor("SCREEN_PLAYLIST:ERROR_MESSAGE_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:NETWORK_ENABLING_XY", 
-									&m_ScreenConfig.NetworkEnablingX, &m_ScreenConfig.NetworkEnablingY);
-			GetConfigPair("SCREEN_PLAYLIST:NETWORK_DISABLING_XY", 
-									&m_ScreenConfig.NetworkDisablingX, &m_ScreenConfig.NetworkDisablingY);
-			GetConfigPair("SCREEN_PLAYLIST:NETWORK_READY_XY", 
-									&m_ScreenConfig.NetworkReadyX, &m_ScreenConfig.NetworkReadyY);
-			m_ScreenConfig.NetworkEnablingColor = GetConfigColor("SCREEN_PLAYLIST:NETWORK_ENABLING_COLOR");
-			m_ScreenConfig.NetworkDisablingColor = GetConfigColor("SCREEN_PLAYLIST:NETWORK_DISABLING_COLOR");
-			m_ScreenConfig.NetworkReadyColor = GetConfigColor("SCREEN_PLAYLIST:NETWORK_READY_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:CLOCK_XY", 
-									&m_ScreenConfig.ClockX, &m_ScreenConfig.ClockY);
-			m_ScreenConfig.ClockColor = GetConfigColor("SCREEN_PLAYLIST:CLOCK_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:BATTERY_XY", 
-									&m_ScreenConfig.BatteryX, &m_ScreenConfig.BatteryY);
-			m_ScreenConfig.BatteryColor = GetConfigColor("SCREEN_PLAYLIST:BATTERY_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_XY", 
-				&m_ScreenConfig.ContainerListTitleX, &m_ScreenConfig.ContainerListTitleY);
-			m_ScreenConfig.ContainerListTitleUnselectedColor =
-				GetConfigColor("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_UNSELECTED_COLOR");
-			m_ScreenConfig.strContainerListTitleUnselected =
-				m_Config->GetString("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_UNSELECTED_STRING", "List");
-			m_ScreenConfig.strContainerListTitleSelected =
-				m_Config->GetString("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_SELECTED_STRING", "*List*");
-			m_ScreenConfig.ContainerListTitleSelectedColor =
-				GetConfigColor("SCREEN_PLAYLIST:CONTAINERLIST_TITLE_SELECTED_COLOR");
-			GetConfigPair("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_XY", 
-				&m_ScreenConfig.EntriesListTitleX, &m_ScreenConfig.EntriesListTitleY);
-			m_ScreenConfig.EntriesListTitleUnselectedColor =
-				GetConfigColor("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_UNSELECTED_COLOR");
-			m_ScreenConfig.strEntriesListTitleUnselected =
-				m_Config->GetString("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_UNSELECTED_STRING", "Entries");
-			m_ScreenConfig.strEntriesListTitleSelected =
-				m_Config->GetString("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_SELECTED_STRING", "*Entries*");
-			m_ScreenConfig.EntriesListTitleSelectedColor =
-				GetConfigColor("SCREEN_PLAYLIST:ENTRIESLIST_TITLE_SELECTED_COLOR");
-			m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
-														strlen(m_ScreenConfig.strContainerListTitleUnselected));
-			m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
-														strlen(m_ScreenConfig.strEntriesListTitleUnselected));
-			break;
-			
-		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SHOUTCAST:FONT_MODE", 0);
-			m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_OPTIONS:FONT_WIDTH", 7);
-			m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_OPTIONS:FONT_HEIGHT", 8);
-			m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_OPTIONS:BACKGROUND", NULL);
-			m_ScreenConfig.BgColor = GetConfigColor("SCREEN_OPTIONS:BG_COLOR");
-			m_ScreenConfig.FgColor = GetConfigColor("SCREEN_OPTIONS:FG_COLOR");
-			GetConfigPair("SCREEN_OPTIONS:BUFFER_PERCENTAGE_XY", 
-									&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
-			m_ScreenConfig.BufferPercentageColor = GetConfigColor("SCREEN_OPTIONS:BUFFER_PERCENTAGE_COLOR");
-			m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_OPTIONS:METADATA_X", 7);
-			GetConfigPair("SCREEN_OPTIONS:METADATA_Y_RANGE", 
-									&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
-			GetConfigPair("SCREEN_OPTIONS:PROGRAM_VERSION_XY", 
-									&m_ScreenConfig.ProgramVersionX, &m_ScreenConfig.ProgramVersionY);
-			m_ScreenConfig.ProgramVersionColor = GetConfigColor("SCREEN_OPTIONS:PROGRAM_VERSION_COLOR");
-			GetConfigPair("SCREEN_OPTIONS:STREAM_OPENING_XY", 
-									&m_ScreenConfig.StreamOpeningX, &m_ScreenConfig.StreamOpeningY);
-			GetConfigPair("SCREEN_OPTIONS:STREAM_OPENING_ERROR_XY", 
-									&m_ScreenConfig.StreamOpeningErrorX, &m_ScreenConfig.StreamOpeningErrorY);
-			GetConfigPair("SCREEN_OPTIONS:STREAM_OPENING_SUCCESS_XY", 
-									&m_ScreenConfig.StreamOpeningSuccessX, &m_ScreenConfig.StreamOpeningSuccessY);
-			m_ScreenConfig.StreamOpeningColor = GetConfigColor("SCREEN_OPTIONS:STREAM_OPENING_COLOR");
-			m_ScreenConfig.StreamOpeningErrorColor = GetConfigColor("SCREEN_OPTIONS:STREAM_OPENING_ERROR_COLOR");
-			m_ScreenConfig.StreamOpeningSuccessColor = GetConfigColor("SCREEN_OPTIONS:STREAM_OPENING_SUCCESS_COLOR");
-			GetConfigPair("SCREEN_OPTIONS:CLEAN_ON_NEW_STREAM_Y_RANGE", 
-									&m_ScreenConfig.CleanOnNewStreamRangeY1, &m_ScreenConfig.CleanOnNewStreamRangeY2);
-			GetConfigPair("SCREEN_OPTIONS:ACTIVE_COMMAND_XY", 
-									&m_ScreenConfig.ActiveCommandX, &m_ScreenConfig.ActiveCommandY);
-			GetConfigPair("SCREEN_OPTIONS:ERROR_MESSAGE_XY", 
-									&m_ScreenConfig.ErrorMessageX, &m_ScreenConfig.ErrorMessageY);
-			m_ScreenConfig.ActiveCommandColor = GetConfigColor("SCREEN_OPTIONS:ACTIVE_COMMAND_COLOR");
-			m_ScreenConfig.ErrorMessageColor = GetConfigColor("SCREEN_OPTIONS:ERROR_MESSAGE_COLOR");
-			GetConfigPair("SCREEN_OPTIONS:NETWORK_ENABLING_XY", 
-									&m_ScreenConfig.NetworkEnablingX, &m_ScreenConfig.NetworkEnablingY);
-			GetConfigPair("SCREEN_OPTIONS:NETWORK_DISABLING_XY", 
-									&m_ScreenConfig.NetworkDisablingX, &m_ScreenConfig.NetworkDisablingY);
-			GetConfigPair("SCREEN_OPTIONS:NETWORK_READY_XY", 
-									&m_ScreenConfig.NetworkReadyX, &m_ScreenConfig.NetworkReadyY);
-			m_ScreenConfig.NetworkEnablingColor = GetConfigColor("SCREEN_OPTIONS:NETWORK_ENABLING_COLOR");
-			m_ScreenConfig.NetworkDisablingColor = GetConfigColor("SCREEN_OPTIONS:NETWORK_DISABLING_COLOR");
-			m_ScreenConfig.NetworkReadyColor = GetConfigColor("SCREEN_OPTIONS:NETWORK_READY_COLOR");
-			GetConfigPair("SCREEN_OPTIONS:CLOCK_XY", 
-									&m_ScreenConfig.ClockX, &m_ScreenConfig.ClockY);
-			m_ScreenConfig.ClockColor = GetConfigColor("SCREEN_OPTIONS:CLOCK_COLOR");
-			GetConfigPair("SCREEN_OPTIONS:BATTERY_XY", 
-									&m_ScreenConfig.BatteryX, &m_ScreenConfig.BatteryY);
-			m_ScreenConfig.BatteryColor = GetConfigColor("SCREEN_OPTIONS:BATTERY_COLOR");
-			break;
+		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
+													strlen(m_ScreenConfig.strContainerListTitleUnselected));
+		m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
+													strlen(m_ScreenConfig.strEntriesListTitleUnselected));
 	}
+	
+	Log(LOG_LOWLEVEL, "LoadConfigSettings() end");
 }
 
-void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
+void CTextUI::Initialize_Screen(IScreen *Screen)
 {
-	m_CurrentScreen = screen;
+	Log(LOG_LOWLEVEL, "Inialize screen start");
+	m_CurrentScreen = (CScreenHandler::Screen)Screen->GetId();
 
-	LoadConfigSettings(screen);
+	LoadConfigSettings(Screen);
 	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
 	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
 	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
@@ -371,6 +258,8 @@ void CTextUI::Initialize_Screen(CScreenHandler::Screen screen)
 	}
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
+	
+	Log(LOG_LOWLEVEL, "Inialize screen end");
 }
 
 int CTextUI::OnVBlank()
@@ -389,7 +278,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
 	
-	int x=-1,y=m_Config->GetInteger("SCREEN_OPTIONS:FIRST_ENTRY_Y",40),c=0xFFFFFF;
+	int x=-1,y=m_Config->GetInteger("SCREEN_SETTINGS:FIRST_ENTRY_Y",40),c=0xFFFFFF;
 	
 	if (OptionsList.size() > 0)
 	{
@@ -397,11 +286,11 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 		{
 			if (OptionIterator == CurrentOptionIterator)
 			{
-				c = GetConfigColor("SCREEN_OPTIONS:COLOR_OPTION_NAME_TEXT");//0xFFFFFF;
+				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_NAME_TEXT");//0xFFFFFF;
 			}
 			else
 			{
-				c = GetConfigColor("SCREEN_OPTIONS:COLOR_OPTION_SELECTED_NAME_TEXT");//0x888888;
+				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_SELECTED_NAME_TEXT");//0x888888;
 			}
 			
 			Option = (*OptionIterator);
@@ -410,7 +299,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
 						Option.iActiveState);
 			
-			y+=m_Config->GetInteger("SCREEN_OPTIONS:Y_INCREMENT",16); //was 2*
+			y+=m_Config->GetInteger("SCREEN_SETTINGS:Y_INCREMENT",16); //was 2*
 		}
 	}
 }
@@ -418,7 +307,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
 						  int iActiveState)
 {
-	int iTextPos = PIXEL_TO_COL(m_Config->GetInteger("SCREEN_OPTIONS:FIRST_ENTRY_X",40));
+	int iTextPos = PIXEL_TO_COL(m_Config->GetInteger("SCREEN_SETTINGS:FIRST_ENTRY_X",40));
 	int color = 0xFFFFFF;
 	
 	uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s: ", strName);
@@ -429,20 +318,20 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 		{
 			if (iStates+1 == iActiveState)
 			{
-				color = GetConfigColor("SCREEN_OPTIONS:COLOR_ACTIVE_STATE");//0x0000FF;
+				color = GetConfigColor("SCREEN_SETTINGS:COLOR_ACTIVE_STATE");//0x0000FF;
 			}
 			else if (iStates+1 == iSelectedState) /** 1-based */
 			{
-				color = GetConfigColor("SCREEN_OPTIONS:COLOR_SELECTED_STATE");//0xFFFFFF;
+				color = GetConfigColor("SCREEN_SETTINGS:COLOR_SELECTED_STATE");//0xFFFFFF;
 			}
 			else
 			{
-				color = GetConfigColor("SCREEN_OPTIONS:COLOR_NOT_SELECTED_STATE");//0x888888;
+				color = GetConfigColor("SCREEN_SETTINGS:COLOR_NOT_SELECTED_STATE");//0x888888;
 			}
 			
 			if ((iStates+1 == iActiveState) && (iStates+1 == iSelectedState))
 			{
-				color =  GetConfigColor("SCREEN_OPTIONS:COLOR_ACTIVE_AND_SELECTED_STATE");//0x9090E3;
+				color =  GetConfigColor("SCREEN_SETTINGS:COLOR_ACTIVE_AND_SELECTED_STATE");//0x9090E3;
 			}
 			
 			uiPrintf(COL_TO_PIXEL(iTextPos),y,color, "%s ", strStates[iStates]);
@@ -644,7 +533,7 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 			GetConfigPair("TEXT_POS:ERROR_MESSAGE", &x, &y);
 			ClearErrorMessage();
 			break;
-		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+		case CScreenHandler::PSPRADIO_SCREEN_SETTINGS:
 			GetConfigPair("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
 			ClearRows(y);
 			break;
@@ -678,7 +567,7 @@ int CTextUI::DisplayMessage(char *strMsg)
 			GetConfigPair("TEXT_POS:ERROR_MESSAGE", &x, &y);
 			ClearErrorMessage();
 			break;
-		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+		case CScreenHandler::PSPRADIO_SCREEN_SETTINGS:
 			GetConfigPair("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
 			ClearRows(y);
 			break;
@@ -803,6 +692,8 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		//x1 = m_Config->GetInteger("TEXT_POS:METADATA_START_COLUMN", 0);
 		int y = m_ScreenConfig.MetadataRangeY1;
 		int x = m_ScreenConfig.MetadataX1;
+		int cTitle = m_ScreenConfig.MetadataTitleColor;
+		int c = m_ScreenConfig.MetadataColor;
 		ClearRows(y, m_ScreenConfig.MetadataRangeY2);
 		
 		if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
@@ -813,7 +704,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		
 		if (0 != pData->iSampleRate)
 		{
-			uiPrintf(x, y, COLOR_WHITE, "%lukbps %dHz (%d channels) stream",
+			uiPrintf(x, y, cTitle, "%lukbps %dHz (%d channels) stream",
 					pData->iBitRate/1000, 
 					pData->iSampleRate,
 					pData->iNumberOfChannels);
@@ -822,24 +713,24 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		}
 		if (pData->strURL && strlen(pData->strURL))
 		{
-			uiPrintf(x, y, COLOR_WHITE,	"URL   : ");
-			uiPrintf(x+COL_TO_PIXEL(8), y, COLOR_CYAN,	"%s ", pData->strURL);
+			uiPrintf(x, y, cTitle,	"URL   : ");
+			uiPrintf(x+COL_TO_PIXEL(8), y, c,	"%s ", pData->strURL);
 		}
 		else
 		{
-			uiPrintf(x , y,	COLOR_WHITE,	"Stream: ");
-			uiPrintf(x+COL_TO_PIXEL(8), y,	COLOR_CYAN,		"%s ", pData->strURI);
+			uiPrintf(x , y,	cTitle,	"Stream: ");
+			uiPrintf(x+COL_TO_PIXEL(8), y,	c,		"%s ", pData->strURI);
 		}
 		y+=m_Screen->GetFontHeight();
 		
-		uiPrintf(x , y,	COLOR_WHITE,	"Title : ");
-		uiPrintf(x+COL_TO_PIXEL(8), y,	COLOR_CYAN, 	"%s ", pData->strTitle);
+		uiPrintf(x , y,	cTitle,	"Title : ");
+		uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%s ", pData->strTitle);
 		y+=m_Screen->GetFontHeight();
 		
 		if (pData->strArtist && strlen(pData->strArtist))
 		{
-			uiPrintf(x , y,	COLOR_WHITE,	"Artist: ");
-			uiPrintf(x+COL_TO_PIXEL(8), y,	COLOR_CYAN, 	"%s ", pData->strArtist);
+			uiPrintf(x , y,	cTitle,	"Artist: ");
+			uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%s ", pData->strArtist);
 		}
 	}
 	return 0;
