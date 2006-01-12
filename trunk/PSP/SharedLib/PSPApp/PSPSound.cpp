@@ -396,8 +396,9 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						}
 						
 						pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
-						
+						Log(LOG_VERYLOW, "ThDecode:: Finished decoding. About to delete decoder.");
 						delete Decoder, Decoder = NULL;
+						Log(LOG_VERYLOW, "ThDecode:: Finished decoding. Decoder deleted.");
 					}
 					else
 					{
