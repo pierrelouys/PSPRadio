@@ -377,6 +377,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				if (UI)
 					UI->OnNewSongData(pCurrentStream->GetMetaData());
 			}
+			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_PLAY Done.");
 			break;
 		case PLAYSTATE_PAUSE:
 			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_PAUSE");
