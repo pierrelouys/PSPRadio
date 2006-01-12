@@ -379,7 +379,7 @@ public:
 
 				case MID_THDECODE_DECODING:
 				case MID_SOUND_STARTED:
-					Log(LOG_VERYLOW, "MID_THPLAY_PLAYING received, calling OnPlayStateChange(PLAY)");
+					Log(LOG_VERYLOW, "MID_THDECODE_DECODING/MID_SOUND_STARTED(0x%x) received, calling OnPlayStateChange(PLAY)", event.EventId);
 					if (StreamOwnerScreen)
 					{
 						StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_PLAY);

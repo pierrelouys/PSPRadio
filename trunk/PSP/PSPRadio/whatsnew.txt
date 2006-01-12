@@ -3,9 +3,14 @@ What's New for PSPRadio
 
 0.37-pre9 ()
 BUG FIXES
+(raf) ScreenHandler: Now selecting to refresh playlists in Options screen will also refresh the local files screen virtual playlists. (Bug #5904).
+(raf) Corrected basename implementation bug #5982. (files shorter than 4 chars weren't getting displayed).
 
 NEW FEATURES
 (raf) TextUI: Added config item/implementation to provide 24/12-hour clock configuration.
+(raf) TextUI: Separate config files per screen
+(raf) TextUI: Metadata color is now configurable (see bug #5907)
+
 
 0.37-pre8 (r649) (12-14-2005)
 BUG FIXES
