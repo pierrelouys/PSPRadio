@@ -34,8 +34,9 @@
 		public:
 
 			IScreen(int Id, CScreenHandler *ScreenHandler)
-				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_UI = NULL;}
-			virtual ~IScreen(){}
+				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_UI = NULL; m_strConfigFilename = NULL;}
+			virtual ~IScreen()
+				{if (m_strConfigFilename)free(m_strConfigFilename), m_strConfigFilename= NULL;}
 			
 			int GetId(){ return m_Id; }
 
@@ -45,11 +46,14 @@
 			
 			virtual void OnPlayStateChange(playstates NewPlayState){};
 
+			void  SetConfigFilename(char *strConfigFilename){m_strConfigFilename = strdup(strConfigFilename);}
+			char *GetConfigFilename(){return m_strConfigFilename;}
 		
 		protected:
 			int m_Id;
 			IPSPRadio_UI *m_UI;
 			CScreenHandler *m_ScreenHandler;
+			char *m_strConfigFilename;
 	};
 
 	enum playmodes

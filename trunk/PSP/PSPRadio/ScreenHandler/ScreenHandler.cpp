@@ -56,18 +56,22 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	/** Create Screens... */
 	Screens[PSPRADIO_SCREEN_LOCALFILES] = 
 		new LocalFilesScreen(PSPRADIO_SCREEN_LOCALFILES, this);
+	((LocalFilesScreen*)Screens[PSPRADIO_SCREEN_LOCALFILES])->SetConfigFilename("LocalFilesScreen.cfg");
 	((LocalFilesScreen*)Screens[PSPRADIO_SCREEN_LOCALFILES])->LoadLists();
 	
 	Screens[PSPRADIO_SCREEN_PLAYLIST] = 
 		new PlayListScreen(PSPRADIO_SCREEN_PLAYLIST, this);
+	((PlayListScreen*)Screens[PSPRADIO_SCREEN_PLAYLIST])->SetConfigFilename("PlaylistScreen.cfg");
 	((PlayListScreen*)Screens[PSPRADIO_SCREEN_PLAYLIST])->LoadLists();
 
 	Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER] = 
 		new SHOUTcastScreen(PSPRADIO_SCREEN_SHOUTCAST_BROWSER, this);
+	((SHOUTcastScreen*)Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER])->SetConfigFilename("SHOUTcastScreen.cfg");
 	((SHOUTcastScreen*)Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER])->LoadLists();
 
 	Screens[PSPRADIO_SCREEN_OPTIONS] = 
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
+	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS])->SetConfigFilename("OptionsScreen.cfg");
 
 
 	m_CurrentScreen = Screens[InitialScreen];
@@ -83,6 +87,7 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	m_StreamOwnerScreen = NULL;
 	
 	SetInitialScreen(InitialScreen);
+	
 }
 
 CScreenHandler::~CScreenHandler()
@@ -148,6 +153,7 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 	m_CurrentUI = UI;
 	m_UI->Initialize("./");//strCurrentDir); /* Initialize takes cwd */ ///FIX!!!
 	//StartScreen(m_CurrentScreen);
+	Log(LOG_LOWLEVEL, "Calling currentscreen activate");
 	m_CurrentScreen->Activate(m_UI);
 
 	if (wasPolling)
@@ -229,7 +235,7 @@ void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
 void IScreen::Activate(IPSPRadio_UI *UI)
 {
 	m_UI = UI; 
-	m_UI->Initialize_Screen((CScreenHandler::Screen)m_Id);
+	m_UI->Initialize_Screen(this);
 	m_ScreenHandler->SetCurrentScreen(this);
 }
 
