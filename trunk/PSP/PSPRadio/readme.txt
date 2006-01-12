@@ -1,4 +1,4 @@
-PSPRadio by Raf 0.37-pre3 11/19/05
+PSPRadio by Raf 0.37-pre9 2006-01-12
 ====================================
 
 *****************************************************************
@@ -33,9 +33,9 @@ halfastII-iconset, handojin-iconset, harbringer-iconset and mrpochi-iconset.
 Credits
 -------
 Development:
-Raf:       Lead, Concept, Core, TextUI
+Raf:       Lead, Concept, Core, Decoders, TextUI
 jpfouch48: GraphicsUI
-sandberg:  3D UI, enchancements
+sandberg:  3D UI, enchancements, bug fixes, new secret UI in the works...
 
 Other Routines:
 echto:	SHOUTcast.com interface, zlib routines.
@@ -45,6 +45,8 @@ Art:
 -handojinUK: Iconset
 -harbringer: Iconset, default GraphicsUI theme
 -Mr Pochi:   Iconset
+-Semtex:     TextUI Backgrounds, Iconset
+-Albadross:  TextUI Backgrounds/Ideas/Configurations.
 
 Thanks
 ------
