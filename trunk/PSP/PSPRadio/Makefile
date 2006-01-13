@@ -6,7 +6,6 @@ OBJS = PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastScreen.o ./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
-		./GraphicsUI/GraphicsUITheme.o ./GraphicsUI/GraphicsUI.o \
 		./SandbergUI/SandbergUI.o ./SandbergUI/SandbergUIFX.o ./SandbergUI/SandbergUIPL.o ./SandbergUI/SandbergUILogo.o ./SandbergUI/SandbergUIOptions.o ./SandbergUI/jsaVRAMManager.o ./SandbergUI/jsaTextureCache.o ./SandbergUI/jsaP3OLoad.o ./SandbergUI/jsaParticleSystem.o
 
 INCDIR = ../
@@ -55,8 +54,6 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 		$(PSP_EBOOT_ICON1) $(PSP_EBOOT_UNKPNG) $(PSP_EBOOT_PIC1)  \
 		$(PSP_EBOOT_SND0) NULL $(PSP_EBOOT_PSAR)
 	cp -vf *.cfg $(KXPLOIT_PRIMARY_DIR)
-	mkdir -p $(KXPLOIT_PRIMARY_DIR)/THEME
-	cp -vf THEME/* $(KXPLOIT_PRIMARY_DIR)/THEME
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/PlayLists
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/SHOUTcast
 	cp -vf SHOUTcast/* $(KXPLOIT_PRIMARY_DIR)/SHOUTcast

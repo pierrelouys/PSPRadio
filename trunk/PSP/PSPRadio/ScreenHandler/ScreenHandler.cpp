@@ -142,8 +142,11 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 			m_UI = new CTextUI();
 			break;
 		case UI_GRAPHICS:
-			Log(LOG_INFO, "StartUI: Starting Graphics UI");
-			m_UI = new CGraphicsUI();
+			Log(LOG_INFO, "StartUI: Starting Graphics UI  -Error, graphicsUI not enabled for this build.");
+			#ifdef GRAPHICS_UI
+				Log(LOG_INFO, "StartUI: Starting Graphics UI");
+				m_UI = new CGraphicsUI();
+			#endif
 			break;
 		case UI_3D:
 			Log(LOG_INFO, "StartUI: Starting 3D UI");

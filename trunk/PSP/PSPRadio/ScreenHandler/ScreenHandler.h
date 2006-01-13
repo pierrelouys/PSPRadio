@@ -85,8 +85,8 @@
 		enum UIs
 		{
 			UI_TEXT = 0,
-			UI_GRAPHICS = 1,
-			UI_3D = 2,
+			UI_3D = 1,
+			UI_GRAPHICS = 99,
 		};
 		
 		enum request_on_play_stop

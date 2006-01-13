@@ -44,7 +44,6 @@
 #include "PlayListScreen.h"
 #include "SHOUTcastScreen.h"
 #include "TextUI.h"
-#include "GraphicsUI.h"
 #include "SandbergUI.h" 
 #include <ivorbisfile.h>
 #include "Screen.h"
@@ -172,11 +171,13 @@ public:
 	{
 		Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
 		
+		#ifdef GRAPHICS_UI
 		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
 		{
 			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_GRAPHICS);
 		}
-		else if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
+		#endif
+		if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
 		{
 			m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_3D);
 		}
