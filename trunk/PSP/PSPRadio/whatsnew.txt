@@ -1,6 +1,11 @@
 What's New for PSPRadio 
 ========================
 
+0.37-Final (r) (2006-01-13)
+BUG FIXES
+NEW FEATURES
+(raf) TextUI: Added a new config element to specify the length of the metadata.
+
 0.37-pre9 (r693) (2006-01-12)
 BUG FIXES
 (raf) ScreenHandler: Now selecting to refresh playlists in Options screen will also refresh the local files screen virtual playlists. (Bug #5904).

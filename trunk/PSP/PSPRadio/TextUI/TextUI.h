@@ -21,7 +21,7 @@ struct screenconfig
 	int EntriesListTitleUnselectedColor, EntriesListTitleSelectedColor;
 	char *strEntriesListTitleUnselected, *strEntriesListTitleSelected;
 	int BufferPercentageX, BufferPercentageY, BufferPercentageColor;
-	int MetadataX1, MetadataRangeY1, MetadataRangeY2, MetadataColor, MetadataTitleColor;
+	int MetadataX1, MetadataLength, MetadataRangeY1, MetadataRangeY2, MetadataColor, MetadataTitleColor;
 	int ListsTitleColor;
 	int EntriesListColor;
 	int SelectedEntryColor;

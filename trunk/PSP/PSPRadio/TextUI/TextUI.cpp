@@ -165,6 +165,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 								&m_ScreenConfig.BufferPercentageX, &m_ScreenConfig.BufferPercentageY);
 		m_ScreenConfig.BufferPercentageColor = GetConfigColor("SCREEN_SETTINGS:BUFFER_PERCENTAGE_COLOR");
 		m_ScreenConfig.MetadataX1 = m_Config->GetInteger("SCREEN_SETTINGS:METADATA_X", 7);
+		m_ScreenConfig.MetadataLength = m_Config->GetInteger("SCREEN_SETTINGS:METADATA_LEN", 50);
 		GetConfigPair("SCREEN_SETTINGS:METADATA_Y_RANGE", 
 								&m_ScreenConfig.MetadataRangeY1, &m_ScreenConfig.MetadataRangeY2);
 		m_ScreenConfig.MetadataColor = GetConfigColor("SCREEN_SETTINGS:METADATA_COLOR");
@@ -694,6 +695,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		int x = m_ScreenConfig.MetadataX1;
 		int cTitle = m_ScreenConfig.MetadataTitleColor;
 		int c = m_ScreenConfig.MetadataColor;
+		int iLen = m_ScreenConfig.MetadataLength;
 		ClearRows(y, m_ScreenConfig.MetadataRangeY2);
 		
 		if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
@@ -714,23 +716,23 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		if (pData->strURL && strlen(pData->strURL))
 		{
 			uiPrintf(x, y, cTitle,	"URL   : ");
-			uiPrintf(x+COL_TO_PIXEL(8), y, c,	"%s ", pData->strURL);
+			uiPrintf(x+COL_TO_PIXEL(8), y, c,	"%-*.*s ", iLen, iLen, pData->strURL);
 		}
 		else
 		{
 			uiPrintf(x , y,	cTitle,	"Stream: ");
-			uiPrintf(x+COL_TO_PIXEL(8), y,	c,		"%s ", pData->strURI);
+			uiPrintf(x+COL_TO_PIXEL(8), y,	c,		"%-*.*s ", iLen, iLen, pData->strURI);
 		}
 		y+=m_Screen->GetFontHeight();
 		
 		uiPrintf(x , y,	cTitle,	"Title : ");
-		uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%s ", pData->strTitle);
+		uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strTitle);
 		y+=m_Screen->GetFontHeight();
 		
 		if (pData->strArtist && strlen(pData->strArtist))
 		{
 			uiPrintf(x , y,	cTitle,	"Artist: ");
-			uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%s ", pData->strArtist);
+			uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strArtist);
 		}
 	}
 	return 0;
