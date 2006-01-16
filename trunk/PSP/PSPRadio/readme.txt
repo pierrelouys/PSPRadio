@@ -1,17 +1,12 @@
-PSPRadio by Raf 0.37-pre9 2006-01-12
-====================================
-
-*****************************************************************
-THIS IS A PRE-RELEASE!!!
-FOR THE LATEST STABLE OFFICIAL RELEASE, GO TO:
-https://developer.berlios.de/project/showfiles.php?group_id=4862
-*****************************************************************
+PSPRadio by Raf 0.37 Final 2006-01-16
+=====================================
 
 -Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php
 -Official subversion repo: http://svn.berlios.de/viewcvs/pspradio/trunk/PSP/
 
--No official documentation available yet.
+-No official documentation available yet; but refer to the Documents directory
+for some 'unofficial' docs provided by user albadross.
 
 In the meantime, go to http://pspradio.berlios.de/phpBB/index.php and look 
 for setup and configuration guides under Guides.
@@ -24,33 +19,31 @@ This project is protected under the GPL license.
 Use at your own risk.
 
 
-Installation
--------------
-1-Choose an iconset directory, you can choose from: 
-halfastII-iconset, handojin-iconset, harbringer-iconset and mrpochi-iconset.
-2-Copy the contents of that folder ("PSPRadio" and "PSPRadio%") to your PSP under "\PSP\GAME\".
+Quick Installation Guide:
+-------------------------
+-Copy the folders "PSPRadio" and "PSPRadio%" to your PSP under "\PSP\GAME\".
 
 Credits
 -------
 Development:
 Raf:       Lead, Concept, Core, Decoders, TextUI
-jpfouch48: GraphicsUI
-sandberg:  3D UI, enchancements, bug fixes, new secret UI in the works...
+JPFouch48: GraphicsUI (currently disabled)
+Sandberg:  3D UI, enchancements, bug fixes, new secret UI in the works...
 
 Other Routines:
 echto:	SHOUTcast.com interface, zlib routines.
 
 Art:
+-Albadross:  TextUI Backgrounds/Skins/Documentation/Ideas/Configurations.
 -halfastII:  Iconset
 -handojinUK: Iconset
 -harbringer: Iconset, default GraphicsUI theme
 -Mr Pochi:   Iconset
 -Semtex:     TextUI Backgrounds, Iconset
--Albadross:  TextUI Backgrounds/Ideas/Configurations.
 
 Thanks
 ------
-The author would like to thank all the users that have donated to this project.
+Raf would like to thank all the users that have donated to this project.
 --You keep me going! Thank you!!--
 Raf would also like to thank (In no particular order, except the first one :) ):
 -my son and wife for putting up with me :)

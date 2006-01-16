@@ -1,99 +1,73 @@
 What's New for PSPRadio 
 ========================
 
-0.37-Final (r) (2006-01-13)
-BUG FIXES
+0.37-Final (r706) (2006-01-16) (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.37/)
 NEW FEATURES
 (raf) TextUI: Added a new config element to specify the length of the metadata.
 (raf) GraphicsUI: Removed from the build as it doesn't work correctly with the current core.
+(raf) TextUI: Added config item/implementation to provide 24/12-hour clock configuration.
+(raf) TextUI: Separate config files per screen
+(raf) TextUI: Metadata color is now configurable (see bug #5907)
+(raf) Core: Removed local LibPSPNet; using pspsdk's pspnet now.
+(raf) Core: Added new LocalFiles screen.
+(raf) TextUI: Using new screens by semtex199.
+(raf) TextUI: Added configuration items to cfg file to configure the list's titles.
+(raf) TextUI: -2 in the X position for configuration items makes the item not be printed (suggested by HalfastII)
+(raf) TextUI: The config file is now partitioned into one section per screen (suggested by HalfastII)
+(raf) TextUI: Added support for showing the time and the battery level.
+(raf) TextUI: Now files defined in playlists are displayed without the path, and the extension is only shown if configured to in the config file.
+(raf) Compiled against latest pspsdk (r1542). There should be some speed improvements, as things like memcpy are now optimized.
+(raf) Core/TextUI: Added support to print text using pixel coordinates
+(raf) TexUI: Removed cleaning code that was unnecessary in the options screen renderer. This should speed it up a bit.
+(sandberg) Added support for showing the time and the battery level on the 3D UI.
+(raf) Enabled pausing of local streams
+(raf) Cleanup/robustness added for play/stop core.
+(raf) Created playmodes; defaults to NORMAL (will play next track after current one ends), also has SINGLE and REPEAT modes.
+(raf) Completely re-wrote buffering system. (Using stl lists, and optimized buffers). New change from one stream to the next is seamless.
+(raf) Made font size configurable in the textui config file. If these settings are set correctly, then the artifacts produced when using outlined/shadowed text should go away. (The downside, is that the number of columns/rows is also modified as these values change.)
+(sandberg) Added support for showing the battery status and the current local time.
+(raf) TextUI is now more configurable (for listboxes/textmode(font modes))
+(raf) Added shadowed font mode for textui.
+(raf) Added option to select if file extensions should be displayed or not in textui.
+(raf) Added pngs for startup/shutdown of PSPRadio
+(raf) Now using pngs designed by Semtex/albadross/HalfastII
+(raf) Added better support for suspending/resuming psp.
+(Halfast) Minor tweaking of the textui.cfg
+(raf) The initial screen can now be selected in the PSPRadio.cfg file, under SYSTEM/INITIAL_SCREEN
+(raf) Can now refresh the playlists from the Options screen.
+(raf) Options can now be saved from options screen.
+(raf) 0.37-pre3c: Now you can save and restore USB autostart / wifi autostart / intial screen from the options screen
+(raf) Added a genre processing/parsing stage for shoutcast.com database.
+(raf) Changed the text ui layout a bit, so that the stream name has more room
+(sandberg) Added a radial blur effect as a background effect on the 3D UI.
+(raf) Added code to draw font with outline - thanks to Halfast for the idea.
+(raf) Revamped code to handle playlists in memory. 
+(raf) Now shoutcast.com entries are sorted by genre
+(raf) Now will reload shoutcast.com db on download. Also now include a default db.xml
 
-0.37-pre9 (r693) (2006-01-12)
 BUG FIXES
 (raf) ScreenHandler: Now selecting to refresh playlists in Options screen will also refresh the local files screen virtual playlists. (Bug #5904).
 (raf) Core: Corrected basename implementation bug #5982. (files shorter than 4 chars weren't getting displayed).
 (raf) Core: Corrected bug #5924, if PSP/MUSIC folder was empty, the app would crash.
 (raf) Core: Corrected problem where if no playlist or local files where present, the app would crash when the user tried to access the next track/playlist using UP/DOWN.
 (sandberg) Core: VBlank fix.
-NEW FEATURES
-(raf) TextUI: Added config item/implementation to provide 24/12-hour clock configuration.
-(raf) TextUI: Separate config files per screen
-(raf) TextUI: Metadata color is now configurable (see bug #5907)
-
-
-0.37-pre8 (r649) (2005-12-14)
-BUG FIXES
 (sandberg) Core: Updated to use socket headers from the new pspsdk.
 (raf) TextUI: Fixed bug where localfiles where getting truncated as they were displayed.
-NEW FEATURES
-(raf) Core: Removed local LibPSPNet; using pspsdk's pspnet now.
-(raf) Core: Added new LocalFiles screen.
-(raf) TextUI: Using new screens by semtex199.
-(raf) TextUI: Added configuration items to cfg file to configure the list's titles.
-
-0.37-pre7 (r641)
-BUG FIXES:
 (raf) Corrected logging timestamping, now using localtime (inspired by sandberg's code).
-NEW FEATURES:
-(raf) TextUI: -2 in the X position for configuration items makes the item not be printed (suggested by HalfastII)
-(raf) TextUI: The config file is now partitioned into one section per screen (suggested by HalfastII)
-(raf) TextUI: Added support for showing the time and the battery level.
-
-0.37-pre6 (r634)
-BUG FIXES:
 (raf) Core: Logging instantiated in the heap instead of the data segment.
 (raf) Core: Modifications to make it compatible with the latest pspsdk (r1542)
 (raf) Playback: Corrected bug that caused app to crash when a stream failed.
 (raf) TextUI: Made the title shorter so it fits no matter what font is used.
 (sandberg) Updated the 3D UI so all options are fitted to the screen.
-NEW FEATURES:
-(raf) TextUI: Now files defined in playlists are displayed without the path, and the extension is only shown if configured to in the config file.
-(raf) Compiled against latest pspsdk (r1542). There should be some speed improvements, as things like memcpy are now optimized.
-(raf) Core/TextUI: Added support to print text using pixel coordinates
-(raf) TexUI: Removed cleaning code that was unnecessary in the options screen renderer. This should speed it up a bit.
-(sandberg) Added support for showing the time and the battery level on the 3D UI.
-
-0.37-pre5 (r623) (12-06-2005)
-(raf) Enabled pausing of local streams
-(raf) Cleanup/robustness added for play/stop core.
 (raf) Corrected log times now that clock changed in sdk
-(raf) Created playmodes; defaults to NORMAL (will play next track after current one ends), also has SINGLE and REPEAT modes.
-(raf) Completely re-wrote buffering system. (Using stl lists, and optimized buffers). New change from one stream to the next is seamless.
-(raf) Made font size configurable in the textui config file. If these settings are set correctly, then the artifacts produced when using outlined/shadowed text should go away. (The downside, is that the number of columns/rows is also modified as these values change.)
 (raf) Corrected bug with playlists v2, where streams with spaces were getting truncated.
-
-
-0.37-pre4 (r592) (11-23-2005)
-(sandberg) Added support for showing the battery status and the current local time.
-(raf) TextUI is now more configurable (for listboxes/textmode(font modes))
-(raf) Added shadowed font mode for textui.
-(raf) Added option to select if file extensions should be displayed or not in textui.
-(raf) Added pngs for startup/shutdown of PSPRadio
 (raf) Fixed problem where PSPRadio was exiting when it went into screen blank mode.
-(raf) Now using pngs designed by Semtex/albadross/HalfastII
-(raf) Added better support for suspending/resuming psp.
-(Halfast) Minor tweeking of the textui.cfg
-
-0.37-pre3 (r562) (c=r573)
-(raf) The initial screen can now be selected in the PSPRadio.cfg file, under SYSTEM/INITIAL_SCREEN
-(raf) Can now refresh the playlists from the Options screen.
-(raf) Options can now be saved from options screen.
 (raf) Some refactoring of options code/pspapp_network. Corrections on loglevels.
 (raf) 0.37-pre3b: Corrected the WIFI:AUTOSTARTing.
-(raf) 0.37-pre3c: Now you can save and restore USB autostart / wifi autostart / intial screen from the options screen
-
-0.37-pre2
 (raf) Corrected issue where SHOUTcast screen wasn't allocating memory for the lists, reusing the playlists' memory. This was causing instability in version 0.37-pre1.
-(raf) Added a genre processing/parsing stage for shoutcast.com database.
-(raf) Changed the text ui layout a bit, so that the stream name has more room
 
-0.37-pre1 (r535)
-(jpfouch48) Added scrolling text to metadata area. (Currently double buffering
-is not working so it may look alittle choppy)
-(sandberg) Added a radial blur effect as a background effect on the 3D UI.
-(raf) Added code to draw font with outline - thanks to Halfast for the idea.
-(raf) Revamped code to handle playlists in memory. 
-(raf) Now shoutcast.com entries are sorted by genre
-(raf) Now will reload shoutcast.com db on download. Also now include a default db.xml
+
+--------------------------------------------------------------------------------
 
 0.36-final (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.36/)
 (raf) If AUTOSTART set to 1 in config file, App starts in Options screen, starts the network, then goes back to main screen.
