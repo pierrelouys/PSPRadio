@@ -5,6 +5,7 @@ What's New for PSPRadio
 BUG FIXES
 NEW FEATURES
 (raf) TextUI: Added a new config element to specify the length of the metadata.
+(raf) GraphicsUI: Removed from the build as it doesn't work correctly with the current core.
 
 0.37-pre9 (r693) (2006-01-12)
 BUG FIXES
