@@ -32,7 +32,7 @@
 #include "LocalFilesScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
-#include "SandbergUI.h" 
+#include "TextUI3D.h" 
 
 
 LocalFilesScreen::LocalFilesScreen(int Id, CScreenHandler *ScreenHandler)

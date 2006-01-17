@@ -32,7 +32,7 @@
 #include "PlayListScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
-#include "SandbergUI.h" 
+#include "TextUI3D.h" 
 
 PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)
 {

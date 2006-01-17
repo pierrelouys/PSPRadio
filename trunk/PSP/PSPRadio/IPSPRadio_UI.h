@@ -44,6 +44,8 @@
 		virtual void OnScreenshot(CScreenHandler::ScreenShotState state){};
 		virtual void OnBatteryChange(int Percentage){};
 		virtual void OnTimeChange(pspTime *LocalTime){};
+		virtual void OnUSBEnable(){};
+		virtual void OnUSBDisable(){};
 
 		virtual void DisplayContainers(CMetaDataContainer *Container){}
 		virtual void DisplayElements(CMetaDataContainer *Container){}

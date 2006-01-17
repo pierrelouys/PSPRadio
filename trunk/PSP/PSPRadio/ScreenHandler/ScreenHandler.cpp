@@ -7,7 +7,7 @@
 	as published by the Free Software Foundation; either version 2
 	of the License, or (at your option) any later version.
 	
-	This program is distributed in the hope that it will be useful,
+// 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
@@ -38,7 +38,7 @@
 #include "LocalFilesScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
-#include "SandbergUI.h" 
+#include "TextUI3D.h" 
 
 #define ReportError pPSPApp->ReportError
 
@@ -149,8 +149,8 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 			#endif
 			break;
 		case UI_3D:
-			Log(LOG_INFO, "StartUI: Starting 3D UI");
-			m_UI = new CSandbergUI();
+			Log(LOG_INFO, "StartUI: Starting Text3D UI");
+			m_UI = new CTextUI3D();
 			break;
 	}
 	m_CurrentUI = UI;

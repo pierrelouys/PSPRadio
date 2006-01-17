@@ -661,7 +661,10 @@ int CPSPApp::EnableUSB()
 		}
 		
 	}
-		
+	if (retVal == 0)
+	{
+		pPSPApp->SendEvent(MID_USB_ENABLE);
+	}
 	return retVal;
 }
 
@@ -706,7 +709,10 @@ int CPSPApp::DisableUSB()
 			m_USBEnabled = false;
 		}
 	}
-	
+	if (retVal == 0)
+	{
+		pPSPApp->SendEvent(MID_USB_DISABLE);
+	}
 	return retVal;
 }
 

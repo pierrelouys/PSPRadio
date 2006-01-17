@@ -65,6 +65,8 @@
 	#define MID_ONVBLANK					0x01000020
 	#define MID_ONBATTERY_CHANGE			0x01000040
 	#define MID_ONTIME_CHANGE				0x01000041
+	#define MID_USB_ENABLE				0x01000050
+	#define MID_USB_DISABLE				0x01000051
 
 	class CPSPThread;
 	class CPSPApp;
