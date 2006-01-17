@@ -21,6 +21,16 @@
 #include <Logging.h>
 #include "MetaDataContainer.h"
 
+bool SortMetaData(MetaData &a, MetaData &b)
+{
+	return strcmp(a.strURI, b.strURI) < 0;
+}
+
+bool SortMetaDataByTitle(MetaData &a, MetaData &b)
+{
+	return strcmp(a.strTitle, b.strTitle) < 0;
+}
+
 CMetaDataContainer::CMetaDataContainer()
 {
 	m_currentContainerIterator = m_containerListMap.begin();
@@ -244,12 +254,26 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 		}
 		fclose(fd), fd = NULL;
 		
+		/** Sort Element List */
+		for (m_currentContainerIterator = m_containerListMap.begin(); m_currentContainerIterator != m_containerListMap.end(); m_currentContainerIterator++)
+		{
+			m_currentElementList = m_currentContainerIterator->second;
+			if (m_currentElementList)
+			{
+				m_currentElementList->sort(SortMetaDataByTitle);
+			}
+		}
+		
+		
 		m_currentContainerIterator = m_containerListMap.begin();
 		m_currentElementList = m_currentContainerIterator->second;
 		if (m_currentElementList)	
 		{
 			m_currentElementIterator = m_currentElementList->begin();
 		}
+		
+		
+
 	}
 	else
 	{
@@ -448,21 +472,12 @@ void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 	m_currentElementList->push_back(*metadata);
 }
 
-
 /** This method is used by the LocalFilesScreen */
 void CMetaDataContainer::LoadDirectory(char *strPath)
 {
 	char strFilename[MAXPATHLEN];
 	int dfd;
 	SceIoDirent direntry;
-	
-	#if 0
-	/** Insert . and .. */
-	m_currentElementList = new list<MetaData>;
-	/** Add to the container map */
-	//m_containerListMap.insert( map<string, list<MetaData>* >::value_type(".", m_currentElementList) );
-	m_containerListMap.insert( map<string, list<MetaData>* >::value_type("..", m_currentElementList) );
-	#endif
 	
 	Log(LOG_LOWLEVEL, "LoadDirectory: Reading '%s' Directory", strPath);
 	dfd = sceIoDopen(strPath);
@@ -502,10 +517,12 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 
 				/** Populate Listbox */
 				LoadFilesIntoCurrentElementList(strFilename);
-
+				
 			}
 		}
 		sceIoDclose(dfd);
+		
+		/** If list is not empty: */
 		if (false == m_containerListMap.empty())
 		{
 			m_currentContainerIterator = m_containerListMap.begin();
@@ -556,6 +573,10 @@ void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 			}
 		}
 		sceIoDclose(dfd);
+		
+		/** Sort Element List */
+		m_currentElementList->sort(SortMetaData);
+		
 		m_currentContainerIterator = m_containerListMap.begin();
 		m_currentElementList = m_currentContainerIterator->second;
 		if (m_currentElementList)	
@@ -823,6 +844,9 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 		fclose(fd), fd = NULL;
 		
 		m_currentElementIterator = m_currentElementList->begin();
+		
+		/** Sort Element List */
+		m_currentElementList->sort(SortMetaData);
 	}
 	else
 	{
