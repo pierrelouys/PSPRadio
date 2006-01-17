@@ -3,9 +3,10 @@ What's New for PSPRadio
 
 0.38-Pre1
 NEW FEATURES
-(sandberg) Merged the new TextUI3D into the main branch.
-(sandberg) Support for USB enabled/disabled events to the UIs has been added.
+(sandberg) Merged the new TextUI3D into the main branch. (r712)
+(sandberg) Support for USB enabled/disabled events to the UIs has been added. (r712)
 (raf) Added code to sort all lists (localfiles/playlists/SHOUTcast listings) alphabetically in ascending order (r713)
+(sandberg) Made the graphics in the new UI configurable, to allow new skins to be made. (r716)
 
 BUG FIXES
 (raf) Removed the config option to turn logging on/off. Just use log levels.
