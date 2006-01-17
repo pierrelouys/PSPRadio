@@ -5,8 +5,7 @@ PSPRadio by Raf 0.37 Final 2006-01-16
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php
 -Official subversion repo: http://svn.berlios.de/viewcvs/pspradio/trunk/PSP/
 
--No official documentation available yet; but refer to the Documents directory
-for some 'unofficial' docs provided by user albadross.
+-No official documentation available yet.
 
 In the meantime, go to http://pspradio.berlios.de/phpBB/index.php and look 
 for setup and configuration guides under Guides.
@@ -33,9 +32,9 @@ Sandberg:  3D UI, enchancements, bug fixes, new secret UI in the works...
 Other Routines:
 echto:	SHOUTcast.com interface, zlib routines.
 
-Art:
+Art/Other:
 -Albadross:  TextUI Backgrounds/Skins/Documentation/Ideas/Configurations.
--halfastII:  Iconset
+-HalfastII:  Iconset/Skin Tweaking/Config Tweaking/Ideas/Forum Moderation/Testing/Lots of Help.
 -handojinUK: Iconset
 -harbringer: Iconset, default GraphicsUI theme
 -Mr Pochi:   Iconset
