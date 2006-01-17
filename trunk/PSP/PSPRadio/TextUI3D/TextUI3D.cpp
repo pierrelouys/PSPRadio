@@ -51,8 +51,8 @@
 jsaTextureCache		tcache;
 
 /* Settings */
-Settings LocalSettings;
-
+Settings 	LocalSettings;
+gfx_sizes	GfxSizes;
 
 CTextUI3D::CTextUI3D()
 {
@@ -110,6 +110,7 @@ int CTextUI3D::GetConfigColor(char *strKey)
 
 void CTextUI3D::GetSettings()
 {
+	/* Settings */
 	LocalSettings.EventThreadPrio = m_Settings->GetInteger("SETTINGS:EVENT_THREAD_PRIO", 80);
 	GetConfigPair("SETTINGS:PROGRAM_VERSION_XY", &LocalSettings.VersionX, &LocalSettings.VersionY);
 	GetConfigPair("SETTINGS:IP_XY", &LocalSettings.IPX, &LocalSettings.IPY);
@@ -142,6 +143,22 @@ void CTextUI3D::GetSettings()
 	GetConfigPair("SETTINGS:BITRATE_XY", &LocalSettings.BitrateX, &LocalSettings.BitrateY);
 	GetConfigPair("SETTINGS:USB_ICON_XY", &LocalSettings.USBIconX, &LocalSettings.USBIconY);
 	GetConfigPair("SETTINGS:PLAYER_STATE_XY", &LocalSettings.PlayerstateX, &LocalSettings.PlayerstateY);
+
+	/* Graphics sizes */
+	GetConfigPair("GRAPHICS:GFX_WIFI_SIZE", &GfxSizes.wifi_w, &GfxSizes.wifi_h);
+	GfxSizes.wifi_y = m_Settings->GetInteger("GRAPHICS:GFX_WIFI_H", 8);
+	GetConfigPair("GRAPHICS:GFX_POWER_SIZE", &GfxSizes.power_w, &GfxSizes.power_h);
+	GfxSizes.power_y = m_Settings->GetInteger("GRAPHICS:GFX_POWER_H", 8);
+	GetConfigPair("GRAPHICS:GFX_VOLUME_SIZE", &GfxSizes.volume_w, &GfxSizes.volume_h);
+	GfxSizes.volume_y = m_Settings->GetInteger("GRAPHICS:GFX_VOLUME_H", 16);
+	GetConfigPair("GRAPHICS:GFX_ICONS_SIZE", &GfxSizes.icons_w, &GfxSizes.icons_h);
+	GfxSizes.icons_y = m_Settings->GetInteger("GRAPHICS:GFX_ICONS_H", 40);
+	GetConfigPair("GRAPHICS:GFX_PROGRESS_SIZE", &GfxSizes.progress_w, &GfxSizes.progress_h);
+	GfxSizes.progress_y = m_Settings->GetInteger("GRAPHICS:GFX_PROGRESS_H", 8);
+	GetConfigPair("GRAPHICS:GFX_USB_SIZE", &GfxSizes.usb_w, &GfxSizes.usb_h);
+	GfxSizes.usb_y = m_Settings->GetInteger("GRAPHICS:GFX_USB_H", 16);
+	GetConfigPair("GRAPHICS:GFX_PLAYSTATE_SIZE", &GfxSizes.playstate_w, &GfxSizes.playstate_h);
+	GfxSizes.playstate_y = m_Settings->GetInteger("GRAPHICS:GFX_PLAYSTATE_H", 8);
 }
 
 void CTextUI3D::Terminate()

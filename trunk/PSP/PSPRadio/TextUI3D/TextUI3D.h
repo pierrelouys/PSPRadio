@@ -61,6 +61,23 @@
 		int PlayerstateX, PlayerstateY;
 		};
 
+	struct gfx_sizes
+		{
+		int	wifi_w, wifi_h;
+		int wifi_y;
+		int	power_w, power_h;
+		int power_y;
+		int	volume_w, volume_h;
+		int volume_y;
+		int	icons_w, icons_h;
+		int icons_y;
+		int	progress_w, progress_h;
+		int progress_y;
+		int	usb_w, usb_h;
+		int usb_y;
+		int	playstate_w, playstate_h;
+		int playstate_y;
+		};
 
 class CTextUI3D : public IPSPRadio_UI
 {

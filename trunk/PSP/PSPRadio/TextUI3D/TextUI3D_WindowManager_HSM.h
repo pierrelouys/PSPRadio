@@ -174,6 +174,7 @@ private:
 	void *localfiles_entries_handler();
 	void *options_handler();
 
+	void InitTextures();
 	void LoadTextures(char *strCWD);
 	void LoadBackground(char *strCWD);
 	void UpdateWindows();

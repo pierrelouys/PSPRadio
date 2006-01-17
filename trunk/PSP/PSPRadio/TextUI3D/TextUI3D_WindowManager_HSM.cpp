@@ -64,7 +64,8 @@
 extern jsaTextureCache		tcache;
 
 /* Settings */
-extern Settings LocalSettings;
+extern Settings		LocalSettings;
+extern gfx_sizes	GfxSizes;
 
 static unsigned int __attribute__((aligned(16))) gu_list[262144];
 
@@ -166,6 +167,7 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	sceKernelStartThread(m_mbxthread, 0, NULL);
 
 	LoadBackground(cwd);
+	InitTextures();
 	LoadTextures(cwd);
 
 	CTextUI3D_Panel::FrameTextures	textures = {16, 16, {	TEX_CORNER_UL,	TEX_FRAME_T,	TEX_CORNER_UR,
@@ -402,6 +404,33 @@ void WindowHandlerHSM::Trans(CState *Target)
 	/* Set Machine in Target and make possible initial transition for Target */
 	ActivateState(Target);
 	}
+
+void WindowHandlerHSM::InitTextures()
+{
+	/* Overwrite default values */
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.wifi_w, GfxSizes.wifi_h, GfxSizes.wifi_y);
+	texture_list[10].width 	= GfxSizes.wifi_w;
+	texture_list[10].height = GfxSizes.wifi_h;
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.power_w, GfxSizes.power_h, GfxSizes.power_y);
+	texture_list[11].width 	= GfxSizes.power_w;
+	texture_list[11].height = GfxSizes.power_h;
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.volume_w, GfxSizes.volume_h, GfxSizes.volume_y);
+	texture_list[12].width 	= GfxSizes.volume_w;
+	texture_list[12].height = GfxSizes.volume_h;
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.icons_w, GfxSizes.icons_h, GfxSizes.icons_y);
+	texture_list[13].width 	= GfxSizes.icons_w;
+	texture_list[13].height = GfxSizes.icons_h;
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.progress_w, GfxSizes.progress_h, GfxSizes.progress_y);
+	texture_list[14].width 	= GfxSizes.progress_w;
+	texture_list[14].height = GfxSizes.progress_h;
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.usb_w, GfxSizes.usb_h, GfxSizes.usb_y);
+	texture_list[15].width 	= GfxSizes.usb_w;
+	texture_list[15].height	= GfxSizes.usb_h;
+	Log(LOG_ERROR, "%d, %d, %d", GfxSizes.playstate_w, GfxSizes.playstate_h, GfxSizes.playstate_y);
+	texture_list[16].width 	= GfxSizes.playstate_w;
+	texture_list[16].height	= GfxSizes.playstate_h;
+	sceKernelDcacheWritebackAll();
+}
 
 /* Utility methods */
 void WindowHandlerHSM::LoadTextures(char *strCWD)
@@ -690,11 +719,11 @@ void WindowHandlerHSM::RenderNetwork()
 {
 	if (m_network_state == false)
 		{
-		RenderIcon(TEX_WIFI, LocalSettings.WifiIconX, LocalSettings.WifiIconY, 80, 8, 8);
+		RenderIcon(TEX_WIFI, LocalSettings.WifiIconX, LocalSettings.WifiIconY, GfxSizes.wifi_w, GfxSizes.wifi_y, GfxSizes.wifi_y);
 		}
 	else
 		{
-		RenderIcon(TEX_WIFI, LocalSettings.WifiIconX, LocalSettings.WifiIconY, 80, 8, 0);
+		RenderIcon(TEX_WIFI, LocalSettings.WifiIconX, LocalSettings.WifiIconY, GfxSizes.wifi_w, GfxSizes.wifi_y, 0);
 		}
 }
 
@@ -702,22 +731,22 @@ void WindowHandlerHSM::RenderUSB()
 {
 	if (pPSPApp->IsUSBEnabled() == false)
 		{
- 		RenderIconAlpha(TEX_ICON_USB, LocalSettings.USBIconX, LocalSettings.USBIconY, 64, 16, 16);
+ 		RenderIconAlpha(TEX_ICON_USB, LocalSettings.USBIconX, LocalSettings.USBIconY, GfxSizes.usb_w, GfxSizes.usb_y, GfxSizes.usb_y);
 		}
 	else
 		{
-		RenderIconAlpha(TEX_ICON_USB, LocalSettings.USBIconX, LocalSettings.USBIconY, 64, 16, 0);
+		RenderIconAlpha(TEX_ICON_USB, LocalSettings.USBIconX, LocalSettings.USBIconY, GfxSizes.usb_w, GfxSizes.usb_y, 0);
 		}
 }
 
 void WindowHandlerHSM::RenderListIcon()
 {
-	RenderIconAlpha(TEX_LIST_ICON, LocalSettings.ListIconX, LocalSettings.ListIconY, 64, 40, m_list_icon * 40);
+	RenderIconAlpha(TEX_LIST_ICON, LocalSettings.ListIconX, LocalSettings.ListIconY, GfxSizes.icons_w, GfxSizes.icons_y, m_list_icon * GfxSizes.icons_y);
 }
 
 void WindowHandlerHSM::RenderPlaystateIcon()
 {
-	RenderIconAlpha(TEX_ICON_PLAYSTATE, LocalSettings.PlayerstateX, LocalSettings.PlayerstateY, 32, 8, m_playstate_icon * 8);
+	RenderIconAlpha(TEX_ICON_PLAYSTATE, LocalSettings.PlayerstateX, LocalSettings.PlayerstateY, GfxSizes.playstate_w, GfxSizes.progress_y, m_playstate_icon * GfxSizes.progress_y);
 }
 
 void WindowHandlerHSM::RenderProgressBar(bool reset)
@@ -734,7 +763,7 @@ void WindowHandlerHSM::RenderProgressBar(bool reset)
 		{
 		if (m_progress_render)
 			{
-			RenderIcon(TEX_ICON_PROGRESS, LocalSettings.ProgressBarX, LocalSettings.ProgressBarY, 128, 8, progress_frame * 8);
+			RenderIcon(TEX_ICON_PROGRESS, LocalSettings.ProgressBarX, LocalSettings.ProgressBarY, GfxSizes.progress_w, GfxSizes.progress_y, progress_frame * GfxSizes.progress_y);
 			if (progress_timing == 10)
 				{
 				progress_timing = 0;
@@ -747,7 +776,7 @@ void WindowHandlerHSM::RenderProgressBar(bool reset)
 			}
 		else
 			{
-			RenderIcon(TEX_ICON_PROGRESS, LocalSettings.ProgressBarX, LocalSettings.ProgressBarY, 128, 8, 7 * 8);
+			RenderIcon(TEX_ICON_PROGRESS, LocalSettings.ProgressBarX, LocalSettings.ProgressBarY, GfxSizes.progress_w, GfxSizes.progress_y, 7 * GfxSizes.progress_y);
 			}
 		}
 }
@@ -764,12 +793,12 @@ void WindowHandlerHSM::BatteryMapLevel(int level)
 
 void WindowHandlerHSM::RenderBattery()
 {
-	RenderIcon(TEX_POWER, LocalSettings.BatteryIconX, LocalSettings.BatteryIconY, 88, 8, m_level*8);
+	RenderIcon(TEX_POWER, LocalSettings.BatteryIconX, LocalSettings.BatteryIconY, GfxSizes.power_w, GfxSizes.power_y, m_level*GfxSizes.power_y);
 }
 
 void WindowHandlerHSM::RenderVolume()
 {
-	RenderIconAlpha(TEX_VOLUME, LocalSettings.VolumeIconX, LocalSettings.VolumeIconY, 64, 16, 6 * 16);
+	RenderIconAlpha(TEX_VOLUME, LocalSettings.VolumeIconX, LocalSettings.VolumeIconY, GfxSizes.volume_w, GfxSizes.volume_y, 6 * GfxSizes.volume_y);
 }
 
 void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity)
@@ -989,7 +1018,7 @@ void WindowHandlerHSM::SetBitrate(long unsigned int bitrate)
 
 void WindowHandlerHSM::GUInit()
 {
-	Log(LOG_ERROR, "GUInit");
+	Log(LOG_HSM, "GUInit");
 	sceGuInit();
 
 	sceGuStart(GU_DIRECT,::gu_list);
