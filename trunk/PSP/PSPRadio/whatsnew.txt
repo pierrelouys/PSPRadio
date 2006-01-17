@@ -1,6 +1,12 @@
 What's New for PSPRadio 
 ========================
 
+0.38-Pre1
+NEW FEATURES
+
+BUG FIXES
+(raf) Removed the config option to turn logging on/off. Just use log levels.
+
 0.37-Final (r706) (2006-01-16) (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.37/)
 NEW FEATURES
 (raf) TextUI: Added a new config element to specify the length of the metadata.

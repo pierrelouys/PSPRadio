@@ -63,7 +63,7 @@ private:
 	CScreenHandler *m_ScreenHandler;
 		
 public:
-	myPSPApp(): CPSPApp("PSPRadio", "0.37-Final")
+	myPSPApp(): CPSPApp("PSPRadio", "0.38-Pre1")
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
@@ -147,7 +147,7 @@ public:
 	int Setup_Logging(char *strCurrentDir)
 	{
 		char *strFilename = NULL;
-		if ( m_Config && (1 == m_Config->GetInteger("DEBUGGING:LOGFILE_ENABLED", 0)) )
+		if ( m_Config )
 		{
 			int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
 			
