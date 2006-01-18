@@ -56,7 +56,7 @@ gfx_sizes	GfxSizes;
 
 CTextUI3D::CTextUI3D()
 {
-	m_state			= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
+	m_state	= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 }
 
 CTextUI3D::~CTextUI3D()
@@ -159,6 +159,12 @@ void CTextUI3D::GetSettings()
 	GfxSizes.usb_y = m_Settings->GetInteger("GRAPHICS:GFX_USB_H", 16);
 	GetConfigPair("GRAPHICS:GFX_PLAYSTATE_SIZE", &GfxSizes.playstate_w, &GfxSizes.playstate_h);
 	GfxSizes.playstate_y = m_Settings->GetInteger("GRAPHICS:GFX_PLAYSTATE_H", 8);
+}
+
+void CTextUI3D::PrepareShutdown()
+{
+	/* Prepare for shutdown -> Don't render anymore */
+	m_state = CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE;
 }
 
 void CTextUI3D::Terminate()
@@ -308,6 +314,15 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 void CTextUI3D::Initialize_Screen(IScreen *Screen)
 {
 	/* Pass to WindowManager */
+	if (pPSPApp->GetProgramVersion())
+	{
+		SetTitle(pPSPApp->GetProgramVersion());
+	}
+
+	if (pPSPApp->GetMyIP())
+	{
+		DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+	}
 
 	switch ((CScreenHandler::Screen)Screen->GetId())
 	{

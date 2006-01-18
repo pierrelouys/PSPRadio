@@ -1,17 +1,17 @@
-/* 
+/*
 	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
 	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
-	
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
 	of the License, or (at your option) any later version.
-	
+
 // 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
-	
+
 	You should have received a copy of the GNU General Public License
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -19,7 +19,7 @@
 #include <PSPApp.h>
 #include <PSPSound.h>
 #include <stdio.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -27,7 +27,7 @@
 #include <iniparser.h>
 #include <Tools.h>
 #include <Logging.h>
-#include <pspwlan.h> 
+#include <pspwlan.h>
 #include <psphprm.h>
 #include <pspdisplay.h>
 #include <png.h>
@@ -38,7 +38,7 @@
 #include "LocalFilesScreen.h"
 #include "TextUI.h"
 #include "GraphicsUI.h"
-#include "TextUI3D.h" 
+#include "TextUI3D.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -51,25 +51,25 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	m_Config = Config;
 	m_Sound = Sound;
 	m_PlayMode = PLAYMODE_NORMAL; //PLAYMODE_SINGLE;//
-	
+
 	Log(LOG_VERYLOW, "CScreenHandler Ctor");
 	/** Create Screens... */
-	Screens[PSPRADIO_SCREEN_LOCALFILES] = 
+	Screens[PSPRADIO_SCREEN_LOCALFILES] =
 		new LocalFilesScreen(PSPRADIO_SCREEN_LOCALFILES, this);
 	((LocalFilesScreen*)Screens[PSPRADIO_SCREEN_LOCALFILES])->SetConfigFilename("LocalFilesScreen.cfg");
 	((LocalFilesScreen*)Screens[PSPRADIO_SCREEN_LOCALFILES])->LoadLists();
-	
-	Screens[PSPRADIO_SCREEN_PLAYLIST] = 
+
+	Screens[PSPRADIO_SCREEN_PLAYLIST] =
 		new PlayListScreen(PSPRADIO_SCREEN_PLAYLIST, this);
 	((PlayListScreen*)Screens[PSPRADIO_SCREEN_PLAYLIST])->SetConfigFilename("PlaylistScreen.cfg");
 	((PlayListScreen*)Screens[PSPRADIO_SCREEN_PLAYLIST])->LoadLists();
 
-	Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER] = 
+	Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER] =
 		new SHOUTcastScreen(PSPRADIO_SCREEN_SHOUTCAST_BROWSER, this);
 	((SHOUTcastScreen*)Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER])->SetConfigFilename("SHOUTcastScreen.cfg");
 	((SHOUTcastScreen*)Screens[PSPRADIO_SCREEN_SHOUTCAST_BROWSER])->LoadLists();
 
-	Screens[PSPRADIO_SCREEN_OPTIONS] = 
+	Screens[PSPRADIO_SCREEN_OPTIONS] =
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
 	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS])->SetConfigFilename("OptionsScreen.cfg");
 
@@ -85,9 +85,9 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 		m_PreviousScreen = m_CurrentScreen;
 	}
 	m_StreamOwnerScreen = NULL;
-	
+
 	SetInitialScreen(InitialScreen);
-	
+
 }
 
 CScreenHandler::~CScreenHandler()
@@ -127,7 +127,7 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 			pPSPApp->SendEvent(EID_NEW_UI_POINTER, NULL, SID_SCREENHANDLER);
 			pPSPApp->StopPolling();
 		}
-			
+
 		Log(LOG_INFO, "StartUI: Destroying current UI");
 		m_UI->Terminate();
 		delete(m_UI), m_UI = NULL;
@@ -160,15 +160,23 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 	m_CurrentScreen->Activate(m_UI);
 
 	if (wasPolling)
-	{	
+	{
 		/** If PSPRadio was running, then notify it of the new address of the UI */
 		Log(LOG_LOWLEVEL, "Notifying PSPRadio of new UI's address (0x%x)", m_UI );
 		pPSPApp->SendEvent(EID_NEW_UI_POINTER, m_UI, SID_SCREENHANDLER);
 		pPSPApp->StartPolling();
 	}
-		
-	
+
+
 	return m_UI;
+}
+
+void CScreenHandler::PrepareShutdown()
+{
+	if(m_UI)
+	{
+		m_UI->PrepareShutdown();
+	}
 }
 
 void CScreenHandler::OnVBlank()
@@ -237,7 +245,7 @@ void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
 
 void IScreen::Activate(IPSPRadio_UI *UI)
 {
-	m_UI = UI; 
+	m_UI = UI;
 	m_UI->Initialize_Screen(this);
 	m_ScreenHandler->SetCurrentScreen(this);
 }

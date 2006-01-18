@@ -1,6 +1,6 @@
 #ifndef __SCREEN_HANDLER__
 	#define __SCREEN_HANDLER__
-	
+
 	#include <PSPSound.h>
 	#include <iniparser.h>
 	#include <list>
@@ -28,7 +28,7 @@
 		PLAYSTATE_PAUSE,
 		PLAYSTATE_EOS
 	};
-	
+
 	class IScreen
 	{
 		public:
@@ -37,18 +37,18 @@
 				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_UI = NULL; m_strConfigFilename = NULL;}
 			virtual ~IScreen()
 				{if (m_strConfigFilename)free(m_strConfigFilename), m_strConfigFilename= NULL;}
-			
+
 			int GetId(){ return m_Id; }
 
 			virtual void Activate(IPSPRadio_UI *UI);
 
 			virtual void InputHandler(int iButtonMask){};
-			
+
 			virtual void OnPlayStateChange(playstates NewPlayState){};
 
 			void  SetConfigFilename(char *strConfigFilename){m_strConfigFilename = strdup(strConfigFilename);}
 			char *GetConfigFilename(){return m_strConfigFilename;}
-		
+
 		protected:
 			int m_Id;
 			IPSPRadio_UI *m_UI;
@@ -62,7 +62,7 @@
 		PLAYMODE_SINGLE,
 		PLAYMODE_REPEAT,
 	};
-	
+
 	class CScreenHandler
 	{
 	public:
@@ -77,30 +77,31 @@
 		};
 		/** These point to the first and one-beyond the last elements of the
 			list; just like in a sdl list. This to allow for easy iteration
-			though the list with a for loop/etc. 
+			though the list with a for loop/etc.
 		*/
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_LOCALFILES
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
-		
+
 		enum UIs
 		{
 			UI_TEXT = 0,
 			UI_3D = 1,
 			UI_GRAPHICS = 99,
 		};
-		
+
 		enum request_on_play_stop
 		{
 			NOTHING,
 			PLAY_REQUEST,
 			STOP_REQUEST,		/** User selected to stop */
 		};
-		
-		
+
+
 		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen = PSPRADIO_SCREEN_PLAYLIST);
 		~CScreenHandler();
 		IPSPRadio_UI *StartUI(UIs UI);
-		
+		void PrepareShutdown();
+
 		void CommonInputHandler(int iButtonMask);
 		void OnHPRMReleased(u32 iHPRMMask);
 
@@ -115,15 +116,15 @@
 
 		Screen GetInitialScreen(){ return m_InitialScreen; }
 		void SetInitialScreen(Screen screen){m_InitialScreen = screen;}
-		
+
 		IScreen *GetStreamOwnerScreen() { return m_StreamOwnerScreen; }
 		void SetStreamOwnerScreen(IScreen *screen) { m_StreamOwnerScreen = screen; }
-		
+
 		playmodes GetPlayMode() { return m_PlayMode; }
 		void SetPlayMode(playmodes mode) { m_PlayMode = mode; }
-		
+
 		void OnVBlank();
-		
+
 		request_on_play_stop m_RequestOnPlayOrStop;
 
 		/** Screenshot functionality */
@@ -140,7 +141,7 @@
 		void Screenshot();
 		char *ScreenshotName(char *path);
 		void ScreenshotStore(char *filename);
-		
+
 	protected:
 		friend class IScreen;
 		void SetCurrentScreen(IScreen *pScreen){m_CurrentScreen = pScreen;}

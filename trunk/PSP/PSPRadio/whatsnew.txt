@@ -10,9 +10,12 @@ NEW FEATURES
 (raf) Core Now duplicates are eliminated from SHOUTcast listing genres. Duplicates are looked for in case insensitive mode. (r717)
 (raf) Core: Top 600 listing is now left unsorted (so it stays sorted by popularity). (r718)
 (raf) TextUI: Clock format (12/24) is now retrieved from the system settings, and the config option is not used anymore. 
+(sandberg) 3DUI: New graphics from Semtex integrated. (r720)
 
 BUG FIXES
 (raf) Core: Removed the config option to turn logging on/off. Just use log levels.
+(sandberg) 3DUI: shutdown screen are now shown on the new UI. (r720)
+(sandberg) 3DUI: IP number and program title are shown after switching UIs. (r720)
 
 0.37-Final (r706) (2006-01-16) (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.37/)
 NEW FEATURES

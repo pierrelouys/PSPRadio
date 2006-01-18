@@ -233,6 +233,12 @@ public:
 	{
 		Log(LOG_VERYLOW, "PSPRadio::OnExit()");
 
+		if (m_ScreenHandler)
+		{
+			Log(LOG_VERYLOW, "Exiting. Preparing UI for shutdown");
+			m_ScreenHandler->PrepareShutdown();
+		}
+
 		rootScreen.SetBackgroundImage("Shutdown.png");
 		rootScreen.Clear();
 

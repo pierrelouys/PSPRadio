@@ -97,6 +97,7 @@ public:
 public:
 	int Initialize(char *strCWD);
 	void Terminate();
+	void PrepareShutdown();
 
 	int SetTitle(char *strTitle);
 	int DisplayMessage_EnablingNetwork();
