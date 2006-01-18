@@ -32,6 +32,7 @@
 #include <Logging.h>
 #include <Screen.h>
 #include "TextUI.h"
+#include <psputility_sysparam.h>
 
 //#define MAX_ROWS 34
 //#define MAX_COL  68
@@ -145,7 +146,8 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		memset(&m_ScreenConfig, 0, sizeof(m_ScreenConfig));
 		
 		/** General */
-		m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 12);
+		//m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 12);
+		//sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT, &m_ScreenConfig.ClockFormat);
 		
 		m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SETTINGS:FONT_MODE", 0);
 		m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_SETTINGS:FONT_WIDTH", 7);
@@ -422,7 +424,10 @@ void CTextUI::OnBatteryChange(int Percentage)
 
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
-	if (m_ScreenConfig.ClockFormat == 24)
+	int clockFormat = 0;
+	sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT, &clockFormat);
+	
+	if (clockFormat == PSP_SYSTEMPARAM_TIME_FORMAT_24HR)
 	{
 		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d", 
 					LocalTime->hour, LocalTime->minutes);
@@ -430,7 +435,7 @@ void CTextUI::OnTimeChange(pspTime *LocalTime)
 	else
 	{
 		bool bIsPM = (LocalTime->hour)>12;
-		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d %s", 
+		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d%s", 
 					bIsPM?(LocalTime->hour-12):(LocalTime->hour), 
 					LocalTime->minutes,
 					bIsPM?"PM":"AM");

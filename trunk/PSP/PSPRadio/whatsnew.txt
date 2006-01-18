@@ -3,15 +3,16 @@ What's New for PSPRadio
 
 0.38-Pre1
 NEW FEATURES
-(sandberg) Merged the new TextUI3D into the main branch. (r712)
-(sandberg) Support for USB enabled/disabled events to the UIs has been added. (r712)
-(raf) Added code to sort all lists (localfiles/playlists/SHOUTcast listings) alphabetically in ascending order (r713)
-(sandberg) Made the graphics in the new UI configurable, to allow new skins to be made. (r716)
-(raf) Now duplicates are eliminated from SHOUTcast listing genres. Duplicates are looked for in case insensitive mode. (r717)
-(raf) Top 600 listing is now left unsorted (so it stays sorted by popularity).
+(sandberg) Core/3DUI: Merged the new TextUI3D into the main branch. (r712)
+(sandberg) Core: Support for USB enabled/disabled events to the UIs has been added. (r712)
+(raf) Core: Added code to sort all lists (localfiles/playlists/SHOUTcast listings) alphabetically in ascending order (r713)
+(sandberg) 3DUI: Made the graphics in the new UI configurable, to allow new skins to be made. (r716)
+(raf) Core Now duplicates are eliminated from SHOUTcast listing genres. Duplicates are looked for in case insensitive mode. (r717)
+(raf) Core: Top 600 listing is now left unsorted (so it stays sorted by popularity). (r718)
+(raf) TextUI: Clock format (12/24) is now retrieved from the system settings, and the config option is not used anymore. 
 
 BUG FIXES
-(raf) Removed the config option to turn logging on/off. Just use log levels.
+(raf) Core: Removed the config option to turn logging on/off. Just use log levels.
 
 0.37-Final (r706) (2006-01-16) (svn.berlios.de/svnroot/repos/pspradio/Releases/PSPRadio0.37/)
 NEW FEATURES
