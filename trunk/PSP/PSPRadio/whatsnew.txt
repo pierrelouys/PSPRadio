@@ -7,6 +7,7 @@ NEW FEATURES
 (sandberg) Support for USB enabled/disabled events to the UIs has been added. (r712)
 (raf) Added code to sort all lists (localfiles/playlists/SHOUTcast listings) alphabetically in ascending order (r713)
 (sandberg) Made the graphics in the new UI configurable, to allow new skins to be made. (r716)
+(raf) Now duplicates are eliminated from SHOUTcast listing genres. Duplicates are looked for in case insensitive mode. (r717)
 
 BUG FIXES
 (raf) Removed the config option to turn logging on/off. Just use log levels.

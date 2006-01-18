@@ -21,7 +21,7 @@
 #include <Logging.h>
 #include "MetaDataContainer.h"
 
-bool SortMetaData(MetaData &a, MetaData &b)
+bool SortMetaDataByURI(MetaData &a, MetaData &b)
 {
 	return strcmp(a.strURI, b.strURI) < 0;
 }
@@ -254,8 +254,8 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 		}
 		fclose(fd), fd = NULL;
 		
-		/** Sort Element List */
-		for (m_currentContainerIterator = m_containerListMap.begin(); m_currentContainerIterator != m_containerListMap.end(); m_currentContainerIterator++)
+		/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
+		for (m_currentContainerIterator = m_containerListMap.begin(); m_currentContainerIterator != m_containerListMap.end(); ++m_currentContainerIterator)
 		{
 			m_currentElementList = m_currentContainerIterator->second;
 			if (m_currentElementList)
@@ -453,10 +453,10 @@ void CMetaDataContainer::ProcessGenre(MetaData *metadata)
 
 void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 {
-	map<string, list<MetaData>* >::iterator found;
-	found = m_containerListMap.find(strGenre);
+	map<string, list<MetaData>* >::iterator foundGenre;
+	foundGenre = m_containerListMap.find(strGenre);
 	
-	if (found == m_containerListMap.end()) /** Didn't find it */
+	if (foundGenre == m_containerListMap.end()) /** Didn't find genre, create it */
 	{
 		m_currentElementList = new list<MetaData>;
 		/** Add new genre to the container map */
@@ -464,12 +464,26 @@ void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 	}
 	else
 	{
-		m_currentElementList = found->second;
+		m_currentElementList = foundGenre->second;
 	}
-	metadata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
-
-	/** Insert stream information */
-	m_currentElementList->push_back(*metadata);
+	
+	/** Search for the station in the metadata (by Title) in this genre list */
+	list<MetaData>::iterator foundStation;
+	for(foundStation = m_currentElementList->begin(); (foundStation != m_currentElementList->end()); foundStation++) 
+	{
+ 		if (stricmp((*foundStation).strTitle, metadata->strTitle) == 0)
+		{
+			break;
+		}
+	};
+	
+	
+	if (foundStation == m_currentElementList->end()) /** Didn't find station under this genre, add */
+	{
+		/** Insert stream information */
+		metadata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
+		m_currentElementList->push_back(*metadata);
+	}
 }
 
 /** This method is used by the LocalFilesScreen */
@@ -575,7 +589,7 @@ void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 		sceIoDclose(dfd);
 		
 		/** Sort Element List */
-		m_currentElementList->sort(SortMetaData);
+		m_currentElementList->sort(SortMetaDataByURI);
 		
 		m_currentContainerIterator = m_containerListMap.begin();
 		m_currentElementList = m_currentContainerIterator->second;
@@ -846,7 +860,7 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 		m_currentElementIterator = m_currentElementList->begin();
 		
 		/** Sort Element List */
-		m_currentElementList->sort(SortMetaData);
+		m_currentElementList->sort(SortMetaDataByURI);
 	}
 	else
 	{
