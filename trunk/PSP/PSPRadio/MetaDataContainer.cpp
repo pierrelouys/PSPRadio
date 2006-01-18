@@ -255,7 +255,9 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 		fclose(fd), fd = NULL;
 		
 		/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
-		for (m_currentContainerIterator = m_containerListMap.begin(); m_currentContainerIterator != m_containerListMap.end(); ++m_currentContainerIterator)
+		m_currentContainerIterator = m_containerListMap.begin();
+		m_currentContainerIterator++; /** Skip 600 listing */
+		for (; m_currentContainerIterator != m_containerListMap.end(); m_currentContainerIterator++)
 		{
 			m_currentElementList = m_currentContainerIterator->second;
 			if (m_currentElementList)
@@ -264,15 +266,12 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 			}
 		}
 		
-		
 		m_currentContainerIterator = m_containerListMap.begin();
 		m_currentElementList = m_currentContainerIterator->second;
 		if (m_currentElementList)	
 		{
 			m_currentElementIterator = m_currentElementList->begin();
 		}
-		
-		
 
 	}
 	else

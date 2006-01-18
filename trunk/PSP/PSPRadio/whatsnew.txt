@@ -8,6 +8,7 @@ NEW FEATURES
 (raf) Added code to sort all lists (localfiles/playlists/SHOUTcast listings) alphabetically in ascending order (r713)
 (sandberg) Made the graphics in the new UI configurable, to allow new skins to be made. (r716)
 (raf) Now duplicates are eliminated from SHOUTcast listing genres. Duplicates are looked for in case insensitive mode. (r717)
+(raf) Top 600 listing is now left unsorted (so it stays sorted by popularity).
 
 BUG FIXES
 (raf) Removed the config option to turn logging on/off. Just use log levels.
