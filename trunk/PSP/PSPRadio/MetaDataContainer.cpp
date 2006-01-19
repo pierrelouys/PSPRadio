@@ -21,6 +21,49 @@
 #include <Logging.h>
 #include "MetaDataContainer.h"
 
+void CorrectHTTPString(char *strSrc)
+{
+	char *strSrcPtr = strSrc;
+	int chr = 0;
+	
+	if (strSrcPtr[0] != 0)
+	{
+		char *strDest = strdup(strSrc);
+		char *strDestPtr = strDest;
+	
+		while (strSrcPtr[0] != 0)
+		{
+			if (0 == strncmp(strSrcPtr, "&#", 2))
+			{
+				sscanf(strSrcPtr, "&#%o;", &chr);
+				strDestPtr[0] = (char)chr;
+				strSrcPtr = strchr(strSrcPtr, ';');
+				if (strSrcPtr)
+				{
+					strSrcPtr++;
+				}
+			}
+			else if (0 == strncmp(strSrcPtr, "&amp;", 5))
+			{
+				strDestPtr[0] = '&';
+				strSrcPtr += 5;
+			}
+			else
+			{
+				strDestPtr[0] = strSrcPtr[0];
+				strSrcPtr++;
+			}
+			strDestPtr++;
+		}
+		strDestPtr[0] = 0; 
+		
+		strcpy(strSrc, strDest);
+		
+		free(strDest), strDest = NULL;
+	}
+}
+
+
 bool SortMetaDataByURI(MetaData &a, MetaData &b)
 {
 	return strcmp(a.strURI, b.strURI) < 0;
@@ -208,6 +251,9 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 						{
 							Tag[0] = 0;
 						}
+						
+						CorrectHTTPString(strTitle);
+						
 						shoutxml_state = WAITING_FOR_GENRE;
 					}
 					break;
