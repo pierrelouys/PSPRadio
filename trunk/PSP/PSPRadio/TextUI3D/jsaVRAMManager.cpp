@@ -49,6 +49,7 @@ void jsaVRAMManager::jsaVRAMManagerInit(unsigned long buffersize)
 	m_vram_free	= m_vram_size  - m_systemoffset;
 	m_vram_offset	= m_vram_start + m_systemoffset;
 	m_initialized	= true;
+	Log(LOG_INFO, "VM:VRAM manager initialized.");
 }
 
 void *jsaVRAMManager::jsaVRAMManagerMalloc(unsigned long size)
@@ -62,11 +63,11 @@ void *jsaVRAMManager::jsaVRAMManagerMalloc(unsigned long size)
 		/* Update internal VRAM pointers */
 		m_vram_offset	+= size;
 		m_vram_free 	-= size;
-//		Log(LOG_ERROR, "VRAM Left : %d", m_vram_free);
+		Log(LOG_INFO, "VM:VRAM Left : %d", m_vram_free);
 	}
 	else
 	{
-		Log(LOG_ERROR, "Out of VRAM..");
+		Log(LOG_ERROR, "VM:Out of VRAM..");
 	}
 	return (void *)pointer;
 }

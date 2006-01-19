@@ -57,13 +57,20 @@ bool jsaTextureCache::jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info
 		/* Upload texture to VRAM */
 		if (texture_info->swizzle)
 		{
+			Log(LOG_VERYLOW, "TC:Swizzle upload : %d", ID);
 			jsaTCacheSwizzleUpload((unsigned char *)texture_address, (unsigned char *)tbuffer, (int)(texture_info->width * bytes_pr_pixel), texture_info->height);
 		}
 		else
 		{
+			Log(LOG_VERYLOW, "TC:Normal upload : %d", ID);
 			memcpy((void *)texture_address, tbuffer, tsize);
 		}
 		ret_value 	= true;
+		Log(LOG_VERYLOW, "TC:Texture stored in VRAM : %d", ID);
+	}
+	else
+	{
+		Log(LOG_ERROR, "TC:Couldn't get VRAM for texture : %d", ID);
 	}
 	return ret_value;
 }
@@ -91,7 +98,17 @@ bool jsaTextureCache::jsaTCacheSetTexture(int ID)
 				sceGuTexImage(0,(*TextureIterator).width, (*TextureIterator).height,(*TextureIterator).width, (void *)((*TextureIterator).offset));
 				found = true;
 			}
+/*
+			else
+			{
+				Log(LOG_ERROR, "TC:Texture not in cache : %d", ID);
+			}
+*/
 		}
+	}
+	else
+	{
+		Log(LOG_ERROR, "TC:No textures stored in VRAM.");
 	}
 	return found;
 }
@@ -231,17 +248,20 @@ int jsaTextureCache::jsaTCacheLoadRawImage(const char* filename, u32 *ImageBuffe
 			bytes = fread(ImageBuffer, 1, filesize, fhandle);
 			if (bytes != filesize)
 			{
+				Log(LOG_ERROR, "TC:Wrong filesize for %s : %d, %d", filename, filesize, bytes);
 				return -1;
 			}
 		}
 		else
 		{
+			Log(LOG_ERROR, "TC:Couldn't get filesize for %s", filename);
 			return -1;
 		}
 		fclose(fhandle);
 	}
 	else
 	{
+		Log(LOG_ERROR, "TC:Couldn't load file : %s", filename);
 		return -1;
 	}
 	return 0;

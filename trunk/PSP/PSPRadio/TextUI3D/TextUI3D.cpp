@@ -56,6 +56,7 @@ gfx_sizes	GfxSizes;
 
 CTextUI3D::CTextUI3D()
 {
+	Log(LOG_VERYLOW, "CTextUI3D: created");
 	m_state	= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 }
 
@@ -66,6 +67,7 @@ CTextUI3D::~CTextUI3D()
 		delete(m_Settings);
 		m_Settings = NULL;
 	}
+	Log(LOG_VERYLOW, "CTextUI3D: destroyed.");
 }
 
 int CTextUI3D::Initialize(char *strCWD)
@@ -79,6 +81,7 @@ char *strCfgFile = NULL;
 	free (strCfgFile), strCfgFile = NULL;
 	memset(&LocalSettings, 0, sizeof(LocalSettings));
 	GetSettings();
+	Log(LOG_VERYLOW, "CTextUI3D:Settings read");
 
 	/* Allocate space in VRAM for 2 displaybuffer and the Zbuffer */
 	jsaVRAMManager::jsaVRAMManagerInit((unsigned long)0x154000);
@@ -88,6 +91,7 @@ char *strCfgFile = NULL;
 
 	// setup GU
 	m_wmanager.WM_SendEvent(WM_EVENT_GU_INIT, NULL);
+	Log(LOG_VERYLOW, "CTextUI3D:GU initialized");
 
 	sceKernelDcacheWritebackAll();
 
@@ -164,11 +168,13 @@ void CTextUI3D::GetSettings()
 void CTextUI3D::PrepareShutdown()
 {
 	/* Prepare for shutdown -> Don't render anymore */
+	Log(LOG_VERYLOW, "CTextUI3D: preparing for shutdown");
 	m_state = CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE;
 }
 
 void CTextUI3D::Terminate()
 {
+	Log(LOG_VERYLOW, "CTextUI3D:Terminating");
 	sceGuTerm();
 }
 
@@ -233,7 +239,7 @@ int CTextUI3D::DisplayErrorMessage(char *strMsg)
 
 int CTextUI3D::DisplayMessage(char *strMsg)
 {
-//	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_ERROR, strMsg);
+	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_MESSAGE, strMsg);
 	return 0;
 }
 
@@ -327,15 +333,19 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 	switch ((CScreenHandler::Screen)Screen->GetId())
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+			Log(LOG_VERYLOW, "CTextUI3D:Initialize shoutcast");
 			m_wmanager.WM_SendEvent(WM_EVENT_SHOUTCAST, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+			Log(LOG_VERYLOW, "CTextUI3D:Initialize playlist");
 			m_wmanager.WM_SendEvent(WM_EVENT_PLAYLIST, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
+			Log(LOG_VERYLOW, "CTextUI3D:Initialize localfiles");
 			m_wmanager.WM_SendEvent(WM_EVENT_LOCALFILES, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+			Log(LOG_VERYLOW, "CTextUI3D:Initialize options");
 			m_wmanager.WM_SendEvent(WM_EVENT_OPTIONS, NULL);
 			break;
 	}
@@ -373,6 +383,7 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
 
+	Log(LOG_VERYLOW, "CTextUI3D:Updating options");
 	m_wmanager.WM_SendEvent(WM_EVENT_OPTIONS_CLEAR, NULL);
 
 	if (OptionsList.size() > 0)
@@ -392,7 +403,6 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			y += LocalSettings.OptionsLinespace;
 		}
 	}
-	sceKernelDcacheWritebackAll();
 }
 
 void CTextUI3D::StoreOption(int y, bool active_item, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState)
@@ -507,7 +517,7 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 			}
 		}
 	}
-	free (strTemp), strTemp = NULL;
+	free (strTemp);
 }
 
 void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
@@ -598,7 +608,7 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 			}
 		}
 	}
-	free (strTemp), strTemp = NULL;
+	free (strTemp);
 }
 
 int CTextUI3D::FindFirstEntry(int list_cnt, int current)

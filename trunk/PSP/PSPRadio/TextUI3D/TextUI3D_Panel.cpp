@@ -21,6 +21,7 @@
 #include <list>
 #include <PSPApp.h>
 #include <PSPSound.h>
+#include <Logging.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -43,8 +44,6 @@
 #include "TextUI3D_Panel.h"
 #include "jsaTextureCache.h"
 
-#define DEBUG_TRACES	0
-
 /* Global texture cache */
 extern jsaTextureCache tcache;
 
@@ -63,11 +62,13 @@ CTextUI3D_Panel::CTextUI3D_Panel()
 	/* Build the vertex array with initial parameters */
 	m_vertex_array = (Vertex *) memalign(16, 18 * sizeof(Vertex));
 	UpdateVertexArray();
+	Log(LOG_VERYLOW, "Panel:Created");
 }
 
 CTextUI3D_Panel::~CTextUI3D_Panel()
 {
 	free(m_vertex_array);
+	Log(LOG_VERYLOW, "Panel:Destroyed");
 }
 
 void CTextUI3D_Panel::SetState(PanelState *state)
@@ -254,13 +255,4 @@ void CTextUI3D_Panel::UpdateVertexArray()
 		}
 		y_coord += 2;
 	}
-
-#if (DEBUG_TRACES == 1)
-	for (int i = 0 ; i < 18 ; i++)
-	{
-		Log(LOG_ERROR, "%f, %f, %f, %f, %f, %08X", m_vertex_array[i].u, m_vertex_array[i].v,
-													m_vertex_array[i].x, m_vertex_array[i].y, m_vertex_array[i].z,
-													m_vertex_array[i].color);
-	}
-#endif /* (DEBUG_TRACES == 1)*/
 }

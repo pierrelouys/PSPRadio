@@ -55,6 +55,7 @@ CTextUI3D_WindowManager::~CTextUI3D_WindowManager()
 
 void CTextUI3D_WindowManager::Initialize(char *cwd)
 {
+	Log(LOG_VERYLOW, "WM:Initialized");
 	m_wm_hsm.Initialize(cwd);
 }
 
@@ -69,7 +70,6 @@ void CTextUI3D_WindowManager::AddOptionText(int x, int y, unsigned int color, ch
 	strcpy(item->strText, text);
 	strupr(item->strText);
 	item->ID = 0;
-//	Log(LOG_ERROR, "%d, %d, %08X, %s", x, y, color, text);
 	m_wm_hsm.Dispatch(WM_EVENT_OPTIONS_TEXT, item);
 }
 
@@ -84,7 +84,6 @@ void CTextUI3D_WindowManager::AddListText(int x, int y, unsigned int color, char
 	strcpy(item->strText, text);
 	strupr(item->strText);
 	item->ID = 0;
-//	Log(LOG_ERROR, "%d, %d, %08X, %s", x, y, color, text);
 	m_wm_hsm.Dispatch(WM_EVENT_LIST_TEXT, item);
 }
 
@@ -99,7 +98,6 @@ void CTextUI3D_WindowManager::AddEntryText(int x, int y, unsigned int color, cha
 	strcpy(item->strText, text);
 	strupr(item->strText);
 	item->ID = 0;
-//	Log(LOG_ERROR, "%d, %d, %08X, %s", x, y, color, text);
 	m_wm_hsm.Dispatch(WM_EVENT_ENTRY_TEXT, item);
 }
 
@@ -114,7 +112,6 @@ void CTextUI3D_WindowManager::AddTitleText(int x, int y, unsigned int color, cha
 	strcpy(item->strText, text);
 	strupr(item->strText);
 	item->ID = 0;
-//	Log(LOG_ERROR, "%d, %d, %08X, %s", x, y, color, text);
 	m_wm_hsm.Dispatch(WM_EVENT_TEXT_SONGTITLE, item);
 }
 
@@ -124,5 +121,6 @@ void CTextUI3D_WindowManager::AddTitleText(int x, int y, unsigned int color, cha
 */
 void CTextUI3D_WindowManager::WM_SendEvent(int event, void *data)
 {
+	// TODO: Make copy of event before dispatching
 	m_wm_hsm.Dispatch(event, data);
 }

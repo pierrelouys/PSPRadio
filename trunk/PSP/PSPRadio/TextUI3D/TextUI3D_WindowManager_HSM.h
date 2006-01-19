@@ -274,6 +274,7 @@ private:
 	SceUID							HSMMessagebox;
 	SceUID							m_mbxthread;
 	bool							m_HSMActive;
+	bool							m_HSMInitialized;
 
 private:
 	CState	top;
