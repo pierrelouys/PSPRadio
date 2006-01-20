@@ -49,7 +49,6 @@ int CPSPRadio::Setup(int argc, char **argv)
 	char strAppTitle[140];
 
 	sprintf(strAppTitle, "%s",
-		//GetProgramName(),
 		GetProgramVersion());
 
 	strDir = (char*)malloc(MAXPATHLEN);

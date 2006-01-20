@@ -51,6 +51,8 @@
 PSP_MAIN_THREAD_PRIORITY(80);
 //PSP_MAIN_THREAD_STACK_SIZE_KB(512);
 
+CPSPRadio *gPSPRadio = NULL;
+
 /** main */
 int main(int argc, char **argv)
 {
@@ -64,17 +66,16 @@ int main(int argc, char **argv)
 		pspDebugBreakpoint();
 	#endif
 
-
 	rootScreen.SetBackgroundImage("Init.png");
 	rootScreen.Clear();
 
-	CPSPRadio *PSPRadio = new CPSPRadio();
-	if (PSPRadio)
+	gPSPRadio = new CPSPRadio();
+	if (gPSPRadio)
 	{
-		PSPRadio->Setup(argc, argv);
-		PSPRadio->ProcessEvents();
+		gPSPRadio->Setup(argc, argv);
+		gPSPRadio->ProcessEvents();
 
-		delete(PSPRadio);
+		delete(gPSPRadio); gPSPRadio = NULL;
 	}
 
 	return 0;

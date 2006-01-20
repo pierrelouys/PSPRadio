@@ -33,7 +33,7 @@
 #include "TextUI.h"
 #include "GraphicsUI.h"
 #include "TextUI3D.h" 
-
+#include "Main.h"
 
 LocalFilesScreen::LocalFilesScreen(int Id, CScreenHandler *ScreenHandler)
 	:PlayListScreen(Id, ScreenHandler)
@@ -41,12 +41,7 @@ LocalFilesScreen::LocalFilesScreen(int Id, CScreenHandler *ScreenHandler)
 	Log(LOG_VERYLOW,"LocalFilesScreen Ctor.");
 	m_Lists = NULL;
 
-	//m_Lists = new CMetaDataContainer();
-
-	m_strPath = strdup("ms0:/PSP/MUSIC");
-	
-	//LoadLists();
-
+	m_strPath = strdup(gPSPRadio->GetConfig()->GetString("DIRECTORIES:LOCALFILES", "ms0:/PSP/MUSIC"));
 }
 
 
@@ -56,7 +51,6 @@ LocalFilesScreen::~LocalFilesScreen()
 	{
 		free(m_strPath), m_strPath = NULL;
 	}
-
 }
 
 void LocalFilesScreen::LoadLists()
@@ -71,12 +65,9 @@ void LocalFilesScreen::LoadLists()
 		Log(LOG_LOWLEVEL, "LoadLists::PSPRADIO_SCREEN_LOCALFILES");
 		m_Lists->Clear();
 		
-		//Log(LOG_LOWLEVEL, "Loading xml file '%s'.", SHOUTCAST_DB_FILENAME);
-		//m_Lists->LoadSHOUTcastXML(SHOUTCAST_DB_FILENAME);
 		Log(LOG_LOWLEVEL, "Loading local files from '%s'", m_strPath);
 		m_Lists->LoadDirectory(m_strPath);
 
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
-
 	}
 }

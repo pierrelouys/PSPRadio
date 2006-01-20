@@ -16,6 +16,9 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#ifndef _PSPRADIO_H_
+	#define _PSPRADIO_H_
+
 #include <PSPApp.h>
 #include <PSPSound.h>
 #include "ScreenHandler.h"
@@ -48,17 +51,22 @@ public:
 		m_UI = NULL;
 		m_ScreenHandler = NULL;
 	};
-
-	/** Setup */
+	
 	int Setup(int argc, char **argv);
+	int ProcessEvents();
+	
+	CIniParser *GetConfig(){return m_Config;}
+
+private:
+	/** Setup */
 	int Setup_OpenConfigFile(char *strCurrentDir);
 	int Setup_Logging(char *strCurrentDir);
 	int Setup_UI(char *strCurrentDir);
 	int Setup_Sound();
 	
 	void OnExit();
-	int ProcessEvents();
 	void OnVBlank();
 	int OnPowerEvent(int pwrflags);
 };
 
+#endif
