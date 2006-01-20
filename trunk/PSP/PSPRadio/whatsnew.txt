@@ -11,7 +11,7 @@ NEW FEATURES
 (raf) Core: Top 600 listing is now left unsorted (so it stays sorted by popularity). (r718)
 (raf) TextUI: Clock format (12/24) is now retrieved from the system settings, and the config option is not used anymore. (r719)
 (sandberg) 3DUI: New graphics from Semtex integrated. (r720)
-(raf) Core: Now SHOUTcast Titles are parsed and corrected to display & instead of #amp; and the correct character for &#XX;
+(raf) Core: Now SHOUTcast Titles are parsed and corrected to display & instead of #amp; and the correct character for &#XX; (r721)
 
 BUG FIXES
 (raf) Core: Removed the config option to turn logging on/off. Just use log levels.

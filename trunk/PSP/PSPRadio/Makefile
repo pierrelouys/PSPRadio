@@ -2,7 +2,7 @@ TARGET = PSPRadio
 KXPLOIT_PRIMARY_DIR = "PSPRadio"
 KXPLOIT_SECONDARY_DIR = "PSPRadio%"
 
-OBJS = PSPRadio.o MetaDataContainer.o \
+OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastScreen.o ./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
