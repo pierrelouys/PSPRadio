@@ -12,7 +12,7 @@ NEW FEATURES
 (raf) TextUI: Clock format (12/24) is now retrieved from the system settings, and the config option is not used anymore. (r719)
 (sandberg) 3DUI: New graphics from Semtex integrated. (r720)
 (raf) Core: Now SHOUTcast Titles are parsed and corrected to display & instead of #amp; and the correct character for &#XX; (r721)
-(raf) Core:  Refactoring/ Added option to select directory for localfiles in the config file.
+(raf) Core:  Refactoring/ Added option to select directory for localfiles in the config file. (r724)
 BUG FIXES
 (raf) Core: Removed the config option to turn logging on/off. Just use log levels.
 (sandberg) 3DUI: shutdown screen are now shown on the new UI. (r720)

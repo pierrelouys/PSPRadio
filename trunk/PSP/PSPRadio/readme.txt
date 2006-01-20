@@ -1,5 +1,9 @@
-PSPRadio by Raf 0.37 Final 2006-01-16
+PSPRadio by Raf 0.38-pre1 2006-01-20 
 =====================================
+
+****
+This is a Preview version!
+****
 
 -Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.berlios.de/phpBB/index.php
