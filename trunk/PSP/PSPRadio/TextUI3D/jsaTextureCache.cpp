@@ -38,10 +38,14 @@ bool jsaTextureCache::jsaTCacheStoreTexture(int ID, jsaTextureInfo *texture_info
 	unsigned long	tsize;
 	float		bytes_pr_pixel;
 
+	Log(LOG_VERYLOW, "TC:Storing Texture : %d", ID);
+
 	bytes_pr_pixel	= jsaTCacheTexturePixelSize(texture_info->format);
 	tsize		= (unsigned long)(bytes_pr_pixel * texture_info->width * texture_info->height);
 
 	texture_address = (unsigned long)jsaVRAMManager::jsaVRAMManagerMalloc(tsize);
+
+	Log(LOG_VERYLOW, "TC:Memory allocated : %d", ID);
 
 	if (texture_address)
 	{

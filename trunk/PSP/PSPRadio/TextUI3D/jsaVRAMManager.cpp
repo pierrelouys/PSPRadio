@@ -56,6 +56,8 @@ void *jsaVRAMManager::jsaVRAMManagerMalloc(unsigned long size)
 {
 	unsigned long	pointer = 0;
 
+	Log(LOG_VERYLOW, "VM:Allocating : %d", size);
+
 	if (m_initialized && (size <= m_vram_free))
 	{
 		pointer = m_vram_offset;

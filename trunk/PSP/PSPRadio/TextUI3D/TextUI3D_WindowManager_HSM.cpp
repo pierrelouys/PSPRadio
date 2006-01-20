@@ -170,7 +170,9 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	sceKernelStartThread(m_mbxthread, 0, NULL);
 
 	LoadBackground(cwd);
+	Log(LOG_VERYLOW, "HSM:Background loaded");
 	InitTextures();
+	Log(LOG_VERYLOW, "HSM:Initialized textures");
 	LoadTextures(cwd);
 	Log(LOG_VERYLOW, "HSM:Textures loaded");
 
@@ -450,16 +452,21 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 	unsigned char 						*filebuffer;
 	jsaTextureCache::jsaTextureInfo		texture;
 
+	Log(LOG_VERYLOW, "HSM:Loading Textures");
+
 	/*  Load Textures to memory */
 	for (unsigned int i = 0 ; i < TEXTURE_COUNT ; i++)
 	{
 		bool success;
 
+		Log(LOG_VERYLOW, "HSM:Loading Texture : %d", i);
 		sprintf(filename, "%s/TextUI3D/%s", strCWD, texture_list[i].filename);
 		filebuffer = (unsigned char *) memalign(16, (int)(texture_list[i].width * texture_list[i].height * tcache.jsaTCacheTexturePixelSize(texture_list[i].format)));
+		Log(LOG_VERYLOW, "HSM:memory allocated");
 
 		if (texture_list[i].filetype == FT_PNG)
 		{
+			Log(LOG_VERYLOW, "HSM:Reading PNG image : %s", filename);
 			if (tcache.jsaTCacheLoadPngImage((const char *)filename, (u32 *)filebuffer) == -1)
 				{
 				Log(LOG_ERROR, "Failed loading png file: %s", filename);
@@ -469,6 +476,7 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 		}
 		else
 		{
+			Log(LOG_VERYLOW, "HSM:Reading RAW image : %s", filename);
 			if (tcache.jsaTCacheLoadRawImage((const char *)filename, (u32 *)filebuffer) == -1)
 				{
 				Log(LOG_ERROR, "Failed loading raw file: %s", filename);
@@ -481,12 +489,13 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 		texture.width		= texture_list[i].width;
 		texture.height		= texture_list[i].height;
 		texture.swizzle		= texture_list[i].swizzle;
+		Log(LOG_VERYLOW, "HSM:Storing Texture");
 		success = tcache.jsaTCacheStoreTexture(texture_list[i].ID, &texture, filebuffer);
+		Log(LOG_VERYLOW, "HSM:Texture stored");
 		if (!success)
 		{
 			Log(LOG_ERROR, "Failed storing texture in VRAM : %s", filename);
 		}
-		sceKernelDcacheWritebackAll();
 		free(filebuffer);
 	}
 }
