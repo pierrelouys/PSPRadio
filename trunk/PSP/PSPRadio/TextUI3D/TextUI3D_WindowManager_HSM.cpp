@@ -1137,10 +1137,6 @@ void *WindowHandlerHSM::top_handler()
 			memcpy(&m_songtitle, (char *) m_Event.Data, sizeof(TextItem));
 			free(m_Event.Data);
 			return 0;
-		case WM_EVENT_TEXT_TITLE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_TITLE");
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_TEXT_TITLE, LocalSettings.VersionX, LocalSettings.VersionY, (char *) m_Event.Data, 0xFFFFFFFF);
-			return 0;
 		case WM_EVENT_TEXT_ERROR:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_ERROR");
 			return 0;

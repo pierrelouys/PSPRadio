@@ -58,6 +58,7 @@ CTextUI3D::CTextUI3D()
 {
 	Log(LOG_VERYLOW, "CTextUI3D: created");
 	m_state	= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
+	m_title[0] = 0;
 }
 
 CTextUI3D::~CTextUI3D()
@@ -180,7 +181,7 @@ void CTextUI3D::Terminate()
 
 int CTextUI3D::SetTitle(char *strTitle)
 {
-	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_TITLE, strTitle);
+	sprintf(m_title, "PSPRadio version : %s", strTitle);
 	return 0;
 }
 
@@ -402,6 +403,8 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			StoreOption(y, active_item, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, Option.iActiveState);
 			y += LocalSettings.OptionsLinespace;
 		}
+
+		m_wmanager.AddOptionText(LocalSettings.OptionsX, y, LocalSettings.OptionsColorSelected, m_title);
 	}
 }
 

@@ -55,7 +55,6 @@ using namespace std;
 	WM_EVENT_USB_DISABLE,
 
 	/* Static text events */
-	WM_EVENT_TEXT_TITLE,
 	WM_EVENT_TEXT_ERROR,
 	WM_EVENT_TEXT_MESSAGE,
 	WM_EVENT_TEXT_SONGTITLE,

@@ -143,6 +143,7 @@ private:
 	CTextUI3D_WindowManager				m_wmanager;
 //	unsigned char						*backimage;
 	CIniParser 							*m_Settings;
+	char								m_title[256];
 
 };
 
