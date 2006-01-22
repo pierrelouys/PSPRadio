@@ -271,15 +271,18 @@ void OptionsScreen::UpdateOptionsData()
 					Option.strStates[i] = NetworkName;
 				}
 				Option.iActiveState = (pPSPApp->IsNetworkEnabled()==true)?(m_iNetworkProfile+1):1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 			}
 
 			case OPTION_ID_USB_ENABLE:
 				Option.iActiveState = (pPSPApp->IsUSBEnabled()==true)?2:1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_PLAYMODE:
 				Option.iActiveState = (m_ScreenHandler->GetPlayMode())+1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_CPU_SPEED:
@@ -303,6 +306,7 @@ void OptionsScreen::UpdateOptionsData()
 							scePowerGetCpuClockFrequency());
 						break;
 				}
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_LOG_LEVEL:
@@ -326,22 +330,27 @@ void OptionsScreen::UpdateOptionsData()
 						Option.iActiveState = 5;
 						break;
 				}
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_UI:
 				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_INITIAL_SCREEN:
 				Option.iActiveState = m_ScreenHandler->GetInitialScreen() + 1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_WIFI_AUTOSTART:
 				Option.iActiveState = (m_WifiAutoStart==true)?2:1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 			case OPTION_ID_USB_AUTOSTART:
 				Option.iActiveState = (m_USBAutoStart==true)?2:1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 
 		}
