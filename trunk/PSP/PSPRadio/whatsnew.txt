@@ -1,6 +1,14 @@
 What's New for PSPRadio 
 ========================
 
+0.38-Pre2
+NEW FEATURES
+(sandberg) Core: Added support for logging via WiFi instead of using the memorystick. (r729)
+(sandberg) External: Added a simple server application which can receive the log-entries via WiFi on the PC. (r729)
+BUG FIXES
+(sandberg) The active item are now default selected when entering the option screen. (r728)
+(sandberg) The program version is now only shown on the option screen when using the 3D UI (r727)
+
 0.38-Pre1
 NEW FEATURES
 (sandberg) Core/3DUI: Merged the new TextUI3D into the main branch. (r712)

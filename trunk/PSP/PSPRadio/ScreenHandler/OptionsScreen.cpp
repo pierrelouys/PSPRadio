@@ -569,8 +569,18 @@ int OptionsScreen::Start_Network(int iProfile)
 
 		if (pPSPApp->EnableNetwork(abs(m_iNetworkProfile)) == 0)
 		{
+			CIniParser *pConfig = m_ScreenHandler->GetConfig();
+
 			if (m_UI)
 				m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+
+			if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0));
+				{
+				char	*server, *port;
+				server = pConfig->GetString("DEBUGGING:WIFI_LOG_SERVER", "192.168.2.2");
+				port = pConfig->GetString("DEBUGGING:WIFI_LOG_PORT", "8000");
+				pLogging->EnableWiFiLogging(server, port);
+				}
 		}
 		else
 		{
