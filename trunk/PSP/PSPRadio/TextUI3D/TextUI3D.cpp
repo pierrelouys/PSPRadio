@@ -199,7 +199,8 @@ int CTextUI3D::DisplayMessage_DisablingNetwork()
 
 int CTextUI3D::DisplayMessage_NetworkReady(char *strIP)
 {
-	m_wmanager.WM_SendEvent(WM_EVENT_NETWORK_IP, strIP);
+	strcpy(m_ip, strIP);
+	m_wmanager.WM_SendEvent(WM_EVENT_NETWORK_IP, m_ip);
 	return 0;
 }
 
@@ -234,19 +235,22 @@ int CTextUI3D::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CTextUI3D::DisplayErrorMessage(char *strMsg)
 {
-	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_ERROR, strMsg);
+	strcpy(m_error, strMsg);
+	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_ERROR, m_error);
 	return 0;
 }
 
 int CTextUI3D::DisplayMessage(char *strMsg)
 {
-	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_MESSAGE, strMsg);
+	strcpy(m_message, strMsg);
+	m_wmanager.WM_SendEvent(WM_EVENT_TEXT_MESSAGE, m_message);
 	return 0;
 }
 
 int CTextUI3D::DisplayBufferPercentage(int iPercentage)
 {
-	m_wmanager.WM_SendEvent(WM_EVENT_BUFFER, (void *) iPercentage);
+	m_buffer  = iPercentage;
+	m_wmanager.WM_SendEvent(WM_EVENT_BUFFER, (void *) m_buffer);
 	return 0;
 }
 
@@ -312,8 +316,8 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 		m_wmanager.AddTitleText(LocalSettings.SongTitleX, LocalSettings.SongTitleY, LocalSettings.SongTitleColor, pData->strURI);
 		}
 	}
-
-	m_wmanager.WM_SendEvent(WM_EVENT_BITRATE, (void *) (pData->iBitRate/1000));
+	m_bitrate = (pData->iBitRate/1000);
+	m_wmanager.WM_SendEvent(WM_EVENT_BITRATE, (void *) m_bitrate);
 
 	return 0;
 }
@@ -355,13 +359,15 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 void CTextUI3D::OnTimeChange(pspTime *LocalTime)
 {
 	/* Pass to WindowManager */
-	m_wmanager.WM_SendEvent(WM_EVENT_TIME, LocalTime);
+	memcpy(&m_current_time, LocalTime, sizeof(pspTime));
+	m_wmanager.WM_SendEvent(WM_EVENT_TIME, &m_current_time);
 }
 
 void CTextUI3D::OnBatteryChange(int Percentage)
 {
 	/* Pass to WindowManager */
-	m_wmanager.WM_SendEvent(WM_EVENT_BATTERY, (void *)Percentage);
+	m_battery  = Percentage;
+	m_wmanager.WM_SendEvent(WM_EVENT_BATTERY, (void *)m_battery);
 }
 
 void CTextUI3D::OnUSBEnable()

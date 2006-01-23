@@ -141,9 +141,15 @@ private:
 private:
 	CScreenHandler::ScreenShotState 	m_state;
 	CTextUI3D_WindowManager				m_wmanager;
-//	unsigned char						*backimage;
+	pspTime								m_current_time;
 	CIniParser 							*m_Settings;
 	char								m_title[256];
+	char								m_ip[64];
+	char								m_error[256];
+	char								m_message[256];
+	int									m_buffer;
+	int									m_bitrate;
+	int									m_battery;
 
 };
 

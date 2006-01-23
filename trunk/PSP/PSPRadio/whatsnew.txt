@@ -6,8 +6,9 @@ NEW FEATURES
 (sandberg) Core: Added support for logging via WiFi instead of using the memorystick. (r729)
 (sandberg) External: Added a simple server application which can receive the log-entries via WiFi on the PC. (r729)
 BUG FIXES
-(sandberg) The active item are now default selected when entering the option screen. (r728)
-(sandberg) The program version is now only shown on the option screen when using the 3D UI (r727)
+(sandberg) 3DUI: The active item are now default selected when entering the option screen. (r728)
+(sandberg) 3DUI: The program version is now only shown on the option screen when using the 3D UI (r727)
+(sandberg) 3DUI: Fixed a couple of bug which caused the UI to read random data (r730)
 
 0.38-Pre1
 NEW FEATURES
