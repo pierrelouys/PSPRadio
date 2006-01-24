@@ -1,17 +1,17 @@
-/* 
+/*
 	PSPApp C++ OO Application Framework. (Initial Release: Sept. 2005)
 	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
-	
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
 	of the License, or (at your option) any later version.
-	
+
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
-	
+
 	You should have received a copy of the GNU General Public License
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -19,7 +19,7 @@
 #include <list>
 #include <PSPApp.h>
 #include <stdio.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -55,11 +55,11 @@ CPSPSound::CPSPSound()
 void CPSPSound::Initialize()
 {
 	Log(LOG_VERYLOW, "PSPSound Initialize()");
-	
+
 	Buffer.Empty();
-	
-	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, 
-									PSP_BUFFER_SIZE_IN_FRAMES, 
+
+	m_audiohandle = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL,
+									PSP_BUFFER_SIZE_IN_FRAMES,
 									PSP_AUDIO_FORMAT_STEREO);
 
 	if ( m_audiohandle < 0 )
@@ -67,20 +67,20 @@ void CPSPSound::Initialize()
 		Log(LOG_ERROR, "Error getting a sound channel!");
 		ReportError("Unable to aquire sound channel");
 	}
-	
+
 	m_CurrentStream = new CPSPStream();
-	
+
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
-	
+
 	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
 	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
-	
+
 	if (m_CurrentStream && m_EventToDecTh && m_EventToPlayTh && m_thDecode && m_thPlayAudio)
 	{
 		m_thPlayAudio->Start();
 		m_thDecode->Start();
-		
+
 		CPSPEventQ::QEvent event = { 0, 0x0, NULL };
 		event.EventId = MID_PLAY_START;
 		m_EventToPlayTh->Send(event);
@@ -90,46 +90,46 @@ void CPSPSound::Initialize()
 	{
 		Log(LOG_ERROR, "Initialize(): Memory allocation error!");
 	}
-	
+
 }
 
 CPSPSound::~CPSPSound()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
 	Log(LOG_VERYLOW, "~CPSPSound(): pPSPApp->m_Exit=%d", pPSPApp->m_Exit);
-	
-	if (m_thDecode) 
-	{ 
+
+	if (m_thDecode)
+	{
 		/** Wake the decoding thread up, so it can exit*/
 		Log(LOG_VERYLOW, "~CPSPSound(): Tell decode thread to exit.");
 		event.EventId = MID_DECODER_THREAD_EXIT_NEEDOK;
 		m_EventToDecTh->SendAndWaitForOK(event);
-		
+
 		Log(LOG_VERYLOW, "~CPSPSound(): Destroying decode thread. ");
 		delete(m_thDecode), m_thDecode = NULL;
 	}
-	
-	if (m_thPlayAudio) 
+
+	if (m_thPlayAudio)
 	{
 		Log(LOG_VERYLOW, "~CPSPSound(): Tell play thread to exit. ");
 		event.EventId = MID_PLAY_THREAD_EXIT_NEEDOK;
 		m_EventToPlayTh->SendAndWaitForOK(event);
-		
+
 		Log(LOG_VERYLOW, "~CPSPSound(): Destroying play thread. ");
 		delete(m_thPlayAudio), m_thPlayAudio = NULL;
 	}
-	
+
 	if (m_EventToDecTh)
 	{
 		delete(m_EventToDecTh); m_EventToDecTh = NULL;
 	}
-	
+
 	if (m_EventToPlayTh)
 	{
 		delete(m_EventToPlayTh); m_EventToPlayTh = NULL;
 	}
-	
-	
+
+
 	Log(LOG_VERYLOW, "~CPSPSound(): The End.");
 
 }
@@ -147,7 +147,7 @@ void CPSPSound::SetPlayThreadPriority(int iNewPrio)
 int CPSPSound::Play()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
-	Log(LOG_LOWLEVEL, "Play('%s'): m_CurrentState=%s", 
+	Log(LOG_LOWLEVEL, "Play('%s'): m_CurrentState=%s",
 		m_CurrentStream->GetURI(),
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
@@ -160,7 +160,7 @@ int CPSPSound::Play()
 			event.EventId = MID_PLAY_START;
 			m_EventToPlayTh->Send(event);
 			break;
-			
+
 		case PLAY:
 			/** Shouldn't get here, let's restart */
 			Log(LOG_ERROR, "Play and state was already playing, restarting decoding/playing");
@@ -172,14 +172,14 @@ int CPSPSound::Play()
 	}
 	m_CurrentState = PLAY;
 	pPSPSound->SendEvent(MID_SOUND_STARTED);
-	
+
 	return m_CurrentState;
 }
 
 int CPSPSound::Pause()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
-	Log(LOG_LOWLEVEL, "Pause(): Called. m_CurrentState=%s", 
+	Log(LOG_LOWLEVEL, "Pause(): Called. m_CurrentState=%s",
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
@@ -188,7 +188,7 @@ int CPSPSound::Pause()
 			event.EventId = MID_PLAY_STOP;
 			m_EventToPlayTh->Send(event);
 			break;
-			
+
 		case STOP:
 		case PAUSE:
 		default:
@@ -201,7 +201,7 @@ int CPSPSound::Pause()
 int CPSPSound::Stop()
 {
 	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
-	Log(LOG_LOWLEVEL, "Stop(): Called. m_CurrentState=%s", 
+	Log(LOG_LOWLEVEL, "Stop(): Called. m_CurrentState=%s",
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
@@ -219,30 +219,32 @@ int CPSPSound::Stop()
 			Log(LOG_VERYLOW, "Stop(): Was Playing. Calling 'm_EventToDecTh->SendAndWaitForOK(STOP)'");
 			m_EventToDecTh->SendAndWaitForOK(event);
 			break;
-			
+
 		case STOP:
 		default:
 			break;
 	}
-	
+
 	pPSPSound->SendEvent(MID_SOUND_STOPPED);
-	
+
 	return m_CurrentState;
 }
 
 /** Threads */
 int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
+static size_t m_LastBufferPercentage = 200;
+
 		DeviceBuffer *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
 		CPSPEventQ *m_EventToPlayTh = pPSPSound->m_EventToPlayTh;
 		CPSPEventQ::QEvent event = { 0, 0, NULL };
 		int rret = 0;
 		int timeLastPercentEvent = 500; /** Initialize to something so the percentage event is sent the first time */
-		
+
 		Log(LOG_INFO, "Starting Play Thread.");
 		pPSPSound->SendEvent(MID_THPLAY_BEGIN);
-		
+
 		for(;;)
 		{
 			Log(LOG_VERYLOW, "ThPlay::Calling Receive. %d Messages in Queue", m_EventToPlayTh->Size());
@@ -256,7 +258,7 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				m_EventToPlayTh->SendReceiveOK();
 				sceKernelExitThread(0);
 				break;
-			
+
 			case MID_PLAY_START:
 			{
 				Log(LOG_VERYLOW, "ThPlay:: Thread Play message received.");
@@ -265,16 +267,20 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 				{
 					mybuf = pPSPSound->Buffer.PopDeviceBuffer();
 					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
-					
+
 					if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 					{
-						pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
-						timeLastPercentEvent = clock() * 1000 / CLOCKS_PER_SEC;
+						if (m_LastBufferPercentage != pPSPSound->GetBufferFillPercentage())
+						{
+							m_LastBufferPercentage = pPSPSound->GetBufferFillPercentage();
+							pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
+							timeLastPercentEvent = clock() * 1000 / CLOCKS_PER_SEC;
+						}
 					}
 				}
 				Log(LOG_VERYLOW, "ThPlay:: Thread Play exiting play area - message waiting.");
 				break;
-			}	
+			}
 			case MID_PLAY_STOP:
 				if (STOP == pPSPSound->GetPlayState())
 				{
@@ -292,10 +298,10 @@ int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 		return 0;
 }
 
-int CPSPSound::ThDecode(SceSize args, void *argp) 
+int CPSPSound::ThDecode(SceSize args, void *argp)
 {
 	IPSPSoundDecoder *Decoder = NULL;
-	
+
 	Log(LOG_INFO,"Starting Decoding Thread.");
 	pPSPSound->SendEvent(MID_THDECODE_BEGIN);
 
@@ -311,17 +317,17 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 		{
 			case MID_DECODER_START:
 				Log(LOG_VERYLOW, "ThDecode:: Start Decoder message received.");
-				
+
 				if (Decoder)
 				{
 					delete Decoder, Decoder = NULL;
 				}
-				
+
 				pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
-				Log(LOG_INFO, "ThDecode:: Calling Open For '%s'", 
+				Log(LOG_INFO, "ThDecode:: Calling Open For '%s'",
 					pPSPSound->m_CurrentStream->GetURI());
 				pPSPSound->m_CurrentStream->Open();
-				
+
 				if (true == pPSPSound->m_CurrentStream->IsOpen())
 				{
 					bool bDecoderCreated = false;
@@ -350,7 +356,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 							bDecoderCreated = false;
 							break;
-						
+
 						case MetaData::CONTENT_PLAYLIST:
 						{
 							Log(LOG_INFO, "ThDecode: This is a playlist.. downloading..");
@@ -378,7 +384,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							Log(LOG_ERROR, "ThDecode:: Content type not recognized.");
 							bDecoderCreated = false;
 							break;
-						
+
 					}
 
 					if (true == bDecoderCreated)
@@ -394,7 +400,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							}
 							sceKernelDelayThread(10); /** 100us */
 						}
-						
+
 						pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
 						Log(LOG_VERYLOW, "ThDecode:: Finished decoding. About to delete decoder.");
 						delete Decoder, Decoder = NULL;
@@ -411,7 +417,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 					Log(LOG_ERROR, "ThDecode:: Unable to open stream '%s'.", pPSPSound->m_CurrentStream->GetURI());
 					pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
 				}
-				
+
 				break;
 			case MID_DECODER_STOP:
 				Log(LOG_VERYLOW, "ThDecode:: Stop Decoder message received.");
