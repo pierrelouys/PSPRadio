@@ -123,7 +123,6 @@ void CTextUI3D::GetSettings()
 	GetConfigPair("SETTINGS:WIFI_ICON_XY", &LocalSettings.WifiIconX, &LocalSettings.WifiIconY);
 	GetConfigPair("SETTINGS:LIST_ICON_XY", &LocalSettings.ListIconX, &LocalSettings.ListIconY);
 	GetConfigPair("SETTINGS:VOLUME_ICON_XY", &LocalSettings.VolumeIconX, &LocalSettings.VolumeIconY);
-	GetConfigPair("SETTINGS:FONT_SIZE", &LocalSettings.FontWidth, &LocalSettings.FontHeight);
 	GetConfigPair("SETTINGS:CLOCK_XY", &LocalSettings.ClockX, &LocalSettings.ClockY);
 	LocalSettings.ClockFormat = m_Settings->GetInteger("SETTINGS:CLOCK_FORMAT", 24);
 	GetConfigPair("SETTINGS:PROGRESS_BAR_XY", &LocalSettings.ProgressBarX, &LocalSettings.ProgressBarY);
@@ -150,6 +149,7 @@ void CTextUI3D::GetSettings()
 	GetConfigPair("SETTINGS:PLAYER_STATE_XY", &LocalSettings.PlayerstateX, &LocalSettings.PlayerstateY);
 
 	/* Graphics sizes */
+	GetConfigPair("GRAPHICS:GFX_FONT1_SIZE", &GfxSizes.FontWidth, &GfxSizes.FontHeight);
 	GetConfigPair("GRAPHICS:GFX_WIFI_SIZE", &GfxSizes.wifi_w, &GfxSizes.wifi_h);
 	GfxSizes.wifi_y = m_Settings->GetInteger("GRAPHICS:GFX_WIFI_H", 8);
 	GetConfigPair("GRAPHICS:GFX_POWER_SIZE", &GfxSizes.power_w, &GfxSizes.power_h);
@@ -164,6 +164,9 @@ void CTextUI3D::GetSettings()
 	GfxSizes.usb_y = m_Settings->GetInteger("GRAPHICS:GFX_USB_H", 16);
 	GetConfigPair("GRAPHICS:GFX_PLAYSTATE_SIZE", &GfxSizes.playstate_w, &GfxSizes.playstate_h);
 	GfxSizes.playstate_y = m_Settings->GetInteger("GRAPHICS:GFX_PLAYSTATE_H", 8);
+	GetConfigPair("GRAPHICS:GFX_ERROR_SIZE", &GfxSizes.error_w, &GfxSizes.error_h);
+	GfxSizes.error_width = m_Settings->GetInteger("GRAPHICS:GFX_ERROR_W", 256);
+	GetConfigPair("GRAPHICS:GFX_ERROR_OFFSET", &GfxSizes.error_off_x, &GfxSizes.error_off_y);
 }
 
 void CTextUI3D::PrepareShutdown()

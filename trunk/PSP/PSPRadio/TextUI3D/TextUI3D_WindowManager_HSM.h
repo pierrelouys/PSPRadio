@@ -87,8 +87,7 @@ public:
 		TEX_ICON_PROGRESS,
 		TEX_ICON_USB,
 		TEX_ICON_PLAYSTATE,
-		TEX_BACKGROUND_U,
-		TEX_BACKGROUND_L,
+		TEX_ERRORNOTE,
 	};
 
 	enum filetype_enum
@@ -144,6 +143,21 @@ private:
 		int  		x2, y2;
 	};
 
+	typedef enum error_events
+	{
+		ERROR_EVENT_SHOW,
+		ERROR_EVENT_HIDE,
+		ERROR_EVENT_RENDER,
+	};
+
+	typedef enum error_states
+	{
+		ERROR_STATE_SHOW,
+		ERROR_STATE_HIDE,
+		ERROR_STATE_SHOWING,
+		ERROR_STATE_HIDING,
+	};
+
 protected:
 	/* Transition from current state (via Source) to Target */
 	void Trans(CState *target);
@@ -184,6 +198,7 @@ private:
 	void SetMax(CTextUI3D_Panel::PanelState *state);
 	void SetHideRight(CTextUI3D_Panel::PanelState *state);
 	void SetHideBottom(CTextUI3D_Panel::PanelState *state);
+	void SetError(char *errorStr);
 
 	void UpdateTextItem(list<TextItem> *current, int ID, int x, int y, char *strText, unsigned int color);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
@@ -204,6 +219,7 @@ private:
 	void SetBitrate(long unsigned int bitrate);
 	void RenderPlaystateIcon();
 	void RenderBackground();
+	void RenderError(WindowHandlerHSM::error_events event);
 
 	void GUInit();
 	void GUInitDisplayList();
@@ -241,6 +257,7 @@ private:
 		PLAYSTATE_ICON_PLAY,
 	};
 
+
 private:
     CState	*m_State;	/* Current state */
     CState	*m_Source;	/* Source of the transition (used during transitions) */
@@ -259,6 +276,7 @@ private:
 	list<TextItem>					m_ShoutcastEntries;
 	list<TextItem>					m_LocalfilesContainer;
 	list<TextItem>					m_LocalfilesEntries;
+	list<TextItem>					m_ErrorList;
 	TextItem						m_songtitle;
 
 	bool							m_network_state;

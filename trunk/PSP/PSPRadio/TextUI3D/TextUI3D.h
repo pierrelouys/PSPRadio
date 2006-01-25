@@ -34,7 +34,6 @@
 		int WifiIconX, WifiIconY;
 		int ListIconX, ListIconY;
 		int VolumeIconX, VolumeIconY;
-		int FontWidth, FontHeight;
 		int	ClockX, ClockY;
 		int ClockFormat;
 		int OptionsX, OptionsY;
@@ -63,6 +62,7 @@
 
 	struct gfx_sizes
 		{
+		int FontWidth, FontHeight;
 		int	wifi_w, wifi_h;
 		int wifi_y;
 		int	power_w, power_h;
@@ -77,6 +77,9 @@
 		int usb_y;
 		int	playstate_w, playstate_h;
 		int playstate_y;
+		int	error_w, error_h;
+		int error_width;
+		int error_off_x, error_off_y;
 		};
 
 class CTextUI3D : public IPSPRadio_UI

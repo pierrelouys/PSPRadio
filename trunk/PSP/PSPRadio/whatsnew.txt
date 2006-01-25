@@ -5,6 +5,7 @@ What's New for PSPRadio
 NEW FEATURES
 (sandberg) Core: Added support for logging via WiFi instead of using the memorystick. (r729)
 (sandberg) External: Added a simple server application which can receive the log-entries via WiFi on the PC. (r729)
+(sandberg) 3DUI: A new popup dialog has been added to show error messages from PSPRadio. (r732)
 BUG FIXES
 (sandberg) 3DUI: The active item are now default selected when entering the option screen. (r728)
 (sandberg) 3DUI: The program version is now only shown on the option screen when using the 3D UI (r727)
