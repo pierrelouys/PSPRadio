@@ -141,6 +141,35 @@ void CMetaDataContainer::PrevContainer()
 	}	
 }
 
+void CMetaDataContainer::NextGlobalElement()
+{
+	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
+	{
+		m_currentElementIterator++;
+		if (m_currentElementIterator == m_currentElementList->end())
+		{
+			NextContainer();
+			AssociateElementList();
+		}
+	}
+}
+
+void CMetaDataContainer::PrevGlobalElement()
+{
+	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
+	{
+		if (m_currentElementIterator == m_currentElementList->begin())
+		{
+			PrevContainer();
+			AssociateElementList();
+		}
+		else
+		{
+			m_currentElementIterator--;
+		}
+	}
+}
+
 void CMetaDataContainer::NextElement()
 {
 	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))

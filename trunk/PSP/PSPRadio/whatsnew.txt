@@ -5,14 +5,16 @@ What's New for PSPRadio
 NEW FEATURES
 (sandberg) Core: Added support for logging via WiFi instead of using the memorystick. (r729)
 (sandberg) External: Added a simple server application which can receive the log-entries via WiFi on the PC. (r729)
+(raf) Core: Next/Prev via HPRM are now global (r733)
 (sandberg) 3DUI: A new popup dialog has been added to show error messages from PSPRadio. (r732)
 BUG FIXES
 (sandberg) 3DUI: The active item are now default selected when entering the option screen. (r728)
 (sandberg) 3DUI: The program version is now only shown on the option screen when using the 3D UI (r727)
 (sandberg) 3DUI: Fixed a couple of bug which caused the UI to read random data. (r730)
 (sandberg) Core: Added check for buffer event, so they are only sent when there are changes. (r731)
+(raf) Core: Fixed bug where HPRM would crash the localfiles screen (r733)
 
-0.38-Pre1
+0.38-Pre1 (r726) (2006-01-20)
 NEW FEATURES
 (sandberg) Core/3DUI: Merged the new TextUI3D into the main branch. (r712)
 (sandberg) Core: Support for USB enabled/disabled events to the UIs has been added. (r712)

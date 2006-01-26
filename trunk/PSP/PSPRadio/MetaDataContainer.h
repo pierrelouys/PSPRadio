@@ -42,8 +42,12 @@
 			void NextContainer();
 			void PrevContainer();
 			void AssociateElementList();
+			/** Local elements */
 			void NextElement();
 			void PrevElement();
+			/** Globally */
+			void NextGlobalElement();
+			void PrevGlobalElement();
 
 			void LoadDirectory(char *strPath);
 			void LoadPlaylistsFromDirectory(char *strDirectory);

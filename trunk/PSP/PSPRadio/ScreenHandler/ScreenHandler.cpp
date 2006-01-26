@@ -240,7 +240,8 @@ void CScreenHandler::CommonInputHandler(int iButtonMask)
 
 void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
 {
-	((PlayListScreen*)Screens[PSPRADIO_SCREEN_PLAYLIST])->OnHPRMReleased(iHPRMMask);
+	if (GetCurrentScreen())
+		((PlayListScreen*)GetCurrentScreen())->OnHPRMReleased(iHPRMMask);
 };
 
 void IScreen::Activate(IPSPRadio_UI *UI)

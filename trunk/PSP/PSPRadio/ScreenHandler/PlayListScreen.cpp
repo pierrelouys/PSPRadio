@@ -299,39 +299,30 @@ void PlayListScreen::InputHandler(int iButtonMask)
 void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 {
 	Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
-	CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
+	//CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
 
 	if (iHPRMMask & PSP_HPRM_BACK)
 	{
-		m_Lists->PrevElement();
-		m_UI->DisplayElements(m_Lists);
+		if (false == m_Lists->GetContainerList()->empty())
+		{
+			m_Lists->PrevGlobalElement();
+			m_UI->DisplayContainers(m_Lists);
+			m_UI->DisplayElements(m_Lists);
+		}
 	}
 	else if (iHPRMMask & PSP_HPRM_FORWARD)
 	{
-		m_Lists->NextElement();
-		m_UI->DisplayElements(m_Lists);
+		if (false == m_Lists->GetContainerList()->empty())
+		{
+			m_Lists->NextGlobalElement();
+			m_UI->DisplayContainers(m_Lists);
+			m_UI->DisplayElements(m_Lists);
+		}
 	}
 
 	else if (iHPRMMask & PSP_HPRM_PLAYPAUSE) 
 	{
-		switch(playingstate)
-		{
-			case CPSPSound::STOP:
-			case CPSPSound::PAUSE:
-				m_ScreenHandler->GetSound()->GetCurrentStream()->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-				m_UI->DisplayActiveCommand(CPSPSound::PLAY);
-				m_ScreenHandler->GetSound()->Play();
-				/** Populate m_CurrentMetaData */
-				//m_CurrentPlayList->GetCurrentSong(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
-				///m_Sound->GetCurrentStream()->SetURI(m_CurrentPlayList->GetURI());
-				//m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
-				break;
-			case CPSPSound::PLAY:
-				m_UI->DisplayActiveCommand(CPSPSound::STOP);
-				Log(LOG_VERYLOW, "Calling Stop() on HPRM PLAY/PAUSE pressed; currently Playing.");
-				m_ScreenHandler->GetSound()->Stop();
-				break;
-		}
+		InputHandler(PSP_CTRL_CROSS);
 	}
 }
 
