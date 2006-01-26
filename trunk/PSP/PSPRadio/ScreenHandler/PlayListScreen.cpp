@@ -362,9 +362,14 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				UI->DisplayActiveCommand(CPSPSound::PLAY);
 			if (PLAYSTATE_PAUSE != OldPlayState)
 			{
-				/** Populate m_CurrentMetaData */
-				MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
-				memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+				/** If no Metadata, then populate metadata from metadatacontainer list */
+				/** Metadata can be available at this point if retrieved from ID3 tag */
+				if (strlen(pCurrentStream->GetTitle()) == 0)
+				{
+					/** Populate m_CurrentMetaData */
+					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+				}
 				if (UI)
 					UI->OnNewSongData(pCurrentStream->GetMetaData());
 			}
