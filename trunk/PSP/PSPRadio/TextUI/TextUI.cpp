@@ -436,7 +436,7 @@ void CTextUI::OnTimeChange(pspTime *LocalTime)
 	{
 		bool bIsPM = (LocalTime->hour)>12;
 		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d%s", 
-					bIsPM?(LocalTime->hour-12):(LocalTime->hour), 
+					bIsPM?(LocalTime->hour-12):(LocalTime->hour==0?12:LocalTime->hour), 
 					LocalTime->minutes,
 					bIsPM?"PM":"AM");
 	}

@@ -16,6 +16,7 @@ BUG FIXES
 (sandberg) 3DUI: Fixed a couple of bug which caused the UI to read random data. (r730)
 (sandberg) Core: Added check for buffer event, so they are only sent when there are changes. (r731)
 (raf) Core: Fixed bug where HPRM would crash the localfiles screen (r733)
+(raf) TextUI: Corrected problem where 12AM was being displayed as 00AM (r734)
 
 0.38-Pre1 (r726) (2006-01-20)
 NEW FEATURES
