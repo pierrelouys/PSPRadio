@@ -340,7 +340,8 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							//break;
 							//fall through (some servers don't define stream type - asume MPEG)
 						case MetaData::CONTENT_AUDIO_MPEG:
-							Log(LOG_INFO, "ThDecode:: MPEG Stream Opened Successfully.");
+							Log(LOG_INFO, "ThDecode:: MPEG Stream Opened Successfully. (Title='%s')",
+								pPSPSound->m_CurrentStream->GetTitle());
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN);
 							Decoder = new CPSPSoundDecoder_MAD(&pPSPSound->Buffer, pPSPSound->m_CurrentStream);
 							bDecoderCreated = true;
@@ -389,6 +390,8 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 
 					if (true == bDecoderCreated)
 					{
+						Log(LOG_INFO, "ThDecode::(Title='%s') Seding event to start decoding",
+							pPSPSound->m_CurrentStream->GetTitle());					
 						pPSPSound->SendEvent(MID_THDECODE_DECODING);
 						/** Main decoding loop */
 						/* pPSPSound is the decoding loop. */

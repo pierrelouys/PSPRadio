@@ -32,6 +32,8 @@ using namespace std;
 void CPSPSoundDecoder_MAD::Initialize()
 {
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize - Start"); 
+	Log(LOG_INFO, "Init1: Title='%s'", m_InputStream->GetTitle());
+
 	IPSPSoundDecoder::Initialize(); /** For MAD we can use the default StreamReader */
 	
 	/* First the structures used by libmad must be initialized. */
@@ -50,6 +52,7 @@ void CPSPSoundDecoder_MAD::Initialize()
 		return;
 	}
 	
+	Log(LOG_INFO, "Init2: Title='%s'", m_InputStream->GetTitle());
 	Log(LOG_LOWLEVEL, "CPSPSoundDecoder_MAD Initialize - End");
 }
 			
@@ -326,10 +329,12 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 			Header->flags&MAD_FLAG_PROTECTION?"with":"without",
 			Mode,Emphasis,Header->samplerate);
 	*/
+	Log(LOG_INFO, "PrintFrameInfo1: Title='%s'", m_InputStream->GetTitle());
 	m_InputStream->SetBitRate(Header->bitrate);
 	m_InputStream->SetSampleRate(Header->samplerate);
 	m_InputStream->SetNumberOfChannels(Header->mode);
 	m_InputStream->SetMPEGLayer(Header->layer);
+	Log(LOG_INFO, "PrintFrameInfo2: Title='%s'", m_InputStream->GetTitle());
 	pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 	
 	return(0);

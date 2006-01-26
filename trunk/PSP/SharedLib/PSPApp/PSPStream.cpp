@@ -29,6 +29,7 @@
 #include <sys/socket.h>
 #include "PSPSound.h"
 #include "PSPStream.h"
+#include "ID3Parser.h"
 
 #define METADATA_STREAMURL_TAG "StreamUrl='"
 #define METADATA_STREAMTITLE_TAG "StreamTitle='"
@@ -238,6 +239,9 @@ int CPSPStream::Open()
 					if (0 == strncasecmp(ext, "mp", 2))
 					{
 						SetContentType(MetaData::CONTENT_AUDIO_MPEG);
+						GetID3Data(m_MetaData->strURI, m_MetaData);
+						//pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
+						Log(LOG_INFO, "ID3 got Title='%s'", m_MetaData->strTitle);
 					}
 					else if (0 == strncasecmp(ext, "ogg", 3))
 					{
