@@ -306,7 +306,20 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 {
 	if (strlen(pData->strTitle))
 	{
-		m_wmanager.AddTitleText(LocalSettings.SongTitleX, LocalSettings.SongTitleY, LocalSettings.SongTitleColor, pData->strTitle);
+	char	title[1024];
+
+		/* If the artist is known then add it in front of the title */
+		if (pData->strArtist && strlen(pData->strArtist))
+		{
+			sprintf(title, "%s - %s", pData->strArtist, pData->strTitle);
+		}
+		else
+		{
+			sprintf(title, "%s", pData->strTitle);
+		}
+
+		m_wmanager.AddTitleText(LocalSettings.SongTitleX, LocalSettings.SongTitleY, LocalSettings.SongTitleColor, title);
+
 	}
 	else
 	{
