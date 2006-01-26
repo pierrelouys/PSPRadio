@@ -108,6 +108,15 @@ void CMetaDataContainer::Clear()
 	m_currentElementList = NULL;
 }
 	
+void CMetaDataContainer::AssociateElementList()
+{
+	if (false == m_containerListMap.empty())
+	{
+		m_currentElementList = m_currentContainerIterator->second;
+		m_currentElementIterator = m_currentElementList->begin();
+	}
+}
+
 void CMetaDataContainer::NextContainer()
 {
 	if (false == m_containerListMap.empty())
@@ -117,15 +126,7 @@ void CMetaDataContainer::NextContainer()
 		{
 			m_currentContainerIterator = m_containerListMap.begin();
 		}
-	}
-}
-
-void CMetaDataContainer::AssociateElementList()
-{
-	if (false == m_containerListMap.empty())
-	{
-		m_currentElementList = m_currentContainerIterator->second;
-		m_currentElementIterator = m_currentElementList->begin();
+		AssociateElementList();
 	}
 }
 
@@ -138,6 +139,7 @@ void CMetaDataContainer::PrevContainer()
 			m_currentContainerIterator = m_containerListMap.end();
 		}
 		m_currentContainerIterator--;
+		AssociateElementList();
 	}	
 }
 
@@ -149,7 +151,6 @@ void CMetaDataContainer::NextGlobalElement()
 		if (m_currentElementIterator == m_currentElementList->end())
 		{
 			NextContainer();
-			AssociateElementList();
 		}
 	}
 }
@@ -161,7 +162,6 @@ void CMetaDataContainer::PrevGlobalElement()
 		if (m_currentElementIterator == m_currentElementList->begin())
 		{
 			PrevContainer();
-			AssociateElementList();
 		}
 		else
 		{

@@ -444,6 +444,30 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 					break;
 				}
 					
+				case PLAYMODE_GLOBAL_NEXT:
+				{
+					//play next strack
+					m_Lists->NextGlobalElement();
+					if (UI)
+					{
+						UI->DisplayContainers(m_Lists);
+						UI->DisplayElements(m_Lists);
+					}
+
+					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+					
+					/** Populate m_CurrentMetaData */
+					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
+					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
+					if (UI)
+						UI->OnNewSongData(pCurrentStream->GetMetaData());
+					
+					m_ScreenHandler->GetSound()->Play();
+					
+					break;
+				}
+				
 				case PLAYMODE_REPEAT:
 				{
 					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));

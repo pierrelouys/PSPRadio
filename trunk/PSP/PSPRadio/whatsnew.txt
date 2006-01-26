@@ -5,8 +5,10 @@ What's New for PSPRadio
 NEW FEATURES
 (sandberg) Core: Added support for logging via WiFi instead of using the memorystick. (r729)
 (sandberg) External: Added a simple server application which can receive the log-entries via WiFi on the PC. (r729)
-(raf) Core: Next/Prev via HPRM are now global (r733)
 (sandberg) 3DUI: A new popup dialog has been added to show error messages from PSPRadio. (r732)
+(raf) Core: Next/Prev via HPRM are now global (r733)
+(raf) TextUI: Updated skins from Semtex199 (r733)
+(raf) Core: Added new playmode "GLOBAL". When on this mode, when the last track of an album finishes, the player goes to the first track of the next album. (r734)
 BUG FIXES
 (sandberg) 3DUI: The active item are now default selected when entering the option screen. (r728)
 (sandberg) 3DUI: The program version is now only shown on the option screen when using the 3D UI (r727)
