@@ -29,7 +29,7 @@
 #include <ivorbisfile.h>
 #include "Screen.h"
 
-#define PSPRADIO_VERSION	"0.38-Pre1"
+#define PSPRADIO_VERSION	"0.38-Pre2"
 #define CFG_FILENAME		"PSPRadio.cfg"
 
 extern CScreen rootScreen;
