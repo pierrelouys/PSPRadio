@@ -97,16 +97,6 @@ int synchsafeToNormal(char tagSize[4]) //Convert size from synchsafe, which mean
 
 void printData() //Print the data parsed from a v1 tag
 {
-	/*
-	char * genre;
-
-	genre=(char *)calloc(50, sizeof(char));
-	getGenre(gen, genre);
-	Log(LOG_INFO, 
-		"\n\nID3v1:\nTitle - %s\nArtist - %s\nAlbum - %s\nYear - %s\nComment - %s\nGenre - %s\n\n\n", 
-		info[0], info[1], info[2],
-		info[3], info[4], genre);
-		*/
 	if (gMetaData)
 	{
 		getGenre(gen, gMetaData->strGenre);
@@ -141,7 +131,7 @@ void printFrames() //Print each frame from a v2 tag
 			genre=atoi(genNum);
 			gen=(char *)calloc(50, sizeof(char));
 			getGenre(genre, gen);
-			Log(LOG_INFO, "Genre - %s\n", gen);
+			//Log(LOG_INFO, "Genre - %s\n", gen);
 			if (gMetaData)
 			{
 				strncpy(gMetaData->strGenre, gen, 128); gMetaData->strGenre[127] = 0;
@@ -149,7 +139,7 @@ void printFrames() //Print each frame from a v2 tag
 		}
 		else
 		{
-			Log(LOG_INFO, "%s - %s\n", getFrameName(frames[x].fname), frames[x].data);
+			Log(LOG_LOWLEVEL, "ID3v2 Processing: %s - %s\n", getFrameName(frames[x].fname), frames[x].data);
 			if (gMetaData)
 			{
 				if (strcmp("TIT2",  frames[x].fname) == 0)
@@ -205,18 +195,26 @@ int v2(unsigned char * data) //ID3v2
 	int size;
 	char * v2tag;
 
-SEARCH:	while(data[loc]!='I' && loc<len)loc++; //Search for the beginning of a v2 tag
+SEARCH:	
+	while(data[loc]!='I' && loc<len)
+	{
+		loc++; //Search for the beginning of a v2 tag
+	}
 	if(loc>=len) return 0; //Got to end of chunk, no tag
-	if(data[++loc]!='D')goto SEARCH;
-	if(data[++loc]!='3')goto SEARCH;
-	if(data[++loc]>0x04)goto SEARCH;
+	if(data[++loc]!='D') goto SEARCH;
+	if(data[++loc]!='3') goto SEARCH;
+	if(data[++loc]>0x04) goto SEARCH;
 	if(data[++loc]==0xFF)goto SEARCH;
 	loc++;
 	if(data[++loc]>=0x80)goto SEARCH;
 	if(data[++loc]>=0x80)goto SEARCH;
 	if(data[++loc]>=0x80)goto SEARCH;
 	if(data[++loc]>=0x80)goto SEARCH;
-	if(loc>=len) {Log(LOG_INFO, "Failed\n"); return 0;}
+	if(loc>=len) 
+	{
+		Log(LOG_ERROR, "ID3v2: Failed\n"); 
+		return 0;
+	}
 	loc++;
 
 	memcpy(tagSize, data+loc-4, 4); //Grab tag size and flags
@@ -224,12 +222,12 @@ SEARCH:	while(data[loc]!='I' && loc<len)loc++; //Search for the beginning of a v
 
 	if(GETBIT(flags, 1)) //This bit flags an extended header
 	{
-		Log(LOG_INFO, "I haven't implemented extended headers.  Sorry.\n");
+		Log(LOG_ERROR, "ID3v2: Extended headers not implemented.\n");
 		return 0; //I don't want to deal with extended headers yet
 	}
 	if(GETBIT(flags, 3)) //This bit flags a footer
 	{
-		Log(LOG_INFO, "I haven't implemented footers.  Sorry.\n");
+		Log(LOG_ERROR, "ID3v2: Footers not implemented.\n");
 		return 0; //I don't want to deal with footers yet
 	}
 
@@ -260,44 +258,16 @@ void v1() //ID3v1
 	}
 }
 
-/*
-int main(int argc, char *argv[])
-{
-	int x;
-	if(argc==1)
-	{
-		Log(LOG_INFO, "ID3 Viewer\n\nYou must specify a filename.\n");
-		return 1;
-	}
-	readFileEnd(argv[1]); //v2 tags can be at the beginning or end of the file,
-	readFileBegin(argv[1]);//so check both
-	numframes=0;
-
-	for(x=0;x<5;x++)//allocate Data locations based on v1 tag size
-	{
-		if(x<3 || x==4) info[x]=(char *)calloc(31, sizeof(char));
-		if(x==3) info[x]=(char *)calloc(5, sizeof(char));
-	}
-	
-	v1();
-	v2(cFileBegin);
-
-	for(x=0;x<5;x++)
-			free(info[x]);
-	return 1;
-}
-*/
-
-int GetID3Data(char *Filename, MetaData *MetaData)
+int GetID3Data(MetaData *MetaData)
 {
 	int x;
 	
-	Log(LOG_INFO, "ID3 Parsing on '%s'", Filename);
+	Log(LOG_INFO, "ID3 Parsing on '%s'", MetaData->strURI);
 	
 	gMetaData = MetaData;
 	
-	readFileEnd(Filename); //v2 tags can be at the beginning or end of the file,
-	readFileBegin(Filename);//so check both
+	readFileEnd(MetaData->strURI); //v2 tags can be at the beginning or end of the file,
+	readFileBegin(MetaData->strURI);//so check both
 	numframes=0;
 
 	for(x=0;x<5;x++)//allocate Data locations based on v1 tag size
@@ -316,10 +286,6 @@ int GetID3Data(char *Filename, MetaData *MetaData)
 			
 	return 1;
 }
-
-
-
-
 
 
 //These are helper functions, that just turn codes into data
