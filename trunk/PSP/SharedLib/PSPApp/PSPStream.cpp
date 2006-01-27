@@ -240,8 +240,9 @@ int CPSPStream::Open()
 					{
 						SetContentType(MetaData::CONTENT_AUDIO_MPEG);
 						GetID3Data(m_MetaData->strURI, m_MetaData);
+						SetURL("");
 						//pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
-						Log(LOG_INFO, "ID3 got Title='%s'", m_MetaData->strTitle);
+						//Log(LOG_INFO, "ID3 got Title='%s'", m_MetaData->strTitle);
 					}
 					else if (0 == strncasecmp(ext, "ogg", 3))
 					{
