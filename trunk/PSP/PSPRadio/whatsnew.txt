@@ -11,6 +11,7 @@ NEW FEATURES
 (raf) Core: Added new playmode "GLOBAL". When on this mode, when the last track of an album finishes, the player goes to the first track of the next album. (r734)
 (raf) Core: Updated SHOUTcast db.xml to lastest as of 1-26-06 (r736)
 (raf) Core: Added support for ID3 tags (v1 and v2) (r738/739)
+(raf) Core: Made Playback mode a config item in PSPRadio.cfg. Now its saved with the other config options. Make sure you update your PSPRadio.cfg for this to work.
 BUG FIXES
 (sandberg) 3DUI: The active item are now default selected when entering the option screen. (r728)
 (sandberg) 3DUI: The program version is now only shown on the option screen when using the 3D UI (r727)

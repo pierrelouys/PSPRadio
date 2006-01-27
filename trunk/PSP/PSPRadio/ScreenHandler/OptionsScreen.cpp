@@ -173,7 +173,9 @@ void OptionsScreen::LoadFromConfig()
 		}
 		/** OPTION_ID_USB_AUTOSTART */
 
-
+		/** OPTION_ID_PLAYMODE */
+		m_ScreenHandler->SetPlayMode((playmodes)pConfig->GetInteger("PLAYBACK:MODE", 0));
+		/** OPTION_ID_PLAYMODE */
 
 	}
 	else
@@ -215,6 +217,10 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetInteger("SYSTEM:USB_AUTOSTART", m_USBAutoStart);
 		/** OPTION_ID_USB_AUTOSTART */
 
+		/** OPTION_ID_PLAYMODE */
+		pConfig->SetInteger("PLAYBACK:MODE",m_ScreenHandler->GetPlayMode());
+		/** OPTION_ID_PLAYMODE */
+		
 		pConfig->Save();
 	}
 	else
