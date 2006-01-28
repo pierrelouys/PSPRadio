@@ -750,6 +750,7 @@ static bool skip_first = true;
 	else
 		{
 		sceGuCopyImage(GU_PSM_8888, 0, 0, 480, 272, 480, m_backimage, 0, 0, 512, (void*)(0x04000000+(u32)m_framebuffer));
+		sceGuTexSync();
 		}
 }
 
@@ -1221,11 +1222,14 @@ void WindowHandlerHSM::GUInit()
 
 void WindowHandlerHSM::GUInitDisplayList()
 {
+	m_framebuffer = sceGuSwapBuffers();
+
 	sceGuStart(GU_DIRECT,::gu_list);
 
 	sceGuClearColor(0x00335588);
-	sceGuClearDepth(0);
-	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+//	sceGuClearDepth(0);
+//	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+	sceGuClear(GU_COLOR_BUFFER_BIT|GU_FAST_CLEAR_BIT);
 
 	sceGumMatrixMode(GU_PROJECTION);
 	sceGumLoadIdentity();
@@ -1239,8 +1243,6 @@ void WindowHandlerHSM::GUEndDisplayList()
 {
 	sceGuFinish();
 	sceGuSync(0,0);
-
-	m_framebuffer = sceGuSwapBuffers();
 }
 
 /* State handlers and transition-actions */

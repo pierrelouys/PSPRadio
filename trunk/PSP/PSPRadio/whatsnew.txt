@@ -1,5 +1,10 @@
 What's New for PSPRadio 
 ========================
+0.38-Pre3
+NEW FEATURES
+
+BUG FIXES
+(sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)
 
 0.38-Pre2
 NEW FEATURES

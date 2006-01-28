@@ -1,17 +1,17 @@
-/* 
+/*
 	PSPApp C++ OO Application Framework. (Initial Release: Sept. 2005)
 	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
-	
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
 	of the License, or (at your option) any later version.
-	
+
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
-	
+
 	You should have received a copy of the GNU General Public License
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -57,20 +57,20 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	if (m_thCallbackSetup)
 	{
 		m_thCallbackSetup->Start();
-		
+
 		sceCtrlSetSamplingCycle(0);
 		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-		
+
 		m_Exit = false;
 	}
 	else /** Oops, error, let's exit the app */
 	{
 		m_Exit = true;
 	}
-	
+
 	m_EventToPSPApp = new CPSPEventQ("msg_to_pspapp_q");
 
-	
+
 }
 
 int CPSPApp::StartPolling()
@@ -78,12 +78,12 @@ int CPSPApp::StartPolling()
 	if (NULL == m_thRun)
 	{
 		m_thRun = new CPSPThread("run_thread", runThread, 80, 80000);
-		
+
 		/** Start Polling for Vblank and buttons */
 		m_thRun->Start();
 	}
 	m_Polling = true;
-	
+
 	return 0;
 }
 
@@ -97,19 +97,19 @@ int CPSPApp::StopPolling()
 CPSPApp::~CPSPApp()
 {
 	Log(LOG_VERYLOW, "~CPSPApp(): Destructor Called.");
-	
+
 	if (true == IsUSBEnabled())
 	{
 		Log(LOG_VERYLOW, "~CPSPApp(): Disabling USB.");
 		DisableUSB();
 	}
-	
+
 	if (true == IsNetworkEnabled())
 	{
 		Log(LOG_VERYLOW, "~CPSPApp(): Disabling Network.");
 		DisableNetwork();
 	}
-	
+
 	if (m_EventToPSPApp)
 	{
 		Log(LOG_VERYLOW, "~CPSPApp(): deleting eventtopspapp");
@@ -120,9 +120,9 @@ CPSPApp::~CPSPApp()
 	free(m_strProgramName);
 	Log(LOG_VERYLOW, "~CPSPApp(): freeing version number.");
 	free(m_strVersionNumber);
-	
+
 	Log(LOG_INFO, "~CPSPApp(): Bye!.");
-	
+
 	sceKernelExitGame();
 
 	return;
@@ -138,26 +138,24 @@ int CPSPApp::Run()
 	u16 oldMinute;
 
 	Log(LOG_INFO, "Run(): Going into main loop.");
-	
-	sceCtrlSetSamplingCycle(10); 
+
+	sceCtrlSetSamplingCycle(10);
 	while (false == m_Exit)
 	{
-		sceDisplayWaitVblankStart();
-		sceKernelDelayThread(10);
-		//sceCtrlReadBufferPositive(&m_pad, 1); 
-		
+		//sceCtrlReadBufferPositive(&m_pad, 1);
+
 		if (false == m_Polling)
 			continue;
-		
+
 		OnVBlank();
 		//SendEvent(MID_ONVBLANK);
- 
+
 		// If a key event was detected notify the application
 		if (KeyHandler.KeyHandler(event))
 		{
 			SendEvent(event.event, (void *)&(event.key_state));
 		}
-		
+
 		// Only read from the RTC once a second
 		if (m_TimeUpdate++ == 60)
 		{
@@ -182,13 +180,13 @@ int CPSPApp::Run()
 				}
 			}
 		}
-
+/*
 		if (oldAnalogue != (short)m_pad.Lx)
 		{
 			oldAnalogue = (short)m_pad.Lx;
 			OnAnalogueStickChange(m_pad.Lx, m_pad.Ly);
 		}
-
+*/
 		if (sceHprmIsRemoteExist())
 		{
 			sceHprmReadLatch(&hprmlatch);
@@ -198,8 +196,10 @@ int CPSPApp::Run()
 				Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
 			}
 		}
+		sceDisplayWaitVblankStart();
+//		sceKernelDelayThread(10);
 	}
-	
+
 	Log(LOG_VERYLOW, "Run:: Right before calling sceKernelExitThread.");
 	sceKernelExitThread(0);
 	return 0;
@@ -214,7 +214,7 @@ int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
 	#endif
     cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
     scePowerRegisterCallback(0, cbid);
-    
+
 	sceKernelSleepThreadCB();
 
 	return 0;
@@ -226,7 +226,7 @@ int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 	/** We set m_Exit to true. This causes Run()'s loop to end, and start a controlled shutdown. */
 	m_Exit = true;
 	/** This notifies The APP to start destruction */
-	SendEvent(MID_PSPAPP_EXITING); 
+	SendEvent(MID_PSPAPP_EXITING);
 	return 0;
 }
 
@@ -239,25 +239,25 @@ int CPSPApp::ReportError(char *format, ...)
 	strMessage   = (char *)malloc(4096);
 
 	va_start (args, format);         /* Initialize the argument list. */
-	
+
 	vsprintf(strMessage, format, args);
-	
+
 	va_end (args);
-	
+
 	return SendEvent(MID_ERROR, strMessage);
 }
 
 /* ---statics--- */
 /* System Callbacks */
-int CPSPApp::exitCallback(int arg1, int arg2, void *common) 
+int CPSPApp::exitCallback(int arg1, int arg2, void *common)
 {
 	return pPSPApp->OnAppExit(arg1, arg2, common);
 }
 
-int CPSPApp::powerCallback(int arg1, int pwrflags, void *common) 
+int CPSPApp::powerCallback(int arg1, int pwrflags, void *common)
 {
 	pPSPApp->OnPowerEvent(pwrflags);
-	
+
 	/** Register again (or it won't happen anymore) */
     int cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
     scePowerRegisterCallback(0, cbid);
@@ -265,12 +265,12 @@ int CPSPApp::powerCallback(int arg1, int pwrflags, void *common)
 }
 
 /* Thread statics */
-int CPSPApp::callbacksetupThread(SceSize args, void *argp) 
+int CPSPApp::callbacksetupThread(SceSize args, void *argp)
 {
 	return pPSPApp->CallbackSetupThread(args, argp);
 }
 
-int CPSPApp::runThread(SceSize args, void *argp) 
+int CPSPApp::runThread(SceSize args, void *argp)
 {
 	return pPSPApp->Run();
 }
