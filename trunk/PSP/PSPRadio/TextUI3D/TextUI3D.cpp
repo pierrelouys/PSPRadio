@@ -147,6 +147,8 @@ void CTextUI3D::GetSettings()
 	GetConfigPair("SETTINGS:BITRATE_XY", &LocalSettings.BitrateX, &LocalSettings.BitrateY);
 	GetConfigPair("SETTINGS:USB_ICON_XY", &LocalSettings.USBIconX, &LocalSettings.USBIconY);
 	GetConfigPair("SETTINGS:PLAYER_STATE_XY", &LocalSettings.PlayerstateX, &LocalSettings.PlayerstateY);
+	LocalSettings.ErrorColor = GetConfigColor("SETTINGS:ERROR_COLOR");
+	LocalSettings.MessageColor = GetConfigColor("SETTINGS:MESSAGE_COLOR");
 
 	/* Graphics sizes */
 	GetConfigPair("GRAPHICS:GFX_FONT1_SIZE", &GfxSizes.FontWidth, &GfxSizes.FontHeight);

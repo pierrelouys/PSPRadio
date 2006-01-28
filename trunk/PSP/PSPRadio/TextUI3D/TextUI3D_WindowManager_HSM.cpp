@@ -216,6 +216,19 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	state = &(m_panel_state[PANEL_OPTIONS]);
 	SetHideBottom(state);
 
+	/* Setup panel used for messages */
+	panelstate.x		= PANEL_MAX_X;
+	panelstate.y		= PANEL_HIDE_Y;
+	panelstate.z		= 0;
+	panelstate.w		= 128;
+	panelstate.h		= 64;
+	panelstate.opacity	= 0.0f;
+	panelstate.scale	= 1.0f;
+	m_message_panel.SetFrameTexture(textures);
+	m_message_panel.SetState(&panelstate);
+	memcpy(&(m_message_state), &panelstate, sizeof(CTextUI3D_Panel::PanelState));
+
+
 	m_progress_render = false;
 	m_usb_enabled = false;
 	m_list_icon = LIST_ICON_PLAYLIST;
@@ -1054,6 +1067,141 @@ void WindowHandlerHSM::RenderError(error_events event)
 	}
 }
 
+void WindowHandlerHSM::RenderMessage(error_events event)
+{
+	static error_states	current_state = ERROR_STATE_HIDE;
+	static int			show_time = 0;
+	static float		opacity = 0;
+
+	switch (current_state)
+		{
+		/* STATE : HIDE */
+		case	ERROR_STATE_HIDE:
+			{
+			switch (event)
+				{
+				case	ERROR_EVENT_SHOW:
+					{
+					current_state = ERROR_STATE_SHOWING;
+					}
+					break;
+				case	ERROR_EVENT_HIDE:
+				case	ERROR_EVENT_RENDER:
+				default:
+					{
+					}
+					break;
+				}
+			}
+			break;
+
+		/* STATE : SHOW */
+		case	ERROR_STATE_SHOW:
+			{
+			switch (event)
+				{
+				case	ERROR_EVENT_SHOW:
+					{
+					current_state = ERROR_STATE_SHOWING;
+					}
+					break;
+				case	ERROR_EVENT_HIDE:
+					{
+					current_state = ERROR_STATE_HIDING;
+					}
+					break;
+				case	ERROR_EVENT_RENDER:
+					{
+					if (show_time == 60*5)
+						{
+						current_state = ERROR_STATE_HIDING;
+						}
+					else
+						{
+						show_time++;
+						}
+					}
+					break;
+				}
+			}
+			break;
+
+		/* STATE : SHOWING */
+		case	ERROR_STATE_SHOWING:
+			{
+			switch (event)
+				{
+				case	ERROR_EVENT_HIDE:
+					{
+					current_state = ERROR_STATE_HIDING;
+					}
+					break;
+				case	ERROR_EVENT_RENDER:
+					{
+					if (opacity >= 1.0f)
+						{
+						show_time = 0;
+						opacity = 1.0f;
+						current_state = ERROR_STATE_SHOW;
+						}
+					else
+						{
+						opacity += 0.01f;
+						}
+					}
+					break;
+				case	ERROR_EVENT_SHOW:
+				default:
+					{
+					}
+					break;
+				}
+			}
+			break;
+
+		/* STATE : HIDING */
+		case	ERROR_STATE_HIDING:
+			{
+			switch (event)
+				{
+				case	ERROR_EVENT_SHOW:
+					{
+					current_state = ERROR_STATE_SHOWING;
+					}
+					break;
+				case	ERROR_EVENT_RENDER:
+					{
+					if (opacity <= 0)
+						{
+						opacity = 0.0f;
+						m_message_panel.SetPosition(m_message_panel.GetPositionX(),PANEL_HIDE_Y,0);
+						current_state = ERROR_STATE_HIDE;
+						}
+					else
+						{
+						opacity -= 0.01f;
+						}
+					}
+					break;
+				case	ERROR_EVENT_HIDE:
+				default:
+					{
+					}
+					break;
+				}
+			}
+			break;
+		}
+
+	/* Render in all states except in HIDE */
+	if ((current_state != ERROR_STATE_HIDE) && (event == ERROR_EVENT_RENDER))
+	{
+		m_message_panel.SetOpacity(opacity);
+		m_message_panel.Render();
+		RenderList(&m_MessageList, m_message_panel.GetPositionX(), m_message_panel.GetPositionY(), opacity);
+	}
+}
+
 void WindowHandlerHSM::RenderTitle()
 {
 	sceGuEnable(GU_TEXTURE_2D);
@@ -1191,7 +1339,18 @@ void WindowHandlerHSM::SetBitrate(long unsigned int bitrate)
 
 void WindowHandlerHSM::SetError(char *errorStr)
 {
-	UpdateTextItem(&m_ErrorList, WM_EVENT_TEXT_ERROR, GfxSizes.error_off_x, GfxSizes.error_off_y, errorStr, 0xFF0000FF);
+	UpdateTextItem(&m_ErrorList, WM_EVENT_TEXT_ERROR, GfxSizes.error_off_x, GfxSizes.error_off_y, errorStr, LocalSettings.ErrorColor);
+}
+
+void WindowHandlerHSM::SetMessage(char *messageStr)
+{
+	int	length;
+
+	UpdateTextItem(&m_MessageList, WM_EVENT_TEXT_MESSAGE, 16, 16, messageStr, LocalSettings.MessageColor);
+	/* Calculate the size of the panel */
+	length = strlen(messageStr) * GfxSizes.FontWidth;
+	m_message_panel.SetSize(length, 48);
+	m_message_panel.SetPosition((480 - length - 32)/2, (272-48-32)/2, 0);
 }
 
 void WindowHandlerHSM::GUInit()
@@ -1287,6 +1446,7 @@ void *WindowHandlerHSM::top_handler()
 			/* Render progressbar if necessary */
 			RenderProgressBar(false);
 			RenderError(ERROR_EVENT_RENDER);
+			RenderMessage(ERROR_EVENT_RENDER);
 			GUEndDisplayList();
 			return 0;
 
@@ -1305,6 +1465,8 @@ void *WindowHandlerHSM::top_handler()
 			return 0;
 		case WM_EVENT_TEXT_MESSAGE:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_MESSAGE");
+			SetMessage((char *) m_Event.Data);
+			RenderMessage(ERROR_EVENT_SHOW);
 			return 0;
 
 		/* Stream events */
@@ -1401,21 +1563,25 @@ void *WindowHandlerHSM::top_handler()
 		case WM_EVENT_PLAYLIST:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYLIST");
 			RenderError(ERROR_EVENT_HIDE);
+			RenderMessage(ERROR_EVENT_HIDE);
 			Trans(&playlist);
 			return 0;
 		case WM_EVENT_SHOUTCAST:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_SHOUTCAST");
 			RenderError(ERROR_EVENT_HIDE);
+			RenderMessage(ERROR_EVENT_HIDE);
 			Trans(&shoutcast);
 			return 0;
 		case WM_EVENT_LOCALFILES:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_LOCALFILES");
 			RenderError(ERROR_EVENT_HIDE);
+			RenderMessage(ERROR_EVENT_HIDE);
 			Trans(&localfiles);
 			return 0;
 		case WM_EVENT_OPTIONS:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_OPTIONS");
 			RenderError(ERROR_EVENT_HIDE);
+			RenderMessage(ERROR_EVENT_HIDE);
 			Trans(&options);
 			return 0;
 		}

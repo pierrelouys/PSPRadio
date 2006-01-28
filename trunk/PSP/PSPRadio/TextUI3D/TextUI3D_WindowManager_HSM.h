@@ -199,6 +199,7 @@ private:
 	void SetHideRight(CTextUI3D_Panel::PanelState *state);
 	void SetHideBottom(CTextUI3D_Panel::PanelState *state);
 	void SetError(char *errorStr);
+	void SetMessage(char *errorStr);
 
 	void UpdateTextItem(list<TextItem> *current, int ID, int x, int y, char *strText, unsigned int color);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
@@ -220,6 +221,7 @@ private:
 	void RenderPlaystateIcon();
 	void RenderBackground();
 	void RenderError(WindowHandlerHSM::error_events event);
+	void RenderMessage(error_events event);
 
 	void GUInit();
 	void GUInitDisplayList();
@@ -267,6 +269,9 @@ private:
 
 	CTextUI3D_Panel					m_panels[PANEL_COUNT];
 	CTextUI3D_Panel::PanelState		m_panel_state[PANEL_COUNT];
+	CTextUI3D_Panel					m_message_panel;
+	CTextUI3D_Panel::PanelState		m_message_state;
+
 
 	list<TextItem>					m_StaticTextItems;
 	list<TextItem>					m_OptionItems;
@@ -277,6 +282,7 @@ private:
 	list<TextItem>					m_LocalfilesContainer;
 	list<TextItem>					m_LocalfilesEntries;
 	list<TextItem>					m_ErrorList;
+	list<TextItem>					m_MessageList;
 	TextItem						m_songtitle;
 
 	bool							m_network_state;

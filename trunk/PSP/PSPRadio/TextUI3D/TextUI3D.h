@@ -58,6 +58,8 @@
 		int BitrateX, BitrateY;
 		int USBIconX, USBIconY;
 		int PlayerstateX, PlayerstateY;
+		int ErrorColor;
+		int MessageColor;
 		};
 
 	struct gfx_sizes
