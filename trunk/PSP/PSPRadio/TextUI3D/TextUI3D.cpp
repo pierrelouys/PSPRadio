@@ -151,7 +151,10 @@ void CTextUI3D::GetSettings()
 	LocalSettings.MessageColor = GetConfigColor("SETTINGS:MESSAGE_COLOR");
 
 	/* Graphics sizes */
-	GetConfigPair("GRAPHICS:GFX_FONT1_SIZE", &GfxSizes.FontWidth, &GfxSizes.FontHeight);
+	GetConfigPair("GRAPHICS:GFX_FONT_LIST_SIZE", &GfxSizes.FontWidth_List, &GfxSizes.FontHeight_List);
+	GetConfigPair("GRAPHICS:GFX_FONT_SCROLLER_SIZE", &GfxSizes.FontWidth_Scroller, &GfxSizes.FontHeight_Scroller);
+	GetConfigPair("GRAPHICS:GFX_FONT_STATIC_SIZE", &GfxSizes.FontWidth_Static, &GfxSizes.FontHeight_Static);
+	GetConfigPair("GRAPHICS:GFX_FONT_MESSAGE_SIZE", &GfxSizes.FontWidth_Message, &GfxSizes.FontHeight_Message);
 	GetConfigPair("GRAPHICS:GFX_WIFI_SIZE", &GfxSizes.wifi_w, &GfxSizes.wifi_h);
 	GfxSizes.wifi_y = m_Settings->GetInteger("GRAPHICS:GFX_WIFI_H", 8);
 	GetConfigPair("GRAPHICS:GFX_POWER_SIZE", &GfxSizes.power_w, &GfxSizes.power_h);

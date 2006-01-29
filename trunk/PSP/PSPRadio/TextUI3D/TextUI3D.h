@@ -64,7 +64,10 @@
 
 	struct gfx_sizes
 		{
-		int FontWidth, FontHeight;
+		int FontWidth_List, FontHeight_List;
+		int FontWidth_Scroller, FontHeight_Scroller;
+		int FontWidth_Static, FontHeight_Static;
+		int FontWidth_Message, FontHeight_Message;
 		int	wifi_w, wifi_h;
 		int wifi_y;
 		int	power_w, power_h;

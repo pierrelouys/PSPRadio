@@ -96,7 +96,10 @@ static WindowHandlerHSM::texture_file __attribute__((aligned(16))) texture_list[
 	{WindowHandlerHSM::TEX_FRAME_L, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Frame_L.png"},
 	{WindowHandlerHSM::TEX_FRAME_R, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Frame_R.png"},
 	{WindowHandlerHSM::TEX_FILL, 			GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Fill.png"},
-	{WindowHandlerHSM::TEX_FONT, 			GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont.png"},
+	{WindowHandlerHSM::TEX_FONT_LIST, 		GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_List.png"},
+	{WindowHandlerHSM::TEX_FONT_SCROLLER, 	GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_Scroller.png"},
+	{WindowHandlerHSM::TEX_FONT_STATIC, 	GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_Static.png"},
+	{WindowHandlerHSM::TEX_FONT_MESSAGE, 	GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_Message.png"},
 	{WindowHandlerHSM::TEX_WIFI, 			GU_PSM_8888, 128,  16, true, WindowHandlerHSM::FT_PNG, "Icon_WiFi.png"},
 	{WindowHandlerHSM::TEX_POWER,			GU_PSM_8888, 128,  64, true, WindowHandlerHSM::FT_PNG, "Icon_Power.png"},
 	{WindowHandlerHSM::TEX_VOLUME,			GU_PSM_8888,  64, 128, true, WindowHandlerHSM::FT_PNG, "Icon_Volume.png"},
@@ -458,22 +461,22 @@ void WindowHandlerHSM::Trans(CState *Target)
 void WindowHandlerHSM::InitTextures()
 {
 	/* Overwrite default values */
-	texture_list[10].width 	= GfxSizes.wifi_w;
-	texture_list[10].height = GfxSizes.wifi_h;
-	texture_list[11].width 	= GfxSizes.power_w;
-	texture_list[11].height = GfxSizes.power_h;
-	texture_list[12].width 	= GfxSizes.volume_w;
-	texture_list[12].height = GfxSizes.volume_h;
-	texture_list[13].width 	= GfxSizes.icons_w;
-	texture_list[13].height = GfxSizes.icons_h;
-	texture_list[14].width 	= GfxSizes.progress_w;
-	texture_list[14].height = GfxSizes.progress_h;
-	texture_list[15].width 	= GfxSizes.usb_w;
-	texture_list[15].height	= GfxSizes.usb_h;
-	texture_list[16].width 	= GfxSizes.playstate_w;
-	texture_list[16].height	= GfxSizes.playstate_h;
-	texture_list[17].width 	= GfxSizes.error_w;
-	texture_list[17].height	= GfxSizes.error_h;
+	texture_list[TEX_WIFI].width 			= GfxSizes.wifi_w;
+	texture_list[TEX_WIFI].height 			= GfxSizes.wifi_h;
+	texture_list[TEX_POWER].width 			= GfxSizes.power_w;
+	texture_list[TEX_POWER].height 			= GfxSizes.power_h;
+	texture_list[TEX_VOLUME].width 			= GfxSizes.volume_w;
+	texture_list[TEX_VOLUME].height 		= GfxSizes.volume_h;
+	texture_list[TEX_LIST_ICON].width 		= GfxSizes.icons_w;
+	texture_list[TEX_LIST_ICON].height 		= GfxSizes.icons_h;
+	texture_list[TEX_ICON_PROGRESS].width 	= GfxSizes.progress_w;
+	texture_list[TEX_ICON_PROGRESS].height 	= GfxSizes.progress_h;
+	texture_list[TEX_ICON_USB].width 		= GfxSizes.usb_w;
+	texture_list[TEX_ICON_USB].height		= GfxSizes.usb_h;
+	texture_list[TEX_ICON_PLAYSTATE].width 	= GfxSizes.playstate_w;
+	texture_list[TEX_ICON_PLAYSTATE].height	= GfxSizes.playstate_h;
+	texture_list[TEX_ERRORNOTE].width 		= GfxSizes.error_w;
+	texture_list[TEX_ERRORNOTE].height		= GfxSizes.error_h;
 }
 
 /* Utility methods */
@@ -853,11 +856,15 @@ void WindowHandlerHSM::RenderVolume()
 	RenderIconAlpha(TEX_VOLUME, LocalSettings.VolumeIconX, LocalSettings.VolumeIconY, GfxSizes.volume_w, GfxSizes.volume_y, 6 * GfxSizes.volume_y);
 }
 
-void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity)
+void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity, font_names font)
 {
 	TextItem					Option;
 	list<TextItem>::iterator 	OptionIterator;
 	char 						strText[MAX_OPTION_LENGTH];
+	int							fwidth, fheight;
+	int							tex;
+
+	GetFontInfo(font, &fwidth, &fheight, &tex);
 
 	if ((x_offset < PANEL_HIDE_X) && (y_offset < PANEL_HIDE_Y))
 	{
@@ -878,7 +885,7 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
 
 		// setup texture
-		(void)tcache.jsaTCacheSetTexture(TEX_FONT);
+		(void)tcache.jsaTCacheSetTexture(tex);
 		sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 
 		if (current->size() > 0)
@@ -904,7 +911,7 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 				for (int i = 0, index = 0 ; i < strsize ; i++)
 					{
 					char	letter = strText[i];
-					FindSmallFontTexture(letter, &texture_offset);
+					FindSmallFontTexture(letter, &texture_offset, font);
 
 					c_vertices[index+0].u 		= texture_offset.x1;
 					c_vertices[index+0].v 		= texture_offset.y1;
@@ -915,12 +922,12 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 
 					c_vertices[index+1].u 		= texture_offset.x2;
 					c_vertices[index+1].v 		= texture_offset.y2;
-					c_vertices[index+1].x 		= sx + GfxSizes.FontWidth;
-					c_vertices[index+1].y 		= sy + GfxSizes.FontHeight;
+					c_vertices[index+1].x 		= sx + fwidth;
+					c_vertices[index+1].y 		= sy + fheight;
 					c_vertices[index+1].z 		= 0;
 					c_vertices[index+1].color 	= color;
 
-					sx 	+= GfxSizes.FontWidth;
+					sx 	+= fwidth;
 					index 	+= 2;
 					}
 				sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
@@ -934,26 +941,26 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 	}
 }
 
-void WindowHandlerHSM::RenderError(error_events event)
+void WindowHandlerHSM::RenderError(message_events event)
 {
-	static error_states	current_state = ERROR_STATE_HIDE;
-	static int			show_time = 0;
-	static int			y_index = 0;
+	static message_states	current_state = STATE_HIDE;
+	static int				show_time = 0;
+	static int				y_index = 0;
 
 	switch (current_state)
 		{
 		/* STATE : HIDE */
-		case	ERROR_STATE_HIDE:
+		case	STATE_HIDE:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 					{
-					current_state = ERROR_STATE_SHOWING;
+					current_state = STATE_SHOWING;
 					}
 					break;
-				case	ERROR_EVENT_HIDE:
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_HIDE:
+				case	EVENT_RENDER:
 				default:
 					{
 					}
@@ -963,25 +970,25 @@ void WindowHandlerHSM::RenderError(error_events event)
 			break;
 
 		/* STATE : SHOW */
-		case	ERROR_STATE_SHOW:
+		case	STATE_SHOW:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 					{
 					show_time = 0;
 					}
 					break;
-				case	ERROR_EVENT_HIDE:
+				case	EVENT_HIDE:
 					{
-					current_state = ERROR_STATE_HIDING;
+					current_state = STATE_HIDING;
 					}
 					break;
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_RENDER:
 					{
 					if (show_time == 60*5)
 						{
-						current_state = ERROR_STATE_HIDING;
+						current_state = STATE_HIDING;
 						}
 					else
 						{
@@ -994,21 +1001,21 @@ void WindowHandlerHSM::RenderError(error_events event)
 			break;
 
 		/* STATE : SHOWING */
-		case	ERROR_STATE_SHOWING:
+		case	STATE_SHOWING:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_HIDE:
+				case	EVENT_HIDE:
 					{
-					current_state = ERROR_STATE_HIDING;
+					current_state = STATE_HIDING;
 					}
 					break;
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_RENDER:
 					{
 					if (y_index == (SIN_COUNT - 1))
 						{
 						show_time = 0;
-						current_state = ERROR_STATE_SHOW;
+						current_state = STATE_SHOW;
 						}
 					else
 						{
@@ -1016,7 +1023,7 @@ void WindowHandlerHSM::RenderError(error_events event)
 						}
 					}
 					break;
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 				default:
 					{
 					}
@@ -1026,20 +1033,20 @@ void WindowHandlerHSM::RenderError(error_events event)
 			break;
 
 		/* STATE : HIDING */
-		case	ERROR_STATE_HIDING:
+		case	STATE_HIDING:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 					{
-					current_state = ERROR_STATE_SHOWING;
+					current_state = STATE_SHOWING;
 					}
 					break;
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_RENDER:
 					{
 					if (y_index == 0)
 						{
-						current_state = ERROR_STATE_HIDE;
+						current_state = STATE_HIDE;
 						}
 					else
 						{
@@ -1047,7 +1054,7 @@ void WindowHandlerHSM::RenderError(error_events event)
 						}
 					}
 					break;
-				case	ERROR_EVENT_HIDE:
+				case	EVENT_HIDE:
 				default:
 					{
 					}
@@ -1058,35 +1065,35 @@ void WindowHandlerHSM::RenderError(error_events event)
 		}
 
 	/* Render in all states except in HIDE */
-	if ((current_state != ERROR_STATE_HIDE) && (event == ERROR_EVENT_RENDER))
+	if ((current_state != STATE_HIDE) && (event == EVENT_RENDER))
 	{
 		int x = (SCR_WIDTH - GfxSizes.error_width) / 2;
 		int y = (int) (SCR_HEIGHT - sintable[y_index]);
 		RenderIconAlpha(TEX_ERRORNOTE, x, y, GfxSizes.error_width, GfxSizes.error_h, 0);
-		RenderList(&m_ErrorList, x, y, 1.0f);
+		RenderList(&m_ErrorList, x, y, 1.0f, FONT_MESSAGE);
 	}
 }
 
-void WindowHandlerHSM::RenderMessage(error_events event)
+void WindowHandlerHSM::RenderMessage(message_events event)
 {
-	static error_states	current_state = ERROR_STATE_HIDE;
-	static int			show_time = 0;
-	static float		opacity = 0;
+	static message_states	current_state = STATE_HIDE;
+	static int				show_time = 0;
+	static float			opacity = 0;
 
 	switch (current_state)
 		{
 		/* STATE : HIDE */
-		case	ERROR_STATE_HIDE:
+		case	STATE_HIDE:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 					{
-					current_state = ERROR_STATE_SHOWING;
+					current_state = STATE_SHOWING;
 					}
 					break;
-				case	ERROR_EVENT_HIDE:
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_HIDE:
+				case	EVENT_RENDER:
 				default:
 					{
 					}
@@ -1096,25 +1103,25 @@ void WindowHandlerHSM::RenderMessage(error_events event)
 			break;
 
 		/* STATE : SHOW */
-		case	ERROR_STATE_SHOW:
+		case	STATE_SHOW:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 					{
-					current_state = ERROR_STATE_SHOWING;
+					current_state = STATE_SHOWING;
 					}
 					break;
-				case	ERROR_EVENT_HIDE:
+				case	EVENT_HIDE:
 					{
-					current_state = ERROR_STATE_HIDING;
+					current_state = STATE_HIDING;
 					}
 					break;
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_RENDER:
 					{
 					if (show_time == 60*5)
 						{
-						current_state = ERROR_STATE_HIDING;
+						current_state = STATE_HIDING;
 						}
 					else
 						{
@@ -1127,22 +1134,22 @@ void WindowHandlerHSM::RenderMessage(error_events event)
 			break;
 
 		/* STATE : SHOWING */
-		case	ERROR_STATE_SHOWING:
+		case	STATE_SHOWING:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_HIDE:
+				case	EVENT_HIDE:
 					{
-					current_state = ERROR_STATE_HIDING;
+					current_state = STATE_HIDING;
 					}
 					break;
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_RENDER:
 					{
 					if (opacity >= 1.0f)
 						{
 						show_time = 0;
 						opacity = 1.0f;
-						current_state = ERROR_STATE_SHOW;
+						current_state = STATE_SHOW;
 						}
 					else
 						{
@@ -1150,7 +1157,7 @@ void WindowHandlerHSM::RenderMessage(error_events event)
 						}
 					}
 					break;
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 				default:
 					{
 					}
@@ -1160,22 +1167,22 @@ void WindowHandlerHSM::RenderMessage(error_events event)
 			break;
 
 		/* STATE : HIDING */
-		case	ERROR_STATE_HIDING:
+		case	STATE_HIDING:
 			{
 			switch (event)
 				{
-				case	ERROR_EVENT_SHOW:
+				case	EVENT_SHOW:
 					{
-					current_state = ERROR_STATE_SHOWING;
+					current_state = STATE_SHOWING;
 					}
 					break;
-				case	ERROR_EVENT_RENDER:
+				case	EVENT_RENDER:
 					{
 					if (opacity <= 0)
 						{
 						opacity = 0.0f;
 						m_message_panel.SetPosition(m_message_panel.GetPositionX(),PANEL_HIDE_Y,0);
-						current_state = ERROR_STATE_HIDE;
+						current_state = STATE_HIDE;
 						}
 					else
 						{
@@ -1183,7 +1190,7 @@ void WindowHandlerHSM::RenderMessage(error_events event)
 						}
 					}
 					break;
-				case	ERROR_EVENT_HIDE:
+				case	EVENT_HIDE:
 				default:
 					{
 					}
@@ -1194,16 +1201,20 @@ void WindowHandlerHSM::RenderMessage(error_events event)
 		}
 
 	/* Render in all states except in HIDE */
-	if ((current_state != ERROR_STATE_HIDE) && (event == ERROR_EVENT_RENDER))
+	if ((current_state != STATE_HIDE) && (event == EVENT_RENDER))
 	{
 		m_message_panel.SetOpacity(opacity);
 		m_message_panel.Render();
-		RenderList(&m_MessageList, m_message_panel.GetPositionX(), m_message_panel.GetPositionY(), opacity);
+		RenderList(&m_MessageList, m_message_panel.GetPositionX(), m_message_panel.GetPositionY(), opacity, FONT_MESSAGE);
 	}
 }
 
 void WindowHandlerHSM::RenderTitle()
 {
+	int	fwidth, fheight, tex;
+
+	GetFontInfo(FONT_SCROLLER, &fwidth, &fheight, &tex);
+
 	sceGuEnable(GU_TEXTURE_2D);
 
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
@@ -1221,10 +1232,10 @@ void WindowHandlerHSM::RenderTitle()
 	sceGuTexFilter(GU_LINEAR, GU_LINEAR);
 
 	// setup texture
-	(void)tcache.jsaTCacheSetTexture(TEX_FONT);
+	(void)tcache.jsaTCacheSetTexture(tex);
 	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 
-	sceGuScissor(LocalSettings.SongTitleX - 1, LocalSettings.SongTitleY - 1, LocalSettings.SongTitleX + LocalSettings.SongTitleWidth, LocalSettings.SongTitleY + GfxSizes.FontHeight);
+	sceGuScissor(LocalSettings.SongTitleX - 1, LocalSettings.SongTitleY - 1, LocalSettings.SongTitleX + LocalSettings.SongTitleWidth, LocalSettings.SongTitleY + fheight);
 
 	if (strlen(m_songtitle.strText))
 	{
@@ -1234,7 +1245,7 @@ void WindowHandlerHSM::RenderTitle()
 
 		strsize = strlen(m_songtitle.strText);
 		sx = m_songtitle.x + m_scrolloffset--;
-		if (m_scrolloffset == -strsize*GfxSizes.FontWidth)
+		if (m_scrolloffset == -strsize*fwidth)
 			{
 			m_scrolloffset = LocalSettings.SongTitleWidth;
 			}
@@ -1244,7 +1255,7 @@ void WindowHandlerHSM::RenderTitle()
 		for (int i = 0, index = 0 ; i < strsize ; i++)
 			{
 			char	letter = m_songtitle.strText[i];
-			FindSmallFontTexture(letter, &texture_offset);
+			FindSmallFontTexture(letter, &texture_offset, FONT_SCROLLER);
 
 			c_vertices[index+0].u 		= texture_offset.x1;
 			c_vertices[index+0].v 		= texture_offset.y1;
@@ -1255,12 +1266,12 @@ void WindowHandlerHSM::RenderTitle()
 
 			c_vertices[index+1].u 		= texture_offset.x2;
 			c_vertices[index+1].v 		= texture_offset.y2;
-			c_vertices[index+1].x 		= sx + GfxSizes.FontWidth;
-			c_vertices[index+1].y 		= sy + GfxSizes.FontHeight;
+			c_vertices[index+1].x 		= sx + fwidth;
+			c_vertices[index+1].y 		= sy + fheight;
 			c_vertices[index+1].z 		= 0;
 			c_vertices[index+1].color 	= m_songtitle.color;
 
-			sx 	+= GfxSizes.FontWidth;
+			sx 	+= fwidth;
 			index 	+= 2;
 			}
 		sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
@@ -1274,15 +1285,18 @@ void WindowHandlerHSM::RenderTitle()
 	sceGuDepthFunc(GU_GEQUAL);
 }
 
-void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture_offset)
+void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font)
 {
+	int	fwidth, fheight, tex;
 	int maxsize = sizeof(::char_list);
 	bool found_char = false;
 
+	GetFontInfo(font, &fwidth, &fheight, &tex);
+
 	texture_offset->x1 = 0;
 	texture_offset->y1 = 0;
-	texture_offset->x2 = GfxSizes.FontWidth;
-	texture_offset->y2 = GfxSizes.FontHeight;
+	texture_offset->x2 = fwidth;
+	texture_offset->y2 = fheight;
 
 	for (int i = 0 ; i < maxsize ; i++)
 	{
@@ -1291,15 +1305,15 @@ void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture
 		found_char = true;
 		break;
 		}
-		texture_offset->x1 += GfxSizes.FontWidth;
-		texture_offset->x2 += GfxSizes.FontWidth;
+		texture_offset->x1 += fwidth;
+		texture_offset->x2 += fwidth;
 	}
 
 	/* If we didn't find a matching character then return the index of the last char (space) */
 	if (!found_char)
 	{
-		texture_offset->x1 -= GfxSizes.FontWidth;
-		texture_offset->x2 -= GfxSizes.FontWidth;
+		texture_offset->x1 -= fwidth;
+		texture_offset->x2 -= fwidth;
 	}
 }
 
@@ -1345,10 +1359,13 @@ void WindowHandlerHSM::SetError(char *errorStr)
 void WindowHandlerHSM::SetMessage(char *messageStr)
 {
 	int	length;
+	int	fwidth, fheight, tex;
+
+	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
 
 	UpdateTextItem(&m_MessageList, WM_EVENT_TEXT_MESSAGE, 16, 16, messageStr, LocalSettings.MessageColor);
 	/* Calculate the size of the panel */
-	length = strlen(messageStr) * GfxSizes.FontWidth;
+	length = strlen(messageStr) * fwidth;
 	m_message_panel.SetSize(length, 48);
 	m_message_panel.SetPosition((480 - length - 32)/2, (272-48-32)/2, 0);
 }
@@ -1404,6 +1421,49 @@ void WindowHandlerHSM::GUEndDisplayList()
 	sceGuSync(0,0);
 }
 
+void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int *tex)
+{
+	switch(font)
+	{
+		case	FONT_LIST:
+			{
+			*width = GfxSizes.FontWidth_List;
+			*height = GfxSizes.FontHeight_List;
+			*tex = TEX_FONT_LIST;
+			}
+			break;
+		case	FONT_SCROLLER:
+			{
+			*width = GfxSizes.FontWidth_Scroller;
+			*height = GfxSizes.FontHeight_Scroller;
+			*tex = TEX_FONT_SCROLLER;
+			}
+			break;
+		case	FONT_STATIC:
+			{
+			*width = GfxSizes.FontWidth_Static;
+			*height = GfxSizes.FontHeight_Static;
+			*tex = TEX_FONT_STATIC;
+			}
+			break;
+		case	FONT_MESSAGE:
+			{
+			*width = GfxSizes.FontWidth_Message;
+			*height = GfxSizes.FontHeight_Message;
+			*tex = TEX_FONT_MESSAGE;
+			}
+			break;
+		default:
+			{
+			Log(LOG_ERROR, "Invalid font !! (%d)", font);
+			*width = 8;
+			*height = 8;
+			*tex = TEX_FONT_LIST;
+			}
+			break;
+	}
+}
+
 /* State handlers and transition-actions */
 
 void *WindowHandlerHSM::top_handler()
@@ -1416,7 +1476,7 @@ void *WindowHandlerHSM::top_handler()
 			GUInitDisplayList();
 			RenderBackground();
 			/* Render static text*/
-			RenderList(&m_StaticTextItems, 0, 0, 1.0f);
+			RenderList(&m_StaticTextItems, 0, 0, 1.0f, FONT_STATIC);
 			RenderTitle();
 			/* Render Icons */
 			RenderNetwork();
@@ -1436,17 +1496,17 @@ void *WindowHandlerHSM::top_handler()
 				}
 			}
 			/* Render text for windows */
-			RenderList(&m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity());
-			RenderList(&m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity());
-			RenderList(&m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity());
-			RenderList(&m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity());
-			RenderList(&m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity());
-			RenderList(&m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity());
-			RenderList(&m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity());
+			RenderList(&m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
+			RenderList(&m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
+			RenderList(&m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList(&m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
+			RenderList(&m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList(&m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
+			RenderList(&m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
 			/* Render progressbar if necessary */
 			RenderProgressBar(false);
-			RenderError(ERROR_EVENT_RENDER);
-			RenderMessage(ERROR_EVENT_RENDER);
+			RenderError(EVENT_RENDER);
+			RenderMessage(EVENT_RENDER);
 			GUEndDisplayList();
 			return 0;
 
@@ -1461,12 +1521,12 @@ void *WindowHandlerHSM::top_handler()
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_ERROR");
 			m_progress_render = false;
 			SetError((char *) m_Event.Data);
-			RenderError(ERROR_EVENT_SHOW);
+			RenderError(EVENT_SHOW);
 			return 0;
 		case WM_EVENT_TEXT_MESSAGE:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_MESSAGE");
 			SetMessage((char *) m_Event.Data);
-			RenderMessage(ERROR_EVENT_SHOW);
+			RenderMessage(EVENT_SHOW);
 			return 0;
 
 		/* Stream events */
@@ -1562,26 +1622,26 @@ void *WindowHandlerHSM::top_handler()
 		/* List events */
 		case WM_EVENT_PLAYLIST:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYLIST");
-			RenderError(ERROR_EVENT_HIDE);
-			RenderMessage(ERROR_EVENT_HIDE);
+			RenderError(EVENT_HIDE);
+			RenderMessage(EVENT_HIDE);
 			Trans(&playlist);
 			return 0;
 		case WM_EVENT_SHOUTCAST:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_SHOUTCAST");
-			RenderError(ERROR_EVENT_HIDE);
-			RenderMessage(ERROR_EVENT_HIDE);
+			RenderError(EVENT_HIDE);
+			RenderMessage(EVENT_HIDE);
 			Trans(&shoutcast);
 			return 0;
 		case WM_EVENT_LOCALFILES:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_LOCALFILES");
-			RenderError(ERROR_EVENT_HIDE);
-			RenderMessage(ERROR_EVENT_HIDE);
+			RenderError(EVENT_HIDE);
+			RenderMessage(EVENT_HIDE);
 			Trans(&localfiles);
 			return 0;
 		case WM_EVENT_OPTIONS:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_OPTIONS");
-			RenderError(ERROR_EVENT_HIDE);
-			RenderMessage(ERROR_EVENT_HIDE);
+			RenderError(EVENT_HIDE);
+			RenderMessage(EVENT_HIDE);
 			Trans(&options);
 			return 0;
 		}

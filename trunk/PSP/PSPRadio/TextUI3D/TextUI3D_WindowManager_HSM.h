@@ -70,7 +70,7 @@ public:
 
 	enum texture_enum
 	{
-		TEX_CORNER_UL = 1,
+		TEX_CORNER_UL,
 		TEX_CORNER_UR,
 		TEX_CORNER_LL,
 		TEX_CORNER_LR,
@@ -79,7 +79,10 @@ public:
 		TEX_FRAME_L,
 		TEX_FRAME_R,
 		TEX_FILL,
-		TEX_FONT,
+		TEX_FONT_LIST,
+		TEX_FONT_SCROLLER,
+		TEX_FONT_STATIC,
+		TEX_FONT_MESSAGE,
 		TEX_WIFI,
 		TEX_POWER,
 		TEX_VOLUME,
@@ -143,19 +146,27 @@ private:
 		int  		x2, y2;
 	};
 
-	typedef enum error_events
+	typedef enum message_events
 	{
-		ERROR_EVENT_SHOW,
-		ERROR_EVENT_HIDE,
-		ERROR_EVENT_RENDER,
+		EVENT_SHOW,
+		EVENT_HIDE,
+		EVENT_RENDER,
 	};
 
-	typedef enum error_states
+	typedef enum message_states
 	{
-		ERROR_STATE_SHOW,
-		ERROR_STATE_HIDE,
-		ERROR_STATE_SHOWING,
-		ERROR_STATE_HIDING,
+		STATE_SHOW,
+		STATE_HIDE,
+		STATE_SHOWING,
+		STATE_HIDING,
+	};
+
+	typedef enum font_names
+	{
+		FONT_LIST,
+		FONT_SCROLLER,
+		FONT_STATIC,
+		FONT_MESSAGE,
 	};
 
 protected:
@@ -202,8 +213,8 @@ private:
 	void SetMessage(char *errorStr);
 
 	void UpdateTextItem(list<TextItem> *current, int ID, int x, int y, char *strText, unsigned int color);
-	void FindSmallFontTexture(char index, struct TexCoord *texture_offset);
-	void RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity);
+	void FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font);
+	void RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity, font_names font);
 
 	void RenderIcon(int IconID, int x, int y, int width, int height, int x_offset);
 	void RenderIconAlpha(int IconID, int x, int y, int width, int height, int x_offset);
@@ -220,8 +231,9 @@ private:
 	void SetBitrate(long unsigned int bitrate);
 	void RenderPlaystateIcon();
 	void RenderBackground();
-	void RenderError(WindowHandlerHSM::error_events event);
-	void RenderMessage(error_events event);
+	void RenderError(message_events event);
+	void RenderMessage(message_events event);
+	void GetFontInfo(font_names font, int *width, int *height, int *tex);
 
 	void GUInit();
 	void GUInitDisplayList();
@@ -258,7 +270,6 @@ private:
 		PLAYSTATE_ICON_STOP,
 		PLAYSTATE_ICON_PLAY,
 	};
-
 
 private:
     CState	*m_State;	/* Current state */
