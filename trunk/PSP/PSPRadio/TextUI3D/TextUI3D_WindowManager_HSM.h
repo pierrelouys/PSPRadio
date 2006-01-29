@@ -90,7 +90,6 @@ public:
 		TEX_ICON_PROGRESS,
 		TEX_ICON_USB,
 		TEX_ICON_PLAYSTATE,
-		TEX_ERRORNOTE,
 	};
 
 	enum filetype_enum
@@ -281,8 +280,7 @@ private:
 	CTextUI3D_Panel					m_panels[PANEL_COUNT];
 	CTextUI3D_Panel::PanelState		m_panel_state[PANEL_COUNT];
 	CTextUI3D_Panel					m_message_panel;
-	CTextUI3D_Panel::PanelState		m_message_state;
-
+	CTextUI3D_Panel					m_error_panel;
 
 	list<TextItem>					m_StaticTextItems;
 	list<TextItem>					m_OptionItems;

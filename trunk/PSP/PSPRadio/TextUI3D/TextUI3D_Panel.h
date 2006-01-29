@@ -66,7 +66,7 @@ public:
 
 	void ResetView();
 
-	void Render();
+	void Render(int color);
 
 private:
 

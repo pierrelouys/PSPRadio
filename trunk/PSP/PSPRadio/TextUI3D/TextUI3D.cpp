@@ -147,8 +147,10 @@ void CTextUI3D::GetSettings()
 	GetConfigPair("SETTINGS:BITRATE_XY", &LocalSettings.BitrateX, &LocalSettings.BitrateY);
 	GetConfigPair("SETTINGS:USB_ICON_XY", &LocalSettings.USBIconX, &LocalSettings.USBIconY);
 	GetConfigPair("SETTINGS:PLAYER_STATE_XY", &LocalSettings.PlayerstateX, &LocalSettings.PlayerstateY);
-	LocalSettings.ErrorColor = GetConfigColor("SETTINGS:ERROR_COLOR");
-	LocalSettings.MessageColor = GetConfigColor("SETTINGS:MESSAGE_COLOR");
+	LocalSettings.ErrorTextColor = GetConfigColor("SETTINGS:ERROR_TEXT_COLOR");
+	LocalSettings.MessageTextColor = GetConfigColor("SETTINGS:MESSAGE_TEXT_COLOR");
+	LocalSettings.ErrorWindowColor = GetConfigColor("SETTINGS:ERROR_WINDOW_COLOR");
+	LocalSettings.MessageWindowColor = GetConfigColor("SETTINGS:MESSAGE_WINDOW_COLOR");
 
 	/* Graphics sizes */
 	GetConfigPair("GRAPHICS:GFX_FONT_LIST_SIZE", &GfxSizes.FontWidth_List, &GfxSizes.FontHeight_List);
@@ -169,9 +171,6 @@ void CTextUI3D::GetSettings()
 	GfxSizes.usb_y = m_Settings->GetInteger("GRAPHICS:GFX_USB_H", 16);
 	GetConfigPair("GRAPHICS:GFX_PLAYSTATE_SIZE", &GfxSizes.playstate_w, &GfxSizes.playstate_h);
 	GfxSizes.playstate_y = m_Settings->GetInteger("GRAPHICS:GFX_PLAYSTATE_H", 8);
-	GetConfigPair("GRAPHICS:GFX_ERROR_SIZE", &GfxSizes.error_w, &GfxSizes.error_h);
-	GfxSizes.error_width = m_Settings->GetInteger("GRAPHICS:GFX_ERROR_W", 256);
-	GetConfigPair("GRAPHICS:GFX_ERROR_OFFSET", &GfxSizes.error_off_x, &GfxSizes.error_off_y);
 }
 
 void CTextUI3D::PrepareShutdown()

@@ -163,7 +163,7 @@ void CTextUI3D_Panel::ResetView()
 	UpdateVertexArray();
 }
 
-void CTextUI3D_Panel::Render()
+void CTextUI3D_Panel::Render(int color)
 {
 
 	sceGuEnable(GU_TEXTURE_2D);
@@ -172,7 +172,7 @@ void CTextUI3D_Panel::Render()
 	sceGuEnable( GU_ALPHA_TEST );
 
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
-	sceGuTexEnvColor(0xFF000000);
+	sceGuTexEnvColor(color);
 
 	sceGuDepthFunc(GU_ALWAYS);
 

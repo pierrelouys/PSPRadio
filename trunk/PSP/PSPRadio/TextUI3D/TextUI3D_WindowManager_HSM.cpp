@@ -66,21 +66,6 @@ extern jsaTextureCache		tcache;
 extern Settings		LocalSettings;
 extern gfx_sizes	GfxSizes;
 
-
-#define SIN_COUNT       64
-static float __attribute__((aligned(16))) sintable[] =
-	{
-	0.000000f,4.908246f,9.813535f,14.712913f,19.603429f,24.482135f,29.346095f,34.192377f,
-	39.018065f,43.820248f,48.596035f,53.342550f,58.056936f,62.736350f,67.377969f,71.979007f,
-	76.536688f,81.048261f,85.511019f,89.922268f,94.279346f,98.579633f,102.820546f,106.999523f,
-	111.114047f,115.161640f,119.139864f,123.046314f,126.878654f,130.634567f,134.311791f,137.908111f,
-	141.421359f,144.849413f,148.190223f,151.441768f,154.602091f,157.669287f,160.641509f,163.516959f,
-	166.293921f,168.970712f,171.545716f,174.017399f,176.384249f,178.644863f,180.797857f,182.841955f,
-	184.775907f,186.598556f,188.308815f,189.905634f,191.388070f,192.755213f,194.006248f,195.140427f,
-	196.157055f,197.055530f,197.835302f,198.495908f,199.036945f,199.458091f,199.759091f,200.000000f
-	};
-
-
 static unsigned int __attribute__((aligned(16))) gu_list[262144];
 
 class WindowHandlerHSM *pWindowHandlerHSM = NULL;
@@ -107,7 +92,6 @@ static WindowHandlerHSM::texture_file __attribute__((aligned(16))) texture_list[
 	{WindowHandlerHSM::TEX_ICON_PROGRESS,	GU_PSM_8888, 128,  64, true, WindowHandlerHSM::FT_PNG, "Icon_Progress.png"},
 	{WindowHandlerHSM::TEX_ICON_USB,		GU_PSM_8888,  64,  32, true, WindowHandlerHSM::FT_PNG, "Icon_USB.png"},
 	{WindowHandlerHSM::TEX_ICON_PLAYSTATE,	GU_PSM_8888,  32,  32, true, WindowHandlerHSM::FT_PNG, "Icon_Playstate.png"},
-	{WindowHandlerHSM::TEX_ERRORNOTE,		GU_PSM_8888, 256, 128, true, WindowHandlerHSM::FT_PNG, "ErrorNote.png"},
 	};
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(WindowHandlerHSM::texture_file))
@@ -219,7 +203,7 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	state = &(m_panel_state[PANEL_OPTIONS]);
 	SetHideBottom(state);
 
-	/* Setup panel used for messages */
+	/* Setup panel used for messages and errors */
 	panelstate.x		= PANEL_MAX_X;
 	panelstate.y		= PANEL_HIDE_Y;
 	panelstate.z		= 0;
@@ -229,7 +213,9 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	panelstate.scale	= 1.0f;
 	m_message_panel.SetFrameTexture(textures);
 	m_message_panel.SetState(&panelstate);
-	memcpy(&(m_message_state), &panelstate, sizeof(CTextUI3D_Panel::PanelState));
+
+	m_error_panel.SetFrameTexture(textures);
+	m_error_panel.SetState(&panelstate);
 
 
 	m_progress_render = false;
@@ -475,8 +461,6 @@ void WindowHandlerHSM::InitTextures()
 	texture_list[TEX_ICON_USB].height		= GfxSizes.usb_h;
 	texture_list[TEX_ICON_PLAYSTATE].width 	= GfxSizes.playstate_w;
 	texture_list[TEX_ICON_PLAYSTATE].height	= GfxSizes.playstate_h;
-	texture_list[TEX_ERRORNOTE].width 		= GfxSizes.error_w;
-	texture_list[TEX_ERRORNOTE].height		= GfxSizes.error_h;
 }
 
 /* Utility methods */
@@ -945,7 +929,7 @@ void WindowHandlerHSM::RenderError(message_events event)
 {
 	static message_states	current_state = STATE_HIDE;
 	static int				show_time = 0;
-	static int				y_index = 0;
+	static float			opacity = 0;
 
 	switch (current_state)
 		{
@@ -976,7 +960,7 @@ void WindowHandlerHSM::RenderError(message_events event)
 				{
 				case	EVENT_SHOW:
 					{
-					show_time = 0;
+					current_state = STATE_SHOWING;
 					}
 					break;
 				case	EVENT_HIDE:
@@ -1012,14 +996,15 @@ void WindowHandlerHSM::RenderError(message_events event)
 					break;
 				case	EVENT_RENDER:
 					{
-					if (y_index == (SIN_COUNT - 1))
+					if (opacity >= 1.0f)
 						{
 						show_time = 0;
+						opacity = 1.0f;
 						current_state = STATE_SHOW;
 						}
 					else
 						{
-						y_index++;
+						opacity += 0.01f;
 						}
 					}
 					break;
@@ -1044,13 +1029,15 @@ void WindowHandlerHSM::RenderError(message_events event)
 					break;
 				case	EVENT_RENDER:
 					{
-					if (y_index == 0)
+					if (opacity <= 0)
 						{
+						opacity = 0.0f;
+						m_message_panel.SetPosition(m_message_panel.GetPositionX(),PANEL_HIDE_Y,0);
 						current_state = STATE_HIDE;
 						}
 					else
 						{
-						y_index--;
+						opacity -= 0.01f;
 						}
 					}
 					break;
@@ -1067,10 +1054,9 @@ void WindowHandlerHSM::RenderError(message_events event)
 	/* Render in all states except in HIDE */
 	if ((current_state != STATE_HIDE) && (event == EVENT_RENDER))
 	{
-		int x = (SCR_WIDTH - GfxSizes.error_width) / 2;
-		int y = (int) (SCR_HEIGHT - sintable[y_index]);
-		RenderIconAlpha(TEX_ERRORNOTE, x, y, GfxSizes.error_width, GfxSizes.error_h, 0);
-		RenderList(&m_ErrorList, x, y, 1.0f, FONT_MESSAGE);
+		m_error_panel.SetOpacity(opacity);
+		m_error_panel.Render(LocalSettings.ErrorWindowColor);
+		RenderList(&m_ErrorList, m_error_panel.GetPositionX(), m_error_panel.GetPositionY(), opacity, FONT_MESSAGE);
 	}
 }
 
@@ -1204,7 +1190,7 @@ void WindowHandlerHSM::RenderMessage(message_events event)
 	if ((current_state != STATE_HIDE) && (event == EVENT_RENDER))
 	{
 		m_message_panel.SetOpacity(opacity);
-		m_message_panel.Render();
+		m_message_panel.Render(LocalSettings.MessageWindowColor);
 		RenderList(&m_MessageList, m_message_panel.GetPositionX(), m_message_panel.GetPositionY(), opacity, FONT_MESSAGE);
 	}
 }
@@ -1353,7 +1339,16 @@ void WindowHandlerHSM::SetBitrate(long unsigned int bitrate)
 
 void WindowHandlerHSM::SetError(char *errorStr)
 {
-	UpdateTextItem(&m_ErrorList, WM_EVENT_TEXT_ERROR, GfxSizes.error_off_x, GfxSizes.error_off_y, errorStr, LocalSettings.ErrorColor);
+	int	length;
+	int	fwidth, fheight, tex;
+
+	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
+
+	UpdateTextItem(&m_ErrorList, WM_EVENT_TEXT_ERROR, 16, 16, errorStr, LocalSettings.ErrorTextColor);
+	/* Calculate the size of the panel */
+	length = strlen(errorStr) * fwidth;
+	m_error_panel.SetSize(length, 48);
+	m_error_panel.SetPosition((480 - length - 32)/2, (272-48-32)/2, 0);
 }
 
 void WindowHandlerHSM::SetMessage(char *messageStr)
@@ -1363,7 +1358,7 @@ void WindowHandlerHSM::SetMessage(char *messageStr)
 
 	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
 
-	UpdateTextItem(&m_MessageList, WM_EVENT_TEXT_MESSAGE, 16, 16, messageStr, LocalSettings.MessageColor);
+	UpdateTextItem(&m_MessageList, WM_EVENT_TEXT_MESSAGE, 16, 16, messageStr, LocalSettings.MessageTextColor);
 	/* Calculate the size of the panel */
 	length = strlen(messageStr) * fwidth;
 	m_message_panel.SetSize(length, 48);
@@ -1492,7 +1487,7 @@ void *WindowHandlerHSM::top_handler()
 			{
 				if ((m_panels[i].GetPositionX() < PANEL_HIDE_X) && (m_panels[i].GetPositionY() < PANEL_HIDE_Y))
 				{
-					m_panels[i].Render();
+					m_panels[i].Render(0xFF000000);
 				}
 			}
 			/* Render text for windows */

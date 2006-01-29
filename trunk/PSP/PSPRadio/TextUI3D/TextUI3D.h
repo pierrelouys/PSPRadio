@@ -58,8 +58,10 @@
 		int BitrateX, BitrateY;
 		int USBIconX, USBIconY;
 		int PlayerstateX, PlayerstateY;
-		int ErrorColor;
-		int MessageColor;
+		int ErrorTextColor;
+		int MessageTextColor;
+		int ErrorWindowColor;
+		int MessageWindowColor;
 		};
 
 	struct gfx_sizes
@@ -82,9 +84,6 @@
 		int usb_y;
 		int	playstate_w, playstate_h;
 		int playstate_y;
-		int	error_w, error_h;
-		int error_width;
-		int error_off_x, error_off_y;
 		};
 
 class CTextUI3D : public IPSPRadio_UI
