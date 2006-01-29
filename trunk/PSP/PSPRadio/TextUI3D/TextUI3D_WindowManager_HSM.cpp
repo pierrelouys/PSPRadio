@@ -678,7 +678,7 @@ void WindowHandlerHSM::SetHideBottom(CTextUI3D_Panel::PanelState *state)
 void WindowHandlerHSM::RenderIcon(int IconID, int x, int y, int width, int height, int y_offset)
 {
 	sceGuEnable(GU_TEXTURE_2D);
-	sceGuDepthFunc(GU_ALWAYS);
+//	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuAlphaFunc(GU_GREATER,0x0,0xff);
 	sceGuEnable(GU_ALPHA_TEST);
@@ -700,7 +700,7 @@ void WindowHandlerHSM::RenderIcon(int IconID, int x, int y, int width, int heigh
 
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-	sceGuDepthFunc(GU_GEQUAL);
+//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::RenderIconAlpha(int IconID, int x, int y, int width, int height, int y_offset)
@@ -713,7 +713,7 @@ void WindowHandlerHSM::RenderIconAlpha(int IconID, int x, int y, int width, int 
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
 	sceGuTexEnvColor(0xFF000000);
 
-	sceGuDepthFunc(GU_ALWAYS);
+//	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 	sceGuEnable( GU_BLEND );
@@ -738,7 +738,7 @@ void WindowHandlerHSM::RenderIconAlpha(int IconID, int x, int y, int width, int 
 	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-	sceGuDepthFunc(GU_GEQUAL);
+//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::RenderBackground()
@@ -862,7 +862,7 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 		sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
 		sceGuTexEnvColor(0xFF000000);
 
-		sceGuDepthFunc(GU_ALWAYS);
+//		sceGuDepthFunc(GU_ALWAYS);
 
 		sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 		sceGuEnable( GU_BLEND );
@@ -923,7 +923,7 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 		sceGuDisable(GU_BLEND);
 		sceGuDisable(GU_ALPHA_TEST);
 		sceGuDisable(GU_TEXTURE_2D);
-		sceGuDepthFunc(GU_GEQUAL);
+//		sceGuDepthFunc(GU_GEQUAL);
 	}
 }
 
@@ -1211,7 +1211,7 @@ void WindowHandlerHSM::RenderTitle()
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
 	sceGuTexEnvColor(0xFF000000);
 
-	sceGuDepthFunc(GU_ALWAYS);
+//	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 	sceGuEnable( GU_BLEND );
@@ -1270,7 +1270,7 @@ void WindowHandlerHSM::RenderTitle()
 	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-	sceGuDepthFunc(GU_GEQUAL);
+//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font)
@@ -1375,17 +1375,17 @@ void WindowHandlerHSM::GUInit()
 	sceGuStart(GU_DIRECT,::gu_list);
 	sceGuDrawBuffer(GU_PSM_8888,(void*)0,BUF_WIDTH);
 	sceGuDispBuffer(SCR_WIDTH,SCR_HEIGHT,(void*)0x88000,BUF_WIDTH);
-	sceGuDepthBuffer((void*)0x110000,BUF_WIDTH);
+//	sceGuDepthBuffer((void*)0x110000,BUF_WIDTH);
 	sceGuOffset(2048 - (SCR_WIDTH/2),2048 - (SCR_HEIGHT/2));
 	sceGuViewport(2048,2048,SCR_WIDTH,SCR_HEIGHT);
-	sceGuDepthRange(0xc350,0x2710);
+//	sceGuDepthRange(0xc350,0x2710);
 	sceGuScissor(0,0,SCR_WIDTH,SCR_HEIGHT);
 	sceGuEnable(GU_SCISSOR_TEST);
-	sceGuDepthFunc(GU_GEQUAL);
-	sceGuEnable(GU_DEPTH_TEST);
+//	sceGuDepthFunc(GU_GEQUAL);
+	sceGuDisable(GU_DEPTH_TEST);
 	sceGuFrontFace(GU_CW);
 	sceGuShadeModel(GU_SMOOTH);
-	sceGuEnable(GU_CULL_FACE);
+	sceGuDisable(GU_CULL_FACE);
 	sceGuFinish();
 	sceGuSync(0,0);
 
@@ -1395,8 +1395,6 @@ void WindowHandlerHSM::GUInit()
 
 void WindowHandlerHSM::GUInitDisplayList()
 {
-	m_framebuffer = sceGuSwapBuffers();
-
 	sceGuStart(GU_DIRECT,::gu_list);
 
 	sceGuClearColor(0x00335588);
@@ -1416,6 +1414,7 @@ void WindowHandlerHSM::GUEndDisplayList()
 {
 	sceGuFinish();
 	sceGuSync(0,0);
+	m_framebuffer = sceGuSwapBuffers();
 }
 
 void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int *tex)

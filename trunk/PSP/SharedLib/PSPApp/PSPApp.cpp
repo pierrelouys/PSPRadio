@@ -143,6 +143,8 @@ int CPSPApp::Run()
 	while (false == m_Exit)
 	{
 		//sceCtrlReadBufferPositive(&m_pad, 1);
+		sceDisplayWaitVblankStart();
+//		sceKernelDelayThread(10);
 
 		if (false == m_Polling)
 			continue;
@@ -196,8 +198,6 @@ int CPSPApp::Run()
 				Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
 			}
 		}
-		sceDisplayWaitVblankStart();
-//		sceKernelDelayThread(10);
 	}
 
 	Log(LOG_VERYLOW, "Run:: Right before calling sceKernelExitThread.");
