@@ -90,9 +90,6 @@ char *strCfgFile = NULL;
 	/* Initialize WindowManager */
 	m_wmanager.Initialize(strCWD);
 
-	// setup GU
-	m_wmanager.WM_SendEvent(WM_EVENT_GU_INIT, NULL);
-	Log(LOG_VERYLOW, "CTextUI3D:GU initialized");
 
 	sceKernelDcacheWritebackAll();
 

@@ -165,12 +165,7 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	CTextUI3D_Panel::PanelState	panelstate;
 	CTextUI3D_Panel::PanelState		*state;
 
-	/* Create MessageBox used for sending events to the HSM */
-	HSMMessagebox = sceKernelCreateMbx("HSMMBX", 0, 0);
-	/* Create and start the thread handling the messages */
-	m_HSMActive = true;
-	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_USER, 0);
-	sceKernelStartThread(m_mbxthread, 0, NULL);
+	GUInit();
 
 	LoadBackground(cwd);
 	Log(LOG_VERYLOW, "HSM:Background loaded");
@@ -178,6 +173,13 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	Log(LOG_VERYLOW, "HSM:Initialized textures");
 	LoadTextures(cwd);
 	Log(LOG_VERYLOW, "HSM:Textures loaded");
+
+	/* Create MessageBox used for sending events to the HSM */
+	HSMMessagebox = sceKernelCreateMbx("HSMMBX", 0, 0);
+	/* Create and start the thread handling the messages */
+	m_HSMActive = true;
+	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_USER, 0);
+	sceKernelStartThread(m_mbxthread, 0, NULL);
 
 	CTextUI3D_Panel::FrameTextures	textures = {16, 16, {	TEX_CORNER_UL,	TEX_FRAME_T,	TEX_CORNER_UR,
 															TEX_FRAME_L,	TEX_FILL,		TEX_FRAME_R,
@@ -1608,10 +1610,6 @@ void *WindowHandlerHSM::top_handler()
 		case WM_EVENT_USB_DISABLE:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_USB_DISABLE");
 			m_usb_enabled = false;
-			return 0;
-		case WM_EVENT_GU_INIT:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_GU_INIT");
-			GUInit();
 			return 0;
 
 		/* List events */

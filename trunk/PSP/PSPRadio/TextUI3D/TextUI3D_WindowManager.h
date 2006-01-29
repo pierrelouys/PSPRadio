@@ -75,9 +75,6 @@ using namespace std;
 	WM_EVENT_STREAM_CONNECTING,
 	WM_EVENT_STREAM_ERROR,
 	WM_EVENT_STREAM_SUCCESS,
-
-	/* GU Events */
-	WM_EVENT_GU_INIT,
 	};
 
 
