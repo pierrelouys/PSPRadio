@@ -139,7 +139,7 @@ int CPSPApp::Run()
 
 	Log(LOG_INFO, "Run(): Going into main loop.");
 
-	sceCtrlSetSamplingCycle(10);
+	sceCtrlSetSamplingCycle(0);
 	while (false == m_Exit)
 	{
 		//sceCtrlReadBufferPositive(&m_pad, 1);
