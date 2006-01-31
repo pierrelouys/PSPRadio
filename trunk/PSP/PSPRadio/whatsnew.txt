@@ -10,7 +10,7 @@ NEW FEATURES
 BUG FIXES
 (sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)
 
-0.38-Pre2
+0.38-Pre2 (r744) (2006-01-27)
 NEW FEATURES
 (sandberg) Core: Added support for logging via WiFi instead of using the memorystick. (r729)
 (sandberg) External: Added a simple server application which can receive the log-entries via WiFi on the PC. (r729)
