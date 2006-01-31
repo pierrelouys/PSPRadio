@@ -146,7 +146,20 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		memset(&m_ScreenConfig, 0, sizeof(m_ScreenConfig));
 		
 		/** General */
-		//m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 12);
+		m_ScreenConfig.ClockFormat = m_Config->GetInteger("GENERAL:CLOCK_FORMAT", 0);
+		switch (m_ScreenConfig.ClockFormat)
+		{
+		case 12:
+			m_ScreenConfig.ClockFormat = PSP_SYSTEMPARAM_TIME_FORMAT_12HR;
+			break;
+		case 24:
+			m_ScreenConfig.ClockFormat = PSP_SYSTEMPARAM_TIME_FORMAT_24HR;
+			break;
+		case 0:
+		default:
+			sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT, &m_ScreenConfig.ClockFormat);
+			break;
+		}
 		//sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT, &m_ScreenConfig.ClockFormat);
 		
 		m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SETTINGS:FONT_MODE", 0);
@@ -424,10 +437,7 @@ void CTextUI::OnBatteryChange(int Percentage)
 
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
-	int clockFormat = 0;
-	sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT, &clockFormat);
-	
-	if (clockFormat == PSP_SYSTEMPARAM_TIME_FORMAT_24HR)
+	if (m_ScreenConfig.ClockFormat == PSP_SYSTEMPARAM_TIME_FORMAT_24HR)
 	{
 		uiPrintf(m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, m_ScreenConfig.ClockColor, "%02d:%02d", 
 					LocalTime->hour, LocalTime->minutes);

@@ -2,11 +2,11 @@ What's New for PSPRadio
 ========================
 0.38-Pre3
 NEW FEATURES
-(sandberg) 3DUI: Messages from the PSPRadio (e.g. when downloading the list from shoutcast.com) are now shown in a seperate panel. (r746)
+(sandberg) 3DUI: Messages from the PSPRadio (e.g. when downloading the list from shoutcast.com) are now shown in a separate panel. (r746)
 (sandberg) 3DUI: The UI now supports 4 different fonts (Lists, Scroller, System info and Messages/Errors). (r747)
 (sandberg) 3DUI: Both messages and errors are now displayed using the native panels, scaled to fit the message length. (r748)
 (sandberg) 3DUI: Support for colored native panels has been added, which is used for the message and error panels. (r748)
-
+(raf) TextUI: Now clock format is still compatible and configurable as in 0.37-Final. New mode added (0). If set to that in the config file, then the format is retrieved from the system configuration. (r752)
 BUG FIXES
 (sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)
 
@@ -20,7 +20,7 @@ NEW FEATURES
 (raf) Core: Added new playmode "GLOBAL". When on this mode, when the last track of an album finishes, the player goes to the first track of the next album. (r734)
 (raf) Core: Updated SHOUTcast db.xml to lastest as of 1-26-06 (r736)
 (raf) Core: Added support for ID3 tags (v1 and v2) (r738/739)
-(raf) Core: Made Playback mode a config item in PSPRadio.cfg. Now its saved with the other config options. Make sure you update your PSPRadio.cfg for this to work.
+(raf) Core: Made Playback mode a config item in PSPRadio.cfg. Now its saved with the other config options. Make sure you update your PSPRadio.cfg for this to work. (r744)
 BUG FIXES
 (sandberg) 3DUI: The active item are now default selected when entering the option screen. (r728)
 (sandberg) 3DUI: The program version is now only shown on the option screen when using the 3D UI (r727)
