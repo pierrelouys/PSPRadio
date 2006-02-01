@@ -759,16 +759,20 @@ int CTextUI::OnNewSongData(MetaData *pData)
 
 int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 {
-	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
+	int y = m_ScreenConfig.TimeY;
+	int x = m_ScreenConfig.TimeX;
+	int c = m_ScreenConfig.TimeColor;
+	
+	if (pData->lTotalTime != 0)
 	{
-
-		int y = m_ScreenConfig.TimeY;
-		int x = m_ScreenConfig.TimeX;
-		int c = m_ScreenConfig.TimeColor;
-		
 		uiPrintf(x, y, c, "%02d:%02d / %02d:%02d",
 					pData->lCurrentTime / 60, pData->lCurrentTime % 60,
 					pData->lTotalTime / 60, pData->lTotalTime % 60);
+	}
+	else
+	{
+		uiPrintf(x, y, c, "%02d:%02d",
+					pData->lCurrentTime / 60, pData->lCurrentTime % 60);
 	}
 	return 0;
 }

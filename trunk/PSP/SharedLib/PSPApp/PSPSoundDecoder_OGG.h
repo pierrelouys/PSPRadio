@@ -19,9 +19,15 @@
 #ifndef __PSPSOUNDDECODER_OGG__
 	#define __PSPSOUNDDECODER_OGG__
 	
+	#define USE_TREMOR
+	
 	#include "PSPSound.h"
 	#include "PSPSoundDecoder.h"
-	#include <ivorbisfile.h>
+	#ifdef USE_TREMOR
+		#include <ivorbisfile.h>
+	#else
+		#include <vorbis/vorbisfile.h>
+	#endif
 	
 	class CPSPEventQ;
 	class CPSPSoundStream;

@@ -24,10 +24,14 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/socket.h>
-#include <ivorbisfile.h>
+#include "PSPSoundDecoder_OGG.h"
+#ifdef USE_TREMOR
+	#include <ivorbisfile.h>
+#else
+	#include <vorbis/vorbisfile.h>
+#endif
 #include "bstdfile.h"
 #include <malloc.h>
-#include "PSPSoundDecoder_OGG.h"
 using namespace std;
 
 static size_t sg_lBytesReadFromStream = 0;
@@ -97,6 +101,7 @@ COGGStreamReader::COGGStreamReader(CPSPStream *InputStream):CPSPStreamReader(Inp
 			ProcessInfo();
 			ReadComments();
 			pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
+			pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
 		}			
 		break;
 		case OV_EREAD:
@@ -143,6 +148,9 @@ void COGGStreamReader::ProcessInfo()
 	m_InputStream->SetBitRate(vi->bitrate_nominal);
 	m_InputStream->SetSampleRate(vi->rate);
 	m_InputStream->SetNumberOfChannels(vi->channels);
+	#ifdef USE_TREMOR
+		m_InputStream->SetTotalTime(ov_time_total(&m_vf, -1) / 1000);
+	#endif
 }
 
 void COGGStreamReader::ReadComments()
@@ -223,6 +231,15 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 				//m_eof = true;
 				break;
 			default:
+				#ifdef USE_TREMOR
+					long Time = ov_time_tell(&m_vf) / 1000;
+					if ((OV_EINVAL != Time) && (Time != m_InputStream->GetCurrentTime()))
+					{
+						m_InputStream->SetCurrentTime(Time);
+						pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
+					}
+				#endif
+
 				BytesRead += lRet;
 				break;
 		}
