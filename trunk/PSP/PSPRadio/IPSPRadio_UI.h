@@ -48,6 +48,7 @@
 		virtual void OnTimeChange(pspTime *LocalTime){};
 		virtual void OnUSBEnable(){};
 		virtual void OnUSBDisable(){};
+		virtual void NewPCMBuffer(short *PCMBuffer) {};
 
 		virtual void DisplayContainers(CMetaDataContainer *Container){}
 		virtual void DisplayElements(CMetaDataContainer *Container){}

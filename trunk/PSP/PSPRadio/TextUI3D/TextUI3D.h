@@ -62,6 +62,8 @@
 		int MessageTextColor;
 		int ErrorWindowColor;
 		int MessageWindowColor;
+		int VisualizerX, VisualizerY;
+		int VisualizerW, VisualizerH;
 		};
 
 	struct gfx_sizes
@@ -131,6 +133,7 @@ public:
 	void OnBatteryChange(int Percentage);
 	void OnUSBEnable();
 	void OnUSBDisable();
+	void NewPCMBuffer(short *PCMBuffer);
 
 	/** Screen Handling */
 	void Initialize_Screen(IScreen *Screen);

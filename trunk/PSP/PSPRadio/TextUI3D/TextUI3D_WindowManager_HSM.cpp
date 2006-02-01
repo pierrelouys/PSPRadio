@@ -72,15 +72,24 @@ class WindowHandlerHSM *pWindowHandlerHSM = NULL;
 
 static WindowHandlerHSM::texture_file __attribute__((aligned(16))) texture_list[] =
 	{
-	{WindowHandlerHSM::TEX_CORNER_UL, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Corner_UL.png"},
-	{WindowHandlerHSM::TEX_CORNER_UR, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Corner_UR.png"},
-	{WindowHandlerHSM::TEX_CORNER_LL, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Corner_LL.png"},
-	{WindowHandlerHSM::TEX_CORNER_LR, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Corner_LR.png"},
-	{WindowHandlerHSM::TEX_FRAME_T, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Frame_T.png"},
-	{WindowHandlerHSM::TEX_FRAME_B, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Frame_B.png"},
-	{WindowHandlerHSM::TEX_FRAME_L, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Frame_L.png"},
-	{WindowHandlerHSM::TEX_FRAME_R, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Frame_R.png"},
-	{WindowHandlerHSM::TEX_FILL, 			GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Fill.png"},
+	{WindowHandlerHSM::TEX_MAIN_CORNER_UL, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Corner_UL.png"},
+	{WindowHandlerHSM::TEX_MAIN_CORNER_UR, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Corner_UR.png"},
+	{WindowHandlerHSM::TEX_MAIN_CORNER_LL, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Corner_LL.png"},
+	{WindowHandlerHSM::TEX_MAIN_CORNER_LR, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Corner_LR.png"},
+	{WindowHandlerHSM::TEX_MAIN_FRAME_T, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Frame_T.png"},
+	{WindowHandlerHSM::TEX_MAIN_FRAME_B, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Frame_B.png"},
+	{WindowHandlerHSM::TEX_MAIN_FRAME_L, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Frame_L.png"},
+	{WindowHandlerHSM::TEX_MAIN_FRAME_R, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Frame_R.png"},
+	{WindowHandlerHSM::TEX_MAIN_FILL, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Main_Fill.png"},
+	{WindowHandlerHSM::TEX_MSG_CORNER_UL, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Corner_UL.png"},
+	{WindowHandlerHSM::TEX_MSG_CORNER_UR, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Corner_UR.png"},
+	{WindowHandlerHSM::TEX_MSG_CORNER_LL, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Corner_LL.png"},
+	{WindowHandlerHSM::TEX_MSG_CORNER_LR, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Corner_LR.png"},
+	{WindowHandlerHSM::TEX_MSG_FRAME_T, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Frame_T.png"},
+	{WindowHandlerHSM::TEX_MSG_FRAME_B, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Frame_B.png"},
+	{WindowHandlerHSM::TEX_MSG_FRAME_L, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Frame_L.png"},
+	{WindowHandlerHSM::TEX_MSG_FRAME_R, 	GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Frame_R.png"},
+	{WindowHandlerHSM::TEX_MSG_FILL, 		GU_PSM_8888,  16,  16, true, WindowHandlerHSM::FT_PNG, "Msg_Fill.png"},
 	{WindowHandlerHSM::TEX_FONT_LIST, 		GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_List.png"},
 	{WindowHandlerHSM::TEX_FONT_SCROLLER, 	GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_Scroller.png"},
 	{WindowHandlerHSM::TEX_FONT_STATIC, 	GU_PSM_8888, 512,   8, true, WindowHandlerHSM::FT_PNG, "SmallFont_Static.png"},
@@ -134,6 +143,8 @@ WindowHandlerHSM::WindowHandlerHSM() : 	top(NULL, &WindowHandlerHSM::top_handler
 	m_Event.Signal = 0;
 	m_Event.Data = NULL;
 
+	m_pcm_buffer = NULL;
+
     MakeEntry(&top);
     ActivateState(&top);
 	Log(LOG_VERYLOW, "HSM:Created");
@@ -181,9 +192,12 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_USER, 0);
 	sceKernelStartThread(m_mbxthread, 0, NULL);
 
-	CTextUI3D_Panel::FrameTextures	textures = {16, 16, {	TEX_CORNER_UL,	TEX_FRAME_T,	TEX_CORNER_UR,
-															TEX_FRAME_L,	TEX_FILL,		TEX_FRAME_R,
-															TEX_CORNER_LL,	TEX_FRAME_B,	TEX_CORNER_LR}};
+	CTextUI3D_Panel::FrameTextures	main_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
+																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
+																TEX_MAIN_CORNER_LL,	TEX_MAIN_FRAME_B,	TEX_MAIN_CORNER_LR}};
+	CTextUI3D_Panel::FrameTextures	msg_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
+																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
+																TEX_MAIN_CORNER_LL,	TEX_MAIN_FRAME_B,	TEX_MAIN_CORNER_LR}};
 
 	/* Set initial positions and textures for panels */
 	panelstate.x		= PANEL_HIDE_X;
@@ -196,7 +210,7 @@ void WindowHandlerHSM::Initialize(char *cwd)
 
 	for (int i = 0 ; i < PANEL_COUNT ; i++)
 		{
-		m_panels[i].SetFrameTexture(textures);
+		m_panels[i].SetFrameTexture(main_textures);
 		m_panels[i].SetState(&panelstate);
 		memcpy(&(m_panel_state[i]), &panelstate, sizeof(CTextUI3D_Panel::PanelState));
 		}
@@ -213,10 +227,10 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	panelstate.h		= 64;
 	panelstate.opacity	= 0.0f;
 	panelstate.scale	= 1.0f;
-	m_message_panel.SetFrameTexture(textures);
+	m_message_panel.SetFrameTexture(msg_textures);
 	m_message_panel.SetState(&panelstate);
 
-	m_error_panel.SetFrameTexture(textures);
+	m_error_panel.SetFrameTexture(msg_textures);
 	m_error_panel.SetState(&panelstate);
 
 
@@ -1460,6 +1474,63 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 	}
 }
 
+void WindowHandlerHSM::RenderPCMBuffer()
+{
+float	start_x, start_y;
+int		width, height;
+
+	/* Setup render window */
+	start_x = (float) LocalSettings.VisualizerX;
+	start_y = (float) LocalSettings.VisualizerY;
+
+	width = LocalSettings.VisualizerW;
+	height = (1 << LocalSettings.VisualizerH);
+
+	sceGuEnable(GU_LINE_SMOOTH);
+
+	/* If we don't have a buffer or are not playing then just render a line at zero */
+	if ((m_pcm_buffer == NULL) || (m_playstate_icon == PLAYSTATE_ICON_STOP) || (m_playstate_icon == PLAYSTATE_ICON_PAUSE))
+	{
+		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory(2 * sizeof(LineVertex));
+		l_vertices[0].x = start_x;
+		l_vertices[0].y = start_y + height/2;
+		l_vertices[0].z = 0;
+
+		l_vertices[1].x = start_x + width;
+		l_vertices[1].y = start_y + height/2;
+		l_vertices[1].z = 0;
+
+		sceGuColor(0xFF44CCFF);
+		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, 2, 0, l_vertices);
+	}
+	else
+	{
+		float		xpos = start_x;
+		float		ypos = start_y + height / 4;
+		int			sample;
+		int			sample_step = PSP_BUFFER_SIZE_IN_FRAMES / width;
+		int			sample_scale = 16 - LocalSettings.VisualizerH + 1;
+		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory(width * sizeof(LineVertex));
+
+		l_vertices[0].x = xpos++;
+		l_vertices[0].y = start_y + height/2;
+		l_vertices[0].z = 0;
+
+		for (int i = 0, index = 0 ; index < PSP_BUFFER_SIZE_IN_FRAMES ; index += sample_step, i++)
+		{
+			sample = (int)m_pcm_buffer[i*2] + (int)m_pcm_buffer[i*2+1] + (1 << 15);
+			l_vertices[i+1].x = xpos++;
+			l_vertices[i+1].y = ypos + (sample >> sample_scale); // (16 - height)
+			//start_y + height/2;
+			l_vertices[i+1].z = 0;
+		}
+
+		sceGuColor(0xFF44CCFF);
+		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width, 0, l_vertices);
+	}
+	sceGuDisable(GU_LINE_SMOOTH);
+}
+
 /* State handlers and transition-actions */
 
 void *WindowHandlerHSM::top_handler()
@@ -1481,6 +1552,7 @@ void *WindowHandlerHSM::top_handler()
 			RenderListIcon();
 			RenderUSB();
 			RenderPlaystateIcon();
+			RenderPCMBuffer();
 			/* Update panel positions */
 			UpdateWindows();
 			/* Render panels etc. */
@@ -1609,6 +1681,10 @@ void *WindowHandlerHSM::top_handler()
 		case WM_EVENT_USB_DISABLE:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_USB_DISABLE");
 			m_usb_enabled = false;
+			return 0;
+		case WM_EVENT_PCM_BUFFER:
+			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PCM_BUFFER");
+			m_pcm_buffer = (short *)(m_Event.Data);
 			return 0;
 
 		/* List events */

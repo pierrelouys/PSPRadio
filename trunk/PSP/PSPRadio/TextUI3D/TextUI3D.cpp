@@ -148,6 +148,8 @@ void CTextUI3D::GetSettings()
 	LocalSettings.MessageTextColor = GetConfigColor("SETTINGS:MESSAGE_TEXT_COLOR");
 	LocalSettings.ErrorWindowColor = GetConfigColor("SETTINGS:ERROR_WINDOW_COLOR");
 	LocalSettings.MessageWindowColor = GetConfigColor("SETTINGS:MESSAGE_WINDOW_COLOR");
+	GetConfigPair("SETTINGS:VISUALIZER_XY", &LocalSettings.VisualizerX, &LocalSettings.VisualizerY);
+	GetConfigPair("SETTINGS:VISUALIZER_WH", &LocalSettings.VisualizerW, &LocalSettings.VisualizerH);
 
 	/* Graphics sizes */
 	GetConfigPair("GRAPHICS:GFX_FONT_LIST_SIZE", &GfxSizes.FontWidth_List, &GfxSizes.FontHeight_List);
@@ -397,6 +399,12 @@ void CTextUI3D::OnUSBDisable()
 {
 	/* Pass to WindowManager */
 	m_wmanager.WM_SendEvent(WM_EVENT_USB_DISABLE, NULL);
+}
+
+void CTextUI3D::NewPCMBuffer(short *PCMBuffer)
+{
+	/* Pass to WindowManager */
+	m_wmanager.WM_SendEvent(WM_EVENT_PCM_BUFFER, PCMBuffer);
 }
 
 void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,

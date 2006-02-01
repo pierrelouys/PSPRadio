@@ -266,6 +266,7 @@ static size_t m_LastBufferPercentage = 200;
 				while (0 == m_EventToPlayTh->Size())
 				{
 					mybuf = pPSPSound->Buffer.PopDeviceBuffer();
+					pPSPSound->SendEvent(MID_THPLAY_PCMBUFFER, mybuf);
 					sceAudioOutputPannedBlocking(ah, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, mybuf);
 
 					if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
@@ -390,7 +391,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 					if (true == bDecoderCreated)
 					{
 						//Log(LOG_INFO, "ThDecode::(Title='%s') Seding event to start decoding",
-						//	pPSPSound->m_CurrentStream->GetTitle());					
+						//	pPSPSound->m_CurrentStream->GetTitle());
 						pPSPSound->SendEvent(MID_THDECODE_DECODING);
 						/** Main decoding loop */
 						/* pPSPSound is the decoding loop. */

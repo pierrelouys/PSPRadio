@@ -379,6 +379,12 @@ int CPSPRadio::ProcessEvents()
 				}
 				break;
 
+			case MID_THPLAY_PCMBUFFER:
+				if (m_UI)
+					m_UI->NewPCMBuffer((short *)event.pData);
+				break;
+
+
 			case MID_NEW_METADATA_AVAILABLE:
 				if (m_UI)
 					m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());

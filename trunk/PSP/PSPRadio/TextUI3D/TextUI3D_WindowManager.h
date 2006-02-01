@@ -53,6 +53,7 @@ using namespace std;
 	WM_EVENT_BITRATE,
 	WM_EVENT_USB_ENABLE,
 	WM_EVENT_USB_DISABLE,
+	WM_EVENT_PCM_BUFFER,
 
 	/* Static text events */
 	WM_EVENT_TEXT_ERROR,

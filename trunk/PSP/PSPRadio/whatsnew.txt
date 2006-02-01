@@ -10,6 +10,9 @@ NEW FEATURES
 (raf) Core: Now MP3 report the current elapsed time (r755)
 (raf) TextUI: Added support to display current (implemented) and total (not implemented) time of the playing stream. (r755)
 (raf) Core: Now total time is also calculated for MP3s (VBR MP3 will probably show wrong data). (r756)
+(sandberg) Core: Added support for visualization effects has been added. (r757)
+(sandberg) 3DUI: Visualization panel added the the 3DUI. (r757)
+(sandberg) 3DUI: Added support for using different skins on the main panels and the message/error panels. (r757)
 BUG FIXES
 (sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)
 (sandberg) Core: [ Bug #6256 ] WiFi logging is always enabled (r754)

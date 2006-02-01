@@ -70,15 +70,24 @@ public:
 
 	enum texture_enum
 	{
-		TEX_CORNER_UL,
-		TEX_CORNER_UR,
-		TEX_CORNER_LL,
-		TEX_CORNER_LR,
-		TEX_FRAME_T,
-		TEX_FRAME_B,
-		TEX_FRAME_L,
-		TEX_FRAME_R,
-		TEX_FILL,
+		TEX_MAIN_CORNER_UL,
+		TEX_MAIN_CORNER_UR,
+		TEX_MAIN_CORNER_LL,
+		TEX_MAIN_CORNER_LR,
+		TEX_MAIN_FRAME_T,
+		TEX_MAIN_FRAME_B,
+		TEX_MAIN_FRAME_L,
+		TEX_MAIN_FRAME_R,
+		TEX_MAIN_FILL,
+		TEX_MSG_CORNER_UL,
+		TEX_MSG_CORNER_UR,
+		TEX_MSG_CORNER_LL,
+		TEX_MSG_CORNER_LR,
+		TEX_MSG_FRAME_T,
+		TEX_MSG_FRAME_B,
+		TEX_MSG_FRAME_L,
+		TEX_MSG_FRAME_R,
+		TEX_MSG_FILL,
 		TEX_FONT_LIST,
 		TEX_FONT_SCROLLER,
 		TEX_FONT_STATIC,
@@ -136,6 +145,12 @@ private:
 	{
 		float u, v;
 		unsigned int color;
+		float x,y,z;
+	};
+
+
+	typedef struct LineVertex
+	{
 		float x,y,z;
 	};
 
@@ -232,6 +247,7 @@ private:
 	void RenderBackground();
 	void RenderError(message_events event);
 	void RenderMessage(message_events event);
+	void RenderPCMBuffer();
 	void GetFontInfo(font_names font, int *width, int *height, int *tex);
 
 	void GUInit();
@@ -276,6 +292,7 @@ private:
     tEvent	m_Event;	/* Current event */
 	u8		*m_backimage;
 	void*	m_framebuffer;
+	short	*m_pcm_buffer;
 
 	CTextUI3D_Panel					m_panels[PANEL_COUNT];
 	CTextUI3D_Panel::PanelState		m_panel_state[PANEL_COUNT];
