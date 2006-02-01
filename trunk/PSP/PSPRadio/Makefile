@@ -26,15 +26,21 @@ ASFLAGS = $(CFLAGS)
 LIBDIR = 
 LDFLAGS = 
 
-LIBS =   -lsupc++ -lstdc++ \
+LIBS =  -lsupc++ -lstdc++ \
 		-lpspnet -lpspnet_apctl -lpspnet_inet -lpspnet_resolver \
 		-lPSPApp \
-		-lvorbisidec -lmad \
+		-lvorbisfile -lvorbis -logg \
+		-lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
 		-lpsppower -lpng -lz -lm -lTools \
-		
+
+#Note: For Tremor use:
+#-lvorbisidec \		
+#For regular vorbis:
+#-lvorbisfile -lvorbis -logg \
+
 
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio

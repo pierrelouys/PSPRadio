@@ -150,6 +150,8 @@ void COGGStreamReader::ProcessInfo()
 	m_InputStream->SetNumberOfChannels(vi->channels);
 	#ifdef USE_TREMOR
 		m_InputStream->SetTotalTime(ov_time_total(&m_vf, -1) / 1000);
+	#else
+		m_InputStream->SetTotalTime((long)(ov_time_total(&m_vf, -1)));
 	#endif
 }
 
@@ -195,7 +197,15 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	while ( (BytesRead < SizeInBytes) && (false == m_eof) )
 	{
 		m_lock->Lock(); /** Vorbis is not thread safe */
-		lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &current_section);
+		#ifdef USE_TREMOR
+			lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, &current_section);
+		#else
+			lRet = ov_read(&m_vf, (char *)(pBuffer+BytesRead), SizeInBytes-BytesRead, 
+							0, /** little endian */
+							2, /** 16-bit samples */
+							1, /** signed */
+							&current_section);
+		#endif
 	
 		if ((current_section != m_last_section) && (lRet != 0))
 		{
@@ -233,12 +243,14 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 			default:
 				#ifdef USE_TREMOR
 					long Time = ov_time_tell(&m_vf) / 1000;
+				#else
+					long Time = (long)(ov_time_tell(&m_vf));
+				#endif
 					if ((OV_EINVAL != Time) && (Time != m_InputStream->GetCurrentTime()))
 					{
 						m_InputStream->SetCurrentTime(Time);
 						pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
 					}
-				#endif
 
 				BytesRead += lRet;
 				break;
