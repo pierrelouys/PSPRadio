@@ -344,8 +344,15 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 
 int CTextUI3D::OnStreamTimeUpdate(MetaData *pData)
 {
-	sprintf(m_playtime, "%02d:%02d/%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
-												(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
+	if (pData->lTotalTime != 0)
+	{
+		sprintf(m_playtime, "%02d:%02d/%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
+													(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
+	}
+	else
+	{
+		sprintf(m_playtime, "%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60));
+	}
 	m_wmanager.WM_SendEvent(WM_EVENT_PLAYTIME, (void *) m_playtime);
 	return 0;
 }
