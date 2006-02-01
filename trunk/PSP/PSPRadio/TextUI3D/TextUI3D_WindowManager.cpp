@@ -80,7 +80,7 @@ void CTextUI3D_WindowManager::AddListText(int x, int y, unsigned int color, char
 	item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
 	item->x 	= x;
 	item->y 	= y;
-	item->color 	= color;
+	item->color = color;
 	strcpy(item->strText, text);
 	strupr(item->strText);
 	item->ID = 0;

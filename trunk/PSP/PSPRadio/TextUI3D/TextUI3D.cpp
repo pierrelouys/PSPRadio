@@ -122,6 +122,7 @@ void CTextUI3D::GetSettings()
 	GetConfigPair("SETTINGS:VOLUME_ICON_XY", &LocalSettings.VolumeIconX, &LocalSettings.VolumeIconY);
 	GetConfigPair("SETTINGS:CLOCK_XY", &LocalSettings.ClockX, &LocalSettings.ClockY);
 	LocalSettings.ClockFormat = m_Settings->GetInteger("SETTINGS:CLOCK_FORMAT", 24);
+	GetConfigPair("SETTINGS:PLAYTIME_XY", &LocalSettings.PlayTimeX, &LocalSettings.PlayTimeY);
 	GetConfigPair("SETTINGS:PROGRESS_BAR_XY", &LocalSettings.ProgressBarX, &LocalSettings.ProgressBarY);
 	GetConfigPair("SETTINGS:OPTIONS_XY", &LocalSettings.OptionsX, &LocalSettings.OptionsY);
 	LocalSettings.OptionsItemX = m_Settings->GetInteger("SETTINGS:OPTIONS_ITEM_X", 256);
@@ -338,6 +339,14 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 	m_bitrate = (pData->iBitRate/1000);
 	m_wmanager.WM_SendEvent(WM_EVENT_BITRATE, (void *) m_bitrate);
 
+	return 0;
+}
+
+int CTextUI3D::OnStreamTimeUpdate(MetaData *pData)
+{
+	sprintf(m_playtime, "%02d:%02d/%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
+												(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
+	m_wmanager.WM_SendEvent(WM_EVENT_PLAYTIME, (void *) m_playtime);
 	return 0;
 }
 

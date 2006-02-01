@@ -1644,6 +1644,7 @@ void *WindowHandlerHSM::top_handler()
 			strcpy(m_songtitle.strText, "NO TRACK PLAYING...");
 			UpdateTextItem(&m_StaticTextItems, WM_EVENT_BUFFER, LocalSettings.BufferX, LocalSettings.BufferY, " ", 0xFFFFFFFF);
 			UpdateTextItem(&m_StaticTextItems, WM_EVENT_BITRATE, LocalSettings.BitrateX, LocalSettings.BitrateY, " ", 0xFFFFFFFF);
+			UpdateTextItem(&m_StaticTextItems, WM_EVENT_PLAYTIME, LocalSettings.PlayTimeX, LocalSettings.PlayTimeY, " ", 0xFFFFFFFF);
 			m_playstate_icon = PLAYSTATE_ICON_STOP;
 			return 0;
 		case WM_EVENT_PLAYER_PAUSE:
@@ -1659,6 +1660,10 @@ void *WindowHandlerHSM::top_handler()
 		case WM_EVENT_TIME:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TIME");
 			SetClock((pspTime *)(m_Event.Data));
+			return 0;
+		case WM_EVENT_PLAYTIME:
+			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYTIME");
+			UpdateTextItem(&m_StaticTextItems, WM_EVENT_PLAYTIME, LocalSettings.PlayTimeX, LocalSettings.PlayTimeY, (char *)(m_Event.Data), 0xFFFFFFFF);
 			return 0;
 		case WM_EVENT_BATTERY:
 			{

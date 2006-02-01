@@ -36,6 +36,7 @@
 		int VolumeIconX, VolumeIconY;
 		int	ClockX, ClockY;
 		int ClockFormat;
+		int PlayTimeX, PlayTimeY;
 		int OptionsX, OptionsY;
 		int OptionsItemX;
 		int	OptionsLinespace;
@@ -126,6 +127,7 @@ public:
 	int OnStreamOpeningSuccess();
 	int OnVBlank();
 	int OnNewSongData(MetaData *pData);
+	int OnStreamTimeUpdate(MetaData *pData);
 	void DisplayContainers(CMetaDataContainer *Container);
 	void DisplayElements(CMetaDataContainer *Container);
 	void OnCurrentContainerSideChange(CMetaDataContainer *Container);
@@ -157,6 +159,7 @@ private:
 	char								m_ip[64];
 	char								m_error[256];
 	char								m_message[256];
+	char								m_playtime[64];
 	int									m_buffer;
 	int									m_bitrate;
 	int									m_battery;

@@ -48,6 +48,7 @@ using namespace std;
 	/* Misc events. */
 	WM_EVENT_VBLANK,
 	WM_EVENT_TIME,
+	WM_EVENT_PLAYTIME,
 	WM_EVENT_BATTERY,
 	WM_EVENT_BUFFER,
 	WM_EVENT_BITRATE,
