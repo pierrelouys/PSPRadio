@@ -41,6 +41,7 @@ void CPSPSoundDecoder_MAD::Initialize()
 	mad_synth_init(&m_Synth);
 	mad_timer_reset(&m_Timer);
 	
+	m_LastTimeSeconds = 0;
 	m_GuardPtr = NULL;
 	m_FrameCount=0;	
 	m_pInputBuffer = (unsigned char*)malloc(INPUT_BUFFER_SIZE+MAD_BUFFER_GUARD);
@@ -77,6 +78,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 {
 	int	i = 0;
 	bool bRet = false;
+	long seconds = 0;
 	
 	PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
 	
@@ -185,7 +187,16 @@ bool CPSPSoundDecoder_MAD::Decode()
 	 */
 	m_FrameCount++;
 	mad_timer_add(&m_Timer,m_Frame.header.duration);
-
+	
+	seconds = mad_timer_count(m_Timer, MAD_UNITS_SECONDS);
+	if ( (seconds - m_LastTimeSeconds) > 0 ) /** Only update if at least one second has passed */
+	{
+		m_InputStream->SetCurrentTime(seconds);
+		m_LastTimeSeconds = seconds;
+		pPSPSound->SendEvent(MID_TIME_UPDATED);
+	}
+	
+	
 	//if(DoFilter)
 	//	ApplyFilter(&m_Frame);
 

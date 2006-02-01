@@ -383,6 +383,11 @@ int CPSPRadio::ProcessEvents()
 				if (m_UI)
 					m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
 				break;
+			
+			case MID_TIME_UPDATED:
+				if (m_UI)
+					m_UI->OnTimeUpdate(m_Sound->GetCurrentStream()->GetMetaData());
+				break;
 
 			case MID_TCP_CONNECTING_PROGRESS:
 				if (m_UI)

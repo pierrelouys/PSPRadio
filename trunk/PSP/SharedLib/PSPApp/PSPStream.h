@@ -24,6 +24,8 @@
 		char strURL[MAXPATHLEN];
 		char strArtist[300];
 		char strGenre[128];
+		long lCurrentTime;
+		long lTotalTime;
 		int iLength;
 		int iSampleRate;
 		int iBitRate;
@@ -31,6 +33,12 @@
 		int iMPEGLayer;
 		content_types ContentType;
 		int iItemIndex; /** JPF added to be used as a unique id for each item in list */
+		
+		MetaData(){ strURI[0]=0, strTitle[0]=0, strURL[0]=0, strArtist[0]=0, strGenre[0]=0;
+					lCurrentTime = lTotalTime = 0;
+					iLength = iSampleRate = iBitRate = iNumberOfChannels = iMPEGLayer = 0;
+					ContentType = CONTENT_NOT_DEFINED;
+					iItemIndex = 0;}
 	};
 			
 	class CPSPStream
@@ -87,6 +95,10 @@
 		int  GetMPEGLayer(){ return m_MetaData->iMPEGLayer; }
 		void SetContentType(MetaData::content_types Type) { m_MetaData->ContentType = Type; }
 		MetaData::content_types GetContentType() { return m_MetaData->ContentType; }
+		void SetCurrentTime(long lSeconds) { m_MetaData->lCurrentTime = lSeconds; }
+		long GetCurrentTime() { return m_MetaData->lCurrentTime; }
+		void SetTotalTime(long lSeconds) { m_MetaData->lTotalTime = lSeconds; }
+		long GetTotalTime() { return  m_MetaData->lTotalTime; }
 		
 		/** Move to protected when integrated with sound stream reader */
 		void SetState(stream_states State) { m_State = State; }

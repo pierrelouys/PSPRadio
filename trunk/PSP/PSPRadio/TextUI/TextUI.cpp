@@ -244,6 +244,10 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		m_ScreenConfig.EntriesListTitleSelectedColor =
 			GetConfigColor("SCREEN_SETTINGS:ENTRIESLIST_TITLE_SELECTED_COLOR");
 			
+		GetConfigPair("SCREEN_SETTINGS:TIME_XY", 
+			&m_ScreenConfig.TimeX, &m_ScreenConfig.TimeY);
+		m_ScreenConfig.TimeColor = GetConfigColor("SCREEN_SETTINGS:TIME_COLOR");
+			
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));
 		m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
@@ -749,6 +753,22 @@ int CTextUI::OnNewSongData(MetaData *pData)
 			uiPrintf(x , y,	cTitle,	"Artist: ");
 			uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strArtist);
 		}
+	}
+	return 0;
+}
+
+int CTextUI::OnTimeUpdate(MetaData *pData)
+{
+	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
+	{
+
+		int y = m_ScreenConfig.TimeY;
+		int x = m_ScreenConfig.TimeX;
+		int c = m_ScreenConfig.TimeColor;
+		
+		uiPrintf(x, y, c, "%02d:%02d / %02d:%02d",
+					pData->lCurrentTime / 60, pData->lCurrentTime % 60,
+					pData->lTotalTime / 60, pData->lTotalTime % 60);
 	}
 	return 0;
 }

@@ -131,7 +131,7 @@ CPSPApp::~CPSPApp()
 /** This is a thread */
 int CPSPApp::Run()
 {
-	short oldAnalogue = 0;
+//	short oldAnalogue = 0;
 	u32 hprmlatch = 0;
 	CPSPKeyHandler::KeyEvent event;
 	int newBatteryStatus;

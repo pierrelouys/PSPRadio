@@ -38,6 +38,7 @@ struct screenconfig
 	int NetworkEnablingColor,NetworkDisablingColor, NetworkReadyColor;
 	int ClockX, ClockY, ClockColor, ClockFormat;
 	int BatteryX, BatteryY, BatteryColor;
+	int TimeX, TimeY, TimeColor;
 	
 };
 
@@ -69,6 +70,7 @@ public:
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
 	int OnNewSongData(MetaData *pData);
+	int OnTimeUpdate(MetaData *pData);
 	
 	/** Screen Handling */
 	void Initialize_Screen(IScreen *Screen);

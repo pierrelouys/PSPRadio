@@ -44,6 +44,7 @@
 		unsigned char		*m_pInputBuffer;
 		unsigned char		*m_GuardPtr;
 		unsigned long		m_FrameCount;
+		long 				m_LastTimeSeconds;
 
 		
 		signed int scale(mad_fixed_t &sample);
