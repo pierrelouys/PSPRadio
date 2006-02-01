@@ -70,7 +70,7 @@ public:
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
 	int OnNewSongData(MetaData *pData);
-	int OnTimeUpdate(MetaData *pData);
+	int OnStreamTimeUpdate(MetaData *pData);
 	
 	/** Screen Handling */
 	void Initialize_Screen(IScreen *Screen);

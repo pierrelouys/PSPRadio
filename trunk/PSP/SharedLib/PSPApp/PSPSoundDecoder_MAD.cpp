@@ -17,6 +17,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <list>
+#include <fcntl.h>
 #include <PSPApp.h>
 #include <stdio.h>
 #include <unistd.h> 
@@ -27,6 +28,9 @@
 #include "bstdfile.h"
 #include <malloc.h>
 #include "PSPSoundDecoder_MAD.h"
+
+
+
 using namespace std;
 
 void CPSPSoundDecoder_MAD::Initialize()
@@ -193,7 +197,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 	{
 		m_InputStream->SetCurrentTime(seconds);
 		m_LastTimeSeconds = seconds;
-		pPSPSound->SendEvent(MID_TIME_UPDATED);
+		pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
 	}
 	
 	
@@ -342,9 +346,86 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 	m_InputStream->SetSampleRate(Header->samplerate);
 	m_InputStream->SetNumberOfChannels(Header->mode);
 	m_InputStream->SetMPEGLayer(Header->layer);
+	
+	/** Get Total Time If a Regular File with length */
+	if (CPSPStream::STREAM_TYPE_FILE == m_InputStream->GetType())
+	{
+		long len = GetStreamLength();
+		double time = (len * 8.0) / (Header->bitrate); /* time in seconds */
+		double timefrac = (double)time - ((long)(time));
+		///long nsamples = 32 * MAD_NSBSAMPLES(Header); /* samples per frame */
+		/* Assume samplerate is a constant */
+		///long num_frames = (long) (time * Header->samplerate / nsamples);
+		mad_timer_t duration;
+		mad_timer_set(&duration, (long)time, (long)(timefrac*100), 100);
+		long seconds = mad_timer_count(duration, MAD_UNITS_SECONDS);
+		m_InputStream->SetTotalTime(seconds);
+		pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
+	}
+	
 	pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 	
 	return(0);
+}
+
+long CPSPSoundDecoder_MAD::GetStreamLength()
+{
+    int f;
+    struct stat filestat;
+ //   void *fdm;
+    char buffer[3];
+	long lLen = 0;
+
+    f = open(m_InputStream->GetURI(), O_RDONLY);
+
+    if (f < 0)
+    {
+        Log(LOG_ERROR, "Error calculating length of '%s'", m_InputStream->GetURI() );
+        return 0;
+    }
+
+    if (fstat(f, &filestat) < 0)
+    {
+        Log(LOG_ERROR, "Error calculating length of '%s'", m_InputStream->GetURI() );
+        close(f);
+        return 0;
+    }
+
+    if (!S_ISREG(filestat.st_mode))
+    {
+        Log(LOG_ERROR, "%s: Not a regular file\n", m_InputStream->GetURI());
+        close(f);
+        return 0;
+    }
+
+    /* TAG checking is adapted from XMMS */
+    lLen = filestat.st_size;
+
+    if (lseek(f, -128, SEEK_END) < 0)
+    {
+        /* File must be very short or empty. Forget it. */
+        close(f);
+        return 0;
+    }    
+
+    if (read(f, buffer, 3) != 3)
+    {
+        close(f);
+        return 0;
+    }
+    
+    if (!strncmp(buffer, "TAG", 3))
+    {
+        lLen -= 128; /* Correct for id3 tags */
+    }
+    
+    if (close(f) < 0)
+    {
+        Log(LOG_ERROR, "Error calculating length of '%s'", m_InputStream->GetURI() );
+        return 0;
+    }
+
+    return lLen;
 }
 
 /****************************************************************************
@@ -363,3 +444,80 @@ signed short CPSPSoundDecoder_MAD::MadFixedToSshort(mad_fixed_t Fixed)
 	Fixed=Fixed>>(MAD_F_FRACBITS-15);
 	return((signed short)Fixed);
 } 
+
+#if 0 
+/** Routines to calculate length of the file in seconds. 
+ ** These routines are adaptated from functions used in mpg321 (A fully free clone of mpg123)
+ */
+/* XING parsing is from the MAD winamp input plugin */
+
+struct xing {
+  int flags;
+  unsigned long frames;
+  unsigned long bytes;
+  unsigned char toc[100];
+  long scale;
+};
+
+enum {
+  XING_FRAMES = 0x0001,
+  XING_BYTES  = 0x0002,
+  XING_TOC    = 0x0004,
+  XING_SCALE  = 0x0008
+};
+
+# define XING_MAGIC     (('X' << 24) | ('i' << 16) | ('n' << 8) | 'g')
+
+static
+int parse_xing(struct xing *xing, struct mad_bitptr ptr, unsigned int bitlen)
+{
+  if (bitlen < 64 || mad_bit_read(&ptr, 32) != XING_MAGIC)
+    goto fail;
+
+  xing->flags = mad_bit_read(&ptr, 32);
+  bitlen -= 64;
+
+  if (xing->flags & XING_FRAMES) {
+    if (bitlen < 32)
+      goto fail;
+
+    xing->frames = mad_bit_read(&ptr, 32);
+    bitlen -= 32;
+  }
+
+  if (xing->flags & XING_BYTES) {
+    if (bitlen < 32)
+      goto fail;
+
+    xing->bytes = mad_bit_read(&ptr, 32);
+    bitlen -= 32;
+  }
+
+  if (xing->flags & XING_TOC) {
+    int i;
+
+    if (bitlen < 800)
+      goto fail;
+
+    for (i = 0; i < 100; ++i)
+      xing->toc[i] = mad_bit_read(&ptr, 8);
+
+    bitlen -= 800;
+  }
+
+  if (xing->flags & XING_SCALE) {
+    if (bitlen < 32)
+      goto fail;
+
+    xing->scale = mad_bit_read(&ptr, 32);
+    bitlen -= 32;
+  }
+
+  return 1;
+
+ fail:
+  xing->flags = 0;
+  return 0;
+}
+
+#endif

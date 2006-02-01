@@ -150,6 +150,10 @@ void printFrames() //Print each frame from a v2 tag
 				{
 					strncpy(gMetaData->strArtist, frames[x].data, 300); gMetaData->strArtist[299] = 0;
 				}
+				else if (strcmp("TLEN", frames[x].fname) == 0)
+				{
+					gMetaData->lTotalTime = atol(frames[x].data) / 1000; /** ms to s */
+				}
 			}
 
 		}
@@ -157,8 +161,8 @@ void printFrames() //Print each frame from a v2 tag
 	
 	if (gMetaData)
 	{
-		Log(LOG_INFO, "ID3v2 MetaData Update: Title='%s' Artist='%s' Genre='%s'",
-			gMetaData->strTitle, gMetaData->strArtist, gMetaData->strGenre);
+		Log(LOG_INFO, "ID3v2 MetaData Update: Title='%s' Artist='%s' Genre='%s' Time=%ds",
+			gMetaData->strTitle, gMetaData->strArtist, gMetaData->strGenre, gMetaData->lTotalTime);
 	}
 }
 

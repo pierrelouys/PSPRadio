@@ -37,7 +37,7 @@
 		virtual int OnStreamOpeningSuccess(){return 0;};
 		virtual int OnVBlank(){return 0;};
 		virtual int OnNewSongData(MetaData *pData){return 0;};
-		virtual int OnTimeUpdate(MetaData *pData){return 0;};
+		virtual int OnStreamTimeUpdate(MetaData *pData){return 0;};
 
 		/** Screen Handling */
 		virtual void Initialize_Screen(IScreen *Screen){};

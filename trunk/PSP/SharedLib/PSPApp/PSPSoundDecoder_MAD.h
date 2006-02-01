@@ -50,6 +50,7 @@
 		signed int scale(mad_fixed_t &sample);
 		int PrintFrameInfo(struct mad_header *Header);
 		signed short MadFixedToSshort(mad_fixed_t Fixed);
+		long GetStreamLength();
 	};
 	
 	#include "PSPSound.h"

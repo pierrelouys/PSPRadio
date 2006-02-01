@@ -757,7 +757,7 @@ int CTextUI::OnNewSongData(MetaData *pData)
 	return 0;
 }
 
-int CTextUI::OnTimeUpdate(MetaData *pData)
+int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 {
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{
