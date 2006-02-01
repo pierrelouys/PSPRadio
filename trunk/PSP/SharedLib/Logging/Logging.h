@@ -46,6 +46,7 @@
 		void SetLevel(loglevel_enum iNewLevel);
 		int  GetLevel(){return m_LogLevel;}
 		void EnableWiFiLogging(char *server, char *port);
+		void DisableWiFiLogging();
 		int Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...);
 
 	private:

@@ -220,7 +220,7 @@ void OptionsScreen::SaveToConfigFile()
 		/** OPTION_ID_PLAYMODE */
 		pConfig->SetInteger("PLAYBACK:MODE",m_ScreenHandler->GetPlayMode());
 		/** OPTION_ID_PLAYMODE */
-		
+
 		pConfig->Save();
 	}
 	else
@@ -580,9 +580,10 @@ int OptionsScreen::Start_Network(int iProfile)
 			if (m_UI)
 				m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 
-			if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0));
+			if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0))
 				{
 				char	*server, *port;
+				Log(LOG_INFO, "Enabling WiFi logging.");
 				server = pConfig->GetString("DEBUGGING:WIFI_LOG_SERVER", "192.168.2.2");
 				port = pConfig->GetString("DEBUGGING:WIFI_LOG_PORT", "8000");
 				pLogging->EnableWiFiLogging(server, port);
@@ -611,9 +612,17 @@ int OptionsScreen::Start_Network(int iProfile)
 
 int OptionsScreen::Stop_Network()
 {
+	CIniParser *pConfig = m_ScreenHandler->GetConfig();
+
 	if (pPSPApp->IsNetworkEnabled())
 	{
 		m_UI->DisplayMessage_DisablingNetwork();
+
+		if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0))
+		{
+			Log(LOG_INFO, "Disabling WiFi logging.");
+			pLogging->DisableWiFiLogging();
+		}
 
 		Log(LOG_INFO, "Disabling network...");
 		pPSPApp->DisableNetwork();

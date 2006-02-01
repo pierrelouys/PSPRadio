@@ -69,6 +69,7 @@ CLogging::~CLogging()
 	if (m_sock != -1)
 	{
 		close(m_sock);
+		m_sock = -1;
 	}
 }
 
@@ -109,22 +110,24 @@ void CLogging::EnableWiFiLogging(char *server, char *port)
 	in_addr addr;
 	int rc = 0;
 
+	Log_(__FILE__, __LINE__, LOG_INFO, "WifiLog:Enabling WiFi logging.");
+
 	if (m_sock != -1)
 	{
-	close(m_sock);
-	m_sock = -1;
+		close(m_sock);
+		m_sock = -1;
 	}
 
 	memset(&addr, 0, sizeof(in_addr));
 
-	Log_(__FILE__, __LINE__, LOG_ERROR, "WifiLog:Resolving server='%s'", server);
+	Log_(__FILE__, __LINE__, LOG_INFO, "WifiLog:Resolving server='%s'", server);
 	rc = pPSPApp->ResolveHostname(server, &addr);
 	if (rc < 0)
 	{
 		Log_(__FILE__, __LINE__, LOG_ERROR, "WifiLog:Could not resolve server!\n",server);
 		return;
 	}
-	Log(LOG_LOWLEVEL, "aton/ntoa succeeded, returned addr='0x%x'", addr);
+	Log_(__FILE__, __LINE__, LOG_INFO, "WifiLog:aton/ntoa succeeded, returned addr='0x%x'", addr);
 
 	if ((m_sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
 	{
@@ -151,16 +154,23 @@ void CLogging::EnableWiFiLogging(char *server, char *port)
 	}
 }
 
+void CLogging::DisableWiFiLogging()
+{
+	Log_(__FILE__, __LINE__, LOG_INFO, "WifiLog:Disabling WiFi logging.");
+	if (m_sock != -1)
+	{
+		close(m_sock);
+		m_sock = -1;
+	}
+}
+
 void CLogging::WifiLog(char *message)
 {
 	int	 length = strlen(message);
 
-	if (m_sock != -1)
+	if (sendto(m_sock, message, length, 0, (struct sockaddr *) &m_sin, sizeof(sockaddr_in)) != length)
 	{
-		if (sendto(m_sock, message, length, 0, (struct sockaddr *) &m_sin, sizeof(sockaddr_in)) != length)
-		{
-			Log_(__FILE__, __LINE__, LOG_ERROR, "WiFiLog:Couldn't send datagram");
-		}
+		Log_(__FILE__, __LINE__, LOG_ERROR, "WiFiLog:Couldn't send datagram");
 	}
 }
 
