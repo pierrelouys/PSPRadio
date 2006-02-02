@@ -16,6 +16,7 @@ NEW FEATURES
 (raf) Core: OGG Files now also report their time (r758)
 (sandberg) 3DUI: Added support for displaying current and total time for local files. (r760)
 (sandberg) 3DUI: Update to r760 to handle the case where the total time isn't known. (r761)
+(sandberg) 3DUI: Cleanup of the graphics (new fonts, panels etc.). (r762)
 BUG FIXES
 (sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)
 (sandberg) Core: [ Bug #6256 ] WiFi logging is always enabled (r754)
