@@ -112,7 +112,8 @@ void PlayListScreen::InputHandler(int iButtonMask)
 {
 	CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
 	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
-	
+	CMetaDataContainerIndexer *SelectionIndexer = m_Lists->GetCurrentSelectionIndexer();
+	//CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
 		
 	if (iButtonMask & PSP_CTRL_LEFT)
 	{
@@ -130,7 +131,8 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				{
 					for (int i = 0; i < 10; i++)
 					{
-						m_Lists->PrevContainer();
+						//m_Lists->PrevContainer();
+						SelectionIndexer->PrevContainer();
 					}
 					m_UI->DisplayContainers(m_Lists);
 				}
@@ -141,7 +143,8 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				{
 					for (int i = 0; i < 10; i++)
 					{
-						m_Lists->PrevElement();
+						//m_Lists->PrevElement();
+						SelectionIndexer->PrevElement();
 					}
 					m_UI->DisplayElements(m_Lists);
 				}
@@ -157,7 +160,8 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				{
 					for (int i = 0; i < 10; i++)
 					{
-						m_Lists->NextContainer();
+						//m_Lists->NextContainer();
+						SelectionIndexer->NextContainer();
 					}
 					m_UI->DisplayContainers(m_Lists);
 				}
@@ -168,7 +172,8 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				{
 					for (int i = 0; i < 10; i++)
 					{
-						m_Lists->NextElement();
+						//m_Lists->NextElement();
+						SelectionIndexer->NextElement();
 					}
 					m_UI->DisplayElements(m_Lists);
 				}
@@ -180,12 +185,14 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		switch(m_Lists->GetCurrentSide())
 		{
 			case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
-				m_Lists->PrevContainer();
+				//m_Lists->PrevContainer();
+				SelectionIndexer->PrevContainer();
 				m_UI->DisplayContainers(m_Lists);
 				break;
 			
 			case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
-				m_Lists->PrevElement();
+				//m_Lists->PrevElement();
+				SelectionIndexer->PrevElement();
 				m_UI->DisplayElements(m_Lists);
 				break;
 		}
@@ -195,12 +202,14 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		switch(m_Lists->GetCurrentSide())
 		{
 			case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
-				m_Lists->NextContainer();
+				//m_Lists->NextContainer();
+				SelectionIndexer->NextContainer();
 				m_UI->DisplayContainers(m_Lists);
 				break;
 			
 			case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
-				m_Lists->NextElement();
+				//m_Lists->NextElement();
+				SelectionIndexer->NextElement();
 				m_UI->DisplayElements(m_Lists);
 				break;
 		}
@@ -212,7 +221,8 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 				if (false == m_Lists->GetContainerList()->empty())
 				{
-					m_Lists->AssociateElementList();
+					//m_Lists->AssociateElementList();
+					SelectionIndexer->AssociateElementList();
 					m_UI->DisplayElements(m_Lists);
 					m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_ELEMENTS);
 					/** Notify the UI of m_Lists->GetCurrentSide() change. */
@@ -227,55 +237,47 @@ void PlayListScreen::InputHandler(int iButtonMask)
 					switch(playingstate)
 					{
 						case CPSPSound::STOP:
+							m_Lists->SetPlayingToSelection();
 						case CPSPSound::PAUSE:
-							m_ScreenHandler->GetSound()->GetCurrentStream()->
-									SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-							Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
-							m_ScreenHandler->GetSound()->Play();
+							PlaySetStream();
 							break;
 						case CPSPSound::PLAY:
 							/** No pausing for URLs, only for Files(local) */
-							//if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
-							//{
-							//	m_ScreenHandler->GetSound()->GetCurrentStream()->
-							//		SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-							//	m_UI->DisplayActiveCommand(CPSPSound::PAUSE);
-							//	m_ScreenHandler->GetSound()->Pause();
-							//}
-							//else
+							/** If currently playing a stream, and the user presses play, then start the 
+							currently selected stream! */
+							/** We do this by stopping the stream, and asking the handler to start playing
+							when the stream stops. */
+							if (CPSPStream::STREAM_STATE_OPEN == m_ScreenHandler->GetSound()->GetCurrentStream()->GetState())
 							{
-								/** If currently playing a stream, and the user presses play, then start the 
-								currently selected stream! */
-								/** We do this by stopping the stream, and asking the handler to start playing
-								when the stream stops. */
-								if (CPSPStream::STREAM_STATE_OPEN == m_ScreenHandler->GetSound()->GetCurrentStream()->GetState())
+								/** If the new selected (not playing) stream is different than the current, only then stop-"restart" */
+								if (0 != strcmp(m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI(), (*(m_Lists->GetCurrentElementIterator()))->strURI))
 								{
-									/** If the new stream is different than the current, only then stop-"restart" */
-									if (0 != strcmp(m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI(), (*(m_Lists->GetCurrentElementIterator()))->strURI))
+									m_Lists->SetPlayingToSelection();
+									Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
+									m_ScreenHandler->GetSound()->Stop();
+									m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::PLAY_REQUEST;
+								}
+								else
+								{
+									//the selected stream == current stream, if a file stream, then pause.
+									if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
 									{
-										Log(LOG_VERYLOW, "Calling Stop() at InputHandler, X or O pressed, and was playing. Also setting  request to play.");
-										m_ScreenHandler->GetSound()->Stop();
-										m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::PLAY_REQUEST;
-									}
-									else
-									{
-										//the selected stream == current stream, if a file stream, then pause.
-										if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
-										{
-											//m_ScreenHandler->GetSound()->GetCurrentStream()->
-											//	SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-											m_ScreenHandler->GetSound()->Pause();
-											OnPlayStateChange(PLAYSTATE_PAUSE);
-										}
+										//m_ScreenHandler->GetSound()->GetCurrentStream()->
+										//	SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+										m_ScreenHandler->GetSound()->Pause();
+										OnPlayStateChange(PLAYSTATE_PAUSE);
 									}
 								}
-								else // this shouldn't happen, but we should handle it anyways.
-								{
-									m_ScreenHandler->GetSound()->GetCurrentStream()->
-										SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
-									Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
-									m_ScreenHandler->GetSound()->Play();
-								}
+							}
+							else // this shouldn't happen, but we should handle it anyways.
+							{
+								PlaySetStream();
+								#if 0
+								m_ScreenHandler->GetSound()->GetCurrentStream()->
+									SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
+								Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
+								m_ScreenHandler->GetSound()->Play();
+								#endif
 							}
 							break;
 					}
@@ -298,6 +300,9 @@ void PlayListScreen::InputHandler(int iButtonMask)
 
 void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 {
+	//CMetaDataContainerIndexer *SelectionIndexer = m_Lists->GetCurrentSelectionIndexer();
+	CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
+	
 	Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
 	//CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
 
@@ -305,7 +310,9 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 	{
 		if (false == m_Lists->GetContainerList()->empty())
 		{
-			m_Lists->PrevGlobalElement();
+			//m_Lists->PrevGlobalElement();
+			PlayIndexer->PrevGlobalElement();
+			PlaySetStream();
 			m_UI->DisplayContainers(m_Lists);
 			m_UI->DisplayElements(m_Lists);
 		}
@@ -314,7 +321,9 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 	{
 		if (false == m_Lists->GetContainerList()->empty())
 		{
-			m_Lists->NextGlobalElement();
+			//m_Lists->NextGlobalElement();
+			PlayIndexer->NextGlobalElement();
+			PlaySetStream();
 			m_UI->DisplayContainers(m_Lists);
 			m_UI->DisplayElements(m_Lists);
 		}
@@ -333,6 +342,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
 	time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
 	IPSPRadio_UI *UI = NULL;
+//	CMetaDataContainerIndexer *SelectionIndexer = m_Lists->GetCurrentSelectionIndexer();
+	CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
 	
 	Log(LOG_VERYLOW, "OnPlayStateChange(%d) called. (this=0x%x)", (int)NewPlayState, this);
 #if 0
@@ -387,6 +398,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				if (CScreenHandler::PLAY_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop)
 				{
 					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with PLAY_REQUEST");
+					PlaySetStream();
+					#if 0
 					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 					
 					/** Populate m_CurrentMetaData */
@@ -397,6 +410,11 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
+					#endif
+					
+					m_UI->DisplayContainers(m_Lists);
+					m_UI->DisplayElements(m_Lists);
+
 				}
 				else if (CScreenHandler::STOP_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop) 
 				{
@@ -431,11 +449,13 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				case PLAYMODE_NORMAL:
 				{
 					//play next strack
-					m_Lists->NextElement();
+					PlayIndexer->NextElement();
 					if (UI)
 						UI->DisplayElements(m_Lists);
 
-					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+					PlaySetStream();
+					#if 0
+					pCurrentStream->SetURI((*(m_Lists->GetPlaytElementIterator()))->strURI);
 					
 					/** Populate m_CurrentMetaData */
 					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
@@ -445,21 +465,23 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
-					
+					#endif
 					break;
 				}
 					
 				case PLAYMODE_GLOBAL_NEXT:
 				{
 					//play next strack
-					m_Lists->NextGlobalElement();
+					PlayIndexer->NextGlobalElement();
 					if (UI)
 					{
 						UI->DisplayContainers(m_Lists);
 						UI->DisplayElements(m_Lists);
 					}
 
-					pCurrentStream->SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
+					PlaySetStream();
+					#if 0
+					pCurrentStream->SetURI((*(m_Lists->GetPlayElementIterator()))->strURI);
 					
 					/** Populate m_CurrentMetaData */
 					///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
@@ -469,18 +491,21 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
-					
+					#endif
 					break;
 				}
 				
 				case PLAYMODE_REPEAT:
 				{
+					PlaySetStream();
+					#if 0
 					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
 					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
 					if (UI)
 						UI->OnNewSongData(pCurrentStream->GetMetaData());
 					
 					m_ScreenHandler->GetSound()->Play();
+					#endif
 					break;
 				}
 			}
@@ -490,4 +515,12 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	m_ScreenHandler->m_RequestOnPlayOrStop = CScreenHandler::NOTHING; /** Reset */
 	
 	OldPlayState = NewPlayState;
+}
+
+void PlayListScreen::PlaySetStream()
+{
+	m_ScreenHandler->GetSound()->GetCurrentStream()->
+			SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
+	Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
+	m_ScreenHandler->GetSound()->Play();
 }

@@ -14,9 +14,11 @@ NEW FEATURES
 (sandberg) 3DUI: Visualization panel added the the 3DUI. (r757)
 (sandberg) 3DUI: Added support for using different skins on the main panels and the message/error panels. (r757)
 (raf) Core: OGG Files now also report their time (r758)
+(raf) Core: Switched from Tremor to regular OGG Vorbis library (slower, but may solve issues with ogg processing) (r759)
 (sandberg) 3DUI: Added support for displaying current and total time for local files. (r760)
 (sandberg) 3DUI: Update to r760 to handle the case where the total time isn't known. (r761)
 (sandberg) 3DUI: Cleanup of the graphics (new fonts, panels etc.). (r762)
+(raf) Core/TextUI: Now the system differientiates between the selected(highlighted) track, and the currently playing track. This is shown using different colors on the TextUI. (r764)
 (sandberg) 3DUI: Background modified to include space for the playtime/total time. (r763)
 BUG FIXES
 (sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)

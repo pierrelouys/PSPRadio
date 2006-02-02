@@ -23,8 +23,7 @@ struct screenconfig
 	int BufferPercentageX, BufferPercentageY, BufferPercentageColor;
 	int MetadataX1, MetadataLength, MetadataRangeY1, MetadataRangeY2, MetadataColor, MetadataTitleColor;
 	int ListsTitleColor;
-	int EntriesListColor;
-	int SelectedEntryColor;
+	int EntriesListColor, SelectedEntryColor, PlayingEntryColor;
 	int ProgramVersionX, ProgramVersionY, ProgramVersionColor;
 	int StreamOpeningX, StreamOpeningY, StreamOpeningColor;
 	int StreamOpeningErrorX, StreamOpeningErrorY, StreamOpeningErrorColor;

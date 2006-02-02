@@ -76,14 +76,19 @@ bool SortMetaDataByTitle(MetaData &a, MetaData &b)
 
 CMetaDataContainer::CMetaDataContainer()
 {
-	m_currentContainerIterator = m_containerListMap.begin();
-	m_currentElementList = NULL;
+	/** Create indexers */
+	m_CurrentSelectionIndexer = new CMetaDataContainerIndexer(&m_containerListMap);
+	m_PlayingTrackIndexer  = new CMetaDataContainerIndexer(&m_containerListMap);
 	//m_currentElementIterator = m_currentElementList.begin();
 }
 
 CMetaDataContainer::~CMetaDataContainer()
 {
 	Clear();
+	
+	/** Delete indexers */
+	delete (m_CurrentSelectionIndexer), m_CurrentSelectionIndexer = NULL;
+	delete (m_PlayingTrackIndexer), m_PlayingTrackIndexer = NULL;
 }
 
 void CMetaDataContainer::Clear()
@@ -91,106 +96,109 @@ void CMetaDataContainer::Clear()
 	if (false == m_containerListMap.empty())
 	{
 		
-		for (m_currentContainerIterator = m_containerListMap.begin(); 
-			m_currentContainerIterator != m_containerListMap.end(); 	
-			m_currentContainerIterator++)
+		for (GetCurrentContainerIteratorRef() = m_containerListMap.begin(); 
+			GetCurrentContainerIteratorRef() != m_containerListMap.end(); 	
+			GetCurrentContainerIteratorRef()++)
 		{
-			m_currentElementList = m_currentContainerIterator->second;
-			while(false == m_currentElementList->empty())
+			//GetElementList() = GetCurrentContainerIteratorRef()->second;
+			m_CurrentSelectionIndexer->AssociateElementList();
+			while(false == GetCurrentElementListRef().empty())
 			{
-				m_currentElementList->pop_front();
+				GetCurrentElementListRef().pop_front();
 			}
 		}
 	}
 
 	m_containerListMap.clear();
-	m_currentContainerIterator = m_containerListMap.begin();
-	m_currentElementList = NULL;
+	GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+	*GetPlayingContainerIterator() = m_containerListMap.begin();
+	m_CurrentSelectionIndexer->SetElementList(NULL);
+	m_PlayingTrackIndexer->SetElementList(NULL);
 }
 	
-void CMetaDataContainer::AssociateElementList()
+void CMetaDataContainerIndexer::AssociateElementList()
 {
-	if (false == m_containerListMap.empty())
+	if (false == m_pContainerListMap->empty())
 	{
-		m_currentElementList = m_currentContainerIterator->second;
-		m_currentElementIterator = m_currentElementList->begin();
+		m_ElementList = m_ContainerIterator->second;
+		m_ElementIterator = m_ElementList->begin();
 	}
 }
 
-void CMetaDataContainer::NextContainer()
+void CMetaDataContainerIndexer::NextContainer()
 {
-	if (false == m_containerListMap.empty())
+	if (false == m_pContainerListMap->empty())
 	{
-		m_currentContainerIterator++;
-		if (m_currentContainerIterator == m_containerListMap.end())
+		m_ContainerIterator++;
+		if (m_ContainerIterator == m_pContainerListMap->end())
 		{
-			m_currentContainerIterator = m_containerListMap.begin();
+			m_ContainerIterator = m_pContainerListMap->begin();
 		}
 		AssociateElementList();
 	}
 }
 
-void CMetaDataContainer::PrevContainer()
+void CMetaDataContainerIndexer::PrevContainer()
 {
-	if (false == m_containerListMap.empty())
+	if (false == m_pContainerListMap->empty())
 	{
-		if (m_currentContainerIterator == m_containerListMap.begin())
+		if (m_ContainerIterator == m_pContainerListMap->begin())
 		{
-			m_currentContainerIterator = m_containerListMap.end();
+			m_ContainerIterator = m_pContainerListMap->end();
 		}
-		m_currentContainerIterator--;
+		m_ContainerIterator--;
 		AssociateElementList();
 	}	
 }
 
-void CMetaDataContainer::NextGlobalElement()
+void CMetaDataContainerIndexer::NextGlobalElement()
 {
-	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
+	if ((NULL != m_ElementList) && (false == m_ElementList->empty()))
 	{
-		m_currentElementIterator++;
-		if (m_currentElementIterator == m_currentElementList->end())
+		m_ElementIterator++;
+		if (m_ElementIterator == m_ElementList->end())
 		{
 			NextContainer();
 		}
 	}
 }
 
-void CMetaDataContainer::PrevGlobalElement()
+void CMetaDataContainerIndexer::PrevGlobalElement()
 {
-	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
+	if ((NULL != m_ElementList) && (false == m_ElementList->empty()))
 	{
-		if (m_currentElementIterator == m_currentElementList->begin())
+		if (m_ElementIterator == m_ElementList->begin())
 		{
 			PrevContainer();
 		}
 		else
 		{
-			m_currentElementIterator--;
+			m_ElementIterator--;
 		}
 	}
 }
 
-void CMetaDataContainer::NextElement()
+void CMetaDataContainerIndexer::NextElement()
 {
-	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
+	if ((NULL != m_ElementList) && (false == m_ElementList->empty()))
 	{
-		m_currentElementIterator++;
-		if (m_currentElementIterator == m_currentElementList->end())
+		m_ElementIterator++;
+		if (m_ElementIterator == m_ElementList->end())
 		{
-			m_currentElementIterator = m_currentElementList->begin();
+			m_ElementIterator = m_ElementList->begin();
 		}
 	}
 }
 
-void CMetaDataContainer::PrevElement()
+void CMetaDataContainerIndexer::PrevElement()
 {
-	if ((NULL != m_currentElementList) && (false == m_currentElementList->empty()))
+	if ((NULL != m_ElementList) && (false == m_ElementList->empty()))
 	{
-		if (m_currentElementIterator == m_currentElementList->begin())
+		if (m_ElementIterator == m_ElementList->begin())
 		{
-			m_currentElementIterator = m_currentElementList->end();
+			m_ElementIterator = m_ElementList->end();
 		}
-		m_currentElementIterator--;
+		m_ElementIterator--;
 	}
 }
 	
@@ -330,24 +338,21 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 		fclose(fd), fd = NULL;
 		
 		/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
-		m_currentContainerIterator = m_containerListMap.begin();
-		m_currentContainerIterator++; /** Skip 600 listing */
-		for (; m_currentContainerIterator != m_containerListMap.end(); m_currentContainerIterator++)
+		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+		GetCurrentContainerIteratorRef()++; /** Skip 600 listing */
+		for (; GetCurrentContainerIteratorRef() != m_containerListMap.end(); GetCurrentContainerIteratorRef()++)
 		{
-			m_currentElementList = m_currentContainerIterator->second;
-			if (m_currentElementList)
+			//GetCurrentElementListRef() = GetCurrentContainerIteratorRef()->second;
+			m_CurrentSelectionIndexer->AssociateElementList();
+			if (GetElementList())
 			{
-				m_currentElementList->sort(SortMetaDataByTitle);
+				GetCurrentElementListRef().sort(SortMetaDataByTitle);
 			}
 		}
 		
-		m_currentContainerIterator = m_containerListMap.begin();
-		m_currentElementList = m_currentContainerIterator->second;
-		if (m_currentElementList)	
-		{
-			m_currentElementIterator = m_currentElementList->begin();
-		}
-
+		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+		//GetCurrentElementListRef() = GetCurrentContainerIteratorRef()->second;
+		m_CurrentSelectionIndexer->AssociateElementList();
 	}
 	else
 	{
@@ -532,18 +537,18 @@ void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 	
 	if (foundGenre == m_containerListMap.end()) /** Didn't find genre, create it */
 	{
-		m_currentElementList = new list<MetaData>;
+		m_CurrentSelectionIndexer->SetElementList(new list<MetaData>);
 		/** Add new genre to the container map */
-		m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strGenre, m_currentElementList) );
+		m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strGenre, GetElementList()) );
 	}
 	else
 	{
-		m_currentElementList = foundGenre->second;
+		m_CurrentSelectionIndexer->SetElementList(foundGenre->second);
 	}
 	
 	/** Search for the station in the metadata (by Title) in this genre list */
 	list<MetaData>::iterator foundStation;
-	for(foundStation = m_currentElementList->begin(); (foundStation != m_currentElementList->end()); foundStation++) 
+	for(foundStation = GetCurrentElementListRef().begin(); (foundStation != GetCurrentElementListRef().end()); foundStation++) 
 	{
  		if (stricmp((*foundStation).strTitle, metadata->strTitle) == 0)
 		{
@@ -552,11 +557,11 @@ void CMetaDataContainer::AddToGenre(MetaData *metadata, char *strGenre)
 	};
 	
 	
-	if (foundStation == m_currentElementList->end()) /** Didn't find station under this genre, add */
+	if (foundStation == GetCurrentElementListRef().end()) /** Didn't find station under this genre, add */
 	{
 		/** Insert stream information */
-		metadata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
-		m_currentElementList->push_back(*metadata);
+		metadata->iItemIndex = GetCurrentElementListRef().size(); /** jpf added unique id for list item */
+		GetCurrentElementListRef().push_back(*metadata);
 	}
 }
 
@@ -594,13 +599,13 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 				
 				if (found == m_containerListMap.end()) /** Didn't find it */
 				{
-					m_currentElementList = new list<MetaData>;
+					m_CurrentSelectionIndexer->SetElementList(new list<MetaData>);
 					/** Add new genre to the container map */
-					m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strFilename, m_currentElementList) );
+					m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strFilename, GetElementList()) );
 				}
 				else
 				{
-					m_currentElementList = found->second;
+					m_CurrentSelectionIndexer->SetElementList(found->second);
 				}
 
 				/** Populate Listbox */
@@ -613,12 +618,8 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 		/** If list is not empty: */
 		if (false == m_containerListMap.empty())
 		{
-			m_currentContainerIterator = m_containerListMap.begin();
-			m_currentElementList = m_currentContainerIterator->second;
-			if (m_currentElementList)	
-			{
-				m_currentElementIterator = m_currentElementList->begin();
-			}
+			GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+			m_CurrentSelectionIndexer->AssociateElementList();
 		}
 	}
 	else
@@ -655,22 +656,18 @@ void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 				//mydata->iItemIndex = m_dirlist.size(); /** jpf added unique id for list item */
 				memset(songdata, 0, sizeof(MetaData));
 				memcpy(songdata->strURI,  strFilename,  256);
-				songdata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
-				m_currentElementList->push_back(*songdata);
+				songdata->iItemIndex = GetCurrentElementListRef().size(); /** jpf added unique id for list item */
+				GetCurrentElementListRef().push_back(*songdata);
 
 			}
 		}
 		sceIoDclose(dfd);
 		
 		/** Sort Element List */
-		m_currentElementList->sort(SortMetaDataByURI);
+		GetCurrentElementListRef().sort(SortMetaDataByURI);
 		
-		m_currentContainerIterator = m_containerListMap.begin();
-		m_currentElementList = m_currentContainerIterator->second;
-		if (m_currentElementList)	
-		{
-			m_currentElementIterator = m_currentElementList->begin();
-		}
+		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+		m_CurrentSelectionIndexer->AssociateElementList();
 		delete(songdata); songdata = NULL;
 	}
 	else
@@ -706,13 +703,13 @@ void CMetaDataContainer::LoadPlaylistsFromDirectory(char *strDirName)
 				
 				if (found == m_containerListMap.end()) /** Didn't find it */
 				{
-					m_currentElementList = new list<MetaData>;
+					m_CurrentSelectionIndexer->SetElementList(new list<MetaData>);
 					/** Add new genre to the container map */
-					m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strFilename, m_currentElementList) );
+					m_containerListMap.insert( map<string, list<MetaData>* >::value_type(strFilename, GetElementList()) );
 				}
 				else
 				{
-					m_currentElementList = found->second;
+					m_CurrentSelectionIndexer->SetElementList(found->second);
 				}
 				//songdata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
 
@@ -722,12 +719,8 @@ void CMetaDataContainer::LoadPlaylistsFromDirectory(char *strDirName)
 			}
 		}
 		sceIoDclose(dfd);
-		m_currentContainerIterator = m_containerListMap.begin();
-		m_currentElementList = m_currentContainerIterator->second;
-		if (m_currentElementList)	
-		{
-			m_currentElementIterator = m_currentElementList->begin();
-		}
+		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+		m_CurrentSelectionIndexer->AssociateElementList();
 	}
 	else
 	{
@@ -804,8 +797,8 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 				case 1:
 					memset(songdata, 0, sizeof(MetaData));
 					memcpy(songdata->strURI, strLine, 256);
-					songdata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */					
-					m_currentElementList->push_back(*songdata);
+					songdata->iItemIndex = GetElementList()->size(); /** jpf added unique id for list item */					
+					GetElementList()->push_back(*songdata);
 					Log(LOG_LOWLEVEL, "Adding '%s' to the list.", strLine);
 					break;
 				case 2:
@@ -896,8 +889,8 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 									memcpy(songdata->strURI,  strV2_File,  256);
 									memcpy(songdata->strTitle, strV2_Title, 256);
 									songdata->iLength = iV2_Length;
-									songdata->iItemIndex = m_currentElementList->size(); /** jpf added unique id for list item */
-									m_currentElementList->push_back(*songdata);
+									songdata->iItemIndex = GetElementList()->size(); /** jpf added unique id for list item */
+									GetElementList()->push_back(*songdata);
 									//Log(LOG_INFO, "Added V2 Entry: File='%s' Title='%s' Length='%s' to the list.", 
 									//	strV2_File, strV2_Title, iV2_Length);
 									iV2_numberofentries--;
@@ -931,10 +924,10 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 		}
 		fclose(fd), fd = NULL;
 		
-		m_currentElementIterator = m_currentElementList->begin();
+		GetCurrentElementIteratorRef() = GetElementList()->begin();
 		
 		/** Sort Element List */
-		m_currentElementList->sort(SortMetaDataByURI);
+		GetElementList()->sort(SortMetaDataByURI);
 	}
 	else
 	{

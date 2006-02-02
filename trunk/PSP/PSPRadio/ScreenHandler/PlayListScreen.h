@@ -22,6 +22,7 @@
 
 		protected:
 			CMetaDataContainer *m_Lists;
+			void PlaySetStream();
 	};
 
 #endif

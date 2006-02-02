@@ -25,6 +25,42 @@
 	#include <map>
 	
 	using namespace std;
+	
+	class CMetaDataContainerIndexer
+	{
+		public:
+			CMetaDataContainerIndexer(map< string, list<MetaData>* > *ContainerListMap)
+				{   m_pContainerListMap = ContainerListMap; 
+					m_ContainerIterator = m_pContainerListMap->begin();
+					m_ElementList = NULL;  
+					AssociateElementList(); }
+		
+			/** Navigation */
+			void NextContainer();
+			void PrevContainer();
+			void AssociateElementList();
+			/** Local elements */
+			void NextElement();
+			void PrevElement();
+			/** Global */
+			void NextGlobalElement();
+			void PrevGlobalElement();
+			
+			map< string, list<MetaData>* >::iterator *GetContainerIterator() 
+					{ return &m_ContainerIterator;}
+			list<MetaData>::iterator *GetElementIterator() 
+					{ return &m_ElementIterator; }
+			list<MetaData> *GetElementList() { return m_ElementList; }
+			void SetElementList(list<MetaData> *List) { m_ElementList = List; }
+					
+			
+		public:
+			map< string, list<MetaData>* > *m_pContainerListMap;
+			
+			map< string, list<MetaData>* >::iterator m_ContainerIterator;
+			list<MetaData> *m_ElementList;
+			list<MetaData>::iterator m_ElementIterator;
+	};
 
 	class CMetaDataContainer
 	{
@@ -39,34 +75,54 @@
 			~CMetaDataContainer();
 		
 			void Clear();
-			void NextContainer();
-			void PrevContainer();
-			void AssociateElementList();
-			/** Local elements */
-			void NextElement();
-			void PrevElement();
-			/** Globally */
-			void NextGlobalElement();
-			void PrevGlobalElement();
-
+			
+			/** Population */
 			void LoadDirectory(char *strPath);
 			void LoadPlaylistsFromDirectory(char *strDirectory);
 			void LoadSHOUTcastXML(char *strFileName);
+			
+
 			Side GetCurrentSide() { return m_CurrentSide; }
 			void SetCurrentSide(Side side) { m_CurrentSide = side; }
 	
 			/** Accessors */
 			map< string, list<MetaData>* > *GetContainerList() { return &m_containerListMap; }
-			map< string, list<MetaData>* >::iterator *GetCurrentContainerIterator() { return &m_currentContainerIterator;}
 	
-			list<MetaData> *GetElementList() { return m_currentElementList; }
-			list<MetaData>::iterator *GetCurrentElementIterator() { return &m_currentElementIterator; }
-	
+			/** Selected track accesssors */
+			CMetaDataContainerIndexer *GetCurrentSelectionIndexer() { return m_CurrentSelectionIndexer; }
+			list<MetaData> *GetElementList() { return m_CurrentSelectionIndexer->GetElementList(); }
+			list<MetaData> &GetCurrentElementListRef() { return *m_CurrentSelectionIndexer->GetElementList(); }
+			map< string, list<MetaData>* >::iterator *GetCurrentContainerIterator() 
+					{ return m_CurrentSelectionIndexer->GetContainerIterator();}
+			list<MetaData>::iterator *GetCurrentElementIterator() 
+					{ return m_CurrentSelectionIndexer->GetElementIterator(); }
+					
+			map< string, list<MetaData>* >::iterator &GetCurrentContainerIteratorRef() 
+					{ return *m_CurrentSelectionIndexer->GetContainerIterator();}
+			list<MetaData>::iterator &GetCurrentElementIteratorRef() 
+					{ return *m_CurrentSelectionIndexer->GetElementIterator(); }
+			
+					
+			/** Playing track accessors */
+			CMetaDataContainerIndexer *GetPlayingTrackIndexer() { return m_PlayingTrackIndexer; }
+			map< string, list<MetaData>* >::iterator *GetPlayingContainerIterator() 
+					{ return m_PlayingTrackIndexer->GetContainerIterator();}
+			list<MetaData>::iterator *GetPlayingElementIterator() 
+					{ return m_PlayingTrackIndexer->GetElementIterator(); }
+					
+					
+			void SetPlayingToSelection()
+			{
+				m_PlayingTrackIndexer->m_pContainerListMap 	= m_CurrentSelectionIndexer->m_pContainerListMap;
+				m_PlayingTrackIndexer->m_ContainerIterator	= m_CurrentSelectionIndexer->m_ContainerIterator;
+				m_PlayingTrackIndexer->m_ElementList		= m_CurrentSelectionIndexer->m_ElementList;
+				m_PlayingTrackIndexer->m_ElementIterator 	= m_CurrentSelectionIndexer->m_ElementIterator;
+			}
+		
 		private:
+			CMetaDataContainerIndexer   *m_CurrentSelectionIndexer;
+			CMetaDataContainerIndexer   *m_PlayingTrackIndexer;
 			map< string, list<MetaData>* > m_containerListMap;
-			map< string, list<MetaData>* >::iterator m_currentContainerIterator;
-			list<MetaData> *m_currentElementList;
-			list<MetaData>::iterator m_currentElementIterator;
 			Side m_CurrentSide;
 
 			void ProcessGenre(MetaData *metadata);
@@ -75,4 +131,6 @@
 			void LoadPlayListURIIntoCurrentElementList(char *strFileName);
 			void LoadFilesIntoCurrentElementList(char *dirname);
 	};
+	
+
 #endif

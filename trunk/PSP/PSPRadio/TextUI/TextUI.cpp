@@ -188,6 +188,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		m_ScreenConfig.ListsTitleColor = GetConfigColor("SCREEN_SETTINGS:LISTS_TITLE_COLOR");
 		m_ScreenConfig.EntriesListColor = GetConfigColor("SCREEN_SETTINGS:ENTRIESLIST_COLOR");
 		m_ScreenConfig.SelectedEntryColor = GetConfigColor("SCREEN_SETTINGS:SELECTED_ENTRY_COLOR");
+		m_ScreenConfig.PlayingEntryColor = GetConfigColor("SCREEN_SETTINGS:PLAYING_ENTRY_COLOR");
 		GetConfigPair("SCREEN_SETTINGS:PROGRAM_VERSION_XY", 
 								&m_ScreenConfig.ProgramVersionX, &m_ScreenConfig.ProgramVersionY);
 		m_ScreenConfig.ProgramVersionColor = GetConfigColor("SCREEN_SETTINGS:PROGRAM_VERSION_COLOR");
@@ -862,14 +863,16 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
 	int iNextRow;
-	int iColorNormal,iColorTitle,iColorSelected, iColor;
+	int iColorNormal,iColorTitle,iColorSelected, iColor, iColorPlaying;
 	char *strText = NULL;
 	
 	list<MetaData>::iterator ListIterator;
-	list<MetaData>::iterator *CurrentElement = Container->GetCurrentElementIterator();
+	list<MetaData>::iterator *CurrentHighlightedElement = Container->GetCurrentElementIterator();
+	list<MetaData>::iterator *CurrentPlayingElement = Container->GetPlayingElementIterator();
 	list<MetaData> *List = Container->GetElementList();
 	iColorNormal = m_ScreenConfig.EntriesListColor;
 	iColorSelected = m_ScreenConfig.SelectedEntryColor;
+	iColorPlaying  = m_ScreenConfig.PlayingEntryColor;
 	iColorTitle = m_ScreenConfig.ListsTitleColor;
 	iColor = iColorNormal;
 
@@ -886,7 +889,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
 	{
-		ListIterator = *CurrentElement;
+		ListIterator = *CurrentHighlightedElement;
 		for (int i = 0; i < PIXEL_TO_ROW(m_ScreenConfig.EntriesListRangeY2-m_ScreenConfig.EntriesListRangeY1)/2; i++)
 		{
 			if (ListIterator == List->begin())
@@ -902,9 +905,13 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 				break;
 			}
 			
-			if (ListIterator == *CurrentElement)
+			if (ListIterator == *CurrentHighlightedElement)
 			{
 				iColor = iColorSelected;
+			}
+			else if (ListIterator == *CurrentPlayingElement)
+			{
+				iColor = iColorPlaying;
 			}
 			else
 			{
