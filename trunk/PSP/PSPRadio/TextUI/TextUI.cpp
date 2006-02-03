@@ -764,7 +764,7 @@ int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 	int x = m_ScreenConfig.TimeX;
 	int c = m_ScreenConfig.TimeColor;
 	
-	if (pData->lTotalTime != 0)
+	if (pData->lTotalTime > 0)
 	{
 		uiPrintf(x, y, c, "%02d:%02d / %02d:%02d",
 					pData->lCurrentTime / 60, pData->lCurrentTime % 60,

@@ -1,6 +1,6 @@
 What's New for PSPRadio 
 ========================
-0.38-Pre3
+0.38.3
 NEW FEATURES
 (sandberg) 3DUI: Messages from the PSPRadio (e.g. when downloading the list from shoutcast.com) are now shown in a separate panel. (r746)
 (sandberg) 3DUI: The UI now supports 4 different fonts (Lists, Scroller, System info and Messages/Errors). (r747)
@@ -20,6 +20,7 @@ NEW FEATURES
 (sandberg) 3DUI: Cleanup of the graphics (new fonts, panels etc.). (r762)
 (raf) Core/TextUI: Now the system differientiates between the selected(highlighted) track, and the currently playing track. This is shown using different colors on the TextUI. (r764)
 (sandberg) 3DUI: Background modified to include space for the playtime/total time. (r763)
+(raf) Core: Changed versioning scheme. Hopefully less people will be confused now...
 BUG FIXES
 (sandberg) Core/3DUI: Rearranged the order of the VBlank operations to remove some of the jitter on the UI. (r745)
 (sandberg) Core: [ Bug #6256 ] WiFi logging is always enabled (r754)
