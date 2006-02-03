@@ -780,17 +780,19 @@ int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
-	int iColorNormal, iColorSelected, iColorTitle, iColor;
+	int iColorNormal, iColorSelected, iColorTitle, iColor, iColorPlaying;
 	int iNextRow = 0;
 	char *strText = NULL;
 
 	map< string, list<MetaData>* >::iterator ListIterator;
-	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
+	map< string, list<MetaData>* >::iterator *CurrentHighlightedElement = Container->GetCurrentContainerIterator();
+	map< string, list<MetaData>* >::iterator *CurrentPlayingElement = Container->GetPlayingContainerIterator();
 	map< string, list<MetaData>* > *List = Container->GetContainerList();
 	iColorNormal   = m_ScreenConfig.EntriesListColor;
 	iColorTitle    = m_ScreenConfig.ListsTitleColor;
 	iColorSelected = m_ScreenConfig.SelectedEntryColor;
 	iColor = iColorNormal;
+	iColorPlaying  = m_ScreenConfig.PlayingEntryColor;
 	
 	bool bShowFileExtension = m_Config->GetInteger("GENERAL:SHOW_FILE_EXTENSION", 0);
 
@@ -804,7 +806,7 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	if (List->size() > 0)
 	{
 		//Log(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
-		ListIterator = *CurrentElement;
+		ListIterator = *CurrentHighlightedElement;
 		for (int i = 0; i < PIXEL_TO_ROW(m_ScreenConfig.ContainerListRangeY2-m_ScreenConfig.ContainerListRangeY1)/2; i++)
 		{
 			if (ListIterator == List->begin())
@@ -822,9 +824,13 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 				break;
 			}
 			
-			if (ListIterator == *CurrentElement)
+			if (ListIterator == *CurrentHighlightedElement)
 			{
 				iColor = iColorSelected;
+			}
+			else if (ListIterator == *CurrentPlayingElement)
+			{
+				iColor = iColorPlaying;
 			}
 			else
 			{
