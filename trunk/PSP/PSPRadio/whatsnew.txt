@@ -1,6 +1,6 @@
 What's New for PSPRadio 
 ========================
-0.38.3
+0.38.03 (r767) (2006-02-03)
 NEW FEATURES
 (sandberg) 3DUI: Messages from the PSPRadio (e.g. when downloading the list from shoutcast.com) are now shown in a separate panel. (r746)
 (sandberg) 3DUI: The UI now supports 4 different fonts (Lists, Scroller, System info and Messages/Errors). (r747)
