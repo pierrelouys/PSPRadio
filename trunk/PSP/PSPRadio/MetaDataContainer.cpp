@@ -927,7 +927,16 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 		GetCurrentElementIteratorRef() = GetElementList()->begin();
 		
 		/** Sort Element List */
-		GetElementList()->sort(SortMetaDataByURI);
+		switch (iFormatVersion)
+		{
+			case 2: /** If the playlist was v2, then we can sort by title, if not, we sort by filename */
+				GetElementList()->sort(SortMetaDataByTitle);
+				break;
+			case 1:
+			default:
+				GetElementList()->sort(SortMetaDataByURI);
+		}
+			
 	}
 	else
 	{

@@ -1,5 +1,10 @@
 What's New for PSPRadio 
 ========================
+0.38.04 (r) (2006-02-)
+NEW FEATURES
+(raf) Core: Now playlist entries are sorted by title if the playlist is v2. (r768)
+BUG FIXES
+
 0.38.03 (r767) (2006-02-03)
 NEW FEATURES
 (sandberg) 3DUI: Messages from the PSPRadio (e.g. when downloading the list from shoutcast.com) are now shown in a separate panel. (r746)
