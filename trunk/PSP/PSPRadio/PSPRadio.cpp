@@ -373,14 +373,14 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_THDECODE_EOS:
-				Log(LOG_VERYLOW, "MID_THPLAY_EOS received, calling OnPlayStateChange(EOS)");
+				Log(LOG_VERYLOW, "MID_THPLAY_EOS received, calling EOSHandler()");
 				if (StreamOwnerScreen)
 				{
-					StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_EOS);
+					StreamOwnerScreen->EOSHandler();//OnPlayStateChange(PLAYSTATE_EOS);
 				}
 				else
 				{
-					Log(LOG_ERROR, "Wanted to call OnPlayStateChange(EOS), but the stream has no owner.");
+					Log(LOG_ERROR, "Wanted to call EOSHandler(), but the stream has no owner.");
 				}
 				break;
 

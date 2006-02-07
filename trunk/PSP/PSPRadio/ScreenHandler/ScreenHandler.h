@@ -26,7 +26,6 @@
 		PLAYSTATE_PLAY,
 		PLAYSTATE_STOP,
 		PLAYSTATE_PAUSE,
-		PLAYSTATE_EOS
 	};
 
 	class IScreen
@@ -45,6 +44,7 @@
 			virtual void InputHandler(int iButtonMask){};
 
 			virtual void OnPlayStateChange(playstates NewPlayState){};
+			virtual void EOSHandler(){};
 
 			void  SetConfigFilename(char *strConfigFilename){m_strConfigFilename = strdup(strConfigFilename);}
 			char *GetConfigFilename(){return m_strConfigFilename;}

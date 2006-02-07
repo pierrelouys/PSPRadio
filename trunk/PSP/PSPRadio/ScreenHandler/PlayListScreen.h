@@ -19,6 +19,8 @@
 			virtual void OnHPRMReleased(u32 iHPRMMask);
 			
 			virtual void OnPlayStateChange(playstates NewPlayState);
+			
+			virtual void EOSHandler();
 
 		protected:
 			CMetaDataContainer *m_Lists;

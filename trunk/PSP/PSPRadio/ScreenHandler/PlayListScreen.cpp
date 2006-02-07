@@ -388,12 +388,10 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 {
 	static playstates OldPlayState = PLAYSTATE_STOP;
-	static time_t	LastEOSinMS = 0;
+	//static time_t	LastEOSinMS = 0;
 	CPSPStream *pCurrentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
-	time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
+	//time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
 	IPSPRadio_UI *UI = NULL;
-//	CMetaDataContainerIndexer *SelectionIndexer = m_Lists->GetCurrentSelectionIndexer();
-	CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
 	
 	Log(LOG_VERYLOW, "OnPlayStateChange(%d) called. (this=0x%x)", (int)NewPlayState, this);
 	
@@ -439,8 +437,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 		/** The stream was stopped */
 		case PLAYSTATE_STOP:
 			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_STOP");
-			if (CurrentStateInMS - LastEOSinMS > 500)
-			{
+			//if (CurrentStateInMS - LastEOSinMS > 500)
+			//{
 				/** We have a request to play along with the stream stopping */
 				if (CScreenHandler::PLAY_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop)
 				{
@@ -465,54 +463,12 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 					if (UI)
 						UI->DisplayActiveCommand(CPSPSound::STOP);
 				}
-			}
+/*			}
 			else
 			{
 				Log(LOG_ERROR, "OnPlayStateChange(): newstate = PLAYSTATE_STOP, but we had an EOS %dms ago, so ignoring.",
 					CurrentStateInMS - LastEOSinMS);
-			}
-			break;
-		/** The current stream just finished (decoding) */
-		case PLAYSTATE_EOS:
-			LastEOSinMS = CurrentStateInMS;
-			switch(m_ScreenHandler->GetPlayMode())
-			{
-				case PLAYMODE_SINGLE:
-					if (UI)
-						UI->DisplayActiveCommand(CPSPSound::STOP);
-					break;
-				
-				case PLAYMODE_NORMAL:
-				{
-					//play next strack
-					PlayIndexer->NextElement();
-					if (UI)
-						UI->DisplayElements(m_Lists);
-
-					PlaySetStream();
-					break;
-				}
-					
-				case PLAYMODE_GLOBAL_NEXT:
-				{
-					//play next strack
-					PlayIndexer->NextGlobalElement();
-					if (UI)
-					{
-						UI->DisplayContainers(m_Lists);
-						UI->DisplayElements(m_Lists);
-					}
-
-					PlaySetStream();
-					break;
-				}
-				
-				case PLAYMODE_REPEAT:
-				{
-					PlaySetStream();
-					break;
-				}
-			}
+			}*/
 			break;
 	}
 
@@ -520,6 +476,67 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	
 	OldPlayState = NewPlayState;
 }
+
+/** The current stream just finished (decoding) */
+void PlayListScreen::EOSHandler()
+{
+	CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
+	IPSPRadio_UI *UI = NULL;
+	
+	Log(LOG_VERYLOW, "EOSHandler() called. (this=0x%x)", this);
+	
+	/* Only tell the UI about changes if the current active screen is this */
+	/* This prvents screens like the option screen from getting notified */
+	if (this == m_ScreenHandler->GetCurrentScreen())
+	{
+		UI = m_UI;
+	}
+	else
+	{
+		UI = NULL;
+	}
+	
+	//LastEOSinMS = CurrentStateInMS;
+	switch(m_ScreenHandler->GetPlayMode())
+	{
+		case PLAYMODE_SINGLE:
+			if (UI)
+				UI->DisplayActiveCommand(CPSPSound::STOP);
+			break;
+		
+		case PLAYMODE_NORMAL:
+		{
+			//play next strack
+			PlayIndexer->NextElement();
+			if (UI)
+				UI->DisplayElements(m_Lists);
+
+			PlaySetStream();
+			break;
+		}
+			
+		case PLAYMODE_GLOBAL_NEXT:
+		{
+			//play next strack
+			PlayIndexer->NextGlobalElement();
+			if (UI)
+			{
+				UI->DisplayContainers(m_Lists);
+				UI->DisplayElements(m_Lists);
+			}
+
+			PlaySetStream();
+			break;
+		}
+		
+		case PLAYMODE_REPEAT:
+		{
+			PlaySetStream();
+			break;
+		}
+	}
+}
+
 
 void PlayListScreen::PlaySetStream()
 {
