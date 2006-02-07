@@ -41,6 +41,7 @@ bool CPSPKeyHandler::KeyHandler(CPSPKeyHandler::KeyEvent &event)
 	bool	ret_value;
 
 	// Read current state of the key pad
+	memset(&m_latch, 0, sizeof(m_latch));
 	sceCtrlReadLatch(&m_latch);
 
 	if (m_latch.uiMake)
@@ -53,8 +54,10 @@ bool CPSPKeyHandler::KeyHandler(CPSPKeyHandler::KeyEvent &event)
 	}
 	else
 	{
-		if (PSP_CTRL_HOME != m_latch.uiPress) /** This happens by itself when the screen turns off */
+		/** This happens by itself when the screen turns off */
+		if ((PSP_CTRL_HOME != m_latch.uiPress) && (0 != m_latch.uiPress)) 
 		{
+			Log(LOG_VERYLOW, "Generating EVENT_UPDATE, m_latch.uiPress=0x%x", m_latch.uiPress);
 			ret_value = KeyHandlerSTM(EVENT_UPDATE, event);
 		}
 		else

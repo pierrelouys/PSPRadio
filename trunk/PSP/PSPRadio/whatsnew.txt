@@ -5,8 +5,9 @@ NEW FEATURES
 (raf) Core: Now playlist entries are sorted by title if the playlist is v2. (r768)
 BUG FIXES
 (raf) Core: Made the decoding/playback more stable (r770)
-(raf) Core: Now only UP/DOWN generate REPEATs (r772)
+(raf) Core: Now only UP/DOWN generate REPEATs (No more 'jumpy' START button, etc.)(r772)
 (raf) Core: Now long press are also handled as a release (r773)
+(raf) Core: Corrected erroneous button hits being sent continuosly when the power saving kicked off (r774)
 
 0.38.03 (r767) (2006-02-03)
 NEW FEATURES
