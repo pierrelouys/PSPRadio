@@ -198,6 +198,14 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			return;
 		}
 	}
+	else if (MID_ONBUTTON_LONG_PRESS == iEventType)
+	{
+		if (iButtonMask & PSP_CTRL_SELECT)
+		{
+			// Generic screenshot method, which works for all UI classes
+			Screenshot();
+		}
+	}
 
 	switch (m_CurrentScreen->GetId())
 	{

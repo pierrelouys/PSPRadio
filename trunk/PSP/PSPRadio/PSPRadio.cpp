@@ -419,11 +419,8 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_ONBUTTON_LONG_PRESS:
-				if (*((int*)event.pData) & PSP_CTRL_SELECT)
-				{
-					// Generic screenshot method, which works for all UI classes
-					m_ScreenHandler->Screenshot();
-				}
+				Log(LOG_VERYLOW, "On button long press received. data = 0x%x", *((int*)event.pData));
+				m_ScreenHandler->CommonInputHandler(*((int*)event.pData), MID_ONBUTTON_LONG_PRESS);
 				break;
 
 			case MID_ONHPRM_RELEASED:

@@ -6,6 +6,7 @@ NEW FEATURES
 BUG FIXES
 (raf) Core: Made the decoding/playback more stable (r770)
 (raf) Core: Now only UP/DOWN generate REPEATs (r772)
+(raf) Core: Now long press are also handled as a release (r773)
 
 0.38.03 (r767) (2006-02-03)
 NEW FEATURES
