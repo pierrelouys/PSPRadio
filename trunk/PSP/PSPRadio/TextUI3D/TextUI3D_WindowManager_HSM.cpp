@@ -569,8 +569,6 @@ CTextUI3D_Panel::PanelState		*target_state;
 		UpdatePanel(current_state,	target_state);
 		m_panels[i].SetState(current_state);
 		}
-
-	sceKernelDcacheWritebackAll();
 }
 
 void WindowHandlerHSM::UpdateValue(int *current, int *target)
@@ -801,7 +799,7 @@ void WindowHandlerHSM::RenderListIcon()
 
 void WindowHandlerHSM::RenderPlaystateIcon()
 {
-	RenderIconAlpha(TEX_ICON_PLAYSTATE, LocalSettings.PlayerstateX, LocalSettings.PlayerstateY, GfxSizes.playstate_w, GfxSizes.progress_y, m_playstate_icon * GfxSizes.progress_y);
+	RenderIconAlpha(TEX_ICON_PLAYSTATE, LocalSettings.PlayerstateX, LocalSettings.PlayerstateY, GfxSizes.playstate_w, GfxSizes.playstate_y, m_playstate_icon * GfxSizes.playstate_y);
 }
 
 void WindowHandlerHSM::RenderProgressBar(bool reset)
