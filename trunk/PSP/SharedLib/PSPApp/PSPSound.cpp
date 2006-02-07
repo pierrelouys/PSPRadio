@@ -152,26 +152,38 @@ int CPSPSound::Play()
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
+			
+		case PAUSE:
+			//event.EventId = MID_PLAY_START;
+			//m_EventToPlayTh->Send(event);
+			event.EventId = MID_DECODER_DECODE;
+			m_EventToDecTh->Send(event);
+			break;
+#if 0
+		case PLAY:
+			/** Shouldn't get here, let's restart */
+			Log(LOG_LOWLEVEL, "Play() called, but playing already. Need to stop current stream first.");
+			event.EventId = MID_DECODER_STOP_NEEDOK;
+			m_EventToDecTh->SendAndWaitForOK(event);
+
+			Log(LOG_LOWLEVEL, "Play(): After stopping. Now starting decoder.");
+			event.EventId = MID_DECODER_START;
+			m_EventToDecTh->Send(event);
+			//event.EventId = MID_DECODER_START;
+			//m_EventToDecTh->Send(event);
+			break;
+#endif
+		default:
+			Log(LOG_ERROR, "Play(): unknown current state, but starting decoder anyway.");
+		case PLAY:
 		case STOP:
 			event.EventId = MID_DECODER_START;
 			m_EventToDecTh->Send(event);
 			break;
-		case PAUSE:
-			event.EventId = MID_PLAY_START;
-			m_EventToPlayTh->Send(event);
-			break;
-
-		case PLAY:
-			/** Shouldn't get here, let's restart */
-			Log(LOG_ERROR, "Play and state was already playing, restarting decoding/playing");
-			event.EventId = MID_DECODER_START;
-			m_EventToDecTh->Send(event);
-			break;
-		default:
 			break;
 	}
 	m_CurrentState = PLAY;
-	pPSPSound->SendEvent(MID_SOUND_STARTED);
+	//pPSPSound->SendEvent(MID_SOUND_STARTED);
 
 	return m_CurrentState;
 }
@@ -183,15 +195,18 @@ int CPSPSound::Pause()
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
-		case PLAY:
-			m_CurrentState = PAUSE;
-			event.EventId = MID_PLAY_STOP;
-			m_EventToPlayTh->Send(event);
-			break;
-
+		default:
+			Log(LOG_ERROR, "Pause(): Unknown current state; pausing anyway.");
 		case STOP:
 		case PAUSE:
-		default:
+		case PLAY:
+			m_CurrentState = PAUSE;
+			event.EventId = MID_DECODER_PAUSE;
+			m_EventToDecTh->Send(event);
+			//event.EventId = MID_PLAY_STOP;
+			//m_EventToPlayTh->Send(event);
+			break;
+
 			break;
 	}
 
@@ -205,23 +220,19 @@ int CPSPSound::Stop()
 		m_CurrentState==PLAY?"PLAY":(m_CurrentState==STOP?"STOP":"PAUSE"));
 	switch(m_CurrentState)
 	{
+		default:
+			Log(LOG_ERROR, "Stop(): Unknown current state; stopping anyway.");
+		case STOP:
+		case PLAY:
 		case PAUSE:
 			/** if we were paused, restart threads first! */
 			m_CurrentState = STOP;
-			event.EventId = MID_DECODER_STOP;
+			event.EventId = MID_DECODER_STOP_NEEDOK;
+			Log(LOG_LOWLEVEL, "Stop: Sending message and waiting for OK");
 			m_EventToDecTh->SendAndWaitForOK(event);
-			event.EventId = MID_PLAY_START;
-			m_EventToPlayTh->Send(event);
-			break;
-		case PLAY:
-			m_CurrentState = STOP;
-			event.EventId = MID_DECODER_STOP;
-			Log(LOG_VERYLOW, "Stop(): Was Playing. Calling 'm_EventToDecTh->SendAndWaitForOK(STOP)'");
-			m_EventToDecTh->SendAndWaitForOK(event);
-			break;
-
-		case STOP:
-		default:
+			Log(LOG_LOWLEVEL, "Stop: OK received");
+			//event.EventId = MID_PLAY_START;
+			//m_EventToPlayTh->Send(event);
 			break;
 	}
 
@@ -302,6 +313,7 @@ static size_t m_LastBufferPercentage = 200;
 int CPSPSound::ThDecode(SceSize args, void *argp)
 {
 	IPSPSoundDecoder *Decoder = NULL;
+	bool bDecoderCreated = false;
 
 	Log(LOG_INFO,"Starting Decoding Thread.");
 	pPSPSound->SendEvent(MID_THDECODE_BEGIN);
@@ -319,9 +331,11 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 			case MID_DECODER_START:
 				Log(LOG_VERYLOW, "ThDecode:: Start Decoder message received.");
 
-				if (Decoder)
+				if (true == bDecoderCreated)
 				{
+					Log(LOG_VERYLOW, "ThDecode:: Deleting decoder..");
 					delete Decoder, Decoder = NULL;
+					Log(LOG_VERYLOW, "ThDecode:: Finished decoding. Decoder deleted.");
 				}
 
 				pPSPSound->SendEvent(MID_DECODE_STREAM_OPENING);
@@ -331,7 +345,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 
 				if (true == pPSPSound->m_CurrentStream->IsOpen())
 				{
-					bool bDecoderCreated = false;
+					bDecoderCreated = false;
 					switch (pPSPSound->m_CurrentStream->GetContentType())
 					{
 						case MetaData::CONTENT_NOT_DEFINED:
@@ -390,30 +404,11 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 
 					if (true == bDecoderCreated)
 					{
-						//Log(LOG_INFO, "ThDecode::(Title='%s') Seding event to start decoding",
-						//	pPSPSound->m_CurrentStream->GetTitle());
-						pPSPSound->SendEvent(MID_THDECODE_DECODING);
-						/** Main decoding loop */
-						/* pPSPSound is the decoding loop. */
-						while (m_EventToDecTh->Size() == 0)
-						{
-							if (true == Decoder->Decode())
-							{
-								break;
-							}
-							sceKernelDelayThread(10); /** 100us */
-						}
-
-						pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
-						Log(LOG_VERYLOW, "ThDecode:: Finished decoding. About to delete decoder.");
-						delete Decoder, Decoder = NULL;
-						Log(LOG_VERYLOW, "ThDecode:: Finished decoding. Decoder deleted.");
+						/** We send an event to ourselves to begin decoding*/
+						event.EventId = MID_DECODER_DECODE;
+						m_EventToDecTh->Send(event);
 					}
-					else
-					{
-						/** Close if no decoder instantiated */
-						pPSPSound->m_CurrentStream->Close();
-					}
+				
 				}
 				else
 				{
@@ -422,11 +417,59 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				}
 
 				break;
-			case MID_DECODER_STOP:
+				
+			case MID_DECODER_DECODE:
+				Log(LOG_VERYLOW, "ThDecode:: MID_DECODER_DECODE message received. (Start/Continue decoding)");
+				if (true == bDecoderCreated)
+				{
+					//Log(LOG_INFO, "ThDecode::(Title='%s') Seding event to start decoding",
+					//	pPSPSound->m_CurrentStream->GetTitle());
+					pPSPSound->SendEvent(MID_THDECODE_DECODING);
+					/** Main decoding loop */
+					/* pPSPSound is the decoding loop. */
+					while (m_EventToDecTh->Size() == 0)
+					{
+						if (true == Decoder->Decode())
+						{
+							Log(LOG_VERYLOW, "ThDecode:: Finished decoding. About to delete decoder.");
+							delete Decoder, Decoder = NULL;
+							Log(LOG_VERYLOW, "ThDecode:: Finished decoding. Decoder deleted.");
+							bDecoderCreated = false;
+							pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
+							break;
+						}
+						sceKernelDelayThread(10); /** 100us */
+					}
+					Log(LOG_INFO, "Finished decoding (or stopped/paused)");
+				}
+				else
+				{
+					Log(LOG_VERYLOW, "ThDecode:: MID_DECODER_DECODE message received. Decoder didn't exitst, will retry STARTING the decoder.");
+					/** Close if no decoder instantiated */
+					pPSPSound->m_CurrentStream->Close();
+					
+					/** We send an event to ourselves to retry*/
+					event.EventId = MID_DECODER_START;
+					m_EventToDecTh->Send(event);
+				}
+				break;
+				
+			case MID_DECODER_PAUSE:
+				Log(LOG_VERYLOW, "ThDecode:: Pause Decoder message received.");
+				break;
+			
+			case MID_DECODER_STOP_NEEDOK:
 				Log(LOG_VERYLOW, "ThDecode:: Stop Decoder message received.");
-				pPSPSound->Buffer.Empty();
+				if (true == bDecoderCreated)
+				{
+						Log(LOG_VERYLOW, "ThDecode:: Deleting decoder..");
+						delete Decoder, Decoder = NULL;
+						Log(LOG_VERYLOW, "ThDecode:: Finished decoding. Decoder deleted.");
+				}
+				//pPSPSound->Buffer.Empty();
 				m_EventToDecTh->SendReceiveOK();
 				break;
+				
 			case MID_DECODER_THREAD_EXIT_NEEDOK:
 				Log(LOG_VERYLOW, "ThDecode:: Thread Exit message received.");
 				pPSPSound->SendEvent(MID_THDECODE_END);

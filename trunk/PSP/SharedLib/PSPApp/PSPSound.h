@@ -55,8 +55,10 @@
 	/** Messages from PSPSound to decode thread */
 	enum MessageIDsFromPSPSoundToDecodeThread
 	{
-		MID_DECODER_START = 0x10,
-		MID_DECODER_STOP  = 0x20,
+		MID_DECODER_START 			= 0x10,
+		MID_DECODER_DECODE			= 0x11,
+		MID_DECODER_PAUSE			= 0x12,
+		MID_DECODER_STOP_NEEDOK		= 0x20,
 		MID_DECODER_THREAD_EXIT_NEEDOK = 0x30
 	};
 	
