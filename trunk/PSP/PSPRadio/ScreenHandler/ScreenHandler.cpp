@@ -187,8 +187,18 @@ void CScreenHandler::OnVBlank()
 	}
 }
 
-void CScreenHandler::CommonInputHandler(int iButtonMask)
+void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
 {
+
+	/** Only do UP and DOWN repeats */
+	if (MID_ONBUTTON_REPEAT == iEventType)
+	{
+		if (((iButtonMask & PSP_CTRL_UP) || (iButtonMask & PSP_CTRL_DOWN)) == false)
+		{
+			return;
+		}
+	}
+
 	switch (m_CurrentScreen->GetId())
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
@@ -197,7 +207,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask)
 			if (iButtonMask & PSP_CTRL_HOME)
 			{
 				//pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
-				//Log(LOG_ERROR, "HOME BUTTON RECEIVED!");
+				Log(LOG_INFO, "HOME BUTTON RECEIVED");
 			}
 			else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
 			{

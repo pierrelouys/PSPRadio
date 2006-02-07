@@ -103,7 +103,7 @@
 		IPSPRadio_UI *StartUI(UIs UI);
 		void PrepareShutdown();
 
-		void CommonInputHandler(int iButtonMask);
+		void CommonInputHandler(int iButtonMask, u32 iEventType); /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
 		void OnHPRMReleased(u32 iHPRMMask);
 
 		bool DownloadSHOUTcastDB();
