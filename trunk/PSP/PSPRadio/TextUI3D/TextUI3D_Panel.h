@@ -92,6 +92,7 @@ private:
 
 	FrameTextures	m_frametextures;
 	Vertex			*m_vertex_array;
+	unsigned int	m_alpha;
 };
 
 #endif

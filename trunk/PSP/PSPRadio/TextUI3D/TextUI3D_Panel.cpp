@@ -59,15 +59,12 @@ CTextUI3D_Panel::CTextUI3D_Panel()
 	m_heightscale	= 0;
 	m_scale			= 1.0f;
 	m_opacity		= 1.0f;
-	/* Build the vertex array with initial parameters */
-	m_vertex_array = (Vertex *) memalign(16, 18 * sizeof(Vertex));
-	UpdateVertexArray();
+	m_alpha			= 0xFF000000;
 	Log(LOG_VERYLOW, "Panel:Created");
 }
 
 CTextUI3D_Panel::~CTextUI3D_Panel()
 {
-	free(m_vertex_array);
 	Log(LOG_VERYLOW, "Panel:Destroyed");
 }
 
@@ -99,9 +96,6 @@ void CTextUI3D_Panel::SetPosition(int x, int y, int z = 0)
 	m_xpos = (float)x;
 	m_ypos = (float)y;
 	m_zpos = (float)z;
-
-	/* Update the vertex array, since the parameters has changed */
-	UpdateVertexArray();
 }
 
 void CTextUI3D_Panel::SetSize(int width, int height)
@@ -110,38 +104,20 @@ void CTextUI3D_Panel::SetSize(int width, int height)
 	m_height		= (float)height;
 	m_widthscale	= m_width;
 	m_heightscale	= m_height;
-
-	/* Update the vertex array, since the parameters has changed */
-	UpdateVertexArray();
 }
 
 void CTextUI3D_Panel::SetFrameTexture(FrameTextures &textures)
 {
 	m_frametextures = textures;
-
-	/* Update the vertex array, since the parameters has changed */
-	UpdateVertexArray();
 }
 
 void CTextUI3D_Panel::SetOpacity(float opacity)
 {
-	unsigned int	alpha, color;
-
 	m_opacity = opacity;
 
 	/* Calculate new alpha value */
-	alpha = (unsigned int)(255.0f * opacity);
-	alpha = alpha << 24;
-
-	color = m_vertex_array[0].color & 0xFFFFFF;
-	color = color | alpha;
-
-	/* Set opacity for all vertices */
-	for (int i = 0 ; i < 18 ; i++)
-	{
-		/* Store new alpha value */
-		m_vertex_array[i].color = alpha;
-	}
+	m_alpha = (unsigned int)(255.0f * opacity);
+	m_alpha = m_alpha << 24;
 }
 
 void CTextUI3D_Panel::SetScale(float scale)
@@ -149,8 +125,6 @@ void CTextUI3D_Panel::SetScale(float scale)
 	m_widthscale	= m_width * scale;
 	m_heightscale	= m_height * scale;
 	m_scale			= scale;
-	/* Update the vertex array, since the parameters has changed */
-	UpdateVertexArray();
 }
 
 void CTextUI3D_Panel::ResetView()
@@ -158,9 +132,6 @@ void CTextUI3D_Panel::ResetView()
 	m_widthscale	= m_width;
 	m_heightscale	= m_height;
 	m_scale 		= 1.0f;
-
-	/* Update the vertex array */
-	UpdateVertexArray();
 }
 
 void CTextUI3D_Panel::Render(int color)
@@ -181,6 +152,9 @@ void CTextUI3D_Panel::Render(int color)
 
 	sceGuTexWrap(GU_REPEAT, GU_REPEAT);
 	sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+
+	m_vertex_array = (Vertex *) sceGuGetMemory(18 * sizeof(Vertex));
+	UpdateVertexArray();
 
 	for (int i = 0 ; i < 9 ; i++)
 	{
@@ -224,6 +198,7 @@ void CTextUI3D_Panel::UpdateVertexArray()
 	for (int i = 0 ; i < 18 ; i++)
 	{
 		m_vertex_array[i].z		= m_zpos;
+		m_vertex_array[i].color = m_alpha;
 
 		/* Every second vertex have (u,v) set to (0,0) */
 		if (!(i % 2))
@@ -232,8 +207,6 @@ void CTextUI3D_Panel::UpdateVertexArray()
 			m_vertex_array[i].v = 0;
 		}
 	}
-
-	SetOpacity(m_opacity);
 
 	/* Set x and y positions and texture coords */
 	for (int y = 0 ; y < 3 ; y++)
