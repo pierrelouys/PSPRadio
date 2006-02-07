@@ -256,8 +256,12 @@ int CPSPRadio::ProcessEvents()
 		CurrentScreen 		= m_ScreenHandler->GetCurrentScreen();
 		StreamOwnerScreen	= m_ScreenHandler->GetStreamOwnerScreen();
 
-
-		//Log(LOG_VERYLOW, "ProcessMessages()::Receive Ret=%d. eventid=0x%08x.", rret, event.EventId);
+		if (MID_THPLAY_PCMBUFFER != event.EventId &&
+			MID_BUFF_PERCENT_UPDATE != event.EventId)
+		{
+			/** Don't log buffer messages, or percent update messages, or we the queue backs up while playing */
+			Log(LOG_VERYLOW, "*ProcessMessages()*::Receive Ret=%d. eventid=0x%08x.", rret, event.EventId);
+		}
 		if (SID_PSPAPP == event.SenderId)
 		{
 			switch (event.EventId)
@@ -353,8 +357,9 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_THDECODE_DECODING:
-			case MID_SOUND_STARTED:
-				Log(LOG_VERYLOW, "MID_THDECODE_DECODING/MID_SOUND_STARTED(0x%x) received, calling OnPlayStateChange(PLAY)", event.EventId);
+			//case MID_SOUND_STARTED:
+				//Log(LOG_VERYLOW, "MID_THDECODE_DECODING/MID_SOUND_STARTED(0x%x) received, calling OnPlayStateChange(PLAY)", event.EventId);
+				Log(LOG_VERYLOW, "MID_THDECODE_DECODING received, calling OnPlayStateChange(PLAY)", event.EventId);
 				if (StreamOwnerScreen)
 				{
 					StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_PLAY);
@@ -404,7 +409,12 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_ONBUTTON_RELEASED:
+				Log(LOG_VERYLOW, "On button released received. data = 0x%x", *((int*)event.pData));
 				m_ScreenHandler->CommonInputHandler(*((int*)event.pData));
+				break;
+				
+			case MID_ONBUTTON_REPEAT:
+				Log(LOG_VERYLOW, "On button repeat received. data = 0x%x", *((int*)event.pData));
 				break;
 
 			case MID_ONBUTTON_LONG_PRESS:
