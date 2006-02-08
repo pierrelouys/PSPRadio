@@ -333,10 +333,7 @@ bool CPSPSoundDecoder_OGG::Decode()
 			
 			m_Buffer->PushPCMFrame(*((::Frame*)&PCMOutputFrame));
 		}
-		if (true == m_InputStreamReader->IsEOF())
-		{
-			pPSPSound->SendEvent(MID_THDECODE_EOS);
-		}
+
 	}
 	
 	return m_InputStreamReader->IsEOF();

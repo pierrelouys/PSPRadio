@@ -435,7 +435,8 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 							delete Decoder, Decoder = NULL;
 							Log(LOG_VERYLOW, "ThDecode:: Finished decoding. Decoder deleted.");
 							bDecoderCreated = false;
-							pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
+							//pPSPSound->SendEvent(MID_THDECODE_DECODING_DONE);
+							pPSPSound->SendEvent(MID_THDECODE_EOS);
 							break;
 						}
 						sceKernelDelayThread(10); /** 100us */

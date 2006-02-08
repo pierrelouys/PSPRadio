@@ -115,7 +115,6 @@ bool CPSPSoundDecoder_MAD::Decode()
 			//ReportError("(End of stream)...");
 			Log(LOG_INFO, "End Of Stream.");
 			//m_Buffer->Done();
-			pPSPSound->SendEvent(MID_THDECODE_EOS);
 			bRet = true;
 			m_FrameCount = 0;
 			return bRet;
