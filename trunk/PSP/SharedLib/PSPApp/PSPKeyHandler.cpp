@@ -57,7 +57,6 @@ bool CPSPKeyHandler::KeyHandler(CPSPKeyHandler::KeyEvent &event)
 		/** This happens by itself when the screen turns off */
 		if ((PSP_CTRL_HOME != m_latch.uiPress) && (0 != m_latch.uiPress)) 
 		{
-			Log(LOG_VERYLOW, "Generating EVENT_UPDATE, m_latch.uiPress=0x%x", m_latch.uiPress);
 			ret_value = KeyHandlerSTM(EVENT_UPDATE, event);
 		}
 		else
@@ -154,6 +153,7 @@ bool CPSPKeyHandler::KeyHandlerSTM(STM_EVENT key_event, CPSPKeyHandler::KeyEvent
 						event.event		= MID_ONBUTTON_REPEAT;
 						event.key_state	= m_stored_keystate;
 						ret_value = true;
+						Log(LOG_VERYLOW, "Generating EVENT_UPDATE, m_latch.uiPress=0x%x", m_latch.uiPress);
 					}
 				}
 				break;
