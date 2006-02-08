@@ -153,9 +153,12 @@ int CPSPApp::Run()
 		//SendEvent(MID_ONVBLANK);
 
 		// If a key event was detected notify the application
-		if (KeyHandler.KeyHandler(event))
+		if ((KeyHandler.KeyHandler(event) != false))
 		{
-			SendEvent(event.event, (void *)&(event.key_state));
+			/** Note that the state is sent "by value" in a pointer holder. 
+			(It has to be sent by-value, as event can become out of scope when the event (which is async) handles it)*/
+			SendEvent(event.event, (void *)(event.key_state)); 
+			
 		}
 
 		// Only read from the RTC once a second
@@ -170,14 +173,16 @@ int CPSPApp::Run()
 				// Only update each minute
 				if (oldMinute != m_LocalTime.minutes)
 				{
-					SendEvent(MID_ONTIME_CHANGE, (void *)&m_LocalTime);
+					/**the localtime can be sent safely by reference, as it is a member variable */
+					SendEvent(MID_ONTIME_CHANGE, &m_LocalTime);
 
 					// Check to see if the battery status has changed
 					newBatteryStatus = scePowerGetBatteryLifePercent();
 					if (newBatteryStatus != m_BatteryStatus)
 					{
 						m_BatteryStatus = newBatteryStatus;
-						SendEvent(MID_ONBATTERY_CHANGE, (void *)&m_BatteryStatus);
+						/**the battery status can be sent safely by reference, as it is a member variable */
+						SendEvent(MID_ONBATTERY_CHANGE, &m_BatteryStatus);
 					}
 				}
 			}
@@ -194,7 +199,9 @@ int CPSPApp::Run()
 			sceHprmReadLatch(&hprmlatch);
 			if (hprmlatch != 0x00)
 			{
-				SendEvent(MID_ONHPRM_RELEASED, &hprmlatch);
+				/**hprm latch needs to be sent by value, if sent by reference, then it can lose scope before it
+				can be handled -- this because events are asynchronous */
+				SendEvent(MID_ONHPRM_RELEASED, (void*)hprmlatch);
 				Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
 			}
 		}
