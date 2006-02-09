@@ -89,7 +89,7 @@ void loaderInit()
 	}
 	
 	CPSPThread *thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 
-												100, 1024, 0,0);//THREAD_ATTR_USER);
+												0x11, 0xFA0, THREAD_ATTR_USER);
 	if (thCallbackSetup)
 	{
 		thCallbackSetup->Start();
