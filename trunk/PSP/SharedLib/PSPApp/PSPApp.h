@@ -115,6 +115,10 @@
 		int  DisableUSB();
 		bool IsUSBEnabled() { return m_USBEnabled; }
 
+		/** Power */
+		virtual int OnPowerEvent(int pwrflags){return 0;};
+		virtual int OnAppExit(int arg1, int arg2, void *common);
+	
 	protected:
 		/** Helpers */
 
@@ -147,7 +151,6 @@
 		bool m_Exit;
 		bool m_NetworkEnabled;
 		bool m_USBEnabled;
-		CPSPThread *m_thCallbackSetup; /** Callback thread */
 		CPSPThread *m_thRun; /** Run Thread */
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
@@ -155,9 +158,6 @@
 		int  m_ResolverId;
 		char *m_strProgramName, *m_strVersionNumber;
 		bool m_Polling;
-
-		virtual int OnAppExit(int arg1, int arg2, void *common);
-		virtual int OnPowerEvent(int pwrflags){return 0;};
 
 		/** Networking */
 		int WLANConnectionHandler(int profile);

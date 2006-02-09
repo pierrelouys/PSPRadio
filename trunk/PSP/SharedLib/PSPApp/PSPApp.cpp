@@ -41,7 +41,6 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_NetworkEnabled = false;
 	m_USBEnabled = false;
 	m_EventToPSPApp = NULL;
-	m_thCallbackSetup = NULL; /** Callback thread */
 	m_thRun = NULL; /** Run Thread */
 	memset(&m_pad, 0, sizeof (SceCtrlData));
 	strcpy(m_strMyIP, "0.0.0.0");
@@ -52,25 +51,13 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	m_Polling = false;
 	m_BatteryStatus = 0x00;
 	m_TimeUpdate = 0;
-	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 100, 1024, THREAD_ATTR_USER);
 
-	if (m_thCallbackSetup)
-	{
-		m_thCallbackSetup->Start();
+	sceCtrlSetSamplingCycle(0);
+	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
-		sceCtrlSetSamplingCycle(0);
-		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-
-		m_Exit = false;
-	}
-	else /** Oops, error, let's exit the app */
-	{
-		m_Exit = true;
-	}
+	m_Exit = false;
 
 	m_EventToPSPApp = new CPSPEventQ("msg_to_pspapp_q");
-
-
 }
 
 int CPSPApp::StartPolling()
@@ -212,21 +199,6 @@ int CPSPApp::Run()
 	return 0;
 }
 
-int CPSPApp::CallbackSetupThread(SceSize args, void *argp)
-{
-	int cbid;
-	#ifdef EXIT_CALLBACK
-	cbid = sceKernelCreateCallback("Exit Callback", CPSPApp::exitCallback, NULL);
-	sceKernelRegisterExitCallback(cbid);
-	#endif
-    cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
-    scePowerRegisterCallback(0, cbid);
-
-	sceKernelSleepThreadCB();
-
-	return 0;
-}
-
 /** When the user selects to exit, this is called */
 int CPSPApp::OnAppExit(int arg1, int arg2, void *common)
 {
@@ -256,27 +228,6 @@ int CPSPApp::ReportError(char *format, ...)
 
 /* ---statics--- */
 /* System Callbacks */
-int CPSPApp::exitCallback(int arg1, int arg2, void *common)
-{
-	return pPSPApp->OnAppExit(arg1, arg2, common);
-}
-
-int CPSPApp::powerCallback(int arg1, int pwrflags, void *common)
-{
-	pPSPApp->OnPowerEvent(pwrflags);
-
-	/** Register again (or it won't happen anymore) */
-    int cbid = sceKernelCreateCallback("Power Callback", CPSPApp::powerCallback, NULL);
-    scePowerRegisterCallback(0, cbid);
-	return 0;
-}
-
-/* Thread statics */
-int CPSPApp::callbacksetupThread(SceSize args, void *argp)
-{
-	return pPSPApp->CallbackSetupThread(args, argp);
-}
-
 int CPSPApp::runThread(SceSize args, void *argp)
 {
 	return pPSPApp->Run();

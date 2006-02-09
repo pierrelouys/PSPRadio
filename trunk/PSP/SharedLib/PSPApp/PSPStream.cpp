@@ -64,12 +64,13 @@ void CPSPStream::SetURI(char *strFile)
 {
 	if (strFile)
 	{
-		if (strlen(strFile) > 4)
+		size_t length = strlen(strFile);
+		if (length > 4)
 		{
 			/** New URI, clear Metadata */
 			ClearMetadata();
 			strlcpy(m_MetaData->strURI, strFile, MAXPATHLEN);
-			if (memcmp(m_MetaData->strURI, "http://", strlen("http://")) == 0)
+			if ((length > strlen("http://")) && (memcmp(m_MetaData->strURI, "http://", strlen("http://")) == 0))
 			{
 				Log(LOG_LOWLEVEL, "CPSPStream::SetURI(%s) <URL> called", m_MetaData->strURI);
 				m_Type = STREAM_TYPE_URL;
@@ -86,6 +87,10 @@ void CPSPStream::SetURI(char *strFile)
 			ReportError("CPSPStream::OpenFile-Invalid filename '%s'", strFile);
 		}
 		
+	}
+	else
+	{
+		Log(LOG_ERROR, "SetURI() called, with no argument!");
 	}
 }
 
@@ -200,6 +205,8 @@ void CPSPStream::Close()
 
 int CPSPStream::Open()
 {
+	Log(LOG_VERYLOW, "Open() Start");
+
 	SetContentType(MetaData::CONTENT_NOT_DEFINED);
 	if (STREAM_STATE_OPEN == m_State)
 	{
@@ -212,6 +219,7 @@ int CPSPStream::Open()
 	{
 		case STREAM_TYPE_URL:
 			//ReportError ("Opening URL '%s'\n", filename);
+			Log(LOG_VERYLOW, "Open() URL");
 			m_fdSocket = http_open(m_MetaData->strURI);
 			Log(LOG_LOWLEVEL, "Back from http_open(): socket=%d", m_fdSocket);
 			if (m_fdSocket < 0)
@@ -229,9 +237,11 @@ int CPSPStream::Open()
 			break;
 		
 		case STREAM_TYPE_FILE:
+			Log(LOG_VERYLOW, "Open() FILE, calling fopen()");
 			m_pfd = fopen(m_MetaData->strURI, "rb");
 			if(m_pfd)
 			{
+				Log(LOG_VERYLOW, "Open() FILE, fopen succeeded.");
 				char *ext = strrchr(m_MetaData->strURI, '.') + 1;
 				if (strlen(ext) >= 3)
 				{
@@ -255,10 +265,14 @@ int CPSPStream::Open()
 				ReportError("Unable to open %s", m_MetaData->strURI);
 			}
 			break;
+			
 		case STREAM_TYPE_NONE:
-			ReportError("Calling OpenFile, but the set filename is invalid '%s'", m_MetaData->strURI);
+			Log(LOG_ERROR, "Open(): Invalid Filename..");
+			ReportError("Calling Open(), but the set filename is invalid '%s'", m_MetaData->strURI);
 			break;
 	}
+	
+	Log(LOG_VERYLOW, "Open() End");
 	
 	return m_State!=STREAM_STATE_CLOSED?0:-1;
 }
