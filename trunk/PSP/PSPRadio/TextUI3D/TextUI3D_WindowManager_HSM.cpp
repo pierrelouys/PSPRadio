@@ -275,20 +275,12 @@ void WindowHandlerHSM::Dispatch(int Signal, void *Data)
 			if ( (info.numMessages == 0) ||
 				((info.numMessages != 0) && (Signal != WM_EVENT_VBLANK )))
 				{
-				if (Signal != WM_EVENT_VBLANK )
-				{
-					Log(LOG_VERYLOW, "HSM:Dispatch event : %d", Signal);
-				}
 				new_event = (MbxEvent *)malloc(sizeof(MbxEvent));
 				if (new_event)
 					{
 					new_event->next = 0;
 					new_event->Signal = Signal;
 					new_event->Data = Data;
-					if (Signal != WM_EVENT_VBLANK )
-					{
-						Log(LOG_VERYLOW, "HSM:Sent");
-					}
 					sceKernelSendMbx(HSMMessagebox, new_event);
 					}
 				}
@@ -1508,7 +1500,7 @@ int		width, height;
 		int			sample;
 		int			sample_step = PSP_BUFFER_SIZE_IN_FRAMES / width;
 		int			sample_scale = 16 - LocalSettings.VisualizerH + 1;
-		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory(width * sizeof(LineVertex));
+		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory((width + 1 )* sizeof(LineVertex));
 
 		l_vertices[0].x = xpos++;
 		l_vertices[0].y = start_y + height/2;
@@ -1524,7 +1516,7 @@ int		width, height;
 		}
 
 		sceGuColor(0xFF44CCFF);
-		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width, 0, l_vertices);
+		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width + 1, 0, l_vertices);
 	}
 	sceGuDisable(GU_LINE_SMOOTH);
 }
