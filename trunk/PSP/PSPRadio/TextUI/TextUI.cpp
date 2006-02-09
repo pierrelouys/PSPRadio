@@ -837,9 +837,8 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 				iColor = iColorNormal;
 			}
 			
-			strncpy(strText, ListIterator->first.c_str(), MAXPATHLEN);
-			strText[MAXPATHLEN - 1] = 0;
-
+			strlcpy(strText, ListIterator->first.c_str(), MAXPATHLEN);
+			
 			if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 			{
 				char *pText = basename(strText);
@@ -929,12 +928,12 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			if (strlen((*ListIterator).strTitle))
 			{
 				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
-				strncpy(strText, (*ListIterator).strTitle, MAXPATHLEN);
+				strlcpy(strText, (*ListIterator).strTitle, MAXPATHLEN);
 				strText[MAXPATHLEN -  1] = 0;
 			}
 			else
 			{
-				strncpy(strText, (*ListIterator).strURI, MAXPATHLEN);
+				strlcpy(strText, (*ListIterator).strURI, MAXPATHLEN);
 				strText[MAXPATHLEN -  1] = 0;
 				
 				if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)

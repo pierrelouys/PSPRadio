@@ -100,9 +100,9 @@ void printData() //Print the data parsed from a v1 tag
 	if (gMetaData)
 	{
 		getGenre(gen, gMetaData->strGenre);
-		strncpy(gMetaData->strTitle, info[0], 300); gMetaData->strTitle[299] = 0;
-		strncpy(gMetaData->strArtist, info[1], 300); gMetaData->strArtist[299] = 0;
-		//strncpy(gMetaData->strGenre, genre, 128); gMetaData->strGenre[127] = 0;
+		strlcpy(gMetaData->strTitle, info[0], 300);
+		strlcpy(gMetaData->strArtist, info[1], 300);
+		//strlcpy(gMetaData->strGenre, genre, 128);
 		Log(LOG_INFO, "ID3v1 MetaData Update: Title='%s' Artist='%s' Genre='%s'",
 			gMetaData->strTitle, gMetaData->strArtist, gMetaData->strGenre);
 	}
@@ -134,7 +134,7 @@ void printFrames() //Print each frame from a v2 tag
 			//Log(LOG_INFO, "Genre - %s\n", gen);
 			if (gMetaData)
 			{
-				strncpy(gMetaData->strGenre, gen, 128); gMetaData->strGenre[127] = 0;
+				strlcpy(gMetaData->strGenre, gen, 128);
 			}
 		}
 		else
@@ -144,11 +144,11 @@ void printFrames() //Print each frame from a v2 tag
 			{
 				if (strcmp("TIT2",  frames[x].fname) == 0)
 				{
-					strncpy(gMetaData->strTitle, frames[x].data, 300); gMetaData->strTitle[299] = 0;
+					strlcpy(gMetaData->strTitle, frames[x].data, 300);
 				}
 				else if (strcmp("TPE1",  frames[x].fname) == 0)
 				{
-					strncpy(gMetaData->strArtist, frames[x].data, 300); gMetaData->strArtist[299] = 0;
+					strlcpy(gMetaData->strArtist, frames[x].data, 300);
 				}
 				else if (strcmp("TLEN", frames[x].fname) == 0)
 				{

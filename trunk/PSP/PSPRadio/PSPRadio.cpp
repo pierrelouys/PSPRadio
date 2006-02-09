@@ -476,30 +476,30 @@ void CPSPRadio::OnVBlank()
 int CPSPRadio::OnPowerEvent(int pwrflags)
 {
 	/* check for power switch and suspending as one is manual and the other automatic */
-	Log(LOG_INFO,
-			"flags: 0x%08X\n", pwrflags);
-	if (pwrflags & PSP_POWER_CB_POWER_SWITCH || pwrflags & PSP_POWER_CB_SUSPENDING) {
-		Log(LOG_INFO,
-			"flags: 0x%08X: suspending\n", pwrflags);
+	Log(LOG_INFO, "OnPowerEvent() flags: 0x%08X", pwrflags);
+	
+	if (pwrflags & PSP_POWER_CB_POWER_SWITCH || pwrflags & PSP_POWER_CB_SUSPENDING) 
+	{
+		Log(LOG_INFO, "OnPowerEvent: Suspending");
 	}
 	if (pwrflags & PSP_POWER_CB_RESUMING)
 	{
-		Log(LOG_INFO,
-			"flags: 0x%08X: resuming from suspend mode\n", pwrflags);
+		Log(LOG_INFO, "OnPowerEvent: Resuming from suspend mode");
 	}
 	if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE)
 	{
-		Log(LOG_INFO,
-			"flags: 0x%08X: resume complete\n", pwrflags);
+		Log(LOG_INFO, "OnPowerEvent: Resume Complete");
 
 		bool bWasPlaying = false;
 		if (CPSPSound::PLAY == m_Sound->GetPlayState())
 		{
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Was playing before, so stopping...");
 			m_Sound->Stop();
 			bWasPlaying = true;
 		}
 		if (IsNetworkEnabled())
 		{
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Network was enabled, disabling...");
 			DisableNetwork();
 			#if 0 //test
 			((OptionsScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network();
@@ -522,8 +522,10 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 	}
 	if (pwrflags & PSP_POWER_CB_STANDBY)
 	{
-		Log(LOG_INFO,
-			"flags: 0x%08X: entering standby mode\n", pwrflags);
+		Log(LOG_INFO, "OnPowerEvent: Entering Standby mode");
 	}
+	
+	Log(LOG_VERYLOW, "OnPowerEvent() End.");
+	
 	return 0;
 }

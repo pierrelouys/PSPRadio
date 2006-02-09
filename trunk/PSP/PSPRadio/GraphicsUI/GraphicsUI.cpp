@@ -319,8 +319,8 @@ void CGraphicsUI::DisplayContainers(CMetaDataContainer *Container)
 		}
 		
 		//m_theme.DisplayString(basename(dataIter->strURI), OA_PLAYLIST, nLineNumber+1, bHighlight);
-		strncpy(strText, dataIter->first.c_str(), MAXPATHLEN - 1);
-		strText[MAXPATHLEN - 1] = 0;
+		strlcpy(strText, dataIter->first.c_str(), MAXPATHLEN - 1);
+		
 		if ((strlen(strText) > 4) && 
 			(0 == memcmp(strText, "ms0:", 4)) )
 		{

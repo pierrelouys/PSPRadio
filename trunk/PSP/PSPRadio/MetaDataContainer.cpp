@@ -836,7 +836,7 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 								{
 									if (strchr(strLine, '='))
 									{
-										strncpy(strV2_File, strchr(strLine, '=') + 1, 256);
+										strlcpy(strV2_File, strchr(strLine, '=') + 1, 256);
 									}
 								}
 								if (strlen(strV2_File))
@@ -860,7 +860,7 @@ void CMetaDataContainer::LoadPlayListURIIntoCurrentElementList(char *strFileName
 								strV2_Title[0] = 0;
 								if (strchr(strLine, '='))
 								{
-									strncpy(strV2_Title, strchr(strLine, '=') + 1, 256);
+									strlcpy(strV2_Title, strchr(strLine, '=') + 1, 256);
 								}
 								if (strlen(strV2_Title))
 								{

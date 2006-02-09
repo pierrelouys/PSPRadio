@@ -56,8 +56,7 @@ CPSPStream::~CPSPStream()
 
 void CPSPStream::ClearMetadata()
 {
-	memset(m_MetaData, 0, sizeof(m_MetaData));
-	m_MetaData->ContentType = MetaData::CONTENT_NOT_DEFINED;
+	m_MetaData->Clear();
 }
 
 /** Accessors */
@@ -69,21 +68,21 @@ void CPSPStream::SetURI(char *strFile)
 		{
 			/** New URI, clear Metadata */
 			ClearMetadata();
-			strncpy(m_MetaData->strURI, strFile, MAXPATHLEN);
+			strlcpy(m_MetaData->strURI, strFile, MAXPATHLEN);
 			if (memcmp(m_MetaData->strURI, "http://", strlen("http://")) == 0)
 			{
-				Log(LOG_LOWLEVEL, "CPSPStream::SetFile(%s) <URL> called", m_MetaData->strURI);
+				Log(LOG_LOWLEVEL, "CPSPStream::SetURI(%s) <URL> called", m_MetaData->strURI);
 				m_Type = STREAM_TYPE_URL;
 			}
 			else // It's a file!
 			{
-				Log(LOG_LOWLEVEL, "CPSPStream::SetFile(%s) <FILE> called", m_MetaData->strURI);
+				Log(LOG_LOWLEVEL, "CPSPStream::SetURI(%s) <FILE> called", m_MetaData->strURI);
 				m_Type = STREAM_TYPE_FILE;
 			}
 		}
 		else
 		{
-			Log(LOG_ERROR, "CPSPStream::SetFile(%s) BAD.", strFile);
+			Log(LOG_ERROR, "CPSPStream::SetURI(%s) BAD.", strFile);
 			ReportError("CPSPStream::OpenFile-Invalid filename '%s'", strFile);
 		}
 		

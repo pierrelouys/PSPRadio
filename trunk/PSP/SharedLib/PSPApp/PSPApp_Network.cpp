@@ -474,7 +474,7 @@ void CPSPApp::GetNetworkProfileName(int iProfile, char *buf, size_t size)
 	memset(&data.asString[4], 0, 124);
 	sceUtilityGetNetParam(iProfile, 0/** 0 = Profile Name*/, &data);
 	
-	strncpy(buf, data.asString, size);
+	strlcpy(buf, data.asString, size);
 }
 
 /** From FTPD */

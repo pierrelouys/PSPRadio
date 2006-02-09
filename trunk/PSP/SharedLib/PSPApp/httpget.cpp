@@ -150,8 +150,8 @@ int getauthfromURL(char *url,char *auth)
       if( url[i] == '/' )
          return 0;
     }
-    strncpy(auth,url,pos-url);
-    auth[pos-url] = 0;
+    strlcpy(auth,url,pos-url);
+    
     strcpy(url,pos+1);
     return 1;
   }
@@ -205,8 +205,8 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 		*port = NULL;
 		return NULL;
 	}
-	strncpy(h, hostptr, stringlength);
-	*(h+stringlength) = '\0';
+	strlcpy(h, hostptr, stringlength);
+	
 	*hname = h;
 
 	if (portptr) {
@@ -224,8 +224,8 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 		*port = NULL;
 		return NULL;
 	}
-	strncpy(p0, portptr, stringlength);
-	*(p0 + stringlength) = '\0';
+	strlcpy(p0, portptr, stringlength);
+	
 
 	for (p = p0; *p && isdigit((unsigned char) *p); p++) ;
 
@@ -314,8 +314,8 @@ int CPSPStream::http_open(char *url)
         * -- Martin Sj�ren <md9ms@mdstud.chalmers.se>
         */
        if ((sptr = strchr(url, ' ')) == NULL) {
-               strncpy (purl, url, 1023);
-               purl[1023] = '\0';
+               strlcpy (purl, url, 1023);
+               
        }
        else {
                int purllength = 0;
@@ -560,7 +560,7 @@ fail:
 			Log(LOG_LOWLEVEL, "http_connect(): Response: %s", request);
 			if (strncmp(request, "Location:", 9) == 0)
 			{
-				strncpy (purl, request+10, 1023);
+				strlcpy (purl, request+10, 1023);
 			}
 			else if (strncmp(request, "icy-metaint:", 12) == 0)
 			{

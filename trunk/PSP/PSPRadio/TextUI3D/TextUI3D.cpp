@@ -549,8 +549,7 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 				{
 					color = LocalSettings.ListColorNotSelected;
 				}
-				strncpy(strTemp, ListIterator->first.c_str(), MAXPATHLEN);
-				strTemp[MAXPATHLEN - 1] = 0;
+				strlcpy(strTemp, ListIterator->first.c_str(), MAXPATHLEN);
 				if (strlen(strTemp) > 4 && memcmp(strTemp, "ms0:", 4) == 0)
 				{
 					char *pStrTemp = basename(strTemp);
@@ -626,11 +625,11 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 
 				if (strlen((*ListIterator).strTitle))
 				{
-					strncpy(strTemp, (*ListIterator).strTitle, MAXPATHLEN);
+					strlcpy(strTemp, (*ListIterator).strTitle, MAXPATHLEN);
 				}
 				else
 				{
-					strncpy(strTemp, (*ListIterator).strURI, MAXPATHLEN);
+					strlcpy(strTemp, (*ListIterator).strURI, MAXPATHLEN);
 				}
 
 				if (strlen(strTemp) > 4 && memcmp(strTemp, "ms0:", 4) == 0)

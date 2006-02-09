@@ -34,7 +34,7 @@
 		content_types ContentType;
 		int iItemIndex; /** JPF added to be used as a unique id for each item in list */
 		
-		MetaData(){ strURI[0]=0, strTitle[0]=0, strURL[0]=0, strArtist[0]=0, strGenre[0]=0;
+		void Clear(){ strURI[0]=0, strTitle[0]=0, strURL[0]=0, strArtist[0]=0, strGenre[0]=0;
 					lCurrentTime = lTotalTime = 0;
 					iLength = iSampleRate = iBitRate = iNumberOfChannels = iMPEGLayer = 0;
 					ContentType = CONTENT_NOT_DEFINED;
