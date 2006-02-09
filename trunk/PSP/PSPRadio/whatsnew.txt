@@ -16,6 +16,8 @@ BUG FIXES
 (raf) Core(OGG): Now stops parsing comments (metadata) from OGG file after TITLE and ARTIST have been retrieved. (this was causing random crashes) (r784)
 (raf) Core: Corrected bug that could crash the app if the first thing the user did was NEXT or PREV with the HPRM. (r785)
 (raf) All: Replaced unsafe strncpy globally with safe counterpart strlcpy().
+(raf) Core: Cleanup to Driver initialization routines and system callbacks (power) (r789)
+(raf) Core: Re-enabled HOME menu. (r789,790)
 
 0.38.03 (r767) (2006-02-03)
 NEW FEATURES

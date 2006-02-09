@@ -215,7 +215,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			if (iButtonMask & PSP_CTRL_HOME)
 			{
 				//pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
-				Log(LOG_INFO, "HOME BUTTON RECEIVED");
+				Log(LOG_VERYLOW, "HOME BUTTON RECEIVED");
 			}
 			else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
 			{
