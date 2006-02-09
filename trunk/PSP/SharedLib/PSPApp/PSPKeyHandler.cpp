@@ -54,8 +54,11 @@ bool CPSPKeyHandler::KeyHandler(CPSPKeyHandler::KeyEvent &event)
 	}
 	else
 	{
-		/** This happens by itself when the screen turns off */
-		if ((PSP_CTRL_HOME != m_latch.uiPress) && (0 != m_latch.uiPress)) 
+		/** Ignore the following buttons for EVENT_UPDATE */
+		m_latch.uiPress = m_latch.uiPress & ~PSP_CTRL_HOLD;
+		m_latch.uiPress = m_latch.uiPress & ~PSP_CTRL_HOME; /* This happens by itself when the screen turns off */
+		
+		if (0 != m_latch.uiPress)
 		{
 			ret_value = KeyHandlerSTM(EVENT_UPDATE, event);
 		}
