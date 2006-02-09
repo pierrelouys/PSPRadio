@@ -19,6 +19,7 @@ BUG FIXES
 (raf) Core: Cleanup to Driver initialization routines and system callbacks (power) (r789)
 (raf) Core: Re-enabled HOME menu. (r789,790)
 (sandberg) 3DUI: Fixed a memory error and removed some traces (to avoid context switches) (r792)
+(sandberg) 3DUI: Disabled the visualizer until I've made it more stable (it was causing resets all the time) (r793)
 
 0.38.03 (r767) (2006-02-03)
 NEW FEATURES

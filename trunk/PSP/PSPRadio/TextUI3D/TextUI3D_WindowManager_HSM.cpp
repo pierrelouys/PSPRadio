@@ -52,6 +52,7 @@
 #define		PANEL_SCALE_FLOAT	0.025f
 #define		PANEL_SCALE_INT		4
 
+#define VISUALIZER 	0
 
 
 #define BUF_WIDTH (512)
@@ -1479,8 +1480,10 @@ int		width, height;
 	sceGuEnable(GU_LINE_SMOOTH);
 
 	/* If we don't have a buffer or are not playing then just render a line at zero */
+#if VISUALIZER == 1
 	if ((m_pcm_buffer == NULL) || (m_playstate_icon == PLAYSTATE_ICON_STOP) || (m_playstate_icon == PLAYSTATE_ICON_PAUSE))
 	{
+#endif
 		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory(2 * sizeof(LineVertex));
 		l_vertices[0].x = start_x;
 		l_vertices[0].y = start_y + height/2;
@@ -1492,6 +1495,7 @@ int		width, height;
 
 		sceGuColor(0xFF44CCFF);
 		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, 2, 0, l_vertices);
+#if VISUALIZER == 1
 	}
 	else
 	{
@@ -1518,6 +1522,7 @@ int		width, height;
 		sceGuColor(0xFF44CCFF);
 		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width + 1, 0, l_vertices);
 	}
+#endif
 	sceGuDisable(GU_LINE_SMOOTH);
 }
 
