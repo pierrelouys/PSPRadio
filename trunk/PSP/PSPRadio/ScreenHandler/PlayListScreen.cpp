@@ -333,8 +333,13 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 	CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
 	
 	Log(LOG_VERYLOW, "OnHPRMReleased(): iHPRMMask=0x%x", iHPRMMask);
-
-
+	
+	if (PlayIndexer->GetElementList() == NULL)
+	{
+		/** Make the play index be whatever is selected */
+		m_Lists->SetPlayingToSelection();
+	}
+	
 	if (iHPRMMask & PSP_HPRM_BACK)
 	{
 		if (false == m_Lists->GetContainerList()->empty())
