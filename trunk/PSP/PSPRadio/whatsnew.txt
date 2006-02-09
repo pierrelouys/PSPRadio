@@ -10,6 +10,10 @@ BUG FIXES
 (raf) Core: Corrected erroneous button hits being sent continuosly when the power saving kicked off (r774)
 (sandberg) 3DUI: Fixed a cacheproblem with the panels (r778)
 (sandberg) 3DUI: Some of the gfxsizes setup in the configuration was used incorrect in the code (r779)
+(raf) Core: Now buttons/hprm data is sent by value in the events - this could cause incorrect or erroneous data from being processed, based on timing. (r782)
+(raf) Core: Eliminated possibility of certain race conditions from happening (when a stream ends). This should provide more stability/consistency on stream ends -- this applies mostly to local files. (r783)
+(raf) Core: Now stream handling screen is assigned correctly when stream starts playing.
+(raf) Core(OGG): Now stops parsing comments (metadata) from OGG file after TITLE and ARTIST have been retrieved. (this was causing random crashes)
 
 0.38.03 (r767) (2006-02-03)
 NEW FEATURES

@@ -157,20 +157,25 @@ void COGGStreamReader::ProcessInfo()
 
 void COGGStreamReader::ReadComments()
 {
+	int iExpectedCount = 0;
+	Log(LOG_INFO, "ReadComments()");
 	char **ptr=ov_comment(&m_vf,-1)->user_comments;
-	while(*ptr)
+	while(*ptr && (iExpectedCount < 2))
 	{
 		Log(LOG_INFO, "%s",*ptr);
 		if (strstr(*ptr, "TITLE="))
 		{
 			m_InputStream->SetTitle((*ptr)+strlen("TITLE="));
+			iExpectedCount++;
 		}
 		else if (strstr(*ptr, "ARTIST="))
 		{
 			m_InputStream->SetArtist((*ptr)+strlen("ARTIST="));
+			iExpectedCount++;
 		}
 		++ptr;
 	}
+	Log(LOG_VERYLOW, "ReadComments() End.");
 }
 
 void COGGStreamReader::Close()

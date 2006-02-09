@@ -233,7 +233,6 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 				if (false == m_Lists->GetElementList()->empty())
 				{
-					m_ScreenHandler->SetStreamOwnerScreen(this);
 					switch(playingstate)
 					{
 						/** The user pressed X and no track is playing (STOPPED) */
@@ -552,4 +551,5 @@ void PlayListScreen::PlaySetStream()
 			UI->OnNewSongData(pCurrentStream->GetMetaData());
 	#endif
 	m_ScreenHandler->GetSound()->Play();
+	m_ScreenHandler->SetStreamOwnerScreen(this);
 }
