@@ -320,11 +320,6 @@ int CPSPRadio::ProcessEvents()
 				}
 				break;
 
-//			case MID_THDECODE_DECODING:
-//				if (m_UI)
-//					m_UI->OnNewStreamStarted();
-//				break;
-
 			case MID_DECODE_STREAM_OPENING:
 				if (m_UI)
 					m_UI->OnStreamOpening();
@@ -357,8 +352,6 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_THDECODE_DECODING:
-			//case MID_SOUND_STARTED:
-				//Log(LOG_VERYLOW, "MID_THDECODE_DECODING/MID_SOUND_STARTED(0x%x) received, calling OnPlayStateChange(PLAY)", event.EventId);
 				Log(LOG_VERYLOW, "MID_THDECODE_DECODING received, calling OnPlayStateChange(PLAY)", event.EventId);
 				if (StreamOwnerScreen)
 				{
@@ -368,8 +361,8 @@ int CPSPRadio::ProcessEvents()
 				{
 					Log(LOG_ERROR, "Wanted to call OnPlayStateChange(PLAY), but the stream has no owner.");
 				}
-				if (m_UI)
-					m_UI->OnStreamOpeningSuccess();
+				//if (m_UI)
+				//	m_UI->OnStreamOpeningSuccess();
 				break;
 
 			case MID_THDECODE_EOS:

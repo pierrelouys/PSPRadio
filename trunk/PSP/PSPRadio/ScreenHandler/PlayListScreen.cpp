@@ -544,8 +544,23 @@ void PlayListScreen::EOSHandler()
 
 void PlayListScreen::PlaySetStream()
 {
-	m_ScreenHandler->GetSound()->GetCurrentStream()->
-			SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
+	CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
+	
+	switch (playingstate)
+	{
+		case CPSPSound::PLAY:
+		case CPSPSound::STOP:
+			memcpy(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), 	
+					&(*(*(m_Lists->GetCurrentElementIterator()))),
+					sizeof(MetaData));
+			m_ScreenHandler->GetSound()->GetCurrentStream()->
+					SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
+
+			break;
+		case CPSPSound::PAUSE:
+			break;
+	}
+	
 	Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
 	#if 0
 	/** Populate m_CurrentMetaData */
