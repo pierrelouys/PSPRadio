@@ -1,6 +1,7 @@
 What's New for PSPRadio 
 ========================
-0.38.04 (r) (2006-02-)
+
+0.38.04 (r797) (2006-02-10)
 NEW FEATURES
 (raf) Core: Now playlist entries are sorted by title if the playlist is v2. (r768)
 BUG FIXES
