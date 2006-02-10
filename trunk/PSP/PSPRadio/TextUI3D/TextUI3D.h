@@ -50,6 +50,7 @@
 		int ListLinespace;
 		int ListMaxChars;
 		int ListColorSelected;
+		int ListColorPlaying;
 		int ListColorNotSelected;
 		int ShowFileExtension;
 		int SongTitleX, SongTitleY;

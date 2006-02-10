@@ -136,6 +136,7 @@ void CTextUI3D::GetSettings()
 	LocalSettings.ListLinespace = m_Settings->GetInteger("SETTINGS:LIST_LINESPACE", 8);
 	LocalSettings.ListMaxChars = m_Settings->GetInteger("SETTINGS:LIST_MAX_CHARS", 40);
 	LocalSettings.ListColorSelected = GetConfigColor("SETTINGS:LIST_COLOR_SELECTED");
+	LocalSettings.ListColorPlaying = GetConfigColor("SETTINGS:LIST_COLOR_PLAYING");
 	LocalSettings.ListColorNotSelected = GetConfigColor("SETTINGS:LIST_COLOR_NOT_SELECTED");
 	LocalSettings.ShowFileExtension = m_Settings->GetInteger("SETTINGS:ShowFileExtension", 0);
 	GetConfigPair("SETTINGS:SONGTITLE_XY", &LocalSettings.SongTitleX, &LocalSettings.SongTitleY);
@@ -344,7 +345,7 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 
 int CTextUI3D::OnStreamTimeUpdate(MetaData *pData)
 {
-	if (pData->lTotalTime != 0)
+	if (pData->lTotalTime > 0)
 	{
 		sprintf(m_playtime, "%02d:%02d/%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
 													(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
@@ -510,7 +511,9 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 
 
 	map< string, list<MetaData>* >::iterator ListIterator;
-	map< string, list<MetaData>* >::iterator *CurrentElement = Container->GetCurrentContainerIterator();
+	map< string, list<MetaData>* >::iterator *CurrentHighlightedElement = Container->GetCurrentContainerIterator();
+	map< string, list<MetaData>* >::iterator *CurrentPlayingElement = Container->GetPlayingContainerIterator();
+	
 	map< string, list<MetaData>* > *List = Container->GetContainerList();
 
 	list_cnt = List->size();
@@ -522,7 +525,7 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 	{
 		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++, current++)
 		{
-			if (ListIterator == *CurrentElement)
+			if (ListIterator == *CurrentHighlightedElement)
 			{
 			break;
 			}
@@ -541,9 +544,13 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 		{
 			if (i < render_cnt)
 			{
-				if (ListIterator == *CurrentElement)
+				if (ListIterator == *CurrentHighlightedElement)
 				{
 					color = LocalSettings.ListColorSelected;
+				}
+				else if (ListIterator == *CurrentPlayingElement)
+				{
+					color = LocalSettings.ListColorPlaying;
 				}
 				else
 				{
@@ -582,7 +589,8 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 
 
 	list<MetaData>::iterator ListIterator;
-	list<MetaData>::iterator *CurrentElement = Container->GetCurrentElementIterator();
+	list<MetaData>::iterator *CurrentHighlightedElement = Container->GetCurrentElementIterator();
+	list<MetaData>::iterator *CurrentPlayingElement = Container->GetPlayingElementIterator();
 	list<MetaData> *List = Container->GetElementList();
 
 
@@ -595,7 +603,7 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 	{
 		for (ListIterator = List->begin() ; ListIterator != List->end() ; ListIterator++, current++)
 		{
-			if (ListIterator == *CurrentElement)
+			if (ListIterator == *CurrentHighlightedElement)
 			{
 			break;
 			}
@@ -614,9 +622,13 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 		{
 			if (i < render_cnt)
 			{
-				if (ListIterator == *CurrentElement)
+				if (ListIterator == *CurrentHighlightedElement)
 				{
 					color = LocalSettings.ListColorSelected;
+				}
+				else if (ListIterator == *CurrentPlayingElement)
+				{
+					color = LocalSettings.ListColorPlaying;
 				}
 				else
 				{
