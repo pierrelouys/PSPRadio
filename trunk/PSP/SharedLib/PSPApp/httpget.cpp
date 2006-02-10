@@ -150,7 +150,7 @@ int getauthfromURL(char *url,char *auth)
       if( url[i] == '/' )
          return 0;
     }
-    strlcpy(auth,url,pos-url);
+    strlcpy(auth,url,pos-url +1);
     
     strcpy(url,pos+1);
     return 1;
@@ -205,7 +205,7 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 		*port = NULL;
 		return NULL;
 	}
-	strlcpy(h, hostptr, stringlength);
+	strlcpy(h, hostptr, stringlength+1);
 	
 	*hname = h;
 
@@ -224,7 +224,7 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 		*port = NULL;
 		return NULL;
 	}
-	strlcpy(p0, portptr, stringlength);
+	strlcpy(p0, portptr, stringlength+1);
 	
 
 	for (p = p0; *p && isdigit((unsigned char) *p); p++) ;
@@ -313,9 +313,9 @@ int CPSPStream::http_open(char *url)
         * fetching via HTTP.
         * -- Martin Sj�ren <md9ms@mdstud.chalmers.se>
         */
-       if ((sptr = strchr(url, ' ')) == NULL) {
-               strlcpy (purl, url, 1023);
-               
+       if ((sptr = strchr(url, ' ')) == NULL) 
+	   {
+               strlcpy (purl, url, 1024);
        }
        else {
                int purllength = 0;
@@ -560,7 +560,7 @@ fail:
 			Log(LOG_LOWLEVEL, "http_connect(): Response: %s", request);
 			if (strncmp(request, "Location:", 9) == 0)
 			{
-				strlcpy (purl, request+10, 1023);
+				strlcpy (purl, request+10, 1024);
 			}
 			else if (strncmp(request, "icy-metaint:", 12) == 0)
 			{
