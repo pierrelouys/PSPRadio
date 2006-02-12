@@ -1,6 +1,11 @@
 What's New for PSPRadio 
 ========================
 
+0.38.05 (rxxx) (2006-02-10)
+NEW FEATURES
+BUG FIXES
+(sandberg) 3DUI: Rewrote the textrendering of lists and options so only one event is sent, to make it more stable (r798)
+
 0.38.04 (r797) (2006-02-10)
 NEW FEATURES
 (raf) Core: Now playlist entries are sorted by title if the playlist is v2. (r768)

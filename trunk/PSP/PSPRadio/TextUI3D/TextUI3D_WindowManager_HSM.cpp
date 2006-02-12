@@ -932,6 +932,98 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 	}
 }
 
+void WindowHandlerHSM::RenderList2(TextItem *current_list, int x_offset, int y_offset, float opacity, font_names font)
+{
+	int							fwidth, fheight;
+	int							tex;
+	TextItem					*current_item;
+
+	GetFontInfo(font, &fwidth, &fheight, &tex);
+
+	if ((x_offset < PANEL_HIDE_X) && (y_offset < PANEL_HIDE_Y))
+	{
+		sceGuEnable(GU_TEXTURE_2D);
+
+		sceGuAlphaFunc( GU_GREATER, 0, 0xff );
+		sceGuEnable( GU_ALPHA_TEST );
+
+		sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
+		sceGuTexEnvColor(0xFF000000);
+
+		sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
+		sceGuEnable( GU_BLEND );
+
+		sceGuTexWrap(GU_REPEAT, GU_REPEAT);
+		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+
+		// setup texture
+		(void)tcache.jsaTCacheSetTexture(tex);
+		sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+
+		if (current_list)
+		{
+			current_item = current_list;
+			while(current_item)
+			{
+				int 				strsize;
+				int 				sx, sy;
+				struct TexCoord		texture_offset;
+				int					color;
+
+				/* Calculate opacity */
+				color = current_item->color & 0xFFFFFF;
+				color = color | ((int)(opacity*0xFF) << 24);
+
+				strsize = strlen(current_item->strText);
+				sx = current_item->x + x_offset;
+				sy = current_item->y + y_offset;
+				struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(strsize * 2 * sizeof(struct Vertex));
+				for (int i = 0, index = 0 ; i < strsize ; i++)
+					{
+					char	letter = current_item->strText[i];
+					FindSmallFontTexture(letter, &texture_offset, font);
+
+					c_vertices[index+0].u 		= texture_offset.x1;
+					c_vertices[index+0].v 		= texture_offset.y1;
+					c_vertices[index+0].x 		= sx;
+					c_vertices[index+0].y 		= sy;
+					c_vertices[index+0].z 		= 0;
+					c_vertices[index+0].color 	= color;
+
+					c_vertices[index+1].u 		= texture_offset.x2;
+					c_vertices[index+1].v 		= texture_offset.y2;
+					c_vertices[index+1].x 		= sx + fwidth;
+					c_vertices[index+1].y 		= sy + fheight;
+					c_vertices[index+1].z 		= 0;
+					c_vertices[index+1].color 	= color;
+
+					sx 	+= fwidth;
+					index 	+= 2;
+					}
+				sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
+				current_item = current_item->next;
+				}
+			}
+
+		sceGuDisable(GU_BLEND);
+		sceGuDisable(GU_ALPHA_TEST);
+		sceGuDisable(GU_TEXTURE_2D);
+	}
+}
+
+void WindowHandlerHSM::ClearList(TextItem *current_list)
+{
+	TextItem					*temp_item;
+	TextItem					*current_item = current_list;
+
+	while (current_item)
+		{
+		temp_item = current_item;
+		free(temp_item);
+		current_item = current_item->next;
+		}
+}
+
 void WindowHandlerHSM::RenderError(message_events event)
 {
 	static message_states	current_state = STATE_HIDE;
@@ -1559,13 +1651,13 @@ void *WindowHandlerHSM::top_handler()
 				}
 			}
 			/* Render text for windows */
-			RenderList(&m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
-			RenderList(&m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
-			RenderList(&m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
-			RenderList(&m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
-			RenderList(&m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
-			RenderList(&m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
-			RenderList(&m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList2(m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
+			RenderList2(m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
+			RenderList2(m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList2(m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
+			RenderList2(m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList2(m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
+			RenderList2(m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
 			/* Render progressbar if necessary */
 			RenderProgressBar(false);
 			RenderError(EVENT_RENDER);
@@ -1743,44 +1835,16 @@ void *WindowHandlerHSM::playlist_handler()
 			return 0;
 			}
 
-		case WM_EVENT_LIST_CLEAR:
-			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_LIST_CLEAR");
-			{
-			while(m_PlaylistContainer.size())
-				{
-				m_PlaylistContainer.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_LIST_TEXT:
 			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_LIST_TEXT");
-			{
-			TextItem	text;
-
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_PlaylistContainer.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_PlaylistContainer);
+			m_PlaylistContainer = (TextItem *)m_Event.Data;
 			return 0;
 
-		case WM_EVENT_ENTRY_CLEAR:
-			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_ENTRY_CLEAR");
-			{
-			while(m_PlaylistEntries.size())
-				{
-				m_PlaylistEntries.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_ENTRY_TEXT:
 			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_ENTRY_TEXT");
-			{
-			TextItem	text;
-
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_PlaylistEntries.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_PlaylistEntries);
+			m_PlaylistEntries = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_SELECT_ENTRIES:
@@ -1889,44 +1953,16 @@ void *WindowHandlerHSM::shoutcast_handler()
 			return 0;
 			}
 
-		case WM_EVENT_LIST_CLEAR:
-			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_LIST_CLEAR");
-			{
-			while(m_ShoutcastContainer.size())
-				{
-				m_ShoutcastContainer.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_LIST_TEXT:
 			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_LIST_TEXT");
-			{
-			TextItem	text;
-
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_ShoutcastContainer.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_ShoutcastContainer);
+			m_ShoutcastContainer = (TextItem *)m_Event.Data;
 			return 0;
 
-		case WM_EVENT_ENTRY_CLEAR:
-			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_ENTRY_CLEAR");
-			{
-			while(m_ShoutcastEntries.size())
-				{
-				m_ShoutcastEntries.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_ENTRY_TEXT:
 			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_ENTRY_TEXT");
-			{
-			TextItem	text;
-
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_ShoutcastEntries.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_ShoutcastEntries);
+			m_ShoutcastEntries = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_SELECT_ENTRIES:
@@ -2035,44 +2071,16 @@ void *WindowHandlerHSM::localfiles_handler()
 			return 0;
 			}
 
-		case WM_EVENT_LIST_CLEAR:
-			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_LIST_CLEAR");
-			{
-			while(m_LocalfilesContainer.size())
-				{
-				m_LocalfilesContainer.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_LIST_TEXT:
 			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_LIST_TEXT");
-			{
-			TextItem	text;
-
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_LocalfilesContainer.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_LocalfilesContainer);
+			m_LocalfilesContainer = (TextItem *)m_Event.Data;
 			return 0;
 
-		case WM_EVENT_ENTRY_CLEAR:
-			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_ENTRY_CLEAR");
-			{
-			while(m_LocalfilesEntries.size())
-				{
-				m_LocalfilesEntries.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_ENTRY_TEXT:
 			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_ENTRY_TEXT");
-			{
-			TextItem	text;
-
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_LocalfilesEntries.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_LocalfilesEntries);
+			m_LocalfilesEntries = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_SELECT_ENTRIES:
@@ -2169,23 +2177,10 @@ void *WindowHandlerHSM::options_handler()
 			state = &(m_panel_state[PANEL_OPTIONS]);
 			SetHideBottom(state);
 			return 0;
-		case WM_EVENT_OPTIONS_CLEAR:
-			Log(LOG_VERYLOW, "OPTIONS:Event WM_EVENT_OPTIONS_CLEAR");
-			{
-			while(m_OptionItems.size())
-				{
-				m_OptionItems.pop_front();
-				}
-			}
-			return 0;
 		case WM_EVENT_OPTIONS_TEXT:
 			Log(LOG_VERYLOW, "OPTIONS:Event WM_EVENT_OPTIONS_TEXT");
-			{
-			TextItem	text;
-			memcpy(&text, m_Event.Data, sizeof(TextItem));
-			m_OptionItems.push_back(text);
-			free(m_Event.Data);
-			}
+			ClearList(m_OptionItems);
+			m_OptionItems = (TextItem *)m_Event.Data;
 			return 0;
 		}
 		return &top;

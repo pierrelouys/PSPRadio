@@ -150,6 +150,9 @@ private:
 	int GetConfigColor(char *strKey);
 	int FindFirstEntry(int list_cnt, int current);
 	void StoreOption(int y, bool active_item, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState);
+	void AddToOptionList(int x, int y, unsigned int color, char *text);
+	void AddToListList(int x, int y, unsigned int color, char *text);
+	void AddToEntryList(int x, int y, unsigned int color, char *text);
 
 private:
 	CScreenHandler::ScreenShotState 	m_state;
@@ -164,7 +167,9 @@ private:
 	int									m_buffer;
 	int									m_bitrate;
 	int									m_battery;
-
+	WindowHandlerHSM::TextItem			*m_option_list, *m_option_list_tail;
+	WindowHandlerHSM::TextItem			*m_list_list, *m_list_list_tail;
+	WindowHandlerHSM::TextItem			*m_entry_list, *m_entry_list_tail;
 };
 
 #endif

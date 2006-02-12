@@ -59,6 +59,9 @@ CTextUI3D::CTextUI3D()
 	Log(LOG_VERYLOW, "CTextUI3D: created");
 	m_state	= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_title[0] = 0;
+	m_option_list = m_option_list_tail = NULL;
+	m_list_list = m_list_list_tail = NULL;
+	m_entry_list = m_entry_list_tail = NULL;
 }
 
 CTextUI3D::~CTextUI3D()
@@ -431,9 +434,9 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	int y = LocalSettings.OptionsY;
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
+	WindowHandlerHSM::TextItem *new_list;
 
 	Log(LOG_VERYLOW, "CTextUI3D:Updating options");
-	m_wmanager.WM_SendEvent(WM_EVENT_OPTIONS_CLEAR, NULL);
 
 	if (OptionsList.size() > 0)
 	{
@@ -451,8 +454,11 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			StoreOption(y, active_item, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, Option.iActiveState);
 			y += LocalSettings.OptionsLinespace;
 		}
+		AddToOptionList(LocalSettings.OptionsX, y, LocalSettings.OptionsColorSelected, m_title);
 
-		m_wmanager.AddOptionText(LocalSettings.OptionsX, y, LocalSettings.OptionsColorSelected, m_title);
+		new_list = m_option_list;
+		m_option_list = m_option_list_tail = NULL;
+		m_wmanager.WM_SendEvent(WM_EVENT_OPTIONS_TEXT, new_list);
 	}
 }
 
@@ -470,7 +476,7 @@ void CTextUI3D::StoreOption(int y, bool active_item, char *strName, char *strSta
 		color = LocalSettings.OptionsColorNotSelected;
 	}
 	/* The ID field are not used on the option screen */
-	m_wmanager.AddOptionText(x, y, color, strName);
+	AddToOptionList(x, y, color, strName);
 
 	if (iNumberOfStates > 0)
 	{
@@ -490,12 +496,37 @@ void CTextUI3D::StoreOption(int y, bool active_item, char *strName, char *strSta
 
 				/* For the moment only render the selected item .. No space on screen */
 				/* The ID field are not used on the option screen */
-				m_wmanager.AddOptionText(x, y, color, strStates[iStates]);
+				AddToOptionList(x, y, color, strStates[iStates]);
 				x += (strlen(strStates[iStates])+1) * 8;
 				continue;
 			}
 		}
 	}
+}
+
+void CTextUI3D::AddToOptionList(int x, int y, unsigned int color, char *text)
+{
+	WindowHandlerHSM::TextItem			*new_item;
+
+	new_item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
+
+	new_item->x 		= x;
+	new_item->y 		= y;
+	new_item->color 	= color;
+	new_item->ID 		= 0;
+	new_item->next 		= NULL;
+	strcpy(new_item->strText, text);
+	strupr(new_item->strText);
+
+	if (m_option_list == NULL)
+		{
+		m_option_list_tail = m_option_list = new_item;
+		}
+	else
+		{
+		m_option_list_tail->next = new_item;
+		m_option_list_tail = new_item;
+		}
 }
 
 void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
@@ -508,17 +539,16 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 	int				list_size = LocalSettings.ListLines;
 	int				first_entry;
 	char 			*strTemp = (char *)malloc (MAXPATHLEN);
+	WindowHandlerHSM::TextItem *new_list;
 
 
 	map< string, list<MetaData>* >::iterator ListIterator;
 	map< string, list<MetaData>* >::iterator *CurrentHighlightedElement = Container->GetCurrentContainerIterator();
 	map< string, list<MetaData>* >::iterator *CurrentPlayingElement = Container->GetPlayingContainerIterator();
-	
+
 	map< string, list<MetaData>* > *List = Container->GetContainerList();
 
 	list_cnt = List->size();
-
-	m_wmanager.WM_SendEvent(WM_EVENT_LIST_CLEAR, NULL);
 
 	/*  Find number of current element */
 	if (list_cnt > 0)
@@ -561,19 +591,47 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 				{
 					char *pStrTemp = basename(strTemp);
 					pStrTemp[LocalSettings.ListMaxChars] = 0;
-					m_wmanager.AddListText(LocalSettings.ListX, y, color, pStrTemp);
+					AddToListList(LocalSettings.ListX, y, color, pStrTemp);
 				}
 				else
 				{
 					strTemp[LocalSettings.ListMaxChars] = 0;
-					m_wmanager.AddListText(LocalSettings.ListX, y, color, strTemp);
+					AddToListList(LocalSettings.ListX, y, color, strTemp);
 				}
 				y += LocalSettings.ListLinespace;
 				ListIterator++;
 			}
 		}
+		new_list = m_list_list;
+		m_list_list = m_list_list_tail = NULL;
+		m_wmanager.WM_SendEvent(WM_EVENT_LIST_TEXT, new_list);
 	}
 	free (strTemp);
+}
+
+void CTextUI3D::AddToListList(int x, int y, unsigned int color, char *text)
+{
+	WindowHandlerHSM::TextItem			*new_item;
+
+	new_item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
+
+	new_item->x 		= x;
+	new_item->y 		= y;
+	new_item->color 	= color;
+	new_item->ID 		= 0;
+	new_item->next 		= NULL;
+	strcpy(new_item->strText, text);
+	strupr(new_item->strText);
+
+	if (m_list_list == NULL)
+		{
+		m_list_list_tail = m_list_list = new_item;
+		}
+	else
+		{
+		m_list_list_tail->next = new_item;
+		m_list_list_tail = new_item;
+		}
 }
 
 void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
@@ -586,6 +644,7 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 	int				list_size = LocalSettings.ListLines;
 	int				first_entry;
 	char 			*strTemp = (char *)malloc (MAXPATHLEN+1);
+	WindowHandlerHSM::TextItem *new_list;
 
 
 	list<MetaData>::iterator ListIterator;
@@ -595,8 +654,6 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 
 
 	list_cnt = List->size();
-
-	m_wmanager.WM_SendEvent(WM_EVENT_ENTRY_CLEAR, NULL);
 
 	/*  Find number of current element */
 	if (list_cnt > 0)
@@ -656,20 +713,48 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 						}
 					}
 					pStrTemp[LocalSettings.ListMaxChars] = 0;
-					m_wmanager.AddEntryText(LocalSettings.ListX, y, color, pStrTemp);
+					AddToEntryList(LocalSettings.ListX, y, color, pStrTemp);
 				}
 				else
 				{
 					strTemp[LocalSettings.ListMaxChars] = 0;
-					m_wmanager.AddEntryText(LocalSettings.ListX, y, color, strTemp);
+					AddToEntryList(LocalSettings.ListX, y, color, strTemp);
 				}
 
 				y += LocalSettings.ListLinespace;
 				ListIterator++;
 			}
 		}
+		new_list = m_entry_list;
+		m_entry_list = m_entry_list_tail = NULL;
+		m_wmanager.WM_SendEvent(WM_EVENT_ENTRY_TEXT, new_list);
 	}
 	free (strTemp);
+}
+
+void CTextUI3D::AddToEntryList(int x, int y, unsigned int color, char *text)
+{
+	WindowHandlerHSM::TextItem			*new_item;
+
+	new_item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
+
+	new_item->x 		= x;
+	new_item->y 		= y;
+	new_item->color 	= color;
+	new_item->ID 		= 0;
+	new_item->next 		= NULL;
+	strcpy(new_item->strText, text);
+	strupr(new_item->strText);
+
+	if (m_entry_list == NULL)
+		{
+		m_entry_list_tail = m_entry_list = new_item;
+		}
+	else
+		{
+		m_entry_list_tail->next = new_item;
+		m_entry_list_tail = new_item;
+		}
 }
 
 int CTextUI3D::FindFirstEntry(int list_cnt, int current)

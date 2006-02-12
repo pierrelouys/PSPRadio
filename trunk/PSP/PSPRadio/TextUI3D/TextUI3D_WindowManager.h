@@ -37,13 +37,10 @@ using namespace std;
 	WM_EVENT_SELECT_ENTRIES,
 	WM_EVENT_LIST_TEXT,
 	WM_EVENT_ENTRY_TEXT,
-	WM_EVENT_LIST_CLEAR,
-	WM_EVENT_ENTRY_CLEAR,
 
 	/* Option events */
 	WM_EVENT_OPTIONS,
 	WM_EVENT_OPTIONS_TEXT,
-	WM_EVENT_OPTIONS_CLEAR,
 
 	/* Misc events. */
 	WM_EVENT_VBLANK,
@@ -89,9 +86,6 @@ public:
 
 	void WM_SendEvent(int event, void *data);
 	void Initialize(char *cwd);
-	void AddOptionText(int x, int y, unsigned int color, char *text);
-	void AddListText(int x, int y, unsigned int color, char *text);
-	void AddEntryText(int x, int y, unsigned int color, char *text);
 	void AddTitleText(int x, int y, unsigned int color, char *text);
 
 private:

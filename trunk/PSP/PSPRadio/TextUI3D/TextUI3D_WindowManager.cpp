@@ -59,48 +59,6 @@ void CTextUI3D_WindowManager::Initialize(char *cwd)
 	m_wm_hsm.Initialize(cwd);
 }
 
-void CTextUI3D_WindowManager::AddOptionText(int x, int y, unsigned int color, char *text)
-{
-	WindowHandlerHSM::TextItem	*item;
-
-	item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
-	item->x 	= x;
-	item->y 	= y;
-	item->color 	= color;
-	strcpy(item->strText, text);
-	strupr(item->strText);
-	item->ID = 0;
-	m_wm_hsm.Dispatch(WM_EVENT_OPTIONS_TEXT, item);
-}
-
-void CTextUI3D_WindowManager::AddListText(int x, int y, unsigned int color, char *text)
-{
-	WindowHandlerHSM::TextItem	*item;
-
-	item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
-	item->x 	= x;
-	item->y 	= y;
-	item->color = color;
-	strcpy(item->strText, text);
-	strupr(item->strText);
-	item->ID = 0;
-	m_wm_hsm.Dispatch(WM_EVENT_LIST_TEXT, item);
-}
-
-void CTextUI3D_WindowManager::AddEntryText(int x, int y, unsigned int color, char *text)
-{
-	WindowHandlerHSM::TextItem	*item;
-
-	item = (WindowHandlerHSM::TextItem *) malloc(sizeof(WindowHandlerHSM::TextItem));
-	item->x 	= x;
-	item->y 	= y;
-	item->color 	= color;
-	strcpy(item->strText, text);
-	strupr(item->strText);
-	item->ID = 0;
-	m_wm_hsm.Dispatch(WM_EVENT_ENTRY_TEXT, item);
-}
-
 void CTextUI3D_WindowManager::AddTitleText(int x, int y, unsigned int color, char *text)
 {
 	WindowHandlerHSM::TextItem	*item;

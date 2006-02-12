@@ -118,13 +118,14 @@ public:
 		char	filename[MAXPATHLEN];
 	};
 
-	typedef struct TextItem
+	typedef struct _TextItem
 	{
-		int				ID;
-		int  			x, y;
-		unsigned int	color;
-		char 			strText[MAXPATHLEN];
-	};
+		int					ID;
+		int  				x, y;
+		unsigned int		color;
+		char 				strText[MAXPATHLEN];
+		struct _TextItem	*next;
+	} TextItem;
 
 private:
 
@@ -229,6 +230,8 @@ private:
 	void UpdateTextItem(list<TextItem> *current, int ID, int x, int y, char *strText, unsigned int color);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font);
 	void RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity, font_names font);
+	void RenderList2(TextItem *current_list, int x_offset, int y_offset, float opacity, font_names font);
+	void ClearList(TextItem *current_list);
 
 	void RenderIcon(int IconID, int x, int y, int width, int height, int x_offset);
 	void RenderIconAlpha(int IconID, int x, int y, int width, int height, int x_offset);
@@ -300,13 +303,13 @@ private:
 	CTextUI3D_Panel					m_error_panel;
 
 	list<TextItem>					m_StaticTextItems;
-	list<TextItem>					m_OptionItems;
-	list<TextItem>					m_PlaylistContainer;
-	list<TextItem>					m_PlaylistEntries;
-	list<TextItem>					m_ShoutcastContainer;
-	list<TextItem>					m_ShoutcastEntries;
-	list<TextItem>					m_LocalfilesContainer;
-	list<TextItem>					m_LocalfilesEntries;
+	TextItem						*m_OptionItems;
+	TextItem						*m_PlaylistContainer;
+	TextItem						*m_PlaylistEntries;
+	TextItem						*m_ShoutcastContainer;
+	TextItem						*m_ShoutcastEntries;
+	TextItem						*m_LocalfilesContainer;
+	TextItem						*m_LocalfilesEntries;
 	list<TextItem>					m_ErrorList;
 	list<TextItem>					m_MessageList;
 	TextItem						m_songtitle;
