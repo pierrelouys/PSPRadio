@@ -27,7 +27,6 @@
 #include <pspthreadman.h>
 #include "TextUI3D_Panel.h"
 #include <unistd.h>
-#include <list>
 
 	enum user_events
 	{
@@ -279,10 +278,8 @@ private:
 	void SetError(char *errorStr);
 	void SetMessage(char *errorStr);
 
-	void UpdateTextItem(list<TextItem> *current, int ID, int x, int y, char *strText, unsigned int color);
 	void FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font);
-	void RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity, font_names font);
-	void RenderList2(TextItem *current_list, int x_offset, int y_offset, float opacity, font_names font);
+	void RenderList(TextItem *current_list, int x_offset, int y_offset, float opacity, font_names font);
 	void ClearList(TextItem *current_list);
 
 	void RenderIcon(int IconID, int x, int y, int width, int height, int x_offset);
@@ -363,8 +360,8 @@ private:
 	TextItem						*m_ShoutcastEntries;
 	TextItem						*m_LocalfilesContainer;
 	TextItem						*m_LocalfilesEntries;
-	list<TextItem>					m_ErrorList;
-	list<TextItem>					m_MessageList;
+	TextItem						*m_ErrorList;
+	TextItem						*m_MessageList;
 	TextItem						m_songtitle;
 
 	bool							m_network_state;

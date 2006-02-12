@@ -242,6 +242,8 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	m_hour = 0;
 	m_minute = 0;
 	m_current_m = m_current_s = m_total_m = m_total_s = -1;
+	m_ErrorList = NULL;
+	m_MessageList = NULL;
 
 	m_list_icon = LIST_ICON_PLAYLIST;
 	m_playstate_icon = PLAYSTATE_ICON_STOP;
@@ -613,41 +615,6 @@ void WindowHandlerHSM::UpdateValue(float *current, float *target)
 		}
 }
 
-void WindowHandlerHSM::UpdateTextItem(list<TextItem> *current, int ID, int x, int y, char *strText, unsigned int color)
-{
-	TextItem					Option;
-	list<TextItem>::iterator 	OptionIterator;
-	bool						found = false;
-
-	if (current->size() > 0)
-	{
-		for (OptionIterator = current->begin() ; OptionIterator != current->end() ; OptionIterator++)
-		{
-			if ((*OptionIterator).ID == ID)
-			{
-				strcpy((*OptionIterator).strText, strText);
-				strupr((*OptionIterator).strText);
-				(*OptionIterator).color = color;
-				(*OptionIterator).x = x;
-				(*OptionIterator).y = y;
-				found = true;
-				break;
-			}
-		}
-	}
-	if (!found)
-	{
-		Option.x = x;
-		Option.y = y;
-		Option.color = 0xFFFFFFFF;
-		strcpy(Option.strText, strText);
-		strupr(Option.strText);
-		Option.color = color;
-		Option.ID = ID;
-		current->push_back(Option);
-	}
-}
-
 void WindowHandlerHSM::UpdatePanel(CTextUI3D_Panel::PanelState *current_state,
 									CTextUI3D_Panel::PanelState *target_state)
 {
@@ -686,7 +653,6 @@ void WindowHandlerHSM::SetHideBottom(CTextUI3D_Panel::PanelState *state)
 void WindowHandlerHSM::RenderIcon(int IconID, int x, int y, int width, int height, int y_offset)
 {
 	sceGuEnable(GU_TEXTURE_2D);
-//	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuAlphaFunc(GU_GREATER,0x0,0xff);
 	sceGuEnable(GU_ALPHA_TEST);
@@ -708,7 +674,6 @@ void WindowHandlerHSM::RenderIcon(int IconID, int x, int y, int width, int heigh
 
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::RenderIconAlpha(int IconID, int x, int y, int width, int height, int y_offset)
@@ -720,8 +685,6 @@ void WindowHandlerHSM::RenderIconAlpha(int IconID, int x, int y, int width, int 
 
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
 	sceGuTexEnvColor(0xFF000000);
-
-//	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 	sceGuEnable( GU_BLEND );
@@ -746,7 +709,6 @@ void WindowHandlerHSM::RenderIconAlpha(int IconID, int x, int y, int width, int 
 	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::RenderBackground()
@@ -849,89 +811,7 @@ void WindowHandlerHSM::RenderVolume()
 	RenderIconAlpha(TEX_VOLUME, LocalSettings.VolumeIconX, LocalSettings.VolumeIconY, GfxSizes.volume_w, GfxSizes.volume_y, 6 * GfxSizes.volume_y);
 }
 
-void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_offset, float opacity, font_names font)
-{
-	TextItem					Option;
-	list<TextItem>::iterator 	OptionIterator;
-	char 						strText[MAX_OPTION_LENGTH];
-	int							fwidth, fheight;
-	int							tex;
-
-	GetFontInfo(font, &fwidth, &fheight, &tex);
-
-	if ((x_offset < PANEL_HIDE_X) && (y_offset < PANEL_HIDE_Y))
-	{
-		sceGuEnable(GU_TEXTURE_2D);
-
-		sceGuAlphaFunc( GU_GREATER, 0, 0xff );
-		sceGuEnable( GU_ALPHA_TEST );
-
-		sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
-		sceGuTexEnvColor(0xFF000000);
-
-		sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
-		sceGuEnable( GU_BLEND );
-
-		sceGuTexWrap(GU_REPEAT, GU_REPEAT);
-		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-
-		// setup texture
-		(void)tcache.jsaTCacheSetTexture(tex);
-		sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
-
-		if (current->size() > 0)
-		{
-			for (OptionIterator = current->begin() ; OptionIterator != current->end() ; OptionIterator++)
-			{
-				int 				strsize;
-				int 				sx, sy;
-				struct TexCoord		texture_offset;
-				int					color;
-
-				Option = (*OptionIterator);
-
-				/* Calculate opacity */
-				color = Option.color & 0xFFFFFF;
-				color = color | ((int)(opacity*0xFF) << 24);
-
-				sprintf(strText, Option.strText);
-				strsize = strlen(strText);
-				sx = Option.x + x_offset;
-				sy = Option.y + y_offset;
-				struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(strsize * 2 * sizeof(struct Vertex));
-				for (int i = 0, index = 0 ; i < strsize ; i++)
-					{
-					char	letter = strText[i];
-					FindSmallFontTexture(letter, &texture_offset, font);
-
-					c_vertices[index+0].u 		= texture_offset.x1;
-					c_vertices[index+0].v 		= texture_offset.y1;
-					c_vertices[index+0].x 		= sx;
-					c_vertices[index+0].y 		= sy;
-					c_vertices[index+0].z 		= 0;
-					c_vertices[index+0].color 	= color;
-
-					c_vertices[index+1].u 		= texture_offset.x2;
-					c_vertices[index+1].v 		= texture_offset.y2;
-					c_vertices[index+1].x 		= sx + fwidth;
-					c_vertices[index+1].y 		= sy + fheight;
-					c_vertices[index+1].z 		= 0;
-					c_vertices[index+1].color 	= color;
-
-					sx 	+= fwidth;
-					index 	+= 2;
-					}
-				sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
-			}
-		}
-
-		sceGuDisable(GU_BLEND);
-		sceGuDisable(GU_ALPHA_TEST);
-		sceGuDisable(GU_TEXTURE_2D);
-	}
-}
-
-void WindowHandlerHSM::RenderList2(TextItem *current_list, int x_offset, int y_offset, float opacity, font_names font)
+void WindowHandlerHSM::RenderList(TextItem *current_list, int x_offset, int y_offset, float opacity, font_names font)
 {
 	int							fwidth, fheight;
 	int							tex;
@@ -1154,7 +1034,7 @@ void WindowHandlerHSM::RenderError(message_events event)
 	{
 		m_error_panel.SetOpacity(opacity);
 		m_error_panel.Render(LocalSettings.ErrorWindowColor);
-		RenderList(&m_ErrorList, m_error_panel.GetPositionX(), m_error_panel.GetPositionY(), opacity, FONT_MESSAGE);
+		RenderList(m_ErrorList, m_error_panel.GetPositionX(), m_error_panel.GetPositionY(), opacity, FONT_MESSAGE);
 	}
 }
 
@@ -1289,7 +1169,7 @@ void WindowHandlerHSM::RenderMessage(message_events event)
 	{
 		m_message_panel.SetOpacity(opacity);
 		m_message_panel.Render(LocalSettings.MessageWindowColor);
-		RenderList(&m_MessageList, m_message_panel.GetPositionX(), m_message_panel.GetPositionY(), opacity, FONT_MESSAGE);
+		RenderList(m_MessageList, m_message_panel.GetPositionX(), m_message_panel.GetPositionY(), opacity, FONT_MESSAGE);
 	}
 }
 
@@ -1306,8 +1186,6 @@ void WindowHandlerHSM::RenderTitle()
 
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
 	sceGuTexEnvColor(0xFF000000);
-
-//	sceGuDepthFunc(GU_ALWAYS);
 
 	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 	sceGuEnable( GU_BLEND );
@@ -1366,7 +1244,6 @@ void WindowHandlerHSM::RenderTitle()
 	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::RenderTextItem(TextItem *text, font_names fontname)
@@ -1433,7 +1310,6 @@ void WindowHandlerHSM::RenderTextItem(TextItem *text, font_names fontname)
 	sceGuDisable(GU_BLEND);
 	sceGuDisable(GU_ALPHA_TEST);
 	sceGuDisable(GU_TEXTURE_2D);
-//	sceGuDepthFunc(GU_GEQUAL);
 }
 
 void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font)
@@ -1556,10 +1432,24 @@ void WindowHandlerHSM::SetError(char *errorStr)
 	int	length;
 	int	fwidth, fheight, tex;
 
-	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
+	if (m_ErrorList != NULL)
+		{
+		free(m_ErrorList);
+		m_ErrorList = NULL;
+		}
 
-	UpdateTextItem(&m_ErrorList, WM_EVENT_TEXT_ERROR, 16, 16, errorStr, LocalSettings.ErrorTextColor);
+	m_ErrorList = (TextItem *) malloc(sizeof(TextItem));
+
+	m_ErrorList->x 		= 16;
+	m_ErrorList->y 		= 16;
+	m_ErrorList->color 	= LocalSettings.ErrorTextColor;
+	m_ErrorList->ID 	= 0;
+	m_ErrorList->next 	= NULL;
+	strcpy(m_ErrorList->strText, errorStr);
+	strupr(m_ErrorList->strText);
+
 	/* Calculate the size of the panel */
+	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
 	length = strlen(errorStr) * fwidth;
 	m_error_panel.SetSize(length, 48);
 	m_error_panel.SetPosition((480 - length - 32)/2, (272-48-32)/2, 0);
@@ -1570,10 +1460,25 @@ void WindowHandlerHSM::SetMessage(char *messageStr)
 	int	length;
 	int	fwidth, fheight, tex;
 
-	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
 
-	UpdateTextItem(&m_MessageList, WM_EVENT_TEXT_MESSAGE, 16, 16, messageStr, LocalSettings.MessageTextColor);
+	if (m_MessageList != NULL)
+		{
+		free(m_MessageList);
+		m_MessageList = NULL;
+		}
+
+	m_MessageList = (TextItem *) malloc(sizeof(TextItem));
+
+	m_MessageList->x 		= 16;
+	m_MessageList->y 		= 16;
+	m_MessageList->color 	= LocalSettings.ErrorTextColor;
+	m_MessageList->ID 	= 0;
+	m_MessageList->next 	= NULL;
+	strcpy(m_MessageList->strText, messageStr);
+	strupr(m_MessageList->strText);
+
 	/* Calculate the size of the panel */
+	GetFontInfo(FONT_MESSAGE, &fwidth, &fheight, &tex);
 	length = strlen(messageStr) * fwidth;
 	m_message_panel.SetSize(length, 48);
 	m_message_panel.SetPosition((480 - length - 32)/2, (272-48-32)/2, 0);
@@ -1764,13 +1669,13 @@ void *WindowHandlerHSM::top_handler()
 				}
 			}
 			/* Render text for windows */
-			RenderList2(m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
-			RenderList2(m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
-			RenderList2(m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
-			RenderList2(m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
-			RenderList2(m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
-			RenderList2(m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
-			RenderList2(m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList(m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
+			RenderList(m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
+			RenderList(m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList(m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
+			RenderList(m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
+			RenderList(m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
+			RenderList(m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
 			/* Render progressbar if necessary */
 			RenderProgressBar(false);
 			RenderError(EVENT_RENDER);
