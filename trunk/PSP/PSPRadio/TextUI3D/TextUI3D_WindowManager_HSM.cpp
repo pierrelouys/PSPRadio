@@ -35,7 +35,6 @@
 #include "pspkernel.h"
 #include "psppower.h"
 #include "TextUI3D.h"
-#include "TextUI3D_WindowManager.h"
 #include "TextUI3D_WindowManager_HSM.h"
 #include "jsaTextureCache.h"
 #include "TextUI3D_Panel.h"

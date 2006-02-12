@@ -23,7 +23,7 @@
 
 #include "IPSPRadio_UI.h"
 #include "jsaVRAMManager.h"
-#include "TextUI3D_WindowManager.h"
+#include "TextUI3D_WindowManager_HSM.h"
 
  	struct Settings
 		{
@@ -153,10 +153,11 @@ private:
 	void AddToOptionList(int x, int y, unsigned int color, char *text);
 	void AddToListList(int x, int y, unsigned int color, char *text);
 	void AddToEntryList(int x, int y, unsigned int color, char *text);
+	void AddTitleText(int x, int y, unsigned int color, char *text);
 
 private:
 	CScreenHandler::ScreenShotState 	m_state;
-	CTextUI3D_WindowManager				m_wmanager;
+	WindowHandlerHSM					m_wmanager;
 	pspTime								m_current_time;
 	CIniParser 							*m_Settings;
 	char								m_title[256];

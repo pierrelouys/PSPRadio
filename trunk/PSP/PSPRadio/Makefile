@@ -6,7 +6,7 @@ OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastScreen.o ./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
 		./IPSPRadio_UI.o \
 		./TextUI/TextUI.o \
-		./TextUI3D/TextUI3D.o ./TextUI3D/TextUI3D_Panel.o ./TextUI3D/TextUI3D_WindowManager.o ./TextUI3D/TextUI3D_WindowManager_HSM.o ./TextUI3D/jsaVRAMManager.o ./TextUI3D/jsaTextureCache.o
+		./TextUI3D/TextUI3D.o ./TextUI3D/TextUI3D_Panel.o ./TextUI3D/TextUI3D_WindowManager_HSM.o ./TextUI3D/jsaVRAMManager.o ./TextUI3D/jsaTextureCache.o
 
 INCDIR = ../
 

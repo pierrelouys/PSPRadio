@@ -5,6 +5,7 @@ What's New for PSPRadio
 NEW FEATURES
 BUG FIXES
 (sandberg) 3DUI: Rewrote the textrendering of lists and options so only one event is sent, to make it more stable (r798)
+(sandberg) 3DUI: Removed the layer between the UI and the WindowManager, since it was redundant. (r799)
 
 0.38.04 (r797) (2006-02-10)
 NEW FEATURES
