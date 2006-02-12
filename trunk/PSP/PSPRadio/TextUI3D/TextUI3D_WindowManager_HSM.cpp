@@ -144,6 +144,35 @@ WindowHandlerHSM::WindowHandlerHSM() : 	top(NULL, &WindowHandlerHSM::top_handler
 	m_Event.Data = NULL;
 
 	m_pcm_buffer = NULL;
+	m_OptionItems = NULL;
+	m_PlaylistContainer = NULL;
+	m_PlaylistEntries = NULL;
+	m_ShoutcastContainer = NULL;
+	m_ShoutcastEntries = NULL;
+	m_LocalfilesContainer = NULL;
+	m_LocalfilesEntries = NULL;
+	m_ErrorList = NULL;
+	m_MessageList = NULL;
+
+	m_progress_render = false;
+	m_usb_enabled = false;
+	m_buffer = 0;
+	m_battery_level = 0;
+	m_bitrate = 0;
+	m_hour = 0;
+	m_minute = 0;
+	m_current_m = m_current_s = m_total_m = m_total_s = -1;
+
+	m_list_icon = LIST_ICON_PLAYLIST;
+	m_playstate_icon = PLAYSTATE_ICON_STOP;
+
+	m_network_state = false;
+	m_scrolloffset = LocalSettings.SongTitleWidth;
+
+	strcpy(m_songtitle.strText, "NO TRACK PLAYING...");
+	m_songtitle.x = LocalSettings.SongTitleX;
+	m_songtitle.y = LocalSettings.SongTitleY;
+	m_songtitle.color = LocalSettings.SongTitleColor;
 
     MakeEntry(&top);
     ActivateState(&top);
@@ -173,6 +202,12 @@ WindowHandlerHSM::~WindowHandlerHSM()
 
 void WindowHandlerHSM::Initialize(char *cwd)
 	{
+	CTextUI3D_Panel::FrameTextures	main_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
+																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
+																TEX_MAIN_CORNER_LL,	TEX_MAIN_FRAME_B,	TEX_MAIN_CORNER_LR}};
+	CTextUI3D_Panel::FrameTextures	msg_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
+																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
+																TEX_MAIN_CORNER_LL,	TEX_MAIN_FRAME_B,	TEX_MAIN_CORNER_LR}};
 	CTextUI3D_Panel::PanelState	panelstate;
 	CTextUI3D_Panel::PanelState		*state;
 
@@ -184,20 +219,6 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	Log(LOG_VERYLOW, "HSM:Initialized textures");
 	LoadTextures(cwd);
 	Log(LOG_VERYLOW, "HSM:Textures loaded");
-
-	/* Create MessageBox used for sending events to the HSM */
-	HSMMessagebox = sceKernelCreateMbx("HSMMBX", 0, 0);
-	/* Create and start the thread handling the messages */
-	m_HSMActive = true;
-	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_USER, 0);
-	sceKernelStartThread(m_mbxthread, 0, NULL);
-
-	CTextUI3D_Panel::FrameTextures	main_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
-																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
-																TEX_MAIN_CORNER_LL,	TEX_MAIN_FRAME_B,	TEX_MAIN_CORNER_LR}};
-	CTextUI3D_Panel::FrameTextures	msg_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
-																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
-																TEX_MAIN_CORNER_LL,	TEX_MAIN_FRAME_B,	TEX_MAIN_CORNER_LR}};
 
 	/* Set initial positions and textures for panels */
 	panelstate.x		= PANEL_HIDE_X;
@@ -233,31 +254,15 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	m_error_panel.SetFrameTexture(msg_textures);
 	m_error_panel.SetState(&panelstate);
 
-
-	m_progress_render = false;
-	m_usb_enabled = false;
-	m_buffer = 0;
-	m_battery_level = 0;
-	m_bitrate = 0;
-	m_hour = 0;
-	m_minute = 0;
-	m_current_m = m_current_s = m_total_m = m_total_s = -1;
-	m_ErrorList = NULL;
-	m_MessageList = NULL;
-
-	m_list_icon = LIST_ICON_PLAYLIST;
-	m_playstate_icon = PLAYSTATE_ICON_STOP;
-
-	m_network_state = false;
-	m_scrolloffset = LocalSettings.SongTitleWidth;
-
-	strcpy(m_songtitle.strText, "NO TRACK PLAYING...");
-	m_songtitle.x = LocalSettings.SongTitleX;
-	m_songtitle.y = LocalSettings.SongTitleY;
-	m_songtitle.color = LocalSettings.SongTitleColor;
-	Log(LOG_VERYLOW, "HSM:Initialized");
+	/* Create MessageBox used for sending events to the HSM */
+	HSMMessagebox = sceKernelCreateMbx("HSMMBX", 0, 0);
+	/* Create and start the thread handling the messages */
+	m_HSMActive = true;
+	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_USER, 0);
+	sceKernelStartThread(m_mbxthread, 0, NULL);
 
 	m_HSMInitialized = true;
+	Log(LOG_VERYLOW, "HSM:Initialized");
 }
 
 void WindowHandlerHSM::Dispatch(int Signal, void *Data)
