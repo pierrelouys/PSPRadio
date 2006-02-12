@@ -158,16 +158,11 @@ private:
 private:
 	CScreenHandler::ScreenShotState 	m_state;
 	WindowHandlerHSM					m_wmanager;
-	pspTime								m_current_time;
 	CIniParser 							*m_Settings;
 	char								m_title[256];
-	char								m_ip[64];
 	char								m_error[256];
 	char								m_message[256];
 	char								m_playtime[64];
-	int									m_buffer;
-	int									m_bitrate;
-	int									m_battery;
 	WindowHandlerHSM::TextItem			*m_option_list, *m_option_list_tail;
 	WindowHandlerHSM::TextItem			*m_list_list, *m_list_list_tail;
 	WindowHandlerHSM::TextItem			*m_entry_list, *m_entry_list_tail;

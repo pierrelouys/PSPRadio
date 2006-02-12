@@ -210,8 +210,7 @@ int CTextUI3D::DisplayMessage_DisablingNetwork()
 
 int CTextUI3D::DisplayMessage_NetworkReady(char *strIP)
 {
-	strcpy(m_ip, strIP);
-	m_wmanager.Dispatch(WM_EVENT_NETWORK_IP, m_ip);
+	m_wmanager.Dispatch(WM_EVENT_NETWORK_IP, NULL);
 	return 0;
 }
 
@@ -260,8 +259,7 @@ int CTextUI3D::DisplayMessage(char *strMsg)
 
 int CTextUI3D::DisplayBufferPercentage(int iPercentage)
 {
-	m_buffer  = iPercentage;
-	m_wmanager.Dispatch(WM_EVENT_BUFFER, (void *) m_buffer);
+	m_wmanager.SetBuffer(iPercentage);
 	return 0;
 }
 
@@ -340,8 +338,7 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 		AddTitleText(LocalSettings.SongTitleX, LocalSettings.SongTitleY, LocalSettings.SongTitleColor, pData->strURI);
 		}
 	}
-	m_bitrate = (pData->iBitRate/1000);
-	m_wmanager.Dispatch(WM_EVENT_BITRATE, (void *) m_bitrate);
+	m_wmanager.SetBitrate((pData->iBitRate/1000));
 
 	return 0;
 }
@@ -350,14 +347,13 @@ int CTextUI3D::OnStreamTimeUpdate(MetaData *pData)
 {
 	if (pData->lTotalTime > 0)
 	{
-		sprintf(m_playtime, "%02d:%02d/%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
-													(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
+		m_wmanager.SetPlayTime( (int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
+								(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
 	}
 	else
 	{
-		sprintf(m_playtime, "%02d:%02d",	(int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60));
+		m_wmanager.SetPlayTime( (int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60));
 	}
-	m_wmanager.Dispatch(WM_EVENT_PLAYTIME, (void *) m_playtime);
 	return 0;
 }
 
@@ -397,34 +393,27 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 
 void CTextUI3D::OnTimeChange(pspTime *LocalTime)
 {
-	/* Pass to WindowManager */
-	memcpy(&m_current_time, LocalTime, sizeof(pspTime));
-	m_wmanager.Dispatch(WM_EVENT_TIME, &m_current_time);
+	m_wmanager.SetTime(LocalTime->hour, LocalTime->minutes);
 }
 
 void CTextUI3D::OnBatteryChange(int Percentage)
 {
-	/* Pass to WindowManager */
-	m_battery  = Percentage;
-	m_wmanager.Dispatch(WM_EVENT_BATTERY, (void *)m_battery);
+	m_wmanager.SetBatteryLevel(Percentage);
 }
 
 void CTextUI3D::OnUSBEnable()
 {
-	/* Pass to WindowManager */
-	m_wmanager.Dispatch(WM_EVENT_USB_ENABLE, NULL);
+	m_wmanager.SetUSBState(true);
 }
 
 void CTextUI3D::OnUSBDisable()
 {
-	/* Pass to WindowManager */
-	m_wmanager.Dispatch(WM_EVENT_USB_DISABLE, NULL);
+	m_wmanager.SetUSBState(false);
 }
 
 void CTextUI3D::NewPCMBuffer(short *PCMBuffer)
 {
-	/* Pass to WindowManager */
-	m_wmanager.Dispatch(WM_EVENT_PCM_BUFFER, PCMBuffer);
+//	m_wmanager.Dispatch(WM_EVENT_PCM_BUFFER, PCMBuffer);
 }
 
 void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,

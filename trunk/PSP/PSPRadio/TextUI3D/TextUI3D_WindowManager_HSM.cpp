@@ -236,13 +236,17 @@ void WindowHandlerHSM::Initialize(char *cwd)
 
 	m_progress_render = false;
 	m_usb_enabled = false;
+	m_buffer = 0;
+	m_battery_level = 0;
+	m_bitrate = 0;
+	m_hour = 0;
+	m_minute = 0;
+	m_current_m = m_current_s = m_total_m = m_total_s = -1;
+
 	m_list_icon = LIST_ICON_PLAYLIST;
 	m_playstate_icon = PLAYSTATE_ICON_STOP;
 
-	BatteryMapLevel(scePowerGetBatteryLifePercent());
 	m_network_state = false;
-	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
-	SetClock(&m_LastLocalTime);
 	m_scrolloffset = LocalSettings.SongTitleWidth;
 
 	strcpy(m_songtitle.strText, "NO TRACK PLAYING...");
@@ -826,19 +830,18 @@ void WindowHandlerHSM::RenderProgressBar(bool reset)
 		}
 }
 
-void WindowHandlerHSM::BatteryMapLevel(int level)
-{
-	if (level == 100)
-		{
-		level--;
-		}
-	m_level  = (int)((float)level / (100.0f / 7.0f));
-	m_level = 6 - m_level;
-}
-
 void WindowHandlerHSM::RenderBattery()
 {
-	RenderIcon(TEX_POWER, LocalSettings.BatteryIconX, LocalSettings.BatteryIconY, GfxSizes.power_w, GfxSizes.power_y, m_level*GfxSizes.power_y);
+	int	level;
+
+	if (m_battery_level == 100)
+		{
+		m_battery_level--;
+		}
+	level  = (int)((float)m_battery_level / (100.0f / 7.0f));
+	level = 6 - level;
+
+	RenderIcon(TEX_POWER, LocalSettings.BatteryIconX, LocalSettings.BatteryIconY, GfxSizes.power_w, GfxSizes.power_y, level*GfxSizes.power_y);
 }
 
 void WindowHandlerHSM::RenderVolume()
@@ -865,8 +868,6 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 
 		sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
 		sceGuTexEnvColor(0xFF000000);
-
-//		sceGuDepthFunc(GU_ALWAYS);
 
 		sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 		sceGuEnable( GU_BLEND );
@@ -927,7 +928,6 @@ void WindowHandlerHSM::RenderList(list<TextItem> *current, int x_offset, int y_o
 		sceGuDisable(GU_BLEND);
 		sceGuDisable(GU_ALPHA_TEST);
 		sceGuDisable(GU_TEXTURE_2D);
-//		sceGuDepthFunc(GU_GEQUAL);
 	}
 }
 
@@ -1369,6 +1369,73 @@ void WindowHandlerHSM::RenderTitle()
 //	sceGuDepthFunc(GU_GEQUAL);
 }
 
+void WindowHandlerHSM::RenderTextItem(TextItem *text, font_names fontname)
+{
+	int	strsize;
+	int	fwidth, fheight, tex;
+
+	GetFontInfo(fontname, &fwidth, &fheight, &tex);
+
+	sceGuEnable(GU_TEXTURE_2D);
+
+	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
+	sceGuEnable( GU_ALPHA_TEST );
+
+	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
+	sceGuTexEnvColor(0xFF000000);
+
+	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
+	sceGuEnable( GU_BLEND );
+
+	sceGuTexWrap(GU_REPEAT, GU_REPEAT);
+	sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+
+	// setup texture
+	(void)tcache.jsaTCacheSetTexture(tex);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+
+	strsize = strlen(text->strText);
+
+	if (strsize)
+	{
+		int 				sx, sy;
+		struct TexCoord		texture_offset;
+
+		sx = text->x;
+		sy = text->y;
+
+		struct Vertex* c_vertices = (struct Vertex*)sceGuGetMemory(strsize * 2 * sizeof(struct Vertex));
+		for (int i = 0, index = 0 ; i < strsize ; i++)
+			{
+			char	letter = text->strText[i];
+			FindSmallFontTexture(letter, &texture_offset, fontname);
+
+			c_vertices[index+0].u 		= texture_offset.x1;
+			c_vertices[index+0].v 		= texture_offset.y1;
+			c_vertices[index+0].x 		= sx;
+			c_vertices[index+0].y 		= sy;
+			c_vertices[index+0].z 		= 0;
+			c_vertices[index+0].color 	= text->color;
+
+			c_vertices[index+1].u 		= texture_offset.x2;
+			c_vertices[index+1].v 		= texture_offset.y2;
+			c_vertices[index+1].x 		= sx + fwidth;
+			c_vertices[index+1].y 		= sy + fheight;
+			c_vertices[index+1].z 		= 0;
+			c_vertices[index+1].color 	= text->color;
+
+			sx 	+= fwidth;
+			index 	+= 2;
+			}
+		sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,strsize * 2,0,c_vertices);
+	}
+
+	sceGuDisable(GU_BLEND);
+	sceGuDisable(GU_ALPHA_TEST);
+	sceGuDisable(GU_TEXTURE_2D);
+//	sceGuDepthFunc(GU_GEQUAL);
+}
+
 void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture_offset, font_names font)
 {
 	int	fwidth, fheight, tex;
@@ -1401,38 +1468,87 @@ void WindowHandlerHSM::FindSmallFontTexture(char index, struct TexCoord *texture
 	}
 }
 
-void WindowHandlerHSM::SetClock(pspTime *current_time)
+void WindowHandlerHSM::RenderClock()
 {
-	char clock[64];
+	TextItem	time;
 
+	time.x = LocalSettings.ClockX;
+	time.y = LocalSettings.ClockY;
+	time.color = 0xFFFFFFFF;
+	sprintf(time.strText, "%03d%%", m_buffer);
 	if (LocalSettings.ClockFormat == 24)
 		{
-		sprintf(clock, "%02d:%02d", current_time->hour, current_time->minutes);
+		sprintf(time.strText, "%02d:%02d", m_hour, m_minute);
 		}
 	else
 		{
-		bool bIsPM = (current_time->hour)>12;
-		sprintf(clock, "%02d:%02d %s", bIsPM?(current_time->hour-12):(current_time->hour), current_time->minutes, bIsPM?"PM":"AM");
+		bool bIsPM = (m_hour)>12;
+		sprintf(time.strText, "%02d:%02d %s", bIsPM?(m_hour-12):(m_hour), m_minute, bIsPM?"PM":"AM");
 		}
-	UpdateTextItem(&m_StaticTextItems, WM_EVENT_TIME, LocalSettings.ClockX, LocalSettings.ClockY, clock, 0xFFFFFFFF);
-	m_LastLocalTime = *current_time;
+	RenderTextItem(&time, FONT_STATIC);
 }
 
-void WindowHandlerHSM::SetBuffer(long unsigned int percentage)
+void WindowHandlerHSM::RenderBuffer()
 {
-	char value[64];
+	TextItem	buffer;
 
-	sprintf(value, "%03lu%%", percentage);
-	UpdateTextItem(&m_StaticTextItems, WM_EVENT_BUFFER, LocalSettings.BufferX, LocalSettings.BufferY, value, 0xFFFFFFFF);
-	Log(LOG_VERYLOW, "Buffer state : %d%%", percentage);
+	buffer.x = LocalSettings.BufferX;
+	buffer.y = LocalSettings.BufferY;
+	buffer.color = 0xFFFFFFFF;
+	sprintf(buffer.strText, "%03d%%", m_buffer);
+	RenderTextItem(&buffer, FONT_STATIC);
 }
 
-void WindowHandlerHSM::SetBitrate(long unsigned int bitrate)
+void WindowHandlerHSM::RenderIP()
 {
-	char value[64];
+	TextItem	ip;
 
-	sprintf(value, "%03lu", bitrate);
-	UpdateTextItem(&m_StaticTextItems, WM_EVENT_BITRATE, LocalSettings.BitrateX, LocalSettings.BitrateY, value, 0xFFFFFFFF);
+	ip.x = LocalSettings.IPX;
+	ip.y = LocalSettings.IPY;
+	ip.color = 0xFFFFFFFF;
+	strcpy(ip.strText, pPSPApp->GetMyIP());
+	RenderTextItem(&ip, FONT_STATIC);
+}
+
+void WindowHandlerHSM::RenderPlayTime()
+{
+	TextItem	playtime;
+
+	playtime.x = LocalSettings.PlayTimeX;
+	playtime.y = LocalSettings.PlayTimeY;
+	playtime.color = 0xFFFFFFFF;
+
+	/* No time */
+	if (m_current_m == -1)
+		{
+		strcpy(playtime.strText, "00:00/00:00");
+		}
+	/* Only current time */
+	else if (m_total_m == -1)
+		{
+		sprintf(playtime.strText, "%02d:%02d/00:00",	m_current_m, m_current_s);
+		}
+	/* Both times */
+	else
+		{
+		sprintf(playtime.strText, "%02d:%02d/%02d:%02d",	m_current_m, m_current_s, m_total_m, m_total_s);
+		}
+
+	RenderTextItem(&playtime, FONT_STATIC);
+}
+
+void WindowHandlerHSM::RenderBitrate()
+{
+	TextItem	bitrate;
+
+	if (m_bitrate != 0)
+		{
+		bitrate.x = LocalSettings.BitrateX;
+		bitrate.y = LocalSettings.BitrateY;
+		bitrate.color = 0xFFFFFFFF;
+		sprintf(bitrate.strText, "%03d%%", m_bitrate);
+		RenderTextItem(&bitrate, FONT_STATIC);
+		}
 }
 
 void WindowHandlerHSM::SetError(char *errorStr)
@@ -1471,13 +1587,10 @@ void WindowHandlerHSM::GUInit()
 	sceGuStart(GU_DIRECT,::gu_list);
 	sceGuDrawBuffer(GU_PSM_8888,(void*)0,BUF_WIDTH);
 	sceGuDispBuffer(SCR_WIDTH,SCR_HEIGHT,(void*)0x88000,BUF_WIDTH);
-//	sceGuDepthBuffer((void*)0x110000,BUF_WIDTH);
 	sceGuOffset(2048 - (SCR_WIDTH/2),2048 - (SCR_HEIGHT/2));
 	sceGuViewport(2048,2048,SCR_WIDTH,SCR_HEIGHT);
-//	sceGuDepthRange(0xc350,0x2710);
 	sceGuScissor(0,0,SCR_WIDTH,SCR_HEIGHT);
 	sceGuEnable(GU_SCISSOR_TEST);
-//	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_DEPTH_TEST);
 	sceGuFrontFace(GU_CW);
 	sceGuShadeModel(GU_SMOOTH);
@@ -1494,8 +1607,6 @@ void WindowHandlerHSM::GUInitDisplayList()
 	sceGuStart(GU_DIRECT,::gu_list);
 
 	sceGuClearColor(0x00335588);
-//	sceGuClearDepth(0);
-//	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 	sceGuClear(GU_COLOR_BUFFER_BIT|GU_FAST_CLEAR_BIT);
 
 	sceGumMatrixMode(GU_PROJECTION);
@@ -1628,13 +1739,16 @@ void *WindowHandlerHSM::top_handler()
 		case WM_EVENT_VBLANK:
 			GUInitDisplayList();
 			RenderBackground();
-			/* Render static text*/
-			RenderList(&m_StaticTextItems, 0, 0, 1.0f, FONT_STATIC);
 			RenderTitle();
 			/* Render Icons */
 			RenderNetwork();
 			RenderBattery();
+			RenderBuffer();
+			RenderIP();
+			RenderBitrate();
+			RenderClock();
 			RenderVolume();
+			RenderPlayTime();
 			RenderListIcon();
 			RenderUSB();
 			RenderPlaystateIcon();
@@ -1707,19 +1821,16 @@ void *WindowHandlerHSM::top_handler()
 		/* Network events */
 		case WM_EVENT_NETWORK_ENABLE:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_ENABLE");
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_NETWORK_IP, LocalSettings.IPX, LocalSettings.IPY, " ", 0xFFFFFFFF);
 			m_network_state = false;
 			m_progress_render = true;
 			RenderProgressBar(true);
 			return 0;
 		case WM_EVENT_NETWORK_DISABLE:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_DISABLE");
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_NETWORK_IP, LocalSettings.IPX, LocalSettings.IPY, " ", 0xFFFFFFFF);
 			m_network_state = false;
 			return 0;
 		case WM_EVENT_NETWORK_IP:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_IP");
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_NETWORK_IP, LocalSettings.IPX, LocalSettings.IPY, (char *) m_Event.Data, 0xFFFFFFFF);
 			m_network_state = true;
 			m_progress_render = false;
 			return 0;
@@ -1728,9 +1839,9 @@ void *WindowHandlerHSM::top_handler()
 		case WM_EVENT_PLAYER_STOP:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_STOP");
 			strcpy(m_songtitle.strText, "NO TRACK PLAYING...");
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_BUFFER, LocalSettings.BufferX, LocalSettings.BufferY, " ", 0xFFFFFFFF);
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_BITRATE, LocalSettings.BitrateX, LocalSettings.BitrateY, " ", 0xFFFFFFFF);
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_PLAYTIME, LocalSettings.PlayTimeX, LocalSettings.PlayTimeY, " ", 0xFFFFFFFF);
+			m_buffer = 0;
+			m_bitrate = 0;
+			m_current_m = m_current_s = m_total_m = m_total_s = -1;
 			m_playstate_icon = PLAYSTATE_ICON_STOP;
 			return 0;
 		case WM_EVENT_PLAYER_PAUSE:
@@ -1743,36 +1854,6 @@ void *WindowHandlerHSM::top_handler()
 			return 0;
 
 		/*  Misc events */
-		case WM_EVENT_TIME:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TIME");
-			SetClock((pspTime *)(m_Event.Data));
-			return 0;
-		case WM_EVENT_PLAYTIME:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYTIME");
-			UpdateTextItem(&m_StaticTextItems, WM_EVENT_PLAYTIME, LocalSettings.PlayTimeX, LocalSettings.PlayTimeY, (char *)(m_Event.Data), 0xFFFFFFFF);
-			return 0;
-		case WM_EVENT_BATTERY:
-			{
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_BATTERY");
-			BatteryMapLevel((int )(m_Event.Data));
-			}
-			return 0;
-		case WM_EVENT_BUFFER:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_BUFFER");
-			SetBuffer((long unsigned int)(m_Event.Data));
-			return 0;
-		case WM_EVENT_BITRATE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_BITRATE");
-			SetBitrate((long unsigned int)(m_Event.Data));
-			return 0;
-		case WM_EVENT_USB_ENABLE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_USB_ENABLE");
-			m_usb_enabled = true;
-			return 0;
-		case WM_EVENT_USB_DISABLE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_USB_DISABLE");
-			m_usb_enabled = false;
-			return 0;
 		case WM_EVENT_PCM_BUFFER:
 			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PCM_BUFFER");
 			m_pcm_buffer = (short *)(m_Event.Data);

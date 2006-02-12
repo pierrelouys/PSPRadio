@@ -24,7 +24,6 @@
 #ifndef _TEXTUI3D_WINDOWMANAGER_HSM_
 #define _TEXTUI3D_WINDOWMANAGER_HSM_
 
-#include <psprtc.h>
 #include <pspthreadman.h>
 #include "TextUI3D_Panel.h"
 #include <unistd.h>
@@ -48,13 +47,6 @@
 
 	/* Misc events. */
 	WM_EVENT_VBLANK,
-	WM_EVENT_TIME,
-	WM_EVENT_PLAYTIME,
-	WM_EVENT_BATTERY,
-	WM_EVENT_BUFFER,
-	WM_EVENT_BITRATE,
-	WM_EVENT_USB_ENABLE,
-	WM_EVENT_USB_DISABLE,
 	WM_EVENT_PCM_BUFFER,
 
 	/* Static text events */
@@ -105,6 +97,16 @@ public:
 	/* Dispatch an event to a Machine. If an event is already being processed then
 	 * the event is enqueued */
 	void Dispatch(int signal, void *data);
+	void SetBuffer(int buffer) { m_buffer = buffer;};
+	void SetUSBState(bool state) { m_usb_enabled = state;};
+	void SetBatteryLevel(int level) {m_battery_level = level;};
+	void SetBitrate(int bitrate) {m_bitrate = bitrate;};
+	void SetTime(int hour, int minute) {m_hour = hour; m_minute = minute;};
+	void SetPlayTime(int current_m, int current_s, int total_m = -1, int total_s = -1)
+							{m_current_m = current_m;
+							 m_current_s = current_s;
+							 m_total_m = total_m;
+							 m_total_s = total_s;};
 
 	void Initialize(char *cwd);
 
@@ -289,19 +291,21 @@ private:
 	void RenderBattery();
 	void RenderListIcon();
 	void RenderVolume();
-	void BatteryMapLevel(int level);
-	void SetClock(pspTime *current_time);
+	void RenderClock();
 	void RenderProgressBar(bool reset);
 	void RenderTitle();
 	void RenderUSB();
-	void SetBuffer(long unsigned int percentage);
-	void SetBitrate(long unsigned int bitrate);
+	void RenderBuffer();
+	void RenderBitrate();
+	void RenderIP();
+	void RenderPlayTime();
 	void RenderPlaystateIcon();
 	void RenderBackground();
 	void RenderError(message_events event);
 	void RenderMessage(message_events event);
 	void RenderPCMBuffer();
 	void GetFontInfo(font_names font, int *width, int *height, int *tex);
+	void RenderTextItem(TextItem *text, font_names fontname);
 
 	void GUInit();
 	void GUInitDisplayList();
@@ -352,7 +356,6 @@ private:
 	CTextUI3D_Panel					m_message_panel;
 	CTextUI3D_Panel					m_error_panel;
 
-	list<TextItem>					m_StaticTextItems;
 	TextItem						*m_OptionItems;
 	TextItem						*m_PlaylistContainer;
 	TextItem						*m_PlaylistEntries;
@@ -367,12 +370,20 @@ private:
 	bool							m_network_state;
 	bool							m_usb_enabled;
 	int								m_level;
-	pspTime							m_LastLocalTime;
 	bool							m_option_render;
 	bool							m_progress_render;
 	int								m_list_icon;
 	int								m_playstate_icon;
 	int								m_scrolloffset;
+
+	int								m_buffer;
+	int								m_battery_level;
+	int								m_bitrate;
+	int								m_hour, m_minute;
+	int								m_current_m;
+	int								m_current_s;
+	int								m_total_m;
+	int								m_total_s;
 
 	SceUID							HSMMessagebox;
 	SceUID							m_mbxthread;

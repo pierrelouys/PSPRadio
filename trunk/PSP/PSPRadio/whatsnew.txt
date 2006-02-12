@@ -6,6 +6,7 @@ NEW FEATURES
 BUG FIXES
 (sandberg) 3DUI: Rewrote the textrendering of lists and options so only one event is sent, to make it more stable (r798)
 (sandberg) 3DUI: Removed the layer between the UI and the WindowManager, since it was redundant. (r799)
+(sandberg) 3DUI: Rewrote several event handlers to reduce context switches and make it more stable. (r800)
 
 0.38.04 (r797) (2006-02-10)
 NEW FEATURES
