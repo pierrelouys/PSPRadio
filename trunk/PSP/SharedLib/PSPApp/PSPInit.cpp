@@ -49,6 +49,7 @@ static int PatchMyLibraryEntries(SceModuleInfo * modInfoPtr, u32 oid);
 static u32 LoadAndStartAndPatch(SceModuleInfo * modInfoPtr, const char* szFile);
 static void FlushCaches();
 int nlhLoadDrivers(SceModuleInfo * modInfoPtr);
+void MyExceptionHandler(PspDebugRegBlock *regs);
 
 /** Driver Loader Thread handle */
 CPSPThread *thDriverLoader = NULL;
@@ -82,6 +83,9 @@ void loaderInit()
 	
 	pspKernelSetKernelPC();
 
+	/* Install our custom exception handler. If this was NULL then the default would be used */
+	pspDebugInstallErrorHandler(MyExceptionHandler);
+	
 	CPSPThread *thDriverLoader = new CPSPThread("driverloader_thread", DriverLoadThread, 0x11, 0xFA0, 0, 0);
 	if (thDriverLoader)
 	{
@@ -94,6 +98,10 @@ void loaderInit()
 	{
 		thCallbackSetup->Start();
 	}
+
+	/* Install our custom exception handler. If this was NULL then the default would be used */
+	pspDebugInstallErrorHandler(MyExceptionHandler);
+	
 }
 	
 int callbacksetupThread(SceSize args, void *argp)
@@ -351,4 +359,24 @@ int nlhLoadDrivers(SceModuleInfo * modInfoPtr)
 	FlushCaches();
 
 	return 0;
+}
+
+
+/** -- Exception handler */
+/* Example custom exception handler */
+void MyExceptionHandler(PspDebugRegBlock *regs)
+{
+	/* Do normal initial dump, setup screen etc */
+	pspDebugScreenInit();
+
+	/* I always felt BSODs were more interesting that white on black */
+	pspDebugScreenSetBackColor(0x00FF0000);
+	pspDebugScreenSetTextColor(0xFFFFFFFF);
+	pspDebugScreenClear();
+
+	pspDebugScreenPrintf("I regret to inform you your psp has just crashed\n");
+	pspDebugScreenPrintf("Please contact Sony technical support for further information\n\n");
+	pspDebugScreenPrintf("Exception Details:\n");
+	pspDebugDumpException(regs);
+	pspDebugScreenPrintf("\nBlame the 3rd party software, it cannot possibly be our fault!\n");
 }
