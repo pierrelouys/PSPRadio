@@ -1,8 +1,9 @@
 What's New for PSPRadio 
 ========================
 
-0.38.05 (rxxx) (2006-02-10)
+0.38.05 (rxxx) (2006-02-xx)
 NEW FEATURES
+(raf) Core: Added exception handler. This will display some useful information (for the developers) if/when PSPRadio crashes.
 BUG FIXES
 (sandberg) 3DUI: Rewrote the textrendering of lists and options so only one event is sent, to make it more stable (r798)
 (sandberg) 3DUI: Removed the layer between the UI and the WindowManager, since it was redundant. (r799)

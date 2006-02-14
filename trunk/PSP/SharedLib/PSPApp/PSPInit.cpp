@@ -374,9 +374,9 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 	pspDebugScreenSetTextColor(0xFFFFFFFF);
 	pspDebugScreenClear();
 
-	pspDebugScreenPrintf("I regret to inform you your psp has just crashed\n");
-	pspDebugScreenPrintf("Please contact Sony technical support for further information\n\n");
+	pspDebugScreenPrintf("PSPRadio -- Exception Caught:\n");
+	pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
 	pspDebugScreenPrintf("Exception Details:\n");
 	pspDebugDumpException(regs);
-	pspDebugScreenPrintf("\nBlame the 3rd party software, it cannot possibly be our fault!\n");
+	pspDebugScreenPrintf("\nTry holding select to capture a shot of this screen for reference.\n");
 }
