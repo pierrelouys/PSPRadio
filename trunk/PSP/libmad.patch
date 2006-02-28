@@ -1,0 +1,13 @@
+Index: /mnt/Share/PublicShare/Projects/pspdev/libmad/src/Makefile
+===================================================================
+--- /mnt/Share/PublicShare/Projects/pspdev/libmad/src/Makefile	(revision 1816)
++++ /mnt/Share/PublicShare/Projects/pspdev/libmad/src/Makefile	(working copy)
+@@ -5,7 +5,7 @@
+ OBJS = bit.o decoder.o fixed.o frame.o huffman.o layer12.o layer3.o \
+ 	stream.o synth.o timer.o version.o
+ 
+-CFLAGS += -DHAVE_CONFIG_H -DHAVE_SYS_TYPES_H -DHAVE_ERRNO_H -DHAVE_UNISTD_H \
++CFLAGS += -DHAVE_ASSERT_H -G0 -mno-explicit-relocs -DHAVE_CONFIG_H -DHAVE_SYS_TYPES_H -DHAVE_ERRNO_H -DHAVE_UNISTD_H \
+ 	-DHAVE_FCNTL_H -I$(PSPSDK)/include/sys/  -I../include
+ 
+ include $(PSPSDK)/lib/build.mak

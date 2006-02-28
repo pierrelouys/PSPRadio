@@ -1,0 +1,13 @@
+Index: /mnt/Share/PublicShare/Projects/pspdev/zlib/Makefile
+===================================================================
+--- /mnt/Share/PublicShare/Projects/pspdev/zlib/Makefile	(revision 1816)
++++ /mnt/Share/PublicShare/Projects/pspdev/zlib/Makefile	(working copy)
+@@ -4,7 +4,7 @@
+ OBJS = 	adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o trees.o \
+ 	zutil.o inflate.o infback.o inftrees.o inffast.o
+ 
+-CFLAGS = -O2 -G0
++CFLAGS = -O2 -G0 -mno-explicit-relocs
+ 
+ include $(PSPSDK)/lib/build.mak
+ 
