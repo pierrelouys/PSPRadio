@@ -101,7 +101,7 @@ void CScreen::LoadImage(const char* filename, u32 *ImageBuffer)
 	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_gray_1_2_4_to_8(png_ptr);
 	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
 	png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
-	line = (u32*) malloc(width * 4);
+	line = (u32*) malloc(width * 32);//4);
 	if (!line) {
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
@@ -157,9 +157,15 @@ void CScreen::SetBackgroundImage(char *strImage)
 	
 	if (strImage)
 	{
-		m_strImage = strdup(strImage);
 		m_ImageBuffer = (u32*)malloc(PSP_SCREEN_WIDTH*PSP_SCREEN_WIDTH*sizeof(u32));
-		LoadImage(m_strImage, m_ImageBuffer);
+		if (m_ImageBuffer)
+		{
+			m_strImage = strdup(strImage);
+			if (m_strImage)
+			{
+				LoadImage(m_strImage, m_ImageBuffer);
+			}
+		}
 	}
 }
 
@@ -499,7 +505,7 @@ void CScreen::Clear()
 		return;
 	}
 
-	if (m_strImage)
+	if (m_strImage && m_ImageBuffer)
 	{
 		ShowBackgroundPng(0,0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 		SetXY(0,0);

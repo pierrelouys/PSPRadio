@@ -2,6 +2,7 @@
 #define _PSPRADIOTEXTUI_
 
 #include "IPSPRadio_UI.h"
+#include "PSPRadio_Exports.h"
 #include "Screen.h"
 
 struct screenconfig

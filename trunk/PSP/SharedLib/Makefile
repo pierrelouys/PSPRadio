@@ -1,7 +1,13 @@
 
 all:
+	cd Tools && make
+	cd libiniparser && make
+	cd Logging && make
+	cd PSPApp && make
+
+clean:
 	cd lib && rm -f *.a 
-	cd Tools && make clean all
-	cd libiniparser && make clean all
-	cd Logging && make clean all
-	cd PSPApp && make clean all && make -f Makefile.debug clean all && rm *.o 
+	cd Tools && make clean
+	cd libiniparser && make clean
+	cd Logging && make clean
+	cd PSPApp && make clean 

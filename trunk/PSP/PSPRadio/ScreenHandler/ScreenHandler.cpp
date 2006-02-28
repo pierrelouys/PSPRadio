@@ -36,9 +36,8 @@
 #include "OptionsScreen.h"
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
-#include "TextUI.h"
-#include "GraphicsUI.h"
-#include "TextUI3D.h"
+#include "IPSPRadio_UI.h"
+#include "PRXLoader.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -73,8 +72,9 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
 	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS])->SetConfigFilename("OptionsScreen.cfg");
 
-
 	m_CurrentScreen = Screens[InitialScreen];
+	Log(LOG_LOWLEVEL, "Setting m_CurrentScreen to Screens[%d]=%p", InitialScreen, m_CurrentScreen);
+	
 	/* To avoid getting stuck when Options are the initial screen */
 	if (InitialScreen == PSPRADIO_SCREEN_OPTIONS)
 	{
@@ -86,8 +86,15 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	}
 	m_StreamOwnerScreen = NULL;
 
+	m_UIModuleLoader = new CPRXLoader();
+	if (m_UIModuleLoader == NULL)
+	{
+		Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader.");
+	}
+	
 	SetInitialScreen(InitialScreen);
 
+	
 }
 
 CScreenHandler::~CScreenHandler()
@@ -131,42 +138,72 @@ IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 		Log(LOG_INFO, "StartUI: Destroying current UI");
 		m_UI->Terminate();
 		delete(m_UI), m_UI = NULL;
+		Log(LOG_INFO, "Unloading Module");
+		m_UIModuleLoader->Unload();
 		Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
 	}
 	Log(LOG_LOWLEVEL, "StartUI: Starting UI %d", UI);
+	
+	char strModulePath[MAXPATHLEN];
 	switch(UI)
 	{
 		default:
 		case UI_TEXT:
-			Log(LOG_INFO, "StartUI: Starting Text UI");
-			m_UI = new CTextUI();
+			sprintf(strModulePath, "%s/%s", GetCWD(), "TextUI.prx");
 			break;
 		case UI_GRAPHICS:
-			Log(LOG_INFO, "StartUI: Starting Graphics UI  -Error, graphicsUI not enabled for this build.");
-			#ifdef GRAPHICS_UI
-				Log(LOG_INFO, "StartUI: Starting Graphics UI");
-				m_UI = new CGraphicsUI();
-			#endif
+			sprintf(strModulePath, "%s/%s", GetCWD(), "GraphicsUI.prx");
 			break;
 		case UI_3D:
-			Log(LOG_INFO, "StartUI: Starting Text3D UI");
-			m_UI = new CTextUI3D();
+			sprintf(strModulePath, "%s/%s", GetCWD(), "TextUI3D.prx");
 			break;
 	}
+	
+	Log(LOG_LOWLEVEL, "In PSPRadioPRX: _global_impure_ptr=%p, _impure_ptr=%p", _global_impure_ptr, _impure_ptr);
+	
+	int id = m_UIModuleLoader->Load(strModulePath);
+	
+	if (m_UIModuleLoader->IsLoaded() == true)
+	{
+		SceKernelModuleInfo modinfo;
+		memset(&modinfo, 0, sizeof(modinfo));
+		modinfo.size = sizeof(modinfo);
+		sceKernelQueryModuleInfo(id, &modinfo);
+		Log(LOG_INFO, "'%s' Loaded at text_addr=0x%x",
+			strModulePath, modinfo.text_addr);
+	
+		int iRet = m_UIModuleLoader->Start();
+		
+		Log(LOG_LOWLEVEL, "Module start returned: 0x%x", iRet);
+		
+	}
+	else
+	{
+		Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strModulePath, m_UIModuleLoader->GetError());
+	}
+	
+	Log(LOG_INFO, "Calling ModuleStartUI() (at addr %p)", &ModuleStartUI);
+	m_UI = ModuleStartUI();
+	
+	Log(LOG_INFO, "UI Started, m_UI = %p", m_UI);
+	
 	m_CurrentUI = UI;
-	m_UI->Initialize("./");//strCurrentDir); /* Initialize takes cwd */ ///FIX!!!
-	//StartScreen(m_CurrentScreen);
-	Log(LOG_LOWLEVEL, "Calling currentscreen activate");
+	
+	Log(LOG_LOWLEVEL, "Calling m_UI->Initialize");
+	m_UI->Initialize(GetCWD());
+	
+	Log(LOG_LOWLEVEL, "Calling currentscreen activate in (m_CurrentScreen=%p)", m_CurrentScreen);
+	
 	m_CurrentScreen->Activate(m_UI);
-
+	Log(LOG_LOWLEVEL, "Activate called.");
+	
 	if (wasPolling)
 	{
 		/** If PSPRadio was running, then notify it of the new address of the UI */
-		Log(LOG_LOWLEVEL, "Notifying PSPRadio of new UI's address (0x%x)", m_UI );
+		Log(LOG_LOWLEVEL, "Notifying PSPRadio of new UI's address (%p)", m_UI );
 		pPSPApp->SendEvent(EID_NEW_UI_POINTER, m_UI, SID_SCREENHANDLER);
 		pPSPApp->StartPolling();
 	}
-
 
 	return m_UI;
 }
@@ -261,13 +298,6 @@ void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
 	if (GetCurrentScreen())
 		((PlayListScreen*)GetCurrentScreen())->OnHPRMReleased(iHPRMMask);
 };
-
-void IScreen::Activate(IPSPRadio_UI *UI)
-{
-	m_UI = UI;
-	m_UI->Initialize_Screen(this);
-	m_ScreenHandler->SetCurrentScreen(this);
-}
 
 void CScreenHandler::Screenshot()
 {
@@ -396,4 +426,12 @@ void CScreenHandler::ScreenshotStore(char *filename)
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 	fclose(fp);
+}
+
+/*----------------------------------*/
+void IScreen::Activate(IPSPRadio_UI *UI)
+{
+	m_UI = UI;
+	m_UI->Initialize_Screen(this);
+	m_ScreenHandler->SetCurrentScreen(this);
 }

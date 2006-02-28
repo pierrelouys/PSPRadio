@@ -46,6 +46,7 @@ CLogging::CLogging()
 	m_lock = new CLock("LogLock");
 	m_msg = (char *) malloc(4096); /** A message this big would fill up the whole screen of the psp if sent to the screen. */
 	m_sock = -1;
+	m_pPSPApp = NULL;
 }
 
 CLogging::~CLogging()
@@ -121,10 +122,18 @@ void CLogging::EnableWiFiLogging(char *server, char *port)
 	memset(&addr, 0, sizeof(in_addr));
 
 	Log_(__FILE__, __LINE__, LOG_INFO, "WifiLog:Resolving server='%s'", server);
-	rc = pPSPApp->ResolveHostname(server, &addr);
+	if (m_pPSPApp)
+	{
+		rc = m_pPSPApp->ResolveHostname(server, &addr);
+	}
+	else
+	{
+		Log_(__FILE__, __LINE__, LOG_ERROR, "WifiLog:Could not resolve server. PSPApp not set.!\n");
+		return;
+	}
 	if (rc < 0)
 	{
-		Log_(__FILE__, __LINE__, LOG_ERROR, "WifiLog:Could not resolve server!\n",server);
+		Log_(__FILE__, __LINE__, LOG_ERROR, "WifiLog:Could not resolve server!\n");
 		return;
 	}
 	Log_(__FILE__, __LINE__, LOG_INFO, "WifiLog:aton/ntoa succeeded, returned addr='0x%x'", addr);

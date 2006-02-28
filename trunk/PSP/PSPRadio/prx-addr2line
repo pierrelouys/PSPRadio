@@ -1,0 +1,5 @@
+decadd=`printf "%d" ${2}`
+decoffset=`printf "%d" ${3}`
+calcadd=`expr ${decoffset} - ${decadd}`
+hexadd=`printf "%x" ${calcadd}`
+psp-addr2line -e ${1} ${hexadd}

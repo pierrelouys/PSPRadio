@@ -29,10 +29,8 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
+#include "IPSPRadio_UI.h"
 #include "SHOUTcastScreen.h"
-#include "TextUI.h"
-#include "GraphicsUI.h"
-#include "TextUI3D.h" 
 
 #define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
 #define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"
@@ -45,11 +43,6 @@ SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 {
 	Log(LOG_VERYLOW,"SHOUTcastScreen Ctor.");
 	m_Lists = NULL;
-
-//	m_Lists = new CMetaDataContainer();
-
-//	LoadLists();
-
 }
 
 

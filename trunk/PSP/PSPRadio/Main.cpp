@@ -16,63 +16,45 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifdef DEBUG
-	#include <pspdebug.h>
-	#include <pspkernel.h>
-	#include <pspdebug.h>
-	#include <pspdisplay.h>
-	extern volatile bool flagGdbStubReady;
-	/** Driver Loader Thread handle */
-	extern int handleDriverLoaderThread;
-#endif
-#include <PSPApp.h>
-#include <PSPSound.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <malloc.h>
-#include <iniparser.h>
-#include <Tools.h>
-#include <Logging.h>
-#include <pspwlan.h>
-#include <psphprm.h>
-#include <psprtc.h>
-#include "ScreenHandler.h"
-#include "PlayListScreen.h"
-#include "SHOUTcastScreen.h"
-#include "TextUI.h"
-#include "TextUI3D.h"
-#include <ivorbisfile.h>
-#include "Screen.h"
+#include <pspsdk.h>
 #include "PSPRadio.h"
 
-PSP_MAIN_THREAD_PRIORITY(80);
-//PSP_MAIN_THREAD_STACK_SIZE_KB(512);
+#ifdef _PRX_
+	PSP_MODULE_INFO("PSPRADIO_PRX", 0x0/**USER MODULE */, 0, 1);
+	PSP_MAIN_THREAD_PARAMS(/*0x20*/80, 64, PSP_THREAD_ATTR_USER);
+	PSP_MAIN_THREAD_NAME("PSPRadioPRX");
+	PSP_HEAP_SIZE_KB(6144);
+#else
+	PSP_MAIN_THREAD_PRIORITY(80);
+#endif
 
 CPSPRadio *gPSPRadio = NULL;
 
 /** main */
 int main(int argc, char **argv)
 {
-	#ifdef DEBUG
-		/** Wait for GdbStub to be ready -- Thanks to bengarney for gdb wifi! */
-		while(!flagGdbStubReady)
-		   sceKernelDelayThread(5000000);
-		sceKernelWaitThreadEnd(handleDriverLoaderThread, NULL);
-		pspDebugScreenPrintf("After sceKernelWaitThreadEnd. Generating breakpoint.\n");
-		/* Generate a breakpoint to trap into GDB */
-		pspDebugBreakpoint();
-	#endif
-
-	rootScreen.SetBackgroundImage("Init.png");
-	rootScreen.Clear();
+	rootScreen = new CScreen();
+	
+	rootScreen->SetBackgroundImage("Init.png");
+	rootScreen->Clear();
 
 	gPSPRadio = new CPSPRadio();
 	if (gPSPRadio)
 	{
 		gPSPRadio->Setup(argc, argv);
+		Log(LOG_INFO, "PSPRadio() Main, Calling ProcessEvents()");
+		for (int i = 0; i < argc ; i++)
+		{
+			if (i == 3)
+			{
+				Log(LOG_INFO, "Main(Arg %d)='%s'", i, argv[i]); /** Log text address for debugging */
+			}
+			else
+			{
+				Log(LOG_LOWLEVEL, "Main(Arg %d)='%s'", i, argv[i]);
+			}
+		}
+		
 		gPSPRadio->ProcessEvents();
 
 		delete(gPSPRadio); gPSPRadio = NULL;

@@ -54,6 +54,13 @@
 		virtual void DisplayElements(CMetaDataContainer *Container){}
 		virtual void OnCurrentContainerSideChange(CMetaDataContainer *Container){}
 		};
+		
+		extern "C" 
+		{
+			/** In UI PRX */
+			void* getModuleInfo(void);
+			IPSPRadio_UI *ModuleStartUI();
+		}
 
 #endif
 

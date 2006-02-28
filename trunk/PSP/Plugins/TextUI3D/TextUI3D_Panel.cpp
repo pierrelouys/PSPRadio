@@ -60,12 +60,12 @@ CTextUI3D_Panel::CTextUI3D_Panel()
 	m_scale			= 1.0f;
 	m_opacity		= 1.0f;
 	m_alpha			= 0xFF000000;
-	Log(LOG_VERYLOW, "Panel:Created");
+	ModuleLog(LOG_VERYLOW, "Panel:Created");
 }
 
 CTextUI3D_Panel::~CTextUI3D_Panel()
 {
-	Log(LOG_VERYLOW, "Panel:Destroyed");
+	ModuleLog(LOG_VERYLOW, "Panel:Destroyed");
 }
 
 void CTextUI3D_Panel::SetState(PanelState *state)

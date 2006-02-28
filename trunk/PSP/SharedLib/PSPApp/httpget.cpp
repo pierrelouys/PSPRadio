@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-//#include <PSPNet.h>
-//#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/param.h>
 #include <sys/types.h>
@@ -103,7 +101,7 @@ void readstring (char *string, int maxlen, int sock)
 
 void encode64 (char *source,char *destination)
 {
-  static char *Base64Digits =
+  char *Base64Digits =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   int n = 0;
   int ssiz=strlen(source);
@@ -158,7 +156,8 @@ int getauthfromURL(char *url,char *auth)
   return 0;
 }
 
-static char *defaultportstr = "80";
+//static char *defaultportstr = "80";
+#define DEFAULTPORT_STR "80"
 
 char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char **port)
 {
@@ -214,8 +213,8 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 		if(!stringlength) portptr = NULL;
 	}
 	if (portptr == NULL) {
-		portptr = defaultportstr;
-		stringlength = strlen(defaultportstr);
+		portptr = DEFAULTPORT_STR;
+		stringlength = strlen(DEFAULTPORT_STR);
 	}
 	p0 = (char*)malloc(stringlength + 1);
 	if (p0 == NULL) {

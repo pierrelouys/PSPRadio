@@ -4,6 +4,7 @@
 	#include <PSPSound.h>
 	#include <iniparser.h>
 	#include <list>
+	#include <PRXLoader.h>
 	using namespace std;
 
 
@@ -152,6 +153,7 @@
 		IScreen *m_PreviousScreen;
 		IScreen *m_StreamOwnerScreen;
 		Screen   m_InitialScreen;
+		CPRXLoader *m_UIModuleLoader;
 		UIs m_CurrentUI;
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;

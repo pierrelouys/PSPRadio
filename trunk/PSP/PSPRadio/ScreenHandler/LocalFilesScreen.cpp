@@ -29,11 +29,11 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
-#include "LocalFilesScreen.h"
-#include "TextUI.h"
-#include "GraphicsUI.h"
-#include "TextUI3D.h" 
 #include "Main.h"
+#include "IPSPRadio_UI.h"
+#include "LocalFilesScreen.h"
+
+#define DEFAULT_MUSIC_DIRECTORY "ms0:/PSP/MUSIC"
 
 LocalFilesScreen::LocalFilesScreen(int Id, CScreenHandler *ScreenHandler)
 	:PlayListScreen(Id, ScreenHandler)
@@ -41,7 +41,7 @@ LocalFilesScreen::LocalFilesScreen(int Id, CScreenHandler *ScreenHandler)
 	Log(LOG_VERYLOW,"LocalFilesScreen Ctor.");
 	m_Lists = NULL;
 
-	m_strPath = strdup(gPSPRadio->GetConfig()->GetString("DIRECTORIES:LOCALFILES", "ms0:/PSP/MUSIC"));
+	m_strPath = strdup(gPSPRadio->GetConfig()->GetString("DIRECTORIES:LOCALFILES", DEFAULT_MUSIC_DIRECTORY));
 }
 
 

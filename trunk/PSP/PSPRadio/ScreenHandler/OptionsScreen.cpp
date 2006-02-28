@@ -29,12 +29,10 @@
 #include <Logging.h>
 #include <pspwlan.h>
 #include <psppower.h>
-#include "OptionsScreen.h"
-#include "TextUI.h"
-#include "GraphicsUI.h"
-#include "TextUI3D.h"
+#include "IPSPRadio_UI.h"
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
+#include "OptionsScreen.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -548,6 +546,8 @@ void OptionsScreen::OnOptionActivation()
 
 int OptionsScreen::Start_Network(int iProfile)
 {
+	Log(LOG_LOWLEVEL, "Start_Network(%d)", iProfile);
+	
 	if (-1 != iProfile)
 	{
 		m_iNetworkProfile = abs(iProfile);
@@ -575,11 +575,10 @@ int OptionsScreen::Start_Network(int iProfile)
 
 		if (pPSPApp->EnableNetwork(abs(m_iNetworkProfile)) == 0)
 		{
-			CIniParser *pConfig = m_ScreenHandler->GetConfig();
-
 			if (m_UI)
 				m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
-
+			
+			CIniParser *pConfig = m_ScreenHandler->GetConfig();
 			if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0))
 				{
 				char	*server, *port;
@@ -600,7 +599,7 @@ int OptionsScreen::Start_Network(int iProfile)
 		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
 
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
-
+		
 	}
 	else
 	{

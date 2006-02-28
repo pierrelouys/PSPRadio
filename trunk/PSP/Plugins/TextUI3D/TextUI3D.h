@@ -22,6 +22,7 @@
 #define _PSPRADIOTEXTUI3D_
 
 #include "IPSPRadio_UI.h"
+#include "PSPRadio_Exports.h"
 #include "jsaVRAMManager.h"
 #include "TextUI3D_WindowManager_HSM.h"
 

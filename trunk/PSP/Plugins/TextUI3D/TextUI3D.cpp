@@ -56,7 +56,7 @@ gfx_sizes	GfxSizes;
 
 CTextUI3D::CTextUI3D()
 {
-	Log(LOG_VERYLOW, "CTextUI3D: created");
+	ModuleLog(LOG_VERYLOW, "CTextUI3D: created");
 	m_state	= CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_title[0] = 0;
 	m_option_list = m_option_list_tail = NULL;
@@ -71,7 +71,7 @@ CTextUI3D::~CTextUI3D()
 		delete(m_Settings);
 		m_Settings = NULL;
 	}
-	Log(LOG_VERYLOW, "CTextUI3D: destroyed.");
+	ModuleLog(LOG_VERYLOW, "CTextUI3D: destroyed.");
 }
 
 int CTextUI3D::Initialize(char *strCWD)
@@ -85,7 +85,7 @@ char *strCfgFile = NULL;
 	free (strCfgFile), strCfgFile = NULL;
 	memset(&LocalSettings, 0, sizeof(LocalSettings));
 	GetSettings();
-	Log(LOG_VERYLOW, "CTextUI3D:Settings read");
+	ModuleLog(LOG_VERYLOW, "CTextUI3D:Settings read");
 
 	/* Allocate space in VRAM for 2 displaybuffer and the Zbuffer */
 	jsaVRAMManager::jsaVRAMManagerInit((unsigned long)0x154000);
@@ -180,13 +180,13 @@ void CTextUI3D::GetSettings()
 void CTextUI3D::PrepareShutdown()
 {
 	/* Prepare for shutdown -> Don't render anymore */
-	Log(LOG_VERYLOW, "CTextUI3D: preparing for shutdown");
+	ModuleLog(LOG_VERYLOW, "CTextUI3D: preparing for shutdown");
 	m_state = CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE;
 }
 
 void CTextUI3D::Terminate()
 {
-	Log(LOG_VERYLOW, "CTextUI3D:Terminating");
+	ModuleLog(LOG_VERYLOW, "CTextUI3D:Terminating");
 	sceGuTerm();
 }
 
@@ -360,32 +360,32 @@ int CTextUI3D::OnStreamTimeUpdate(MetaData *pData)
 void CTextUI3D::Initialize_Screen(IScreen *Screen)
 {
 	/* Pass to WindowManager */
-	if (pPSPApp->GetProgramVersion())
+	if (PSPRadioExport_GetProgramVersion())
 	{
-		SetTitle(pPSPApp->GetProgramVersion());
+		SetTitle(PSPRadioExport_GetProgramVersion());
 	}
 
-	if (pPSPApp->GetMyIP())
+	if (PSPRadioExport_GetMyIP())
 	{
-		DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		DisplayMessage_NetworkReady(PSPRadioExport_GetMyIP());
 	}
 
 	switch ((CScreenHandler::Screen)Screen->GetId())
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-			Log(LOG_VERYLOW, "CTextUI3D:Initialize shoutcast");
+			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize shoutcast");
 			m_wmanager.Dispatch(WM_EVENT_SHOUTCAST, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			Log(LOG_VERYLOW, "CTextUI3D:Initialize playlist");
+			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize playlist");
 			m_wmanager.Dispatch(WM_EVENT_PLAYLIST, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
-			Log(LOG_VERYLOW, "CTextUI3D:Initialize localfiles");
+			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize localfiles");
 			m_wmanager.Dispatch(WM_EVENT_LOCALFILES, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-			Log(LOG_VERYLOW, "CTextUI3D:Initialize options");
+			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize options");
 			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
 			break;
 	}
@@ -425,7 +425,7 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	OptionsScreen::Options	Option;
 	WindowHandlerHSM::TextItem *new_list;
 
-	Log(LOG_VERYLOW, "CTextUI3D:Updating options");
+	ModuleLog(LOG_VERYLOW, "CTextUI3D:Updating options");
 
 	if (OptionsList.size() > 0)
 	{

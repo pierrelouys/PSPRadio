@@ -49,7 +49,10 @@ public:
 	CIniParser(char *strIniFilename)
 	{
 		m_strIniFilename = strdup(strIniFilename);
-		m_dict = iniparser_new(m_strIniFilename);
+		if (m_strIniFilename != NULL)
+		{
+			m_dict = iniparser_new(m_strIniFilename);
+		}
 	}
 	~CIniParser()
 	{

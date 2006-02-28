@@ -17,29 +17,9 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <PSPApp.h>
-#include <PSPSound.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <malloc.h>
-#include <iniparser.h>
-#include <Tools.h>
-#include <Logging.h>
-#include <pspwlan.h>
-#include <psphprm.h>
-#include <psprtc.h>
-#include "ScreenHandler.h"
-#include "PlayListScreen.h"
-#include "SHOUTcastScreen.h"
-#include "TextUI.h"
-#include "TextUI3D.h"
-#include <ivorbisfile.h>
-#include "Screen.h"
 #include "PSPRadio.h"
 
-CScreen rootScreen;
+CScreen *rootScreen;
 
 /** Setup */
 int CPSPRadio::Setup(int argc, char **argv)
@@ -120,6 +100,8 @@ int CPSPRadio::Setup_Logging(char *strCurrentDir)
 		int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
 
 		InstantiateLogging();
+		
+		pLogging->SetPSPApp(this);
 
 		strFilename = (char*)malloc(strlen(strCurrentDir) + 1 + strlen(m_Config->GetStr("DEBUGGING:LOGFILE")) + 10);
 		sprintf(strFilename, "%s/%s", strCurrentDir, m_Config->GetStr("DEBUGGING:LOGFILE"));
@@ -207,8 +189,8 @@ void CPSPRadio::OnExit()
 		m_ScreenHandler->PrepareShutdown();
 	}
 
-	rootScreen.SetBackgroundImage("Shutdown.png");
-	rootScreen.Clear();
+	rootScreen->SetBackgroundImage("Shutdown.png");
+	rootScreen->Clear();
 
 	if (m_Sound)
 	{
@@ -298,7 +280,7 @@ int CPSPRadio::ProcessEvents()
 			{
 			case EID_NEW_UI_POINTER:
 				m_UI = (IPSPRadio_UI *)event.pData;
-				Log(LOG_LOWLEVEL, "Received new UI address = 0x%x", m_UI );
+				Log(LOG_LOWLEVEL, "Received new UI address = %p", m_UI );
 				break;
 			case EID_EXIT_SELECTED:
 					Log(LOG_INFO, "ProcessEvents(): EID_EXIT_SELECTED received.");
@@ -352,7 +334,7 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_THDECODE_DECODING:
-				Log(LOG_VERYLOW, "MID_THDECODE_DECODING received, calling OnPlayStateChange(PLAY)", event.EventId);
+				Log(LOG_VERYLOW, "MID_THDECODE_DECODING received, calling OnPlayStateChange(PLAY)");
 				if (StreamOwnerScreen)
 				{
 					StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_PLAY);

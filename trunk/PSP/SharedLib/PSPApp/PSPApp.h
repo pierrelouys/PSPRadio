@@ -24,7 +24,6 @@
 	#include <pspkerneltypes.h>
 	#include <psppower.h>
 	#include <psprtc.h>
-//	#include <PSPNet.h>
 	#include <pspctrl.h>
 	#include <pspaudio.h>
 	#include <Logging.h>
@@ -101,6 +100,7 @@
 		bool IsPolling(){ return m_Polling;}
 
 		/** Networking */
+		int InitializeNetworkDrivers(); /** This is called internally by PSPApp on initialization */
 		char *GetMyIP() { return m_strMyIP; };
 		int  GetResolverId() { return m_ResolverId; };
 		int  EnableNetwork(int profile);
@@ -158,7 +158,8 @@
 		int  m_ResolverId;
 		char *m_strProgramName, *m_strVersionNumber;
 		bool m_Polling;
-
+		CPSPThread *m_thCallbackSetup;
+		
 		/** Networking */
 		int WLANConnectionHandler(int profile);
 		int NetApctlHandler();

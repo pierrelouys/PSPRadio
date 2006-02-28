@@ -1,0 +1,95 @@
+[Dir Bootstrap]
+Dirs=
+Files=BootstrapMain.c/Makefile
+
+[Dir PSPRadio]
+Dirs=ScreenHandler/Documents/LogTool
+Files=IPSPRadio_UI.h/Makefile/PSPRadio.cfg/PSPRadio.cpp/whatsnew.txt/readme.txt/Makefile.halfast2/Makefile.handojin/Makefile.mrpochi/Makefile.harbringer/IPSPRadio_UI.cpp/Makefile.debug/MetaDataContainer.cpp/MetaDataContainer.h/Makefile.sem/PSPRadio.h/Main.cpp/Main.h/exports.exp/PSPRadio_Exports.cpp/PSPRadio_Exports.h
+
+[Dir PSPRadio/GraphicsUI]
+Dirs=
+Files=GraphicsUI.h/GraphicsUI.cpp/GraphicsUITheme.cpp/GraphicsUITheme.h
+
+[Dir PSPRadio/LogTool]
+Dirs=
+Files=LogTool.cpp/Makefile
+
+[Dir PSPRadio/SandbergUI]
+Dirs=
+Files=
+
+[Dir PSPRadio/ScreenHandler]
+Dirs=
+Files=ScreenHandler.cpp/ScreenHandler.h/OptionsScreen.cpp/OptionsScreen.h/PlayListScreen.cpp/PlayListScreen.h/SHOUTcastScreen.cpp/SHOUTcastScreen.h/LocalFilesScreen.cpp/LocalFilesScreen.h
+
+[Dir PSPRadio/TextUI]
+Dirs=
+Files=TextUI.cpp/TextUI.h/Makefile/LocalFilesScreen.cfg/OptionsScreen.cfg/PlaylistScreen.cfg/SHOUTcastScreen.cfg/main.cpp
+
+[Dir PSPRadio/TextUI3D]
+Dirs=Graphics
+Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
+
+[Dir Plugins]
+Dirs=TextUI/TextUI3D
+Files=UI_Exports.exp
+
+[Dir Plugins/TextUI]
+Dirs=
+Files=LocalFilesScreen.cfg/LocalFilesScreen.png/main.cpp/Makefile/OptionsScreen.cfg/OptionsScreen.png/PlaylistScreen.cfg/PlayListScreen.png/SHOUTcastScreen.cfg/SHOUTcastScreen.png/TextUI.cpp/TextUI.h
+
+[Dir Plugins/TextUI3D]
+Dirs=Graphics
+Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/main.cpp/Makefile/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
+
+[Dir SharedLib]
+Dirs=Logging/libiniparser/PSPApp/Tools
+Files=Makefile
+
+[Dir SharedLib/Logging]
+Dirs=
+Files=Logging.cpp/Logging.h/Makefile
+
+[Dir SharedLib/PSPApp]
+Dirs=
+Files=bstdfile.cpp/bstdfile.h/httpget.cpp/Makefile/PSPApp.cpp/PSPApp.h/PSPSound.cpp/PSPSound.h/PSPSoundDecoder_MAD.cpp/PSPSoundDecoder_MAD.h/PSPEventQ.cpp/PSPEventQ.h/PSPSema.h/PSPSoundDecoder_OGG.cpp/PSPSoundDecoder_OGG.h/PSPSoundDecoder.cpp/PSPSoundDecoder.h/PSPApp_Network.cpp/PSPStream.cpp/PSPStream.h/PSPKeyHandler.cpp/PSPKeyHandler.h/PSPSoundBuffer.cpp/PSPSoundBuffer.h/ID3Parser.cpp/ID3Parser.h/PSPInit.cpp/PRXLoader.cpp/PRXLoader.h/PSPAppExports.exp
+
+[Dir SharedLib/Tools]
+Dirs=
+Files=pg.h/pg.c/makefile/Tools.h/pg.cpp/Tools.cpp/Screen.cpp/Screen.h
+
+[Dir SharedLib/libiniparser]
+Dirs=
+Files=iniparser.cpp/iniparser.h/makefile
+
+[Dir SharedLib/libpspnet]
+Dirs=sys/netinet
+Files=pspnet.c/pspnet.h/Makefile/PSPNet.c/PSPNet.h
+
+[Dir SharedLib/libpspnet/netinet]
+Dirs=
+Files=in.h/ip.h/tcp.h/tcpip.h/udp.h
+
+[Dir SharedLib/libpspnet/sys]
+Dirs=
+Files=socket.h
+
+[Dir prxtest]
+Dirs=prx_loader/testprx
+Files=
+
+[Dir prxtest/prx_loader]
+Dirs=
+Files=main.cpp/Makefile/MyLib.S
+
+[Dir prxtest/testprx]
+Dirs=
+Files=exports.exp/main.cpp/Makefile/README
+
+[Project Dir]
+Dirs=PSPRadio/SharedLib/Bootstrap/Plugins
+Files=Makefile/include.mak
+
+[Project File]
+Name=PSPRadio
+Type=Default

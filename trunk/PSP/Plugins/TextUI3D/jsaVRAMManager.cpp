@@ -19,7 +19,8 @@
 */
 
 #include <stdio.h>
-#include <Logging.h>
+#include <PSPApp.h>
+#include <TextUI3D.h>
 
 #include <pspkernel.h>
 #include <pspdisplay.h>
@@ -49,14 +50,14 @@ void jsaVRAMManager::jsaVRAMManagerInit(unsigned long buffersize)
 	m_vram_free	= m_vram_size  - m_systemoffset;
 	m_vram_offset	= m_vram_start + m_systemoffset;
 	m_initialized	= true;
-	Log(LOG_VERYLOW, "VM:VRAM manager initialized.");
+	ModuleLog(LOG_VERYLOW, "VM:VRAM manager initialized.");
 }
 
 void *jsaVRAMManager::jsaVRAMManagerMalloc(unsigned long size)
 {
 	unsigned long	pointer = 0;
 
-	Log(LOG_VERYLOW, "VM:Allocating : %d", size);
+	ModuleLog(LOG_VERYLOW, "VM:Allocating : %d", size);
 
 	if (m_initialized && (size <= m_vram_free))
 	{
@@ -65,11 +66,11 @@ void *jsaVRAMManager::jsaVRAMManagerMalloc(unsigned long size)
 		/* Update internal VRAM pointers */
 		m_vram_offset	+= size;
 		m_vram_free 	-= size;
-		Log(LOG_VERYLOW, "VM:VRAM Left : %d", m_vram_free);
+		ModuleLog(LOG_VERYLOW, "VM:VRAM Left : %d", m_vram_free);
 	}
 	else
 	{
-		Log(LOG_ERROR, "VM:Out of VRAM..");
+		ModuleLog(LOG_ERROR, "VM:Out of VRAM..");
 	}
 	return (void *)pointer;
 }

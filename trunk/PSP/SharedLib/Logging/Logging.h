@@ -36,6 +36,8 @@
 		LOG_ALWAYS	 = 100
 	};
 
+	class CPSPApp;
+	
 	class CLogging
 	{
 	public:
@@ -45,6 +47,7 @@
 		int Set(char *strLogFilename, loglevel_enum iLogLevel);
 		void SetLevel(loglevel_enum iNewLevel);
 		int  GetLevel(){return m_LogLevel;}
+		void SetPSPApp(CPSPApp *ptr){m_pPSPApp = ptr;};
 		void EnableWiFiLogging(char *server, char *port);
 		void DisableWiFiLogging();
 		int Log_(char *strModuleName, int iLineNo, loglevel_enum LogLevel, char *strFormat, ...);
@@ -53,6 +56,7 @@
 		void WifiLog(char *message);
 
 	private:
+		CPSPApp *m_pPSPApp;
 		char *m_strFilename;
 		loglevel_enum m_LogLevel;
 		FILE *m_fp;
@@ -72,6 +76,8 @@
 
 	extern CLogging *pLogging;
 	#define Log(level, format, args...) if (pLogging)pLogging->Log_(__FILE__, __LINE__, level, format, ## args)
-
+	//#define Log(level, format, args...) {printf("%s@%d<%d>:", __FILE__, __LINE__, level); printf(format, ## args); printf("\n");}
+	//#define Log(level, format, args...) fprintf(stderr, format, ## args)
+	
 #endif
 

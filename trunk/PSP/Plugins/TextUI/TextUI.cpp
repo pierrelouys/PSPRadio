@@ -29,13 +29,10 @@
 #include <iniparser.h>
 #include <Tools.h>
 #include <stdarg.h>
-#include <Logging.h>
 #include <Screen.h>
 #include "TextUI.h"
 #include <psputility_sysparam.h>
 
-//#define MAX_ROWS 34
-//#define MAX_COL  68
 #define MAX_ROWS 		m_Screen->GetNumberOfTextRows()
 #define MAX_COL 		m_Screen->GetNumberOfTextColumns()
 #define PIXEL_TO_ROW(y)	((y)/m_Screen->GetFontHeight())
@@ -48,9 +45,12 @@
 
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 
+#define TextUILog ModuleLog
+
 CTextUI::CTextUI()
 {
-	Log(LOG_VERYLOW, "CtextUI: Constructor start");
+	TextUILog(LOG_VERYLOW, "CtextUI: Constructor start");
+	
 	m_Config = NULL;
 	m_lockprint = NULL;
 	m_lockclear = NULL;
@@ -64,12 +64,13 @@ CTextUI::CTextUI()
 	m_isdirty = false;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
-	Log(LOG_VERYLOW, "CtextUI: Constructor end.");
+	
+	TextUILog(LOG_VERYLOW, "CtextUI: Constructor end.");
 }
 
 CTextUI::~CTextUI()
 {
-	Log(LOG_VERYLOW, "~CTextUI(): Start");
+	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
 	if (m_lockprint)
 	{
 		delete(m_lockprint);
@@ -91,16 +92,16 @@ CTextUI::~CTextUI()
 	}
 	
 	delete(m_Screen), m_Screen = NULL;
-	Log(LOG_VERYLOW, "~CTextUI(): End");
+	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
 
 int CTextUI::Initialize(char *strCWD)
 {
-	Log(LOG_VERYLOW, "CTextUI::Initialize Start");
+	TextUILog(LOG_VERYLOW, "CTextUI::Initialize Start");
 	m_strCWD = strdup(strCWD);
 	//m_Screen->Init();
 	
-	Log(LOG_VERYLOW, "CTextUI::Initialize End");
+	TextUILog(LOG_VERYLOW, "CTextUI::Initialize End");
 	
 	return 0;
 }
@@ -122,11 +123,18 @@ void CTextUI::Terminate()
 {
 }
 
+extern "C" 
+{
+	int module_stop(int args, void *argp);
+	void __psp_libc_init(int argc, char *argv[]);
+}
+
 void CTextUI::LoadConfigSettings(IScreen *Screen)
 {
 	char *strCfgFile = NULL;
 
-	Log(LOG_LOWLEVEL, "LoadConfigSettings() start");
+	pspDebugScreenInit();
+	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() start");
 	
 	if (Screen->GetConfigFilename())
 	{
@@ -134,12 +142,14 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		{
 			delete(m_Config);
 		}
-		strCfgFile = (char *)malloc(strlen(m_strCWD) + strlen(Screen->GetConfigFilename()) + 10);
-		sprintf(strCfgFile, "%sTextUI/%s", m_strCWD, Screen->GetConfigFilename());
+		strCfgFile = (char *)malloc(strlen(m_strCWD) + strlen(Screen->GetConfigFilename()) + 64);
+		sprintf(strCfgFile, "%s/TextUI/%s", m_strCWD, Screen->GetConfigFilename());
 	
-		Log(LOG_LOWLEVEL, "LoadConfigSettings(): Using '%s' config file", strCfgFile);
+		TextUILog(LOG_LOWLEVEL, "LoadConfigSettings(): Using '%s' config file", strCfgFile);
 		
 		m_Config = new CIniParser(strCfgFile);
+		
+		TextUILog(LOG_VERYLOW, "After instantiating the iniparser");
 		
 		free (strCfgFile), strCfgFile = NULL;
 		
@@ -255,32 +265,39 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 													strlen(m_ScreenConfig.strEntriesListTitleUnselected));
 	}
 	
-	Log(LOG_LOWLEVEL, "LoadConfigSettings() end");
+	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() end");
 }
 
 void CTextUI::Initialize_Screen(IScreen *Screen)
 {
-	Log(LOG_LOWLEVEL, "Inialize screen start");
+	TextUILog(LOG_LOWLEVEL, "Inialize screen start");
 	m_CurrentScreen = (CScreenHandler::Screen)Screen->GetId();
 
 	LoadConfigSettings(Screen);
+	TextUILog(LOG_LOWLEVEL, "After LoadConfigSettings");
 	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
 	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
 	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
 	m_Screen->SetTextColor(m_ScreenConfig.FgColor);
 	if (m_ScreenConfig.strBackground)
 	{
-		m_Screen->SetBackgroundImage(m_ScreenConfig.strBackground);
+		char strPath[MAXPATHLEN+1];
+		sprintf(strPath, "%s/%s", m_strCWD, m_ScreenConfig.strBackground);
+		TextUILog(LOG_LOWLEVEL, "Calling SetBackgroundImage '%s'", strPath);
+		m_Screen->SetBackgroundImage(strPath);
 	}
+	TextUILog(LOG_LOWLEVEL, "Calling m_Screen->Clear");
 	m_Screen->Clear(); 
-	if (pPSPApp->GetProgramVersion())
-	{
-		uiPrintf(m_ScreenConfig.ProgramVersionX, m_ScreenConfig.ProgramVersionY, m_ScreenConfig.ProgramVersionColor, pPSPApp->GetProgramVersion());
-	}
+	
+	TextUILog(LOG_LOWLEVEL, "Cleared");
+	
+	uiPrintf(m_ScreenConfig.ProgramVersionX, m_ScreenConfig.ProgramVersionY, 
+			m_ScreenConfig.ProgramVersionColor, PSPRadioExport_GetProgramVersion());
+	
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
 	
-	Log(LOG_LOWLEVEL, "Inialize screen end");
+	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
 }
 
 int CTextUI::OnVBlank()
@@ -662,14 +679,15 @@ int CTextUI::OnConnectionProgress()
 	//GetConfigPair("TEXT_POS:STREAM_OPENING", &x, &y);
 	//c = GetConfigColor("COLORS:STREAM_OPENING");
 	char *strIndicator[] = {"OpEnInG StReAm", "oPeNiNg sTrEaM"};
-	static int sIndex = 0;
+	static int sIndex = -1;
 	x = m_ScreenConfig.StreamOpeningX;
 	y = m_ScreenConfig.StreamOpeningY;
 	c = m_ScreenConfig.StreamOpeningColor;
 
+	sIndex = (sIndex+1)%2;
+	
 	uiPrintf(x, y, c, "%s", strIndicator[sIndex]);
 	
-	sIndex = (sIndex+1)%2;
 
 	return 0;
 }
@@ -800,12 +818,12 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 
 	iNextRow = m_ScreenConfig.ContainerListRangeY1;
 	
-	strText = (char *)malloc (MAXPATHLEN);
+	strText = (char *)malloc (MAXPATHLEN+1);
 	
-	//Log(LOG_VERYLOW, "DisplayContainers(): populating screen");
+	//TextUILog(LOG_VERYLOW, "DisplayContainers(): populating screen");
 	if (List->size() > 0)
 	{
-		//Log(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
+		//TextUILog(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
 		ListIterator = *CurrentHighlightedElement;
 		for (int i = 0; i < PIXEL_TO_ROW(m_ScreenConfig.ContainerListRangeY2-m_ScreenConfig.ContainerListRangeY1)/2; i++)
 		{
@@ -815,8 +833,8 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 		
 		}
 
-		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
-		//Log(LOG_VERYLOW, "DisplayContainers(): Populating Screen (total elements %d)", List->size());
+		//TextUILog(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
+		//TextUILog(LOG_VERYLOW, "DisplayContainers(): Populating Screen (total elements %d)", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
 			if (iNextRow > m_ScreenConfig.ContainerListRangeY2)
@@ -888,10 +906,10 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 	
 	iNextRow = m_ScreenConfig.EntriesListRangeY1;
 	
-	strText = (char *)malloc (MAXPATHLEN);
+	strText = (char *)malloc (MAXPATHLEN+1);
 	memset(strText, 0, MAXPATHLEN);
 	
-	//Log(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
+	//TextUILog(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
 	if (List->size() > 0)
 	{
 		ListIterator = *CurrentHighlightedElement;
@@ -902,7 +920,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			ListIterator--;
 		
 		}
-		//Log(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
+		//TextUILog(LOG_VERYLOW, "DisplayPLEntries(): elements: %d", List->size());
 		for (; ListIterator != List->end() ; ListIterator++)
 		{
 			if (iNextRow > m_ScreenConfig.EntriesListRangeY2)
@@ -927,14 +945,12 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 			char *pText = strText;
 			if (strlen((*ListIterator).strTitle))
 			{
-				//Log(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
+				//TextUILog(LOG_VERYLOW, "DisplayPLEntries(): Using strTitle='%s'", (*ListIterator).strTitle);
 				strlcpy(strText, (*ListIterator).strTitle, MAXPATHLEN);
-				strText[MAXPATHLEN -  1] = 0;
 			}
 			else
 			{
 				strlcpy(strText, (*ListIterator).strURI, MAXPATHLEN);
-				strText[MAXPATHLEN -  1] = 0;
 				
 				if (strlen(strText) > 4 && memcmp(strText, "ms0:", 4) == 0)
 				{

@@ -17,6 +17,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <stdio.h>
+#include <pspsdk.h>
 #include <pspkernel.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,16 +34,12 @@
 
 #undef ReportError
 
-static int nlhInit();
-
-extern bool ge_WiFiDriversLoaded; /** Defined in Init.o -- Don't remove; necessary for correct linkage of Init.o */
-
 #define SCE_NET_APCTL_INFO_IP_ADDRESS		8
 #define apctl_state_IPObtained				4
 /** Resolver */
 #include <netinet/in.h>
 
-int  CPSPApp::ResolveHostname(char *strHostname, struct in_addr *addr)
+int CPSPApp::ResolveHostname(char *strHostname, struct in_addr *addr)
 {
 	/* RC Let's try aton first in case the address is in dotted numerical form */
 	Log(LOG_LOWLEVEL, "ResolveHostname: Calling aton.. (host='%s')", strHostname );
@@ -102,46 +99,44 @@ int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t time
 }
 
 /** Network */
+int CPSPApp::InitializeNetworkDrivers()
+{
+	int iRet = 0;
+	
+	int err = pspSdkInetInit();
+	
+	if (err != 0) 
+	{
+		Log(LOG_ERROR, "Error Initializing Network Drivers -- (Maybe they were initialized before PSPRadio started.) pspSdkInetInit() returned: 0x%x", err);
+		iRet = -1;
+	}
+	else
+	{
+		Log(LOG_INFO, "Network Drivers Initialized Correctly.");
+		iRet = 0;
+	}
+
+	if (0 == m_ResolverId)
+	{
+		int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
+		if (rc < 0)
+		{
+			Log(LOG_ERROR, "InitializeNetworkDrivers, Resolvercreate = 0x%0x rid = %d\n", rc, m_ResolverId);
+			iRet = -1;
+		}
+	}
+
+	return iRet;
+}
+
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
-	static bool fnlhInit = false;
-	
-	/** Don't remove; necessary for correct linkage of Init.o */
-	if (ge_WiFiDriversLoaded == false)
-	{
-		Log(LOG_ERROR, "WiFi drivers not loaded? Maybe running eboot loader?.");
-	}
-
-	if (false == fnlhInit)
-	{
-		int err = nlhInit();
-		if (err != 0) 
-		{
-			ReportError("ERROR - WLANConnectionHandler : nlhInit returned: 0x%x", err);
-			DisableNetwork();
-			iRet = -1;
-		}
-		else
-		{
-			fnlhInit = true;
-		}
-	}
-	if (true == fnlhInit)
+	if (sceNetApctlGetInfo(SCE_NET_APCTL_INFO_IP_ADDRESS, m_strMyIP) != 0)
 	{
 		if (WLANConnectionHandler(profile) == 0)
 		{
-			//sceNetResolverInit();
 			iRet = 0;
-			if (0 == m_ResolverId)
-			{
-				int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
-				if (rc < 0)
-				{
-					Log(LOG_LOWLEVEL, "EnableNetwork, Resolvercreate = 0x%0x rid = %d\n", rc, m_ResolverId);
-					iRet = -1;
-				}
-			}
 			
 			if (0 == iRet)
 			{
@@ -156,8 +151,9 @@ int CPSPApp::EnableNetwork(int profile)
 	}
 	else
 	{
-		ReportError("Error Initializing Network Drivers\n");
-		iRet = -1;
+		Log(LOG_ERROR, "IP already assigned: '%s'.", m_strMyIP);
+		m_NetworkEnabled = true;
+		iRet = 0;
 	}
 	return iRet;
 }
@@ -384,7 +380,7 @@ int CPSPApp::DisableUSB()
 		}
 		else
 		{
-			retVal = sceUsbDeactivate();
+			retVal = sceUsbDeactivate(0x1c8);
 			if (retVal != 0)
 			{
 				Log(LOG_ERROR, "Error calling sceUsbDeactivate (0x%08X)\n", retVal);
@@ -413,42 +409,4 @@ int CPSPApp::DisableUSB()
 		pPSPApp->SendEvent(MID_USB_DISABLE);
 	}
 	return retVal;
-}
-
-/** This function inializes the Network Drivers.
- *  It needs to be called only once. It has to be called
- *  from a userlevel thread.
- */
-int nlhInit()
-{
-	u32 err = 0;
-	
-	err = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
-	if (err != 0)
-	{
-		Log(LOG_ERROR, "nlhInit(): sceNetInit returns %i", err);
-		return err;
-	}
-	
-	err = sceNetInetInit();
-	if (err != 0)
-	{
-		Log(LOG_ERROR, "nlhInit(): sceNetInetInit returns %i", err);
-		return err;
-	}
-
-	err = sceNetResolverInit();
-	if (err != 0)
-	{
-		Log(LOG_ERROR, "nlhInit(): sceNetResolverInit returns %i", err);
-		return err;
-	}
-	err = sceNetApctlInit(0x1000, 0x42);
-	if (err != 0)
-	{
-		Log(LOG_ERROR, "nlhInit(): sceNetApctlInit returns %i", err);
-		return err;
-	}
-
-	return 0;
 }

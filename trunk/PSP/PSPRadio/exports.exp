@@ -1,0 +1,49 @@
+# Define the exports for the prx
+PSP_BEGIN_EXPORTS
+
+# These four lines are mandatory (although you can add other functions like module_stop)
+# syslib is a psynonym for the single mandatory export.
+PSP_EXPORT_START(syslib, 0, 0x8000)
+	PSP_EXPORT_FUNC(module_start)
+	PSP_EXPORT_VAR(module_info)
+	PSP_EXPORT_FUNC(module_stop)
+PSP_EXPORT_END
+
+# Export our function
+PSP_EXPORT_START(PSPRadioExports, 0, 0x0001)
+	PSP_EXPORT_FUNC(PSPRadioExport_Log)
+	PSP_EXPORT_FUNC(PSPRadioExport_GetProgramVersion)
+	PSP_EXPORT_FUNC(PSPRadioExport_IsUSBEnabled)
+	PSP_EXPORT_FUNC(PSPRadioExport_GetMyIP)
+	PSP_EXPORT_FUNC(sceRtcGetCurrentClockLocalTime)
+PSP_EXPORT_END
+
+			
+
+PSP_EXPORT_START(pnglibExports, 0, 0x0001)
+	PSP_EXPORT_FUNC(png_create_read_struct)
+	PSP_EXPORT_FUNC(png_set_error_fn)
+	PSP_EXPORT_FUNC(png_create_info_struct)
+	PSP_EXPORT_FUNC(png_destroy_read_struct)
+	PSP_EXPORT_FUNC(png_init_io)
+	PSP_EXPORT_FUNC(png_set_sig_bytes)
+	PSP_EXPORT_FUNC(png_read_info)
+	PSP_EXPORT_FUNC(png_get_IHDR)
+	PSP_EXPORT_FUNC(png_set_strip_16)
+	PSP_EXPORT_FUNC(png_set_packing)
+	PSP_EXPORT_FUNC(png_set_palette_to_rgb)
+	PSP_EXPORT_FUNC(png_set_gray_1_2_4_to_8)
+	PSP_EXPORT_FUNC(png_get_valid)
+	PSP_EXPORT_FUNC(png_set_tRNS_to_alpha)
+	PSP_EXPORT_FUNC(png_set_filler)
+	#PSP_EXPORT_FUNC(png_destroy_read_struct)
+	PSP_EXPORT_FUNC(png_read_row)
+	PSP_EXPORT_FUNC(png_read_end)
+PSP_EXPORT_END
+
+PSP_EXPORT_START(mlibExports, 0, 0x0001)
+#	PSP_EXPORT_FUNC(cosf)
+#	PSP_EXPORT_FUNC(sinf)
+PSP_EXPORT_END
+
+PSP_END_EXPORTS

@@ -53,7 +53,7 @@ char *info[5];
 void getGenre(int val, char * out);
 char * getFrameName(char fname[]);
 
-static MetaData *gMetaData = NULL;
+MetaData *gMetaData = NULL;
 
 void readFileEnd(char *fname)//Get chunk from end of file
 {

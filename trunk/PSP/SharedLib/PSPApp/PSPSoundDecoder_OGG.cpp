@@ -34,7 +34,7 @@
 #include <malloc.h>
 using namespace std;
 
-static size_t sg_lBytesReadFromStream = 0;
+size_t sg_lBytesReadFromStream = 0;
 
 size_t ogg_socket_read_wrapper(void *ptr, size_t size, size_t nmemb, void *pSocket)
 {

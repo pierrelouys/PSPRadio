@@ -1,15 +1,16 @@
 TARGET_LIB = ../lib/libPSPApp.a
-OBJS =  PSPInit.o PSPApp.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
+
+OBJS =  PSPApp.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
 		PSPStream.o httpget.o bstdfile.o \
 		PSPSoundBuffer.o \
 		PSPSound.o PSPSoundDecoder.o \
 		PSPSoundDecoder_MAD.o \
 		PSPSoundDecoder_OGG.o \
-		ID3Parser.o
+		ID3Parser.o PRXLoader.o
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging
-CFLAGS = -O2 -Wall -D__PSP__ $(INCLUDES)
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -g -D__PSP__ $(INCLUDES) -D_NO_INIT_
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

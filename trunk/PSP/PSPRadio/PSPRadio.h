@@ -29,10 +29,10 @@
 #include <ivorbisfile.h>
 #include "Screen.h"
 
-#define PSPRADIO_VERSION	"0.38.05"
+#define PSPRADIO_VERSION	"0.38.05-BootstrapPRXTest"
 #define CFG_FILENAME		"PSPRadio.cfg"
 
-extern CScreen rootScreen;
+extern CScreen *rootScreen;
 
 class CPSPRadio : public CPSPApp
 {

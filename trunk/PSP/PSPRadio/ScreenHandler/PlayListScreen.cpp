@@ -29,10 +29,8 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
+#include "IPSPRadio_UI.h"
 #include "PlayListScreen.h"
-#include "TextUI.h"
-#include "GraphicsUI.h"
-#include "TextUI3D.h" 
 
 PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)
 {
@@ -76,9 +74,10 @@ void PlayListScreen::LoadLists()
 
 void PlayListScreen::Activate(IPSPRadio_UI *UI)
 {
+	Log(LOG_VERYLOW, "Activate(): Start");
+	
 	IScreen::Activate(UI);
 
-	Log(LOG_VERYLOW, "Activate(): Start");
 	if (m_Lists)
 	{
 		if (false == m_Lists->GetContainerList()->empty())
@@ -397,7 +396,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	//time_t  CurrentStateInMS = clock()*1000/CLOCKS_PER_SEC;
 	IPSPRadio_UI *UI = NULL;
 	
-	Log(LOG_VERYLOW, "OnPlayStateChange(%d) called. (this=0x%x)", (int)NewPlayState, this);
+	Log(LOG_VERYLOW, "OnPlayStateChange(%d) called. (this=%p)", (int)NewPlayState, this);
 	
 	/* Only tell the UI about changes if the current active screen is this */
 	/* This prvents screens like the option screen from getting notified */
@@ -487,7 +486,7 @@ void PlayListScreen::EOSHandler()
 	CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
 	IPSPRadio_UI *UI = NULL;
 	
-	Log(LOG_VERYLOW, "EOSHandler() called. (this=0x%x)", this);
+	Log(LOG_VERYLOW, "EOSHandler() called. (this=%p)", this);
 	
 	/* Only tell the UI about changes if the current active screen is this */
 	/* This prvents screens like the option screen from getting notified */

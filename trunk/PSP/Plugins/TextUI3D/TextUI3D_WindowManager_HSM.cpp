@@ -176,7 +176,7 @@ WindowHandlerHSM::WindowHandlerHSM() : 	top(NULL, &WindowHandlerHSM::top_handler
 
     MakeEntry(&top);
     ActivateState(&top);
-	Log(LOG_VERYLOW, "HSM:Created");
+	ModuleLog(LOG_VERYLOW, "HSM:Created");
 	}
 
 WindowHandlerHSM::~WindowHandlerHSM()
@@ -197,7 +197,7 @@ WindowHandlerHSM::~WindowHandlerHSM()
 		{
 		free(m_backimage);
 		}
-	Log(LOG_VERYLOW, "HSM:Destroyed");
+	ModuleLog(LOG_VERYLOW, "HSM:Destroyed");
 	}
 
 void WindowHandlerHSM::Initialize(char *cwd)
@@ -214,11 +214,11 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	GUInit();
 
 	LoadBackground(cwd);
-	Log(LOG_VERYLOW, "HSM:Background loaded");
+	ModuleLog(LOG_VERYLOW, "HSM:Background loaded");
 	InitTextures();
-	Log(LOG_VERYLOW, "HSM:Initialized textures");
+	ModuleLog(LOG_VERYLOW, "HSM:Initialized textures");
 	LoadTextures(cwd);
-	Log(LOG_VERYLOW, "HSM:Textures loaded");
+	ModuleLog(LOG_VERYLOW, "HSM:Textures loaded");
 
 	/* Set initial positions and textures for panels */
 	panelstate.x		= PANEL_HIDE_X;
@@ -262,7 +262,7 @@ void WindowHandlerHSM::Initialize(char *cwd)
 	sceKernelStartThread(m_mbxthread, 0, NULL);
 
 	m_HSMInitialized = true;
-	Log(LOG_VERYLOW, "HSM:Initialized");
+	ModuleLog(LOG_VERYLOW, "HSM:Initialized");
 }
 
 void WindowHandlerHSM::Dispatch(int Signal, void *Data)
@@ -279,7 +279,7 @@ void WindowHandlerHSM::Dispatch(int Signal, void *Data)
 		error = sceKernelReferMbxStatus(HSMMessagebox, &info);
 		if(error < 0)
 			{
-			Log(LOG_ERROR, "HSM_MBX : Couldn't get MBX status");
+			ModuleLog(LOG_ERROR, "HSM_MBX : Couldn't get MBX status");
 			}
 		else
 			{
@@ -305,7 +305,7 @@ void WindowHandlerHSM::MessageHandler(int Signal, void *Data)
 	assert(Signal >= UserEvt);
 	if (Signal != WM_EVENT_VBLANK )
 	{
-		Log(LOG_VERYLOW, "HSM:Received event : %d", Signal);
+		ModuleLog(LOG_VERYLOW, "HSM:Received event : %d", Signal);
 	}
 
 	m_Event.Signal = Signal;
@@ -333,7 +333,7 @@ int WindowHandlerHSM::MbxThread()
 	int			error;
 	void		*event;
 
-	Log(LOG_VERYLOW, "HSM: Thread started");
+	ModuleLog(LOG_VERYLOW, "HSM: Thread started");
 	while (m_HSMActive)
 		{
 		/* Block thread until a message has arrived */
@@ -341,7 +341,7 @@ int WindowHandlerHSM::MbxThread()
 
 		if(error < 0)
 			{
-			Log(LOG_ERROR, "HSM: Error while receiving message : %x", error);
+			ModuleLog(LOG_ERROR, "HSM: Error while receiving message : %x", error);
 			}
 		else
 			{
@@ -489,34 +489,34 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 	unsigned char 						*filebuffer;
 	jsaTextureCache::jsaTextureInfo		texture;
 
-	Log(LOG_VERYLOW, "HSM:Loading Textures");
+	ModuleLog(LOG_VERYLOW, "HSM:Loading Textures");
 
 	/*  Load Textures to memory */
 	for (unsigned int i = 0 ; i < TEXTURE_COUNT ; i++)
 	{
 		bool success;
 
-		Log(LOG_VERYLOW, "HSM:Loading Texture : %d", i);
+		ModuleLog(LOG_VERYLOW, "HSM:Loading Texture : %d", i);
 		sprintf(filename, "%s/TextUI3D/%s", strCWD, texture_list[i].filename);
 		filebuffer = (unsigned char *) memalign(16, (int)(texture_list[i].width * texture_list[i].height * tcache.jsaTCacheTexturePixelSize(texture_list[i].format)));
-		Log(LOG_VERYLOW, "HSM:memory allocated");
+		ModuleLog(LOG_VERYLOW, "HSM:memory allocated");
 
 		if (texture_list[i].filetype == FT_PNG)
 		{
-			Log(LOG_VERYLOW, "HSM:Reading PNG image : %s", filename);
+			ModuleLog(LOG_VERYLOW, "HSM:Reading PNG image : %s", filename);
 			if (tcache.jsaTCacheLoadPngImage((const char *)filename, (u32 *)filebuffer) == -1)
 				{
-				Log(LOG_ERROR, "Failed loading png file: %s", filename);
+				ModuleLog(LOG_ERROR, "Failed loading png file: %s", filename);
 				free(filebuffer);
 				continue;
 				}
 		}
 		else
 		{
-			Log(LOG_VERYLOW, "HSM:Reading RAW image : %s", filename);
+			ModuleLog(LOG_VERYLOW, "HSM:Reading RAW image : %s", filename);
 			if (tcache.jsaTCacheLoadRawImage((const char *)filename, (u32 *)filebuffer) == -1)
 				{
-				Log(LOG_ERROR, "Failed loading raw file: %s", filename);
+				ModuleLog(LOG_ERROR, "Failed loading raw file: %s", filename);
 				free(filebuffer);
 				continue;
 				}
@@ -526,12 +526,12 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 		texture.width		= texture_list[i].width;
 		texture.height		= texture_list[i].height;
 		texture.swizzle		= texture_list[i].swizzle;
-		Log(LOG_VERYLOW, "HSM:Storing Texture");
+		ModuleLog(LOG_VERYLOW, "HSM:Storing Texture");
 		success = tcache.jsaTCacheStoreTexture(texture_list[i].ID, &texture, filebuffer);
-		Log(LOG_VERYLOW, "HSM:Texture stored");
+		ModuleLog(LOG_VERYLOW, "HSM:Texture stored");
 		if (!success)
 		{
-			Log(LOG_ERROR, "Failed storing texture in VRAM : %s", filename);
+			ModuleLog(LOG_ERROR, "Failed storing texture in VRAM : %s", filename);
 		}
 		free(filebuffer);
 	}
@@ -546,13 +546,13 @@ void WindowHandlerHSM::LoadBackground(char *strCWD)
 
 	if (m_backimage == NULL)
 		{
-		Log(LOG_ERROR, "Memory allocation error for background image: %s", filename);
+		ModuleLog(LOG_ERROR, "Memory allocation error for background image: %s", filename);
 		return;
 		}
 
 	if (tcache.jsaTCacheLoadPngImage((const char *)filename, (u32 *)m_backimage) == -1)
 		{
-		Log(LOG_ERROR, "Failed loading background image: %s", filename);
+		ModuleLog(LOG_ERROR, "Failed loading background image: %s", filename);
 		free(m_backimage);
 		return;
 		}
@@ -745,7 +745,7 @@ void WindowHandlerHSM::RenderNetwork()
 
 void WindowHandlerHSM::RenderUSB()
 {
-	if (pPSPApp->IsUSBEnabled() == false)
+	if (PSPRadioExport_IsUSBEnabled() == false) 
 		{
  		RenderIconAlpha(TEX_ICON_USB, LocalSettings.USBIconX, LocalSettings.USBIconY, GfxSizes.usb_w, GfxSizes.usb_y, GfxSizes.usb_y);
 		}
@@ -1387,7 +1387,7 @@ void WindowHandlerHSM::RenderIP()
 	ip.x = LocalSettings.IPX;
 	ip.y = LocalSettings.IPY;
 	ip.color = 0xFFFFFFFF;
-	strcpy(ip.strText, pPSPApp->GetMyIP());
+	strcpy(ip.strText, PSPRadioExport_GetMyIP());
 	RenderTextItem(&ip, FONT_STATIC);
 }
 
@@ -1491,7 +1491,7 @@ void WindowHandlerHSM::SetMessage(char *messageStr)
 
 void WindowHandlerHSM::GUInit()
 {
-	Log(LOG_VERYLOW, "GUInit");
+	ModuleLog(LOG_VERYLOW, "GUInit");
 	sceGuInit();
 
 	sceGuStart(GU_DIRECT,::gu_list);
@@ -1568,7 +1568,7 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 			break;
 		default:
 			{
-			Log(LOG_ERROR, "Invalid font !! (%d)", font);
+			ModuleLog(LOG_ERROR, "Invalid font !! (%d)", font);
 			*width = 8;
 			*height = 8;
 			*tex = TEX_FONT_LIST;
@@ -1690,64 +1690,64 @@ void *WindowHandlerHSM::top_handler()
 
 		/* Static text events */
 		case WM_EVENT_TEXT_SONGTITLE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_SONGTITLE");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_SONGTITLE");
 			m_scrolloffset = LocalSettings.SongTitleWidth;
 			memcpy(&m_songtitle, (char *) m_Event.Data, sizeof(TextItem));
 			free(m_Event.Data);
 			return 0;
 		case WM_EVENT_TEXT_ERROR:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_ERROR");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_ERROR");
 			m_progress_render = false;
 			SetError((char *) m_Event.Data);
 			RenderError(EVENT_SHOW);
 			return 0;
 		case WM_EVENT_TEXT_MESSAGE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_MESSAGE");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_TEXT_MESSAGE");
 			SetMessage((char *) m_Event.Data);
 			RenderMessage(EVENT_SHOW);
 			return 0;
 
 		/* Stream events */
 		case WM_EVENT_STREAM_START:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_START");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_START");
 			return 0;
 		case WM_EVENT_STREAM_OPEN:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_OPEN");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_OPEN");
 			m_progress_render = true;
 			RenderProgressBar(true);
 			return 0;
 		case WM_EVENT_STREAM_CONNECTING:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_CONNECTING");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_CONNECTING");
 			return 0;
 		case WM_EVENT_STREAM_ERROR:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_ERROR");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_ERROR");
 			m_progress_render = false;
 			return 0;
 		case WM_EVENT_STREAM_SUCCESS:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_SUCCESS");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_STREAM_SUCCESS");
 			m_progress_render = false;
 			return 0;
 
 		/* Network events */
 		case WM_EVENT_NETWORK_ENABLE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_ENABLE");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_ENABLE");
 			m_network_state = false;
 			m_progress_render = true;
 			RenderProgressBar(true);
 			return 0;
 		case WM_EVENT_NETWORK_DISABLE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_DISABLE");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_DISABLE");
 			m_network_state = false;
 			return 0;
 		case WM_EVENT_NETWORK_IP:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_IP");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_NETWORK_IP");
 			m_network_state = true;
 			m_progress_render = false;
 			return 0;
 
 		/* Player events */
 		case WM_EVENT_PLAYER_STOP:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_STOP");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_STOP");
 			strcpy(m_songtitle.strText, "NO TRACK PLAYING...");
 			m_buffer = 0;
 			m_bitrate = 0;
@@ -1755,41 +1755,41 @@ void *WindowHandlerHSM::top_handler()
 			m_playstate_icon = PLAYSTATE_ICON_STOP;
 			return 0;
 		case WM_EVENT_PLAYER_PAUSE:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_PAUSE");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_PAUSE");
 			m_playstate_icon = PLAYSTATE_ICON_PAUSE;
 			return 0;
 		case WM_EVENT_PLAYER_START:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_START");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYER_START");
 			m_playstate_icon = PLAYSTATE_ICON_PLAY;
 			return 0;
 
 		/*  Misc events */
 		case WM_EVENT_PCM_BUFFER:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PCM_BUFFER");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_PCM_BUFFER");
 			m_pcm_buffer = (short *)(m_Event.Data);
 			return 0;
 
 		/* List events */
 		case WM_EVENT_PLAYLIST:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYLIST");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_PLAYLIST");
 			RenderError(EVENT_HIDE);
 			RenderMessage(EVENT_HIDE);
 			Trans(&playlist);
 			return 0;
 		case WM_EVENT_SHOUTCAST:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_SHOUTCAST");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_SHOUTCAST");
 			RenderError(EVENT_HIDE);
 			RenderMessage(EVENT_HIDE);
 			Trans(&shoutcast);
 			return 0;
 		case WM_EVENT_LOCALFILES:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_LOCALFILES");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_LOCALFILES");
 			RenderError(EVENT_HIDE);
 			RenderMessage(EVENT_HIDE);
 			Trans(&localfiles);
 			return 0;
 		case WM_EVENT_OPTIONS:
-			Log(LOG_VERYLOW, "TOP:Event WM_EVENT_OPTIONS");
+			ModuleLog(LOG_VERYLOW, "TOP:Event WM_EVENT_OPTIONS");
 			RenderError(EVENT_HIDE);
 			RenderMessage(EVENT_HIDE);
 			Trans(&options);
@@ -1806,7 +1806,7 @@ void *WindowHandlerHSM::playlist_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "PLAYLIST:Entry");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST:Entry");
 			m_list_icon = LIST_ICON_PLAYLIST;
 			state = &(m_panel_state[PANEL_PLAYLIST_LIST]);
 			SetHideRight(state);
@@ -1817,7 +1817,7 @@ void *WindowHandlerHSM::playlist_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "PLAYLIST:Exit");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST:Exit");
 			state = &(m_panel_state[PANEL_PLAYLIST_LIST]);
 			SetHideBottom(state);
 			state = &(m_panel_state[PANEL_PLAYLIST_ENTRIES]);
@@ -1826,24 +1826,24 @@ void *WindowHandlerHSM::playlist_handler()
 			}
 
 		case WM_EVENT_LIST_TEXT:
-			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_LIST_TEXT");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_LIST_TEXT");
 			ClearList(m_PlaylistContainer);
 			m_PlaylistContainer = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_ENTRY_TEXT:
-			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_ENTRY_TEXT");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_ENTRY_TEXT");
 			ClearList(m_PlaylistEntries);
 			m_PlaylistEntries = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_SELECT_ENTRIES:
-			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_SELECT_ENTRIES");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_SELECT_ENTRIES");
 			Trans(&playlist_entries);
 			return 0;
 
 		case WM_EVENT_SELECT_LIST:
-			Log(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_SELECT_LIST");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST:Event WM_EVENT_SELECT_LIST");
 			Trans(&playlist_list);
 			return 0;
 		}
@@ -1858,7 +1858,7 @@ void *WindowHandlerHSM::playlist_list_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "PLAYLIST_LIST:Entry");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST_LIST:Entry");
 			state = &(m_panel_state[PANEL_PLAYLIST_LIST]);
 			SetMax(state);
 			return 0;
@@ -1866,14 +1866,14 @@ void *WindowHandlerHSM::playlist_list_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "PLAYLIST_LIST:Exit");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST_LIST:Exit");
 			state = &(m_panel_state[PANEL_PLAYLIST_LIST]);
 			SetHideRight(state);
 			return 0;
 			}
 
 		case WM_EVENT_SELECT_ENTRIES:
-			Log(LOG_VERYLOW, "PLAYLIST_LIST:Event WM_EVENT_SELECT_ENTRIES");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST_LIST:Event WM_EVENT_SELECT_ENTRIES");
 			Trans(&playlist_entries);
 			return 0;
 
@@ -1891,7 +1891,7 @@ void *WindowHandlerHSM::playlist_entries_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "PLAYLIST_ENTRIES:Entry");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST_ENTRIES:Entry");
 			state = &(m_panel_state[PANEL_PLAYLIST_ENTRIES]);
 			SetMax(state);
 			return 0;
@@ -1899,14 +1899,14 @@ void *WindowHandlerHSM::playlist_entries_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "PLAYLIST_ENTRIES:Exit");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST_ENTRIES:Exit");
 			state = &(m_panel_state[PANEL_PLAYLIST_ENTRIES]);
 			SetHideRight(state);
 			return 0;
 			}
 
 		case WM_EVENT_SELECT_LIST:
-			Log(LOG_VERYLOW, "PLAYLIST_ENTRIES:Event WM_EVENT_SELECT_LIST");
+			ModuleLog(LOG_VERYLOW, "PLAYLIST_ENTRIES:Event WM_EVENT_SELECT_LIST");
 			Trans(&playlist_list);
 			return 0;
 
@@ -1924,7 +1924,7 @@ void *WindowHandlerHSM::shoutcast_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "SHOUTCAST:Entry");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST:Entry");
 			m_list_icon = LIST_ICON_SHOUTCAST;
 			state = &(m_panel_state[PANEL_SHOUTCAST_LIST]);
 			SetHideRight(state);
@@ -1935,7 +1935,7 @@ void *WindowHandlerHSM::shoutcast_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "SHOUTCAST:Exit");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST:Exit");
 			state = &(m_panel_state[PANEL_SHOUTCAST_LIST]);
 			SetHideBottom(state);
 			state = &(m_panel_state[PANEL_SHOUTCAST_ENTRIES]);
@@ -1944,24 +1944,24 @@ void *WindowHandlerHSM::shoutcast_handler()
 			}
 
 		case WM_EVENT_LIST_TEXT:
-			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_LIST_TEXT");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_LIST_TEXT");
 			ClearList(m_ShoutcastContainer);
 			m_ShoutcastContainer = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_ENTRY_TEXT:
-			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_ENTRY_TEXT");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_ENTRY_TEXT");
 			ClearList(m_ShoutcastEntries);
 			m_ShoutcastEntries = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_SELECT_ENTRIES:
-			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_SELECT_ENTRIES");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_SELECT_ENTRIES");
 			Trans(&shoutcast_entries);
 			return 0;
 
 		case WM_EVENT_SELECT_LIST:
-			Log(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_SELECT_LIST");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST:Event WM_EVENT_SELECT_LIST");
 			Trans(&shoutcast_list);
 			return 0;
 		}
@@ -1976,7 +1976,7 @@ void *WindowHandlerHSM::shoutcast_list_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "SHOUTCAST_LIST:Entry");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST_LIST:Entry");
 			state = &(m_panel_state[PANEL_SHOUTCAST_LIST]);
 			SetMax(state);
 			return 0;
@@ -1984,14 +1984,14 @@ void *WindowHandlerHSM::shoutcast_list_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "SHOUTCAST_LIST:Exit");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST_LIST:Exit");
 			state = &(m_panel_state[PANEL_SHOUTCAST_LIST]);
 			SetHideRight(state);
 			return 0;
 			}
 
 		case WM_EVENT_SELECT_ENTRIES:
-			Log(LOG_VERYLOW, "SHOUTCAST_LIST:Event WM_EVENT_SELECT_ENTRIES");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST_LIST:Event WM_EVENT_SELECT_ENTRIES");
 			Trans(&shoutcast_entries);
 			return 0;
 		case WM_EVENT_SELECT_LIST:
@@ -2009,7 +2009,7 @@ void *WindowHandlerHSM::shoutcast_entries_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "SHOUTCAST_ENTRIES:Entry");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST_ENTRIES:Entry");
 			state = &(m_panel_state[PANEL_SHOUTCAST_ENTRIES]);
 			SetMax(state);
 			return 0;
@@ -2017,14 +2017,14 @@ void *WindowHandlerHSM::shoutcast_entries_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "SHOUTCAST_ENTRIES:Exit");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST_ENTRIES:Exit");
 			state = &(m_panel_state[PANEL_SHOUTCAST_ENTRIES]);
 			SetHideRight(state);
 			return 0;
 			}
 
 		case WM_EVENT_SELECT_LIST:
-			Log(LOG_VERYLOW, "SHOUTCAST_ENTRIES:Event WM_EVENT_SELECT_LIST");
+			ModuleLog(LOG_VERYLOW, "SHOUTCAST_ENTRIES:Event WM_EVENT_SELECT_LIST");
 			Trans(&shoutcast_list);
 			return 0;
 
@@ -2042,7 +2042,7 @@ void *WindowHandlerHSM::localfiles_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "LOCALFILES:Entry");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES:Entry");
 			m_list_icon = LIST_ICON_LOCALFILES;
 			state = &(m_panel_state[PANEL_LOCALFILES_LIST]);
 			SetHideRight(state);
@@ -2053,7 +2053,7 @@ void *WindowHandlerHSM::localfiles_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "LOCALFILES:Exit");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES:Exit");
 			state = &(m_panel_state[PANEL_LOCALFILES_LIST]);
 			SetHideBottom(state);
 			state = &(m_panel_state[PANEL_LOCALFILES_ENTRIES]);
@@ -2062,24 +2062,24 @@ void *WindowHandlerHSM::localfiles_handler()
 			}
 
 		case WM_EVENT_LIST_TEXT:
-			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_LIST_TEXT");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_LIST_TEXT");
 			ClearList(m_LocalfilesContainer);
 			m_LocalfilesContainer = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_ENTRY_TEXT:
-			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_ENTRY_TEXT");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_ENTRY_TEXT");
 			ClearList(m_LocalfilesEntries);
 			m_LocalfilesEntries = (TextItem *)m_Event.Data;
 			return 0;
 
 		case WM_EVENT_SELECT_ENTRIES:
-			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_SELECT_ENTRIES");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_SELECT_ENTRIES");
 			Trans(&localfiles_entries);
 			return 0;
 
 		case WM_EVENT_SELECT_LIST:
-			Log(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_SELECT_LIST");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES:Event WM_EVENT_SELECT_LIST");
 			Trans(&localfiles_list);
 			return 0;
 		}
@@ -2094,7 +2094,7 @@ void *WindowHandlerHSM::localfiles_list_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "LOCALFILES_LIST:Entry");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES_LIST:Entry");
 			state = &(m_panel_state[PANEL_LOCALFILES_LIST]);
 			SetMax(state);
 			return 0;
@@ -2102,14 +2102,14 @@ void *WindowHandlerHSM::localfiles_list_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "LOCALFILES_LIST:Exit");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES_LIST:Exit");
 			state = &(m_panel_state[PANEL_LOCALFILES_LIST]);
 			SetHideRight(state);
 			return 0;
 			}
 
 		case WM_EVENT_SELECT_ENTRIES:
-			Log(LOG_VERYLOW, "LOCALFILES_LIST:Event WM_EVENT_SELECT_ENTRIES");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES_LIST:Event WM_EVENT_SELECT_ENTRIES");
 			Trans(&localfiles_entries);
 			return 0;
 		case WM_EVENT_SELECT_LIST:
@@ -2126,7 +2126,7 @@ void *WindowHandlerHSM::localfiles_entries_handler()
 		{
 		case OnEntry:
 			{
-			Log(LOG_VERYLOW, "LOCALFILES_ENTRIES:Entry");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES_ENTRIES:Entry");
 			state = &(m_panel_state[PANEL_LOCALFILES_ENTRIES]);
 			SetMax(state);
 			return 0;
@@ -2134,14 +2134,14 @@ void *WindowHandlerHSM::localfiles_entries_handler()
 
 		case OnExit:
 			{
-			Log(LOG_VERYLOW, "LOCALFILES_ENTRIES:Exit");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES_ENTRIES:Exit");
 			state = &(m_panel_state[PANEL_LOCALFILES_ENTRIES]);
 			SetHideRight(state);
 			return 0;
 			}
 
 		case WM_EVENT_SELECT_LIST:
-			Log(LOG_VERYLOW, "LOCALFILES_ENTRIES:Event WM_EVENT_SELECT_LIST");
+			ModuleLog(LOG_VERYLOW, "LOCALFILES_ENTRIES:Event WM_EVENT_SELECT_LIST");
 			Trans(&localfiles_list);
 			return 0;
 		case WM_EVENT_SELECT_ENTRIES:
@@ -2157,18 +2157,18 @@ void *WindowHandlerHSM::options_handler()
 	switch (m_Event.Signal)
 		{
 		case OnEntry:
-			Log(LOG_VERYLOW, "OPTIONS:Entry");
+			ModuleLog(LOG_VERYLOW, "OPTIONS:Entry");
 			m_list_icon = LIST_ICON_OPTIONS;
 			state = &(m_panel_state[PANEL_OPTIONS]);
 			SetMax(state);
 			return 0;
 		case OnExit:
-			Log(LOG_VERYLOW, "OPTIONS:Exit");
+			ModuleLog(LOG_VERYLOW, "OPTIONS:Exit");
 			state = &(m_panel_state[PANEL_OPTIONS]);
 			SetHideBottom(state);
 			return 0;
 		case WM_EVENT_OPTIONS_TEXT:
-			Log(LOG_VERYLOW, "OPTIONS:Event WM_EVENT_OPTIONS_TEXT");
+			ModuleLog(LOG_VERYLOW, "OPTIONS:Event WM_EVENT_OPTIONS_TEXT");
 			ClearList(m_OptionItems);
 			m_OptionItems = (TextItem *)m_Event.Data;
 			return 0;

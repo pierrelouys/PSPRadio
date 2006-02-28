@@ -1,6 +1,12 @@
 What's New for PSPRadio 
 ========================
 
+0.38.06 (r) (2006-02-XX)
+NEW FEATURES
+(raf) Core/All: Added plugin system - this will only currently work under f/w 1.5. UIs have been converted to PRXs, as well as PSPRadio. A Loader starts PSPRadio now (on 1.5) (r817-861).
+BUG FIXES
+
+
 0.38.05 (r820) (2006-02-17)
 NEW FEATURES
 (raf) Core: Added exception handler. This will display some useful information (for the developers) if/when PSPRadio crashes. (r804,805)

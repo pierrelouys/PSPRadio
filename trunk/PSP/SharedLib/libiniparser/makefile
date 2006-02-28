@@ -5,8 +5,8 @@ TARGET_LIB = ../lib/libiniparser.a
 OBJS = iniparser.o
 
 INCDIR = 
-CFLAGS = -O2 -Wall -D__PSP__
-#-G0
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -g -D__PSP__
+
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
