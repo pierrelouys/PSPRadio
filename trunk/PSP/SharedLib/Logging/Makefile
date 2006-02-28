@@ -1,3 +1,6 @@
+BASE_DIR = ../..
+include $(BASE_DIR)/include.mak
+
 TARGET_LIB = ../lib/liblogging.a
 OBJS = Logging.o
 

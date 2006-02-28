@@ -1,6 +1,9 @@
 ### 
 ## PSP iniparser library makefile
 ###
+BASE_DIR = ../..
+include $(BASE_DIR)/include.mak
+
 TARGET_LIB = ../lib/libiniparser.a
 OBJS = iniparser.o
 

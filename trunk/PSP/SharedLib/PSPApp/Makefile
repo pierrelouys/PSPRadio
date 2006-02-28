@@ -1,3 +1,6 @@
+BASE_DIR = ../..
+include $(BASE_DIR)/include.mak
+
 TARGET_LIB = ../lib/libPSPApp.a
 
 OBJS =  PSPApp.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
