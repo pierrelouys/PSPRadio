@@ -26,7 +26,7 @@ void MyExceptionHandler(PspDebugRegBlock *regs);
 PSP_MODULE_INFO("PSPRADIOLOADER", 0x1000, 1, 1);
 /* Define the main thread's attribute value (optional) */
 PSP_MAIN_THREAD_ATTR(0);
-PSP_HEAP_SIZE_KB(1024);
+PSP_HEAP_SIZE_KB(64);
 
 /* Define printf, just to make typing easier */
 #define printf	pspDebugScreenPrintf

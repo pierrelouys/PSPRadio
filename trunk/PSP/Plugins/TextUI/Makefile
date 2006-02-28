@@ -3,7 +3,8 @@ include $(BASE_DIR)/include.mak
 
 TARGET = $(KXPLOIT_PRIMARY_DIR)/TextUI
 
-EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o $(PSPRADIO_DIR)/pnglibExports.o
+EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
+#$(PSPRADIO_DIR)/pnglibExports.o
 OBJS = main.o TextUI.o $(PSPRADIO_DIR)/IPSPRadio_UI.o \
 		$(EXPORTED_OBJS)
 
@@ -24,7 +25,7 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR =
 
-LIBS =  -lstdc++ -liniparser -lTools
+LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm
 
 all: $(TARGET).prx
 	mkdir -p $(TARGET)
