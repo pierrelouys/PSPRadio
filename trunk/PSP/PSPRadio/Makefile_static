@@ -1,13 +1,19 @@
 BASE_DIR = ..
 include $(BASE_DIR)/include.mak
 
-TARGET = $(KXPLOIT_PRIMARY_DIR)/PSPRadio
+TARGET = PSPRadio
+EXTRA_TARGETS = EBOOT.PBP
+PSP_EBOOT_TITLE = PSPRadio Static
 
-# Define to build this as a prx (instead of a static elf)
-BUILD_PRX=1
-PRX_EXPORTS=exports.exp
+TEXTUI_OBJS   = $(PLUGINS_DIR)/TextUI/TextUI.o
+TEXTUI3D_OBJS = $(PLUGINS_DIR)/TextUI3D/TextUI3D.o $(PLUGINS_DIR)/TextUI3D/TextUI3D_Panel.o \
+				$(PLUGINS_DIR)/TextUI3D/TextUI3D_WindowManager_HSM.o \
+				$(PLUGINS_DIR)/TextUI3D/jsaVRAMManager.o $(PLUGINS_DIR)/TextUI3D/jsaTextureCache.o
 
-IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o
+IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o \
+				$(TEXTUI_OBJS) \
+				$(TEXTUI3D_OBJS)
+			
 
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastScreen.o  \
@@ -15,9 +21,7 @@ OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./IPSPRadio_UI.o PSPRadio_Exports.o \
 		$(IMPORTED_OBJS)
 
-#INCDIR = ..
-
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES) -DDYNAMIC_BUILD
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES)
 
 INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
@@ -42,18 +46,20 @@ LIBS =  -lsupc++ -lstdc++ \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
 		-lSDLmain -lSDL_image \
 		-ljpeg -lSDL -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
-		-lpsppower -lpng -lz -lm -lTools \
-#		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
-#		-lpsppower -lpng -lz -lm -lTools \
+		-lpsppower -lpspgum -lpspgu -lpng -lz -lm -lTools \
 
-all: $(TARGET).prx
-	mv -vf $(TARGET).elf .
-	cp -vf *.cfg $(KXPLOIT_PRIMARY_DIR)
-	mkdir -p $(KXPLOIT_PRIMARY_DIR)/PlayLists
-	mkdir -p $(KXPLOIT_PRIMARY_DIR)/SHOUTcast
-	cp -vf SHOUTcast/* $(KXPLOIT_PRIMARY_DIR)/SHOUTcast
-	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Screenshots
-	cp -vf ./Init.png ./Shutdown.png $(KXPLOIT_PRIMARY_DIR)
+all: 
+	make -f Makefile_static kxploit 
+	mkdir -p $(STATIC_KXPLOIT_PRIMARY)
+	mkdir -p $(STATIC_KXPLOIT_SECONDARY)
+	cp -vf $(TARGET)/* $(STATIC_KXPLOIT_PRIMARY)
+	cp -vf $(TARGET)/* $(STATIC_KXPLOIT_SECONDARY)
+	cp -vf *.cfg $(STATIC_KXPLOIT_PRIMARY)
+	mkdir -p $(STATIC_KXPLOIT_PRIMARY)/PlayLists
+	mkdir -p $(STATIC_KXPLOIT_PRIMARY)/SHOUTcast
+	cp -vf SHOUTcast/* $(STATIC_KXPLOIT_PRIMARY)/SHOUTcast
+	mkdir -p $(STATIC_KXPLOIT_PRIMARY)/Screenshots
+	cp -vf ./Init.png ./Shutdown.png $(STATIC_KXPLOIT_PRIMARY)
 	cp -vf readme.txt whatsnew.txt $(RELEASE_DIR)
 
 #Note: For Tremor use:
