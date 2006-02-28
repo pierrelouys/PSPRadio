@@ -13,6 +13,7 @@ plugins:
 	cd $(PLUGINS_DIR)/TextUI3D && make
 	
 clean:
+	cd $(SHAREDLIB_DIR) && make clean
 	cd $(BOOTSTRAP_DIR) && make clean
 	cd $(PSPRADIO_DIR)  && make clean
 	cd $(PLUGINS_DIR)/TextUI && make clean

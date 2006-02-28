@@ -2,6 +2,10 @@
 Dirs=
 Files=BootstrapMain.c/Makefile
 
+[Dir LogTool]
+Dirs=
+Files=LogTool.cpp/Makefile
+
 [Dir PSPRadio]
 Dirs=ScreenHandler/Documents/LogTool
 Files=IPSPRadio_UI.h/Makefile/PSPRadio.cfg/PSPRadio.cpp/whatsnew.txt/readme.txt/Makefile.halfast2/Makefile.handojin/Makefile.mrpochi/Makefile.harbringer/IPSPRadio_UI.cpp/Makefile.debug/MetaDataContainer.cpp/MetaDataContainer.h/Makefile.sem/PSPRadio.h/Main.cpp/Main.h/exports.exp/PSPRadio_Exports.cpp/PSPRadio_Exports.h
@@ -87,7 +91,7 @@ Dirs=
 Files=exports.exp/main.cpp/Makefile/README
 
 [Project Dir]
-Dirs=PSPRadio/SharedLib/Bootstrap/Plugins
+Dirs=PSPRadio/SharedLib/Bootstrap/Plugins/LogTool
 Files=Makefile/include.mak
 
 [Project File]
