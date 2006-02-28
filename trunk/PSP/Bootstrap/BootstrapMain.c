@@ -40,11 +40,8 @@ int  g_argc = 0;
 /* Example custom exception handler */
 void MyExceptionHandler(PspDebugRegBlock *regs)
 {
-	/* Do normal initial dump, setup screen etc */
 	pspDebugScreenInit();
-
-	/* I always felt BSODs were more interesting that white on black */
-	pspDebugScreenSetBackColor(0x00FF0000);
+	pspDebugScreenSetBackColor(0x000000FF);
 	pspDebugScreenSetTextColor(0xFFFFFFFF);
 	pspDebugScreenClear();
 
@@ -52,7 +49,9 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 	pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
 	pspDebugScreenPrintf("Exception Details:\n");
 	pspDebugDumpException(regs);
-	pspDebugScreenPrintf("\nTry holding select to capture a shot of this screen for reference.\n");
+	pspDebugScreenPrintf("\nHolding select to capture a shot of this screen for reference\n");
+	pspDebugScreenPrintf("may or may not work at this point.\n");
+	pspDebugScreenPrintf("\nPlease Use the Home Menu to return to the VSH.\n");
 }
 
 SceUID load_module(const char *path, int flags, int type)
@@ -123,7 +122,7 @@ int build_args(char *args, const char *bootfile, SceUID thid, SceUID modid, int 
         return loc;
 }
 
-GetModuleTextAddr(modid)
+int GetModuleTextAddr(modid)
 {
 	SceKernelModuleInfo modinfo;
 	memset(&modinfo, 0, sizeof(modinfo));

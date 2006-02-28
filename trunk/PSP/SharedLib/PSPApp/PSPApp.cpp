@@ -236,7 +236,8 @@ int CPSPApp::ReportError(char *format, ...)
 /* System Callbacks */
 int CPSPApp::exitCallback(int arg1, int arg2, void *common)
 {
-	return pPSPApp->OnAppExit(arg1, arg2, common);
+	//return pPSPApp->OnAppExit(arg1, arg2, common);
+	sceKernelExitGame();
 }
 
 int CPSPApp::powerCallback(int arg1, int pwrflags, void *common)
