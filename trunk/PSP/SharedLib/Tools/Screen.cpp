@@ -47,6 +47,20 @@ CScreen::CScreen()
 	Init();
 }
 
+CScreen::~CScreen()
+{
+	if (m_strImage)
+	{
+		free (m_strImage), m_strImage = NULL;
+	}
+	
+	if (m_ImageBuffer)
+	{
+		free (m_ImageBuffer), m_ImageBuffer = NULL;
+	}
+
+}
+
 void CScreen::SetFontSize(int iWidth, int iHeight) 
 { 
 	m_FontWidth = iWidth; 
@@ -115,7 +129,7 @@ void CScreen::LoadImage(const char* filename, u32 *ImageBuffer)
 			ImageBuffer[y*width+x] = line[x];
 		}
 	}
-	free(line);
+	free(line), line = NULL;
 	png_read_end(png_ptr, info_ptr);
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 	fclose(fp);
@@ -146,20 +160,20 @@ void CScreen::Init()
 
 void CScreen::SetBackgroundImage(char *strImage)
 {
-	if (m_strImage)
-	{
-		free(m_strImage), m_strImage = NULL;
-	}
-	if (m_ImageBuffer)
-	{
-		free(m_ImageBuffer), m_ImageBuffer = NULL;
-	}
 	
 	if (strImage)
 	{
-		m_ImageBuffer = (u32*)malloc(PSP_SCREEN_WIDTH*PSP_SCREEN_WIDTH*sizeof(u32));
+		if (m_ImageBuffer == NULL)
+		{
+			m_ImageBuffer = (u32*)malloc(PSP_SCREEN_WIDTH*PSP_SCREEN_WIDTH*sizeof(u32));
+		}
+		
 		if (m_ImageBuffer)
 		{
+			if (m_strImage)
+			{
+				free(m_strImage), m_strImage = NULL;
+			}
 			m_strImage = strdup(strImage);
 			if (m_strImage)
 			{

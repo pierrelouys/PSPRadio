@@ -123,12 +123,6 @@ void CTextUI::Terminate()
 {
 }
 
-extern "C" 
-{
-	int module_stop(int args, void *argp);
-	void __psp_libc_init(int argc, char *argv[]);
-}
-
 void CTextUI::LoadConfigSettings(IScreen *Screen)
 {
 	char *strCfgFile = NULL;

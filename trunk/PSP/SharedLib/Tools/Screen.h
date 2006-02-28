@@ -19,6 +19,7 @@
 		};
 				
 		CScreen();
+		~CScreen();
 		void SetBackColor(u32 colour);
 		void SetTextColor(u32 colour);
 		void SetBackgroundImage(char *strImage);
