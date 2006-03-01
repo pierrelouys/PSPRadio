@@ -16,3 +16,5 @@ BOOTSTRAP_DIR = $(BASE_DIR)/Bootstrap
 PSPRADIO_DIR  = $(BASE_DIR)/PSPRadio
 SHAREDLIB_DIR = $(BASE_DIR)/SharedLib
 PLUGINS_DIR   = $(BASE_DIR)/Plugins
+
+PSPRADIO_VERSION = $(shell $(BASE_DIR)/get_version.sh)

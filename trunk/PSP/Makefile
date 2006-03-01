@@ -25,6 +25,15 @@ static:
 								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
 	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
 	
+packages: 
+	make clean
+	make static
+	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Static.zip *.txt static/
+	make clean_objects
+	make dynamic
+	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Dynamic.zip *.txt dynamic/
+	echo "Ready."
+	
 exports:
 	cd $(PSPRADIO_DIR) && psp-build-exports -s exports.exp
 	cd $(PLUGINS_DIR) && psp-build-exports -s UI_Exports.exp
@@ -34,10 +43,13 @@ plugins:
 	cd $(PLUGINS_DIR)/TextUI3D && make
 
 clean:
+	make clean_objects
+	rm -Rfv release
+	
+clean_objects:
 	cd $(SHAREDLIB_DIR) && make clean
 	cd $(BOOTSTRAP_DIR) && make clean
 	cd $(PSPRADIO_DIR)  && make clean
 	cd $(PLUGINS_DIR)/TextUI && make clean
 	cd $(PLUGINS_DIR)/TextUI3D && make clean
-	rm -Rfv release
 
