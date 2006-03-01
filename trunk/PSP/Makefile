@@ -18,10 +18,12 @@ dynamic:
 	
 static:
 	cd $(SHAREDLIB_DIR) && make
-	cd $(PSPRADIO_DIR)  && make -f Makefile_static
+	cd $(PSPRADIO_DIR)  && make -f Makefile_static \
+								KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
 	make plugins				KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
 								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
-	cd $(PLUGINS_DIR) && rm -f *.prx
+	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
 	
 exports:
 	cd $(PSPRADIO_DIR) && psp-build-exports -s exports.exp
