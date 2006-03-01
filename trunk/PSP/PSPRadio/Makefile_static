@@ -53,7 +53,7 @@ all:
 	mkdir -p $(STATIC_KXPLOIT_PRIMARY)
 	mkdir -p $(STATIC_KXPLOIT_SECONDARY)
 	cp -vf $(TARGET)/* $(STATIC_KXPLOIT_PRIMARY)
-	cp -vf $(TARGET)/* $(STATIC_KXPLOIT_SECONDARY)
+	cp -vf $(TARGET)%/* $(STATIC_KXPLOIT_SECONDARY)
 	cp -vf *.cfg $(STATIC_KXPLOIT_PRIMARY)
 	mkdir -p $(STATIC_KXPLOIT_PRIMARY)/PlayLists
 	mkdir -p $(STATIC_KXPLOIT_PRIMARY)/SHOUTcast
@@ -61,11 +61,6 @@ all:
 	mkdir -p $(STATIC_KXPLOIT_PRIMARY)/Screenshots
 	cp -vf ./Init.png ./Shutdown.png $(STATIC_KXPLOIT_PRIMARY)
 	cp -vf readme.txt whatsnew.txt $(RELEASE_DIR)
-
-#Note: For Tremor use:
-#-lvorbisidec \		
-#For regular vorbis:
-#-lvorbisfile -lvorbis -logg \
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

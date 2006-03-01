@@ -1,4 +1,4 @@
-BASE_DIR = .
+BASE_DIR = $(shell pwd)
 include $(BASE_DIR)/include.mak
 
 all:
@@ -9,13 +9,19 @@ all:
 dynamic:
 	make exports
 	cd $(SHAREDLIB_DIR) && make
-	cd $(BOOTSTRAP_DIR) && make
-	cd $(PSPRADIO_DIR)  && make
-	make plugins
+	cd $(BOOTSTRAP_DIR) && make KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(DYNAMIC_SECONDARY_KXPLOIT_DIR)
+	cd $(PSPRADIO_DIR)  && make KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(DYNAMIC_SECONDARY_KXPLOIT_DIR)
+	make plugins				KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(DYNAMIC_SECONDARY_KXPLOIT_DIR)
 	
 static:
 	cd $(SHAREDLIB_DIR) && make
 	cd $(PSPRADIO_DIR)  && make -f Makefile_static
+	make plugins				KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR) && rm -f *.prx
 	
 exports:
 	cd $(PSPRADIO_DIR) && psp-build-exports -s exports.exp

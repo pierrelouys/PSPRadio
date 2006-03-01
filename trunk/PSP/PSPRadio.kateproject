@@ -35,8 +35,12 @@ Dirs=Graphics
 Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
 
 [Dir Plugins]
-Dirs=TextUI/TextUI3D
+Dirs=TextUI/TextUI3D/GraphicsUI
 Files=UI_Exports.exp
+
+[Dir Plugins/GraphicsUI]
+Dirs=SharedLibLinux
+Files=GraphicsUI.cpp/GraphicsUI.h/GraphicsUIDefines.h/GraphicsUITheme.cpp/GraphicsUITheme.h/main.cpp/Makefile/Makefile.ThemeTool/ThemeTool.cpp/ThemeTool.h/ThemeTool.sln/ThemeTool.txt/ThemeTool.vcproj
 
 [Dir Plugins/TextUI]
 Dirs=

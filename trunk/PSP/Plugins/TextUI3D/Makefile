@@ -1,10 +1,9 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET = $(KXPLOIT_PRIMARY_DIR)/TextUI3D
+TARGET = TextUI3D
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-#$(PSPRADIO_DIR)/pnglibExports.o
 
 OBJS =	$(PSPRADIO_DIR)/IPSPRadio_UI.o $(EXPORTED_OBJS) \
 		main.o TextUI3D.o TextUI3D_Panel.o TextUI3D_WindowManager_HSM.o \
@@ -24,16 +23,14 @@ CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
-LIBDIR =
-
 LIBS =  -lstdc++ -liniparser -lTools  \
 		-lpspgum -lpspgu -lpng -lz -lm
 
 all: $(TARGET).prx
-	mkdir -p $(TARGET)
-	mv -vf $(TARGET).elf .
-	cp -vf *.cfg $(TARGET)
-	cp -vf Graphics/*.png $(TARGET)
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf Graphics/*.png $(KXPLOIT_PRIMARY)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

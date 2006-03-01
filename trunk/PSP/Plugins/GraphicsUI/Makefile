@@ -26,6 +26,17 @@ ASFLAGS = $(CFLAGS)
 LIBDIR =
 
 LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm
+# LIBS =  -lsupc++ -lstdc++ \
+# 		-lpspnet -lpspnet_apctl -lpspnet_inet -lpspnet_resolver \
+# 		-lPSPApp \
+# 		-lvorbisfile -lvorbis -logg \
+# 		-lmad \
+# 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
+# 		-lSDLmain -lSDL_image \
+# 		-ljpeg -lSDL -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
+# 		-lpsppower -lpng -lz -lm -lTools \
+#		-ljpeg -lSDL -lpspgum -lpspgu -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
+#		-lpsppower -lpng -lz -lm -lTools \
 
 all: $(TARGET).prx
 	mkdir -p $(TARGET)

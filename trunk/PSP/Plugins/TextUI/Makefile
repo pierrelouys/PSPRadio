@@ -1,7 +1,7 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET = $(KXPLOIT_PRIMARY_DIR)/TextUI
+TARGET = TextUI
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 #$(PSPRADIO_DIR)/pnglibExports.o
@@ -28,10 +28,10 @@ LIBDIR =
 LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm
 
 all: $(TARGET).prx
-	mkdir -p $(TARGET)
-	mv -vf $(TARGET).elf .
-	cp -vf *.cfg $(TARGET)
-	cp -vf *.png $(TARGET)
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf *.png $(KXPLOIT_PRIMARY)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
