@@ -28,11 +28,7 @@ int CPSPRadio::Setup(int argc, char **argv)
 	char *strDir = NULL;
 	char strAppTitle[140];
 
-#ifdef DYNAMIC_BUILD
 	sprintf(strAppTitle, "%s", GetProgramVersion());
-#else
-	sprintf(strAppTitle, "%sStatic", GetProgramVersion());
-#endif
 	
 	strDir = (char*)malloc(MAXPATHLEN);
 	if (!strDir)

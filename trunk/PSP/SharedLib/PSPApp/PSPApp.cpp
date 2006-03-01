@@ -32,7 +32,7 @@
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
-CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
+CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionSuffix)
 {
 	m_Exit = false;
 	m_NetworkEnabled = false;
@@ -43,7 +43,15 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber)
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
 	m_strProgramName = strdup(strProgramName);
-	m_strVersionNumber = strdup(strVersionNumber);
+	m_strVersionNumber = (char *)malloc(strlen(strVersionNumber) + strlen(strVersionSuffix) + 1);
+	if (m_strVersionNumber)
+	{
+		sprintf(m_strVersionNumber, "%s%s", strVersionNumber, strVersionSuffix);
+	}
+	else
+	{
+		m_strVersionNumber = "MemoryErr";
+	}
 	pPSPApp = this;
 	m_Polling = false;
 	m_BatteryStatus = 0x00;

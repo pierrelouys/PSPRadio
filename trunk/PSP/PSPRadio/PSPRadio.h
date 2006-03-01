@@ -44,7 +44,11 @@ private:
 	CScreenHandler *m_ScreenHandler;
 
 public:
+#ifdef DYNAMIC_BUILD
 	CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION)
+#else
+	CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "Static")
+#endif	
 	{
 		/** Initialize to some sensible defaults */
 		m_Config = NULL;
