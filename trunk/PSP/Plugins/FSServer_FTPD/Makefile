@@ -1,20 +1,35 @@
-##
-## FTPD Makefile
-##
+BASE_DIR = ../..
+include $(BASE_DIR)/include.mak
 
-EXTRA_TARGETS = EBOOT.PBP
-PSP_EBOOT_TITLE = FTPDRafTest v0.21raf1
-PSP_EBOOT_ICON = resources/logo.png
+TARGET = FSS_FTPD
 
-GCC = psp-gcc
-PSP_LD = psp-ld
+EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
+OBJS = main.o ftp_main.o ftp.o _itoa.o sutils.o  \
+		$(EXPORTED_OBJS)
 
-CFLAGS = $(INCLUDES) -O1 -G0 -Wall -Werror -g -mgp32 -mlong32 -DVERSIONSTRING="\"FTPD v0.21\""
-LIBS = -L../SharedLib/lib -lnet ../SharedLib/lib/Tools.a ../SharedLib/lib/iniparser.a
-INCLUDES = -I../SharedLib/libnet -I../SharedLib/Tools -I../SharedLib/iniparser
+# Define to build this as a prx (instead of a static elf)
+BUILD_PRX=1
+# Define the name of our custom exports (minus the .exp extension)
+PRX_EXPORTS=$(PLUGINS_DIR)/FSS_Exports.exp
 
-TARGET = ftpd
-OBJS = main.o sutils.o ftp.o _itoa.o log.o 
+INCLUDES = -I./ -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
+		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging
+		 
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES) 
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+
+LIBDIR =
+
+LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm
+
+all: $(TARGET).prx
+
+install:
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

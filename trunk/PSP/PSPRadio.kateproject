@@ -35,8 +35,12 @@ Dirs=Graphics
 Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
 
 [Dir Plugins]
-Dirs=TextUI/TextUI3D/GraphicsUI
-Files=UI_Exports.exp
+Dirs=TextUI/TextUI3D/GraphicsUI/FSServer_FTPD
+Files=UI_Exports.exp/FSS_Exports.exp
+
+[Dir Plugins/FSServer_FTPD]
+Dirs=
+Files=ftp.cpp/ftp.h/ftp_main.cpp/Makefile/sutils.cpp/sutils.h/main.cpp/_itoa.cpp/_itoa.h/ftpd.cfg
 
 [Dir Plugins/GraphicsUI]
 Dirs=SharedLibLinux

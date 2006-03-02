@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pspthreadman.h>
@@ -6,25 +7,27 @@
 #include <pspiofilemgr_stat.h>
 #include <pspiofilemgr_dirent.h>
 #include "sutils.h"
-#include "pspnet.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "ftp.h"
+#include <Tools.h>
+#include <pspnet.h>
+#include <Logging.h>
+#include <PSPRadio_Exports.h>
+#include <iniparser.h>
 #include "_itoa.h"
-#include "log.h"
-#include "iniparser.h"
 
-extern dictionary *g_ConfDict; /** RC: Configuration file dictionary */
+extern CIniParser *g_ConfDict; /** RC: Configuration file dictionary */
 
 int mftpRestrictedCommand(MftpConnection* con, char* command);
 
 void sendResponse(MftpConnection* con, char* s) {
 	strcat(con->comBuffer, s);
 	if (endsWith(con->comBuffer, "\n")) {
-		sceNetInetSend(con->comSocket, con->comBuffer, strlen(con->comBuffer) , 0);
+		send(con->comSocket, con->comBuffer, strlen(con->comBuffer) , 0);
 		strcpy(con->comBuffer, "");
 	}
 }
@@ -32,14 +35,14 @@ void sendResponse(MftpConnection* con, char* s) {
 void sendResponseLn(MftpConnection* con, char* s) {
 	strcat(con->comBuffer, s);
 	strcat(con->comBuffer, "\r\n");
-	sceNetInetSend(con->comSocket, con->comBuffer, strlen(con->comBuffer) , 0);
+	send(con->comSocket, con->comBuffer, strlen(con->comBuffer) , 0);
 	strcpy(con->comBuffer, "");
 }
 
 void sendData(MftpConnection* con, char* s) {
 	strcat(con->dataBuffer, s);
 	if (endsWith(con->dataBuffer, "\n")) {
-		sceNetInetSend(con->dataSocket, con->dataBuffer, strlen(con->dataBuffer) , 0);
+		send(con->dataSocket, con->dataBuffer, strlen(con->dataBuffer) , 0);
 		strcpy(con->dataBuffer, "");
 	}
 }
@@ -47,7 +50,7 @@ void sendData(MftpConnection* con, char* s) {
 void sendDataLn(MftpConnection* con, char* s) {
 	strcat(con->dataBuffer, s);
 	strcat(con->dataBuffer, "\r\n");
-	sceNetInetSend(con->dataSocket, con->dataBuffer, strlen(con->dataBuffer) , 0);
+	send(con->dataSocket, con->dataBuffer, strlen(con->dataBuffer) , 0);
 	strcpy(con->dataBuffer, "");
 }
 
@@ -70,13 +73,13 @@ int openDataConnectionPASV(MftpConnection* con) {
 //	addrPort.sin_addr[2] = 0;
 //	addrPort.sin_addr[3] = 0;
 
-	con->pasvSocket = sceNetInetSocket(AF_INET, SOCK_STREAM, 0);
+	con->pasvSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (con->pasvSocket & 0x80000000) return 0;
 
-	err = sceNetInetBind(con->pasvSocket, (struct sockaddr *)&addrPort, sizeof(addrPort));
+	err = bind(con->pasvSocket, (struct sockaddr *)&addrPort, sizeof(addrPort));
 	if (err) return 0;
 
-	err = sceNetInetListen(con->pasvSocket, 1);
+	err = listen(con->pasvSocket, 1);
 	if (err) return 0;
 
 	pasvPort++;
@@ -92,7 +95,7 @@ int openDataConnection(MftpConnection* con) {
 		u32 cbAddrAccept;
 
 		cbAddrAccept = sizeof(addrAccept);
-		con->dataSocket = sceNetInetAccept(con->pasvSocket, (struct sockaddr *)&addrAccept, &cbAddrAccept);
+		con->dataSocket = accept(con->pasvSocket, (struct sockaddr *)&addrAccept, &cbAddrAccept);
 		if (con->dataSocket & 0x80000000) return 0;
 	} else {
 		struct sockaddr_in addrPort;
@@ -102,15 +105,11 @@ int openDataConnection(MftpConnection* con) {
 		addrPort.sin_family = AF_INET;
 		addrPort.sin_port = htons(con->port_port);
 		addrPort.sin_addr = con->port_addr;
-//		addrPort.sin_addr[0] = con->port_addr[0];
-//		addrPort.sin_addr[1] = con->port_addr[1];
-//		addrPort.sin_addr[2] = con->port_addr[2];
-//		addrPort.sin_addr[3] = con->port_addr[3];
 
-		con->dataSocket = sceNetInetSocket(AF_INET, SOCK_STREAM, 0);
+		con->dataSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if (con->dataSocket & 0x80000000) return 0;
 
-		err = sceNetInetConnect(con->dataSocket, (struct sockaddr *)&addrPort, sizeof(struct sockaddr_in));
+		err = connect(con->dataSocket, (struct sockaddr *)&addrPort, sizeof(struct sockaddr_in));
 
 		if (err) return 0;
 	}
@@ -121,9 +120,9 @@ int openDataConnection(MftpConnection* con) {
 int closeDataConnection(MftpConnection* con) {
 	int err=0;
 
-	err |= sceNetInetClose(con->dataSocket);
+	err |= close(con->dataSocket);
 	if (con->usePASV) {
-		err |= sceNetInetClose(con->pasvSocket);
+		err |= close(con->pasvSocket);
 	}
 
 	if (err) return 0; else return 1;
@@ -328,7 +327,7 @@ int mftpCommandRETR(MftpConnection* con, char* command) {
 					char* buf[TRANSFER_BUFFER_SIZE];
 					int c=0;
 					while ((c=sceIoRead(fdFile, buf, TRANSFER_BUFFER_SIZE))>0) {
-						sceNetInetSend(con->dataSocket, buf, c , 0);
+						send(con->dataSocket, buf, c , 0);
 					}
 
 					sceIoClose(fdFile);
@@ -378,7 +377,7 @@ int mftpCommandSTOR(MftpConnection* con, char* command) {
 
 				u8* buf[TRANSFER_BUFFER_SIZE];
 				int c=0;
-				while ((c=sceNetInetRecv(con->dataSocket, (u8*)buf, TRANSFER_BUFFER_SIZE, 0))>0) {
+				while ((c=recv(con->dataSocket, (u8*)buf, TRANSFER_BUFFER_SIZE, 0))>0) {
 					 sceIoWrite(fdFile, buf, c); 
 				}
 
@@ -701,8 +700,8 @@ int mftpCommandPASS(MftpConnection* con, char* command) {
 			} else {
 				strncpy(con->pass, pPass, MAX_PASS_LENGTH);
 
-				if (strcmp(con->user, iniparser_getstr(g_ConfDict, "USER:USER"))==0 
-					&& strcmp(con->pass, iniparser_getstr(g_ConfDict, "USER:PASS"))==0) {
+				if (strcmp(con->user, g_ConfDict->GetStr("USER:USER"))==0 
+					&& strcmp(con->pass, g_ConfDict->GetStr("USER:PASS"))==0) {
 					sendResponseLn(con, "230 You're logged in.");
 					con->userLoggedIn=1;
 				} else {
@@ -885,7 +884,7 @@ int mftpClientHandler(SceSize args, void *argp) {
 	int errLoop=0;
 	while (errLoop>=0)
 	{
-		int nb = sceNetInetRecv(con->comSocket, (u8*)readBuffer, 1024, 0);
+		int nb = recv(con->comSocket, (u8*)readBuffer, 1024, 0);
 
 		if (nb <= 0) break;
 
@@ -907,11 +906,11 @@ int mftpClientHandler(SceSize args, void *argp) {
 		}
 	}
 
-	err = sceNetInetClose(con->comSocket);
+	err = close(con->comSocket);
 
 	free(con);
 
-	LogPrintf("INFO  - ftp.mftpClientHandler : Connection closed.\n");
+	ModuleLog(LOG_INFO, "INFO  - ftp.mftpClientHandler : Connection closed.\n");
 
 	sceKernelExitDeleteThread(0);
 	

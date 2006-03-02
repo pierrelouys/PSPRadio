@@ -5,9 +5,9 @@
 #define MAX_COMMAND_LENGTH 1024
 
 typedef struct MftpConnection {
-	SOCKET comSocket;
-	SOCKET dataSocket;
-	SOCKET pasvSocket;
+	int comSocket;
+	int dataSocket;
+	int pasvSocket;
 
 	char comBuffer[1024];
 	char dataBuffer[1024];
@@ -29,6 +29,7 @@ typedef struct MftpConnection {
 	{
 		char port_addr_c[4];
 		struct in_addr port_addr;
+		//struct sockaddr port_addr;
 	};
 } MftpConnection;
 
