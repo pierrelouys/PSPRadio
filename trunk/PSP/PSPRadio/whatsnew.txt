@@ -1,13 +1,20 @@
 What's New for PSPRadio 
 ========================
 
+0.38.07 (r) (2006-03-xx)
+NEW FEATURES
+BUG FIXES
+(raf) png: The shutdown.png was a copy of init.png; corrected.
+(raf) Core: Now in Options screen, options that have no alternatives don't have a default "Yes" (like exit pspradio).
+
+
 0.38.06 (r881) (2006-03-02)
 NEW FEATURES
 (raf) Core/All: Added plugin system - this will only currently work under f/w 1.5. UIs have been converted to PRXs, as well as PSPRadio. A Loader starts PSPRadio now (on 1.5) (r817-861).
 (raf) All: Reorganized hierarchy of files. And enchanced build system.
 (raf) Now build generates dynamic and static releases. The dynamic release will currently only work with f/w 1.5 The static release (won't support plugins) should work on all f/w's but won't attempt loading usb/wifi drivers, so it won't have networking/usb unless provided by a loader (needs to be tested under eloader).
 BUG FIXES
-
+(raf) Core: Using the Home menu option to Exit PSPRadio should always work now. (even if the app crashed.)
 
 0.38.05 (r820) (2006-02-17)
 NEW FEATURES

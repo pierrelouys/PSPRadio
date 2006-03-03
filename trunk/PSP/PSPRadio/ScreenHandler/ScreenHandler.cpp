@@ -34,6 +34,7 @@
 #include "ScreenHandler.h"
 #include "PlayListScreen.h"
 #include "OptionsScreen.h"
+#include "OptionsPluginMenuScreen.h"
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "IPSPRadio_UI.h"
@@ -72,6 +73,12 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 		new OptionsScreen(PSPRADIO_SCREEN_OPTIONS, this);
 	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS])->SetConfigFilename("OptionsScreen.cfg");
 
+#ifdef DYNAMIC_BUILD
+	Screens[PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU] =
+		new OptionsPluginMenuScreen(PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU, this);
+	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU])->SetConfigFilename("OptionsScreen.cfg");
+
+#endif	
 	m_CurrentScreen = Screens[InitialScreen];
 	Log(LOG_LOWLEVEL, "Setting m_CurrentScreen to Screens[%d]=%p", InitialScreen, m_CurrentScreen);
 	
@@ -338,6 +345,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			}
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 			if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
 			{
 				// Go back to where we were before entering the options menu

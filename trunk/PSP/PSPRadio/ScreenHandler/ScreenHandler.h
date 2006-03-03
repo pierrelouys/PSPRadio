@@ -76,6 +76,9 @@
 			/** Add more elements here **/
 
 			PSPRADIO_SCREEN_OPTIONS /* Leave this as the last one */
+#ifdef DYNAMIC_BUILD
+			,PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU /** Or this one for dynamic builds */
+#endif
 		};
 		/** These point to the first and one-beyond the last elements of the
 			list; just like in a sdl list. This to allow for easy iteration
@@ -146,6 +149,7 @@
 
 	protected:
 		friend class IScreen;
+		friend class OptionsScreen;
 		void SetCurrentScreen(IScreen *pScreen){m_CurrentScreen = pScreen;}
 
 	private:

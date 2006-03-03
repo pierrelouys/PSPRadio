@@ -342,9 +342,9 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 	int iTextPos = PIXEL_TO_COL(m_Config->GetInteger("SCREEN_SETTINGS:FIRST_ENTRY_X",40));
 	int color = 0xFFFFFF;
 	
-	uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s: ", strName);
 	if (iNumberOfStates > 0)
 	{
+		uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s: ", strName);
 		iTextPos += strlen(strName)+2;
 		for (int iStates = 0; iStates < iNumberOfStates ; iStates++)
 		{
@@ -370,6 +370,11 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 			iTextPos += strlen(strStates[iStates])+1;
 		}
 	}	
+	else
+	{
+		uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
+	}
+	
 }
 
 void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)

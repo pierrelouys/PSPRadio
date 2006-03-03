@@ -32,7 +32,7 @@ int ftpdLoop(SceSize args, void *argp)
 	SOCKET sockListen = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockListen & 0x80000000) 
 	{
-		ModuleLog(LOG_INFO, "ERROR - main.ftpdLoop : socket returned '%d'.\n", sockListen);
+		ModuleLog(LOG_ERROR, "ERROR - main.ftpdLoop : socket returned '%d'.\n", sockListen);
 		goto done;
 	}
 
@@ -42,14 +42,14 @@ int ftpdLoop(SceSize args, void *argp)
 	err = bind(sockListen, (struct sockaddr *)&addrListen, sizeof(addrListen));
 	if (err != 0) 
 	{
-		ModuleLog(LOG_INFO, "ERROR - main.ftpdLoop : socket returned '%d'.\n", err);
+		ModuleLog(LOG_ERROR, "ERROR - main.ftpdLoop : socket returned '%d'.\n", err);
         goto done;
     }
 
 	err = listen(sockListen, 1);
 	if (err != 0) 
 	{
-		ModuleLog(LOG_INFO, "ERROR - main.ftpdLoop : listen returned '%d'.\n", err);
+		ModuleLog(LOG_ERROR, "ERROR - main.ftpdLoop : listen returned '%d'.\n", err);
         goto done;
     }
 
@@ -59,7 +59,7 @@ int ftpdLoop(SceSize args, void *argp)
 		// blocking accept (wait for one connection)
 		cbAddrAccept = sizeof(addrAccept);
 		SOCKET sockClient = accept(sockListen, (struct sockaddr *)&addrAccept, &cbAddrAccept);
-		if (sockClient & 0x80000000) 
+		if (sockClient < 0) 
 		{
 			goto done;
 		}

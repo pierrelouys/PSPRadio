@@ -45,15 +45,20 @@ enum OptionIDs
 	OPTION_ID_PLAYMODE,
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
+#ifndef DYNAMIC_BUILD
 	OPTION_ID_UI,
+#endif
 	OPTION_ID_INITIAL_SCREEN,
 	OPTION_ID_REFRESH_PLAYLISTS,
 	OPTION_ID_SHOUTCAST_DN,
+#ifdef DYNAMIC_BUILD
+	OPTION_ID_PLUGINS_MENU,
+#endif
 	OPTION_ID_SAVE_CONFIG,
 	OPTION_ID_EXIT,
 };
 
-OptionsScreen::Options OptionsData[] =
+OptionsScreen::Options OptionsScreenData[] =
 {
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
 	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},		1,1,5		},
@@ -63,12 +68,17 @@ OptionsScreen::Options OptionsData[] =
 	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat", "Global"},	1,1,4		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
+#ifndef DYNAMIC_BUILD
 	{	OPTION_ID_UI,				"User Interface",			{"Text", "3D"},					1,1,2		},
+#endif
 	{	OPTION_ID_INITIAL_SCREEN,	"Initial Screen",			{"Files", "Playlist","SHOUT","Options"}, 1,1,4 },
-	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{"Yes"},						0,1,1		},
-	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{"Yes"},						0,1,1		},
-	{	OPTION_ID_SAVE_CONFIG,		"Save Options",				{"Yes"},						0,1,1		},
-	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{"Yes"},						0,1,1		},
+	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{""},							0,0,0		},
+	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{""},							0,0,0		},
+#ifdef DYNAMIC_BUILD
+	{	OPTION_ID_PLUGINS_MENU,		"Plugins Menu",				{""},							0,0,0		},
+#endif
+	{	OPTION_ID_SAVE_CONFIG,		"Save Options",				{""},							0,0,0		},
+	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{""},							0,0,0		},
 
 	{  -1,  						"",							{""},							0,0,0		}
 };
@@ -78,6 +88,7 @@ OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, 
 	m_iNetworkProfile = 1;
 	m_WifiAutoStart = false;
 	m_USBAutoStart = false;
+	OptionsData = OptionsScreenData;
 	LoadFromConfig();
 }
 
@@ -337,11 +348,12 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iSelectedState = Option.iActiveState;
 				break;
 
+#ifndef DYNAMIC_BUILD
 			case OPTION_ID_UI:
 				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-
+#endif
 			case OPTION_ID_INITIAL_SCREEN:
 				Option.iActiveState = m_ScreenHandler->GetInitialScreen() + 1;
 				Option.iSelectedState = Option.iActiveState;
@@ -485,11 +497,12 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = true;
 			break;
 
+#ifndef DYNAMIC_BUILD
 		case OPTION_ID_UI:
 			m_ScreenHandler->StartUI((CScreenHandler::UIs)iSelectionBase0);
 			fOptionActivated = true;
 			break;
-
+#endif
 		case OPTION_ID_INITIAL_SCREEN:
 			m_ScreenHandler->SetInitialScreen((CScreenHandler::Screen)iSelectionBase0);
 			fOptionActivated = true;
@@ -522,6 +535,18 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = false;
 			break;
 
+#ifdef DYNAMIC_BUILD
+		case OPTION_ID_PLUGINS_MENU:
+			//m_UI->DisplayMessage("Saving Configuration Options");
+			//Log(LOG_INFO, "User selected to save config file.");
+			// Enter option menu and store the current screen
+			m_ScreenHandler->SetCurrentScreen(m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU));
+			m_ScreenHandler->GetCurrentScreen()->Activate(m_UI);
+			fOptionActivated = true;
+			return;
+			break;
+#endif
+			
 		case OPTION_ID_SAVE_CONFIG:
 			m_UI->DisplayMessage("Saving Configuration Options");
 			Log(LOG_INFO, "User selected to save config file.");

@@ -24,7 +24,7 @@ Files=
 
 [Dir PSPRadio/ScreenHandler]
 Dirs=
-Files=ScreenHandler.cpp/ScreenHandler.h/OptionsScreen.cpp/OptionsScreen.h/PlayListScreen.cpp/PlayListScreen.h/SHOUTcastScreen.cpp/SHOUTcastScreen.h/LocalFilesScreen.cpp/LocalFilesScreen.h
+Files=ScreenHandler.cpp/ScreenHandler.h/OptionsScreen.cpp/OptionsScreen.h/PlayListScreen.cpp/PlayListScreen.h/SHOUTcastScreen.cpp/SHOUTcastScreen.h/LocalFilesScreen.cpp/LocalFilesScreen.h/OptionsPluginMenuScreen.cpp/OptionsPluginMenuScreen.h
 
 [Dir PSPRadio/TextUI]
 Dirs=

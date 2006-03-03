@@ -7,18 +7,18 @@
 	{
 		public:
 			OptionsScreen(int Id, CScreenHandler *ScreenHandler);
-			~OptionsScreen(){};
+			virtual ~OptionsScreen(){};
 			
-			void UpdateOptionsData();
+			virtual void UpdateOptionsData();
 
-			void Activate(IPSPRadio_UI *UI);
+			virtual void Activate(IPSPRadio_UI *UI);
 
-			void InputHandler(int iButtonMask);
+			virtual void InputHandler(int iButtonMask);
 			
-			int  Start_Network(int iNewProfile = -1);
+			virtual int  Start_Network(int iNewProfile = -1);
 
-			void LoadFromConfig();
-			void SaveToConfigFile();
+			virtual void LoadFromConfig();
+			virtual void SaveToConfigFile();
 
 			
 			#define MAX_OPTION_LENGTH 60
@@ -35,16 +35,21 @@
 				int  iNumberOfStates;
 			};
 
+		protected:
+			virtual void OnOptionActivation();
+			//virtual void PopulateOptionsData();
+		
 		private:
+			int  Stop_Network();
+			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
+		
+		protected:
+			Options *OptionsData;
 			list<Options> m_OptionsList;
 			list<Options>::iterator m_CurrentOptionIterator;
 			int m_iNetworkProfile;
 			bool m_WifiAutoStart, m_USBAutoStart;
-			int  Stop_Network();
-			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 
-			void OnOptionActivation();
-			void PopulateOptionsData();
 	};
 
 #endif
