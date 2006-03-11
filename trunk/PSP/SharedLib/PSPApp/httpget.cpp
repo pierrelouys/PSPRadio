@@ -156,7 +156,6 @@ int getauthfromURL(char *url,char *auth)
   return 0;
 }
 
-//static char *defaultportstr = "80";
 #define DEFAULTPORT_STR "80"
 
 char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char **port)
@@ -171,28 +170,39 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 
 	p = url;
 	if (strncasecmp(p, "http://", 7) == 0)
+	{
 		p += 7;
+	}
 
-        if (strncasecmp(p, "ftp://", 6) == 0)
-               p += 6;
+	if (strncasecmp(p, "ftp://", 6) == 0)
+	{
+		p += 6;
+	}
 
 	hostptr = p;
 	while (*p && *p != '/')
+	{
 		p++;
+	}
 	pathptr = p;
 
 	r_hostptr = --p;
 	while (*p && hostptr < p && *p != ':' && *p != ']')
+	{
 		p--;
+	}
 
-	if (!*p || p < hostptr || *p != ':') {
+	if (!*p || p < hostptr || *p != ':') 
+	{
 		portptr = NULL;
 	}
-	else{
+	else
+	{
 		portptr = p + 1;
 		r_hostptr = p - 1;
 	}
-	if (*hostptr == '[' && *r_hostptr == ']') {
+	if (*hostptr == '[' && *r_hostptr == ']') 
+	{
 		hostptr++;
 		r_hostptr--;
 	}
@@ -208,11 +218,13 @@ char *url2hostport (char *url, char **hname, unsigned long *hip, unsigned char *
 	
 	*hname = h;
 
-	if (portptr) {
+	if (portptr) 
+	{
 		stringlength = (pathptr - portptr);
 		if(!stringlength) portptr = NULL;
 	}
-	if (portptr == NULL) {
+	if (portptr == NULL) 
+	{
 		portptr = DEFAULTPORT_STR;
 		stringlength = strlen(DEFAULTPORT_STR);
 	}
@@ -258,7 +270,6 @@ int CPSPStream::http_open(char *url)
 	struct addrinfo hints, *res, *res0;
 	int error;
 #else
-	//struct hostent *hp;
 	struct sockaddr_in sin;
 #endif
 
@@ -267,24 +278,31 @@ int CPSPStream::http_open(char *url)
 	host = NULL;
 	proxyport = NULL;
 	myport = NULL;
-	if (!proxyip) {
+	if (!proxyip) 
+	{
 		if (!proxyurl)
+		{
 			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
+			{
 				if (!(proxyurl = getenv("http_proxy")))
+				{
 					proxyurl = getenv("HTTP_PROXY");
-		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) {
-			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) {
+				}
+			}
+		}
+		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) 
+		{
+			if (!(url2hostport(proxyurl, &host, &proxyip, &proxyport))) 
+			{
 				ReportError ( "Unknown proxy host \"%s\".\n",
 					host ? host : "");
 				return -1;
 			}
-#if 0
-			if (host)
-				free (host);
-#endif
 		}
 		else
+		{
 			proxyip = INADDR_NONE;
+		}
 	}
 
 
@@ -298,64 +316,72 @@ int CPSPStream::http_open(char *url)
 	}
 	
 	if ((linelength = strlen(url)+256) < 4096)
+	{
 		linelength = 4096;
-	if (!(request = (char*)malloc(linelength)) || !(purl = (char*)malloc(1024))) {
+	}
+	
+	if (!(request = (char*)malloc(linelength)) || !(purl = (char*)malloc(1024))) 
+	{
 		ReportError ( "malloc() failed, out of memory.\n");
 		return -1;
 	}
 	memset(request, 0, linelength);
 	memset(purl, 0, 1024);
 	
-       /*
-        * 2000-10-21:
-        * We would like spaces to be automatically converted to %20's when
-        * fetching via HTTP.
-        * -- Martin Sj�ren <md9ms@mdstud.chalmers.se>
-        */
-       if ((sptr = strchr(url, ' ')) == NULL) 
-	   {
-               strlcpy (purl, url, 1024);
-       }
-       else {
-               int purllength = 0;
-               char *urlptr = url;
-               purl[0] = '\0';
-               do {
-                       purllength += sptr-urlptr + 3;
-                       if (purllength >= 1023)
-                               break;
-                       strncat (purl, urlptr, sptr-urlptr);
-                       //purl[sptr-url] = '\0';
-                       strcat (purl, "%20");
-                       urlptr = sptr + 1;
-               }
-               while ((sptr = strchr (urlptr, ' ')) != NULL);
-               strcat (purl, urlptr);
-       }
+	/*
+	* 2000-10-21:
+	* We would like spaces to be automatically converted to %20's when
+	* fetching via HTTP.
+	* -- Martin Sj�ren <md9ms@mdstud.chalmers.se>
+	*/
+	if ((sptr = strchr(url, ' ')) == NULL) 
+	{
+		strlcpy (purl, url, 1024);
+	}
+	else 
+	{
+		int purllength = 0;
+		char *urlptr = url;
+		purl[0] = '\0';
+		do 
+		{
+				purllength += sptr-urlptr + 3;
+				if (purllength >= 1023)
+					break;
+				strncat (purl, urlptr, sptr-urlptr);
+				strcat (purl, "%20");
+				urlptr = sptr + 1;
+		} while ((sptr = strchr (urlptr, ' ')) != NULL);
+		strcat (purl, urlptr);
+	}
 
-
-        getauthfromURL(purl,httpauth1);
+	getauthfromURL(purl,httpauth1);
 
 	do {
 		strcpy (request, "GET ");
 		if (proxyip != INADDR_NONE) 
 		{
 			if (strncasecmp(url, "http://", 7) != 0 && strncasecmp(url,"ftp://", 6) != 0)
-			strcat (request, "http://");
+			{
+				strcat (request, "http://");
+			}
 			strcat (request, purl);
 			myport = proxyport;
 			myip = proxyip;
 		}
-		else {
-			if (host) {
+		else 
+		{
+			if (host) 
+			{
 				free(host);
 				host=NULL;
 			}
-			if (proxyport) {
+			if (proxyport) 
+			{
 				free(proxyport);
 				proxyport=NULL;
 			}
-			//ReportError("purl+7='%s'\n", purl+7);
+			
 			if(strchr(purl+7,'/')==NULL)
 			{
 				strcat(purl, "/");
@@ -367,7 +393,8 @@ int CPSPStream::http_open(char *url)
 				return -1;
 			}
 			
-			Log(LOG_LOWLEVEL, "url2hostport returns: host='%s' ip='0x%x' port='%s' sptr='%s'", host, myip, myport, sptr);
+			Log(LOG_LOWLEVEL, "url2hostport returns: host='%s' ip='0x%x' port='%s' sptr='%s'", 
+								host, myip, myport, sptr);
 			strcat (request, sptr);
 		}
 		
@@ -428,8 +455,8 @@ int CPSPStream::http_open(char *url)
 
 		
 		Log(LOG_LOWLEVEL, "http_connect(): Opening socket...");
-		//ReportError ("Resolved host's IP: '%s'\n", inet_ntoa(addr));
-		sock = socket(AF_INET, SOCK_STREAM, 0); //sceNetInetSocket
+
+		sock = socket(AF_INET, SOCK_STREAM, 0);
 		Log(LOG_LOWLEVEL, "http_connect(): Aquired socket fd=%d...", sock);
 		if (sock < 0)
 			goto fail;
@@ -504,10 +531,6 @@ fail:
 		Log(LOG_LOWLEVEL, "http_connect(): Sending '%s'", request);
 		writestring (sock, request);
 		
-		//if (!(myfile = fdopen(sock, "rb"))) {
-		//	perror ("fdopen");
-		//	exit (1);
-		//};
 		relocate = false;
 		purl[0] = '\0';
 		request[0] = 0;
