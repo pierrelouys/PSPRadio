@@ -27,7 +27,7 @@
 		int Load(char *filename);
 		int Unload();
 		int Start(int argc = 0, char * const argv[] = NULL);
-		bool IsLoaded()  { return m_ModId > 0; }
+		bool IsLoaded()  { return m_IsLoaded; }
 		bool IsStarted() { return m_IsStarted; }
 		int  GetError()  { return m_error; }
 	
@@ -36,7 +36,7 @@
 		SceUID m_ModId;
 		int  m_error;
 		char *m_FileName;
-		bool m_IsStarted;
+		bool m_IsStarted, m_IsLoaded;
 	};
 
 #endif
