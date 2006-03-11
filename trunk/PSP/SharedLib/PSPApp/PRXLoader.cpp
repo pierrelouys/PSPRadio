@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <malloc.h>
 #include <pspsdk.h>
+#include <Logging.h>
 #include "PRXLoader.h"
 
 #define MAX_ARGS 2048
@@ -15,10 +16,12 @@ CPRXLoader::CPRXLoader()
 	m_FileName = NULL;
 	m_error = 0;
 	m_IsStarted = false;
+	m_IsLoaded = false;
 }
 
 CPRXLoader::~CPRXLoader()
 {
+	Unload();
 	if (m_FileName)
 	{
 		free(m_FileName), m_FileName = NULL;
@@ -42,6 +45,8 @@ int CPRXLoader::Load(char *filename)
 
 	m_ModId = sceKernelLoadModule(filename, 0, &option);
 	
+	Log(LOG_LOWLEVEL, "Load() Module Id=%d", m_ModId);
+	
 	if (m_ModId > 0)
 	{
 		if (m_FileName)
@@ -50,10 +55,12 @@ int CPRXLoader::Load(char *filename)
 		}
 		m_FileName = strdup(filename);
 		m_error = 0;
+		m_IsLoaded = true;
 	}
 	else
 	{
 		m_error = m_ModId;
+		m_IsLoaded = false;
 	}
 	
 	return m_ModId;
@@ -80,6 +87,7 @@ int CPRXLoader::Unload()
 		}
 	
 		m_ModId = 0;
+		m_IsLoaded = false;
 	}
 	
 	return 0;
@@ -92,10 +100,10 @@ int CPRXLoader::Start(int argc, char * const argv[])
 
 SceUID CPRXLoader::StartModuleWithArgs(char *filename, int modid, int argc, char * const argv[])
 {
-	int retVal = 0, mresult;
+	int retVal = 0, mresult = 0;
 	char args[MAX_ARGS];
 	int  argpos = 0;
-	int  i;
+	int  i = 0;
 	
 	memset(args, 0, MAX_ARGS);
 	strcpy(args, filename);
