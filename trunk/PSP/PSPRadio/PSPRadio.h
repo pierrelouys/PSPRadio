@@ -29,7 +29,7 @@
 #include <ivorbisfile.h>
 #include "Screen.h"
 
-#define PSPRADIO_VERSION	"0.38.06"
+#define PSPRADIO_VERSION	"0.38.07"
 
 #define CFG_FILENAME		"PSPRadio.cfg"
 
