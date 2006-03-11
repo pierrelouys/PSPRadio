@@ -7,7 +7,7 @@ TARGET = PSPRadio
 BUILD_PRX=1
 PRX_EXPORTS=exports.exp
 
-IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o
+IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o $(PLUGINS_DIR)/PSPRadio_FSS.o
 
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/SHOUTcastScreen.o  \
@@ -22,6 +22,7 @@ INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I./ScreenHandler \
+		 -I$(PLUGINS_DIR) \
 		 -I$(PLUGINS_DIR)/TextUI \
 		 -I$(PLUGINS_DIR)/GraphicsUI \
 		 -I$(PLUGINS_DIR)/TextUI3D
