@@ -26,6 +26,7 @@
 #include <psphprm.h>
 #include <psppower.h>
 #include <psprtc.h>
+#include "PSPThread.h"
 #include "PSPApp.h"
 
 #undef ReportError
@@ -71,6 +72,8 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionS
 		m_thCallbackSetup->Start();
 	}
 
+	m_KeyHandler = new CPSPKeyHandler();
+	
 	InitializeNetworkDrivers();
 }
 
@@ -116,6 +119,12 @@ CPSPApp::~CPSPApp()
 		Log(LOG_VERYLOW, "~CPSPApp(): deleting eventtopspapp");
 		delete(m_EventToPSPApp), m_EventToPSPApp = NULL;
 	}
+	
+	if (m_KeyHandler)
+	{
+		Log(LOG_VERYLOW, "~CPSPApp(): deleting m_KeyHandler");
+		delete(m_KeyHandler), m_KeyHandler = NULL;
+	}
 
 	Log(LOG_VERYLOW, "~CPSPApp(): freeing program name.");
 	free(m_strProgramName);
@@ -132,7 +141,6 @@ CPSPApp::~CPSPApp()
 /** This is a thread */
 int CPSPApp::Run()
 {
-//	short oldAnalogue = 0;
 	u32 hprmlatch = 0;
 	CPSPKeyHandler::KeyEvent event;
 	int newBatteryStatus;
@@ -140,21 +148,21 @@ int CPSPApp::Run()
 
 	Log(LOG_INFO, "Run(): Going into main loop.");
 
+	
+	
 	sceCtrlSetSamplingCycle(0);
 	while (false == m_Exit)
 	{
-		//sceCtrlReadBufferPositive(&m_pad, 1);
 		sceDisplayWaitVblankStart();
-//		sceKernelDelayThread(10);
 
 		if (false == m_Polling)
 			continue;
 
-		OnVBlank();
+		//OnVBlank();
 		//SendEvent(MID_ONVBLANK);
 
 		// If a key event was detected notify the application
-		if ((KeyHandler.KeyHandler(event) != false))
+		if (m_KeyHandler && (m_KeyHandler->KeyHandler(event) != false))
 		{
 			/** Note that the state is sent "by value" in a pointer holder. 
 			(It has to be sent by-value, as event can become out of scope when the event (which is async) handles it)*/
