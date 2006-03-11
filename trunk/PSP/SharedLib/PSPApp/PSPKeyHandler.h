@@ -30,40 +30,40 @@
 	{
 	public:
 	
-		typedef struct KeyEvent
+		struct KeyEvent
 		{
 			u32		event;
 			u32		key_state;
 		};
 
 		CPSPKeyHandler();
-		virtual ~CPSPKeyHandler();
+		~CPSPKeyHandler();
 
-		bool KeyHandler(CPSPKeyHandler::KeyEvent &event);
+		bool KeyHandler(KeyEvent &event);
 
 	private:
 
-	enum STM_STATE
-	{
-		STATE_IDLE,
-		STATE_PRESSED,
-	};
-
-	enum STM_EVENT
-	{
-		EVENT_PRESSED,
-		EVENT_RELEASED,
-		EVENT_UPDATE,
-	};
-
-	bool KeyHandlerSTM(STM_EVENT key_event, CPSPKeyHandler::KeyEvent &event);
-	void KeyHandlerStore();
-
-	SceCtrlLatch	m_latch; 
-	u32				m_stored_keystate;
-	u64				m_tick;
-	u64				m_tick_trigger;
-	u32				m_long_press;
+		enum STM_STATE
+		{
+			STATE_IDLE,
+			STATE_PRESSED,
+		};
+	
+		enum STM_EVENT
+		{
+			EVENT_PRESSED,
+			EVENT_RELEASED,
+			EVENT_UPDATE,
+		};
+	
+		bool KeyHandlerSTM(STM_EVENT key_event, KeyEvent &event);
+		void KeyHandlerStore();
+	
+		SceCtrlLatch	m_latch; 
+		u32				m_stored_keystate;
+		u64				m_tick;
+		u64				m_tick_trigger;
+		u32				m_long_press;
 	};
 
 #endif /* _PSPKEYHANDLER_ */

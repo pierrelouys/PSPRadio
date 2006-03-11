@@ -41,7 +41,7 @@ bool CPSPKeyHandler::KeyHandler(CPSPKeyHandler::KeyEvent &event)
 	bool	ret_value;
 
 	// Read current state of the key pad
-	memset(&m_latch, 0, sizeof(m_latch));
+	//memset(&m_latch, 0, sizeof(m_latch));
 	sceCtrlReadLatch(&m_latch);
 
 	if (m_latch.uiMake)
