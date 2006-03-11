@@ -40,6 +40,20 @@
 /* strlib.c following */
 
 #define ASCIILINESZ 1024
+
+void CIniParser::Save()
+{
+	FILE *ini = NULL;
+	ini=fopen(m_strIniFilename, "wr");
+	if (NULL != ini) 
+	{
+		iniparser_dump_ini(m_dict, ini);
+		
+		fclose(ini), ini = NULL;
+	}
+}
+
+
 /*-------------------------------------------------------------------------*/
 /**
   @brief    Convert a string to lowercase.

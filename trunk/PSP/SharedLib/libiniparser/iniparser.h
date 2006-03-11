@@ -60,17 +60,7 @@ public:
 		free(m_strIniFilename), m_strIniFilename = NULL;
 	}
 	
-	void Save()
-	{
-		FILE *ini = NULL;
-		ini=fopen(m_strIniFilename, "wr");
-		if (NULL != ini) 
-		{
-			iniparser_dump_ini(m_dict, ini);
-			
-			fclose(ini), ini = NULL;
-    	}
-    }
+	void Save();
 
     char *m_strIniFilename;
 		
