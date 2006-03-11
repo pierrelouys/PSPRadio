@@ -3,7 +3,7 @@ include $(BASE_DIR)/include.mak
 
 TARGET_LIB = ../lib/libPSPApp.a
 
-OBJS =  PSPApp.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
+OBJS =  PSPApp.o PSPThread.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
 		PSPStream.o httpget.o bstdfile.o \
 		PSPSoundBuffer.o \
 		PSPSound.o PSPSoundDecoder.o \
