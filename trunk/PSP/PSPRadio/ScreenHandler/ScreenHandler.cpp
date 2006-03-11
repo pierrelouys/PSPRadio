@@ -305,6 +305,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 	{
 		if (iButtonMask & PSP_CTRL_SELECT)
 		{
+			GetSound()->Stop(); /** Stop stream if playing, else the event queue can back-up */
 			// Generic screenshot method, which works for all UI classes
 			Screenshot();
 		}
