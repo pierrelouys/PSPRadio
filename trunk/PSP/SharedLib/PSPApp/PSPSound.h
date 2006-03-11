@@ -19,6 +19,7 @@
 #ifndef __PSPSOUND__
 	#define __PSPSOUND__
 	
+	#include "PSPThread.h"
 	#include "PSPEventQ.h"
 	#include "PSPSoundDecoder.h"
 	
