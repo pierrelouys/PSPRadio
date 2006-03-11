@@ -200,12 +200,12 @@ void CPSPRadio::OnExit()
 	if (m_Config)
 	{
 		Log(LOG_VERYLOW, "Exiting. Destroying m_Config object");
-		delete(m_Config);
+		delete(m_Config), m_Config = NULL;
 	}
 	if (m_ScreenHandler)
 	{
 		Log(LOG_VERYLOW, "Exiting. Destroying m_ScreenHandler object");
-		delete(m_ScreenHandler);
+		delete(m_ScreenHandler), m_ScreenHandler = NULL;
 	}
 
 	Log(LOG_VERYLOW, "Exiting. The end.");
