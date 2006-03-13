@@ -57,4 +57,9 @@ clean_objects:
 	cd $(PSPRADIO_DIR)  && make clean
 	cd $(PLUGINS_DIR)/TextUI && make clean
 	cd $(PLUGINS_DIR)/TextUI3D && make clean
+	make clean_extra_plugins
+	
+clean_extra_plugins:
+	cd $(PLUGINS_DIR)/FSServer_FTPD && make clean
+
 
