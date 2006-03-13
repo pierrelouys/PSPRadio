@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <pspkernel.h>
 #include <pspdebug.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pspthreadman.h>
+#include <PSPApp.h>
 #include <Tools.h>
 #include <pspnet.h>
 #include <Logging.h>
@@ -15,56 +15,63 @@
 #include <netinet/in.h>
 #include <machine/types.h>
 #include "ftp.h"
+#include <PSPThread.h>
 #include <iniparser.h>
 
 #define SOCKET int
 
 int ftpdLoop(SceSize args, void *argp) 
 {
-    u32 err, cbAddrAccept;
-	struct sockaddr_in addrListen, addrAccept;
+    u32 err = 0, cbAddrAccept = 0;
+	struct sockaddr_in addrListen;
+	struct sockaddr addrAccept;
 	
 	memset(&addrListen, 0, sizeof(struct sockaddr_in));
-	memset(&addrAccept, 0, sizeof(struct sockaddr_in));
+	memset(&addrAccept, 0, sizeof(struct sockaddr));
 	
-	ModuleLog(LOG_INFO, "INFO  - main.ftpdLoop : Server loop init...\n");
+	ModuleLog(LOG_INFO, "ftpdLoop : Server loop init...\n");
 
-	SOCKET sockListen = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockListen & 0x80000000) 
+	SOCKET sockListen = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);///0);
+	if (sockListen < 0) 
 	{
-		ModuleLog(LOG_ERROR, "ERROR - main.ftpdLoop : socket returned '%d'.\n", sockListen);
+		ModuleLog(LOG_ERROR, "ftpdLoop : socket returned '%d'.\n", sockListen);
 		goto done;
 	}
 
 	addrListen.sin_family = AF_INET;
 	addrListen.sin_port = htons(21);
+	addrListen.sin_len = sizeof(struct sockaddr_in);
+	addrListen.sin_addr.s_addr = inet_addr(PSPRadioExport_GetMyIP());
 
-	err = bind(sockListen, (struct sockaddr *)&addrListen, sizeof(addrListen));
+	err = bind(sockListen, (sockaddr *)&addrListen, sizeof(addrListen));
 	if (err != 0) 
 	{
-		ModuleLog(LOG_ERROR, "ERROR - main.ftpdLoop : socket returned '%d'.\n", err);
+		ModuleLog(LOG_ERROR, "ftpdLoop : socket returned '%d'.\n", err);
         goto done;
     }
 
 	err = listen(sockListen, 1);
 	if (err != 0) 
 	{
-		ModuleLog(LOG_ERROR, "ERROR - main.ftpdLoop : listen returned '%d'.\n", err);
+		ModuleLog(LOG_ERROR, "ftpdLoop : listen returned '%d'.\n", err);
         goto done;
     }
 
-	ModuleLog(LOG_INFO, "INFO  - main.ftpdLoop : Entering server loop.\n");
+	ModuleLog(LOG_INFO, "ftpdLoop : Entering server loop.\n");
 	while (1) 
 	{
 		// blocking accept (wait for one connection)
 		cbAddrAccept = sizeof(addrAccept);
-		SOCKET sockClient = accept(sockListen, (struct sockaddr *)&addrAccept, &cbAddrAccept);
+		///addrAccept.sin_family = AF_INET;
+		///addrAccept.sin_len = sizeof(struct sockaddr_in);
+		ModuleLog(LOG_INFO, "ftpdLoop : calling accept.\n");
+		SOCKET sockClient = accept(sockListen, &addrAccept, &cbAddrAccept);
 		if (sockClient < 0) 
 		{
 			goto done;
 		}
 
-		ModuleLog(LOG_INFO, "INFO  - main.ftpdLoop : Handling new client connection.\n");
+		ModuleLog(LOG_INFO, "ftpdLoop : Handling new client connection.\n");
 
 		MftpConnection* con=(MftpConnection*) malloc(sizeof(MftpConnection));
 		/*
@@ -73,26 +80,34 @@ int ftpdLoop(SceSize args, void *argp)
             goto done;
 		}
 		*/
-		con->comSocket=sockClient;
-
-		int tmp=sceKernelCreateThread("THREAD_FTPD_CLIENTLOOP", &mftpClientHandler, 0x18, 0x10000, 0, NULL);
-		if(tmp >= 0) 
+		if (con)
 		{
-			sceKernelStartThread(tmp, 4, &con);
-		} else 
-		{
-			ModuleLog(LOG_INFO, "ERROR - main.ftpdLoop : Impossible to create client handling thread.\n", err);
+			con->comSocket=sockClient;
+	
+			CPSPThread *thClient = new CPSPThread("FSS_FTPD_CLIENT_TH", mftpClientHandler, 80);
+	
+			if(thClient != NULL) 
+			{
+				thClient->Start();
+			} 
+			else 
+			{
+				ModuleLog(LOG_ERROR, "ftpdLoop : Impossible to create client handling thread. err=0x%x", err);
+			}
 		}
-
+		else
+		{
+			ModuleLog(LOG_ERROR, "ftpdLoop : Memory alloc error for connection");
+		}
 	}
 
 done:
-	ModuleLog(LOG_INFO, "INFO  - main.ftpdLoop : Quitting server loop.\n");
+	ModuleLog(LOG_INFO, "ftpdLoop : Quitting server loop.\n");
 
 	err = close(sockListen);
 	if (err != 0) 
 	{
-		ModuleLog(LOG_INFO, "ERROR - main.ftpdLoop : sceNetInetClose returned '%d'.\n", err);
+		ModuleLog(LOG_INFO, "ftpdLoop : sceNetInetClose returned '%d'.\n", err);
     }
 	
 	return 0;

@@ -18,20 +18,22 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <PSPApp.h>
+#include <PSPThread.h>
 #include <Tools.h>
 #include <iniparser.h>
 #include <PSPRadio_Exports.h>
+#include <FSS_Exports.h>
 
 PSP_MODULE_INFO("FSS_FTPD", 0, 1, 1);
-PSP_NO_CREATE_MAIN_THREAD();
+//PSP_NO_CREATE_MAIN_THREAD();
 PSP_HEAP_SIZE_KB(2048);
 
 //Configuration file: 
 #define CFG_FILENAME "ftpd.cfg"
 
-int exitCalled=0;
-int exitSema;
 CIniParser *g_ConfDict = NULL;
+
+int g_int = 0;
 
 extern "C" 
 {
@@ -42,50 +44,69 @@ int ftpdLoop(SceSize args, void *argp);
 
 int main(int argc, char **argv)
 {
+	sceKernelSleepThread();
+/*	g_int = 1010;
+	SceSize am = sceKernelTotalFreeMemSize();
+	ModuleLog(LOG_INFO, "main(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
+	ModuleLog(LOG_INFO, "main(): Unblocked; exiting.");*/
+	
+	return 0;
+}
+
+int ModuleStartFSS()
+{
 	char strCfgFile[256];
 	char strDir[256];
 	
-	printf ("argv[0]='%s' \n", argv[0]);
+	//while(PSPRadioExport_IsFSSMainBlocked() == false){sleep(1);};
+	//sleep(1);
+
+	ModuleLog(LOG_INFO, "g_int=%d", 1010);
+	sprintf(strCfgFile, "%s/%s", getcwd(strDir, 255), CFG_FILENAME);
 	
-	strcpy(strDir, argv[0]);
-	dirname(strDir); /** Retrieve the directory name */
-	
-	sprintf(strCfgFile, "%s/%s", strDir, CFG_FILENAME);
-	
-	printf ("Opening '%s'\n", strCfgFile);
+	ModuleLog(LOG_INFO, "Opening '%s'\n", strCfgFile);
 	
 	g_ConfDict = new CIniParser(strCfgFile);
 	
-	ModuleLog(LOG_INFO, "username='%s' password='%s'\n", 
-		g_ConfDict->GetStr("USER:USER"),
-		g_ConfDict->GetStr("USER:PASS"));
+	if (g_ConfDict != NULL)
+	{
+		
+		ModuleLog(LOG_INFO, "ftp://%s:%s@%s/", 
+				g_ConfDict->GetStr("USER:USER"),
+				g_ConfDict->GetStr("USER:PASS"),
+				PSPRadioExport_GetMyIP());
 	
-	///
-	exitSema=sceKernelCreateSema("SEMA_FTPD_EXIT", 0, 0, 1, 0);
-		char url[256];
-		sprintf(url, "ftp://%s:%s@%s/", 
-			g_ConfDict->GetStr("USER:USER"),
-			g_ConfDict->GetStr("USER:PASS"),
-			PSPRadioExport_GetMyIP()
-			);
+// 		int threadFtpLoop=sceKernelCreateThread("THREAD_FTPD_SERVERLOOP", ftpdLoop, 0x18, 0x10000, 0, NULL);
+// 		if(threadFtpLoop >= 0) {
+// 			sceKernelStartThread(threadFtpLoop, 0, 0);
+// 		}
 
-	///
-int threadFtpLoop=0;
-	threadFtpLoop=sceKernelCreateThread("THREAD_FTPD_SERVERLOOP", &ftpdLoop, 0x18, 0x10000, 0, NULL);
-	if(threadFtpLoop >= 0) 
-	{
-		sceKernelStartThread(threadFtpLoop, 0, 0);
-	} else 
-	{
-		ModuleLog(LOG_ERROR, "ERROR - main() : Impossible to create server loop thread.\n", threadFtpLoop);
-	}
-///
-	ModuleLog(LOG_INFO, "INFO  - main() : Waiting for exit signal.\n");
-	/* waiting for exit */
-	sceKernelWaitSema(exitSema, 1, 0);
-//
-	delete(g_ConfDict), g_ConfDict = NULL;
+//		return 0;	
+		//char *a = new char[10];
+		//sprintf(a, "abcdefghi");
+// 		SceSize am = sceKernelTotalFreeMemSize();
+// 		ModuleLog(LOG_INFO, "Available memory before malloc(10): %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
+// 		char *a = (char*)malloc(10);
+// 		sprintf(a, "abcdefghi");
+// 		am = sceKernelTotalFreeMemSize();
+// 		ModuleLog(LOG_INFO, "Available memory after malloc(10): %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
+// 		return 0;
+
+		CPSPThread *thServerLoop = new CPSPThread("FSS_FTPD_SERVERLOOP_TH", ftpdLoop, 80);
 	
+		if(thServerLoop != NULL) 
+		{
+			thServerLoop->Start();
+		} 
+		else 
+		{
+			ModuleLog(LOG_ERROR, "main(): Impossible to create server loop thread.\n");
+		}
+	}
+	else
+	{
+		ModuleLog(LOG_ERROR, "Insufficient memory.");
+	}
 	
 	return 0;
 }
@@ -97,6 +118,9 @@ void* getModuleInfo(void)
 
 int module_stop(int args, void *argp)
 {
-	exitCalled=1;
+	delete(g_ConfDict), g_ConfDict = NULL;
+	//PSPRadioExport_FSSUnBlockMain();
+	
+	
 	return 0;
 }
