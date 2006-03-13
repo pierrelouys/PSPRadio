@@ -124,6 +124,8 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 		switch(iOptNo)
 		{
 			case OPTION_ID_UI:
+				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
+				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_FSS:
 				break;

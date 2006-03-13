@@ -26,7 +26,6 @@
 #include "SHOUTcastScreen.h"
 #include "TextUI.h"
 #include "TextUI3D.h"
-#include <ivorbisfile.h>
 #include "Screen.h"
 
 #define PSPRADIO_VERSION	"0.38.07"

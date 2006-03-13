@@ -158,7 +158,7 @@ int CPSPApp::Run()
 		if (false == m_Polling)
 			continue;
 
-		//OnVBlank();
+		OnVBlank();
 		//SendEvent(MID_ONVBLANK);
 
 		// If a key event was detected notify the application
