@@ -85,8 +85,11 @@
 			though the list with a for loop/etc.
 		*/
 		#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_LOCALFILES
+#ifdef DYNAMIC_BUILD
+		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU+1)
+#else // static build
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
-
+#endif
 		enum UIs
 		{
 			UI_TEXT = 0,
