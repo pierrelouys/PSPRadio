@@ -85,11 +85,13 @@ OptionsScreen::Options OptionsScreenData[] =
 
 OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, ScreenHandler)
 {
-	m_iNetworkProfile = 1;
-	m_WifiAutoStart = false;
-	m_USBAutoStart = false;
-	OptionsData = OptionsScreenData;
-	LoadFromConfig();
+	if (Id == CScreenHandler::PSPRADIO_SCREEN_OPTIONS)
+	{
+		m_iNetworkProfile = 1;
+		m_WifiAutoStart = false;
+		m_USBAutoStart = false;
+		LoadFromConfig();
+	}
 }
 
 /** Activate() is called on screen activation */
@@ -106,6 +108,7 @@ void OptionsScreen::LoadFromConfig()
 {
 	CIniParser *pConfig = m_ScreenHandler->GetConfig();
 	Log(LOG_INFO, "LoadFromConfig(): Loading Options from configuration file");
+	Log(LOG_LOWLEVEL, "LoadFromConfig(): pConfig=%p", pConfig);
 
 	if (pConfig)
 	{
@@ -183,7 +186,9 @@ void OptionsScreen::LoadFromConfig()
 		/** OPTION_ID_USB_AUTOSTART */
 
 		/** OPTION_ID_PLAYMODE */
-		m_ScreenHandler->SetPlayMode((playmodes)pConfig->GetInteger("PLAYBACK:MODE", 0));
+		playmodes playmode = (playmodes)pConfig->GetInteger("PLAYBACK:MODE", 0);
+		m_ScreenHandler->SetPlayMode(playmode);
+		Log(LOG_INFO, "LoadFromConfig(): PlayMode retrieved: %d", playmode);
 		/** OPTION_ID_PLAYMODE */
 
 	}
@@ -261,15 +266,16 @@ void OptionsScreen::UpdateOptionsData()
 
 	for (int iOptNo=0;; iOptNo++)
 	{
-		if (-1 == OptionsData[iOptNo].Id)
+		if (-1 == OptionsScreenData[iOptNo].Id)
 			break;
 
-		Option.Id = OptionsData[iOptNo].Id;
-		sprintf(Option.strName, 	OptionsData[iOptNo].strName);
-		memcpy(Option.strStates, OptionsData[iOptNo].strStates, sizeof(char*)*OptionsData[iOptNo].iNumberOfStates);
-		Option.iActiveState		= OptionsData[iOptNo].iActiveState;
-		Option.iSelectedState	= OptionsData[iOptNo].iSelectedState;
-		Option.iNumberOfStates	= OptionsData[iOptNo].iNumberOfStates;
+		Option.Id = OptionsScreenData[iOptNo].Id;
+		sprintf(Option.strName, 	OptionsScreenData[iOptNo].strName);
+		memcpy(Option.strStates, OptionsScreenData[iOptNo].strStates,
+			sizeof(char*)*OptionsScreenData[iOptNo].iNumberOfStates);
+		Option.iActiveState		= OptionsScreenData[iOptNo].iActiveState;
+		Option.iSelectedState	= OptionsScreenData[iOptNo].iSelectedState;
+		Option.iNumberOfStates	= OptionsScreenData[iOptNo].iNumberOfStates;
 
 		/** Modify from data table */
 		switch(iOptNo)
@@ -296,6 +302,8 @@ void OptionsScreen::UpdateOptionsData()
 				break;
 
 			case OPTION_ID_PLAYMODE:
+				Log(LOG_LOWLEVEL, "Table playmode=%d. New playmode = %d(+1).",
+					Option.iActiveState, m_ScreenHandler->GetPlayMode());
 				Option.iActiveState = (m_ScreenHandler->GetPlayMode())+1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
