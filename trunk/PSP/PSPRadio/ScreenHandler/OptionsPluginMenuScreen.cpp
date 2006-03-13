@@ -34,6 +34,7 @@
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "OptionsPluginMenuScreen.h"
+#include <FSS_Exports.h>
 
 #define ReportError pPSPApp->ReportError
 
@@ -54,9 +55,14 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 
 OptionsPluginMenuScreen::OptionsPluginMenuScreen(int Id, CScreenHandler *ScreenHandler):OptionsScreen(Id, ScreenHandler)
 {
+	Log(LOG_LOWLEVEL, "OptionsPluginMenuScreen(): Id=%d", Id);
 	m_FSSModuleLoader = NULL;
-	OptionsData = OptionsPluginMenuData;
-	LoadFromConfig();
+	m_FSSModuleLoader = new CPRXLoader();
+	if (m_FSSModuleLoader == NULL)
+	{
+		Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader.");
+	}
+	//LoadFromConfig();
 }
 
 /** Activate() is called on screen activation */
@@ -64,13 +70,14 @@ void OptionsPluginMenuScreen::Activate(IPSPRadio_UI *UI)
 {
 	IScreen::Activate(UI);
 
-	// Update network and UI options.  This is necesary the first time */
+	// Update.  This is necesary the first time */
 	UpdateOptionsData();
 	m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 }
 
 void OptionsPluginMenuScreen::LoadFromConfig()
 {
+	Log(LOG_INFO, "LoadFromConfig");
 }
 
 void OptionsPluginMenuScreen::SaveToConfigFile()
@@ -83,19 +90,35 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 	Options Option;
 
 	list<Options>::iterator		OptionIterator;
+	
+	while(m_OptionsList.size())
+	{
+		// Release memory allocated for network profile names
+		OptionIterator = m_OptionsList.begin();
+// 		if ((*OptionIterator).Id == OPTION_ID_NETWORK_PROFILES)
+// 		{
+// 			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
+// 			{
+// 				free((*OptionIterator).strStates[i]);
+// 			}
+// 		}
+		m_OptionsList.pop_front();
+	}
+
 
 	for (int iOptNo=0;; iOptNo++)
 	{
-		if (-1 == OptionsData[iOptNo].Id)
+		if (-1 == OptionsPluginMenuData[iOptNo].Id)
 			break;
 
 		/* Make a copy of the table entry */
-		Option.Id = OptionsData[iOptNo].Id;
-		sprintf(Option.strName, 	OptionsData[iOptNo].strName);
-		memcpy(Option.strStates, OptionsData[iOptNo].strStates, sizeof(char*)*OptionsData[iOptNo].iNumberOfStates);
-		Option.iActiveState		= OptionsData[iOptNo].iActiveState;
-		Option.iSelectedState	= OptionsData[iOptNo].iSelectedState;
-		Option.iNumberOfStates	= OptionsData[iOptNo].iNumberOfStates;
+		Option.Id = OptionsPluginMenuData[iOptNo].Id;
+		sprintf(Option.strName, 	OptionsPluginMenuData[iOptNo].strName);
+		memcpy(Option.strStates, OptionsPluginMenuData[iOptNo].strStates, 
+				sizeof(char*)*OptionsPluginMenuData[iOptNo].iNumberOfStates);
+		Option.iActiveState		= OptionsPluginMenuData[iOptNo].iActiveState;
+		Option.iSelectedState	= OptionsPluginMenuData[iOptNo].iSelectedState;
+		Option.iNumberOfStates	= OptionsPluginMenuData[iOptNo].iNumberOfStates;
 
 		/** Modify from data table */
 		switch(iOptNo)
@@ -132,8 +155,16 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 			if (iSelectionBase0 > 0)
 			{
 				m_UI->DisplayMessage("Starting Plugin . . .");
-				LoadFSSPlugin(iSelectionBase0 - 1);
-				fOptionActivated = true;
+				int res = LoadFSSPlugin(iSelectionBase0 - 1);
+				if (res == 0)
+				{
+					fOptionActivated = true;
+					m_UI->DisplayMessage("Plugin Started");
+				}
+				else
+				{
+					m_UI->DisplayMessage("Error Starting Plugin . . .");
+				}
 			}
 			break;
 
@@ -148,24 +179,15 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 
 int OptionsPluginMenuScreen::LoadFSSPlugin(int iFSSIndex)
 {
+	char strModulePath[MAXPATHLEN+1];
+	char cwd[MAXPATHLEN+1];
 	
-	if (m_FSSModuleLoader != NULL)
+	if (m_FSSModuleLoader->IsLoaded() == true)
 	{
 		Log(LOG_INFO, "Unloading currently running plugin");
 		m_FSSModuleLoader->Unload();
 	}
-	else
-	{
-		m_FSSModuleLoader = new CPRXLoader();
-		if (m_FSSModuleLoader == NULL)
-		{
-			Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader.");
-			return -1;
-		}
-	}
-	
-	char strModulePath[MAXPATHLEN+1];
-	char cwd[MAXPATHLEN+1];
+
 	sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), "FSS_FTPD.prx");
 
 	int id = m_FSSModuleLoader->Load(strModulePath);
@@ -182,6 +204,8 @@ int OptionsPluginMenuScreen::LoadFSSPlugin(int iFSSIndex)
 		int iRet = m_FSSModuleLoader->Start();
 		
 		Log(LOG_LOWLEVEL, "Module start returned: 0x%x", iRet);
+		
+		ModuleStartFSS();
 		
 		return 0;
 		

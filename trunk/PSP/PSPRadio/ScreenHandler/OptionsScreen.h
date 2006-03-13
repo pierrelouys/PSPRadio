@@ -44,7 +44,6 @@
 			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 		
 		protected:
-			Options *OptionsData;
 			list<Options> m_OptionsList;
 			list<Options>::iterator m_CurrentOptionIterator;
 			int m_iNetworkProfile;
