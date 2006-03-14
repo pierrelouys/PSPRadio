@@ -346,7 +346,9 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			}
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+#ifdef DYNAMIC_BUILD
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
+#endif
 			if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
 			{
 				// Go back to where we were before entering the options menu

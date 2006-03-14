@@ -44,9 +44,12 @@ LIBS =  -lsupc++ -lstdc++ \
 		-lvorbisfile -lvorbis -logg \
 		-lmad \
 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
-		-lSDLmain -lSDL_image \
-		-ljpeg -lSDL -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
+		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
 		-lpsppower -lpspgum -lpspgu -lpng -lz -lm -lTools \
+# 		-lSDLmain -lSDL_image \
+# 		-ljpeg -lSDL -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
+# 		-lpsppower -lpspgum -lpspgu -lpng -lz -lm -lTools \
+
 
 all: 
 	make -f Makefile_static kxploit 

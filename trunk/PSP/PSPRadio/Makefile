@@ -16,7 +16,7 @@ OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./IPSPRadio_UI.o PSPRadio_Exports.o \
 		$(IMPORTED_OBJS)
 
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES) -DDYNAMIC_BUILD
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES)
 
 INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
