@@ -390,11 +390,12 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize options");
 			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
 			break;
-//		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
-		default:
+#ifdef DYNAMIC_BUILD
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize plugin menu");
 			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
 			break;
+#endif /* ifdef DYNAMIC_BUILD */
 	}
 }
 
