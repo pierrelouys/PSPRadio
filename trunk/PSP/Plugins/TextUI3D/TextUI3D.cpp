@@ -370,6 +370,8 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 		DisplayMessage_NetworkReady(PSPRadioExport_GetMyIP());
 	}
 
+	ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize_Screen : %d", Screen->GetId());
+
 	switch ((CScreenHandler::Screen)Screen->GetId())
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
@@ -386,6 +388,11 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize options");
+			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
+			break;
+//		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
+		default:
+			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize plugin menu");
 			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
 			break;
 	}

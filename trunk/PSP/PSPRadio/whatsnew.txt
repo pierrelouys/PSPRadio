@@ -7,6 +7,7 @@ BUG FIXES
 (raf) png: The shutdown.png was a copy of init.png; corrected.
 (raf) Core: Now in Options screen, options that have no alternatives don't have a default "Yes" (like exit pspradio).
 (raf) Core: Now the sound is stopped when a screenshot is taken to prevent the event queue from backing up and the app exiting (reported by albadross) (r888)
+(sandberg) 3DUI: The new plugin menu is now handled correct when switching UIs.(r909)
 
 
 0.38.06 (r881) (2006-03-02)

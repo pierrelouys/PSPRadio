@@ -297,6 +297,10 @@ void WindowHandlerHSM::Dispatch(int Signal, void *Data)
 				}
 			}
 		}
+	else
+		{
+		ModuleLog(LOG_ERROR, "HSM_MBX : Received event before HSM was initialized.. (%d)", Signal);
+		}
 	}
 
 void WindowHandlerHSM::MessageHandler(int Signal, void *Data)
@@ -745,7 +749,7 @@ void WindowHandlerHSM::RenderNetwork()
 
 void WindowHandlerHSM::RenderUSB()
 {
-	if (PSPRadioExport_IsUSBEnabled() == false) 
+	if (PSPRadioExport_IsUSBEnabled() == false)
 		{
  		RenderIconAlpha(TEX_ICON_USB, LocalSettings.USBIconX, LocalSettings.USBIconY, GfxSizes.usb_w, GfxSizes.usb_y, GfxSizes.usb_y);
 		}
