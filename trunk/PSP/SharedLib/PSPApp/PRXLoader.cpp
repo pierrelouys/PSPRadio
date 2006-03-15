@@ -43,9 +43,15 @@ int CPRXLoader::Load(char *filename)
 	option.position = 0;
 	option.access = 1;
 
+	SceSize am = sceKernelTotalFreeMemSize();
+	Log(LOG_LOWLEVEL, "Load('%s'): Available memory before loading: %dbytes (%dKB or %dMB)", filename, am, am/1024, am/1024/1024);
+	am = sceKernelMaxFreeMemSize();
+	Log(LOG_LOWLEVEL, "Load('%s'): Max(continguos) memory before loading: %dbytes (%dKB or %dMB)", filename, am, am/1024, am/1024/1024);
+
+
 	m_ModId = sceKernelLoadModule(filename, 0, &option);
 	
-	Log(LOG_LOWLEVEL, "Load() Module Id=%d", m_ModId);
+	Log(LOG_LOWLEVEL, "Load('%s') Module Id=%d", filename, m_ModId);
 	
 	if (m_ModId > 0)
 	{
@@ -76,6 +82,7 @@ int CPRXLoader::Unload()
 		if (IsStarted() == true)
 		{
 			// Stop
+			Log(LOG_LOWLEVEL, "Unload(): Module was started, so stopping first.");
 			ret = sceKernelStopModule(m_ModId, 0, NULL, &status, NULL);
 			m_IsStarted = false;
 		}
@@ -83,13 +90,14 @@ int CPRXLoader::Unload()
 		// Unload
 		if(ret >= 0)
 		{
+			Log(LOG_LOWLEVEL, "Unload(): Unloading Module");
 			ret = sceKernelUnloadModule(m_ModId);
 		}
 	
 		m_ModId = 0;
 		m_IsLoaded = false;
 	}
-	
+
 	return 0;
 }
 

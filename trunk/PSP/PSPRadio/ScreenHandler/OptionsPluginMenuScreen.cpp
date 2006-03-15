@@ -157,7 +157,10 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 			if (iSelectionBase0 > 0)
 			{
 				m_UI->DisplayMessage("Starting Plugin . . .");
+				sprintf(m_UI->buff, "original data");
+				Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
 				int res = LoadFSSPlugin(iSelectionBase0 - 1);
+				Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
 				if (res == 0)
 				{
 					fOptionActivated = true;
@@ -205,7 +208,7 @@ int OptionsPluginMenuScreen::LoadFSSPlugin(int iFSSIndex)
 	
 		int iRet = m_FSSModuleLoader->Start();
 		
-		Log(LOG_LOWLEVEL, "Module start returned: 0x%x", iRet);
+		Log(LOG_INFO, "Module start returned: 0x%x", iRet);
 		
 		ModuleStartFSS();
 		

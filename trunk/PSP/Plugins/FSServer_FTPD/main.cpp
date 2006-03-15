@@ -24,44 +24,51 @@
 #include <PSPRadio_Exports.h>
 #include <FSS_Exports.h>
 
+int ftpdLoop(SceSize args, void *argp);
+
 PSP_MODULE_INFO("FSS_FTPD", 0, 1, 1);
 //PSP_NO_CREATE_MAIN_THREAD();
 PSP_HEAP_SIZE_KB(2048);
 
 //Configuration file: 
-#define CFG_FILENAME "ftpd.cfg"
+#define CFG_FILENAME "fss_ftpd/ftpd.cfg"
 
 CIniParser *g_ConfDict = NULL;
 
-int g_int = 0;
+volatile bool g_ExitModule = false;
 
 extern "C" 
 {
-	int module_stop(int args, void *argp);
-}
-
-int ftpdLoop(SceSize args, void *argp);
 
 int main(int argc, char **argv)
 {
-	sceKernelSleepThread();
-/*	g_int = 1010;
 	SceSize am = sceKernelTotalFreeMemSize();
-	ModuleLog(LOG_INFO, "main(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
-	ModuleLog(LOG_INFO, "main(): Unblocked; exiting.");*/
-	
+	ModuleLog(LOG_INFO, "FTPD: main(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
+	while (g_ExitModule == false)
+	{
+		sleep(1);
+	}
+	ModuleLog(LOG_INFO, "FTPD: main(): Unblocked; exiting.");
 	return 0;
 }
 
 int ModuleStartFSS()
 {
+	//return 0;
 	char strCfgFile[256];
 	char strDir[256];
 	
 	//while(PSPRadioExport_IsFSSMainBlocked() == false){sleep(1);};
 	//sleep(1);
 
-	ModuleLog(LOG_INFO, "g_int=%d", 1010);
+	ModuleLog(LOG_INFO, "g_ExitModule=%d", g_ExitModule);
+	char *a = (char*)malloc(20);
+	sprintf(a, "modified 1234567890");
+		//  12345678901234567890
+	SceSize am = sceKernelTotalFreeMemSize();
+	ModuleLog(LOG_INFO, "ModuleStartFSS(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
+
+
 	sprintf(strCfgFile, "%s/%s", getcwd(strDir, 255), CFG_FILENAME);
 	
 	ModuleLog(LOG_INFO, "Opening '%s'\n", strCfgFile);
@@ -121,6 +128,10 @@ int module_stop(int args, void *argp)
 	delete(g_ConfDict), g_ConfDict = NULL;
 	//PSPRadioExport_FSSUnBlockMain();
 	
-	
+	g_ExitModule = true;
+
 	return 0;
 }
+
+}
+
