@@ -12,7 +12,6 @@
 	class IPSPRadio_UI
 	{
 	public:
-		char buff[32];
 		virtual ~IPSPRadio_UI();
 
 		virtual int Initialize(char *strCWD){return 0;};

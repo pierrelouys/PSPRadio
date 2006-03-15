@@ -157,10 +157,10 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 			if (iSelectionBase0 > 0)
 			{
 				m_UI->DisplayMessage("Starting Plugin . . .");
-				sprintf(m_UI->buff, "original data");
-				Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
+				//sprintf(m_UI->buff, "original data");
+				//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
 				int res = LoadFSSPlugin(iSelectionBase0 - 1);
-				Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
+				//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
 				if (res == 0)
 				{
 					fOptionActivated = true;

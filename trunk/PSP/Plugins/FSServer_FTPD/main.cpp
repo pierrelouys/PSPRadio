@@ -27,15 +27,16 @@
 int ftpdLoop(SceSize args, void *argp);
 
 PSP_MODULE_INFO("FSS_FTPD", 0, 1, 1);
-//PSP_NO_CREATE_MAIN_THREAD();
-PSP_HEAP_SIZE_KB(2048);
+PSP_HEAP_SIZE_KB(128);
 
 //Configuration file: 
 #define CFG_FILENAME "fss_ftpd/ftpd.cfg"
 
 CIniParser *g_ConfDict = NULL;
 
-volatile bool g_ExitModule = false;
+volatile int g_blocker = 0;
+#define BLOCKER_CREATE_AND_BLOCK(x,name) {x=sceKernelCreateSema(name,0,0,1,0);sceKernelWaitSema(x,1,NULL);}
+#define BLOCKER_UNBLOCK_AND_DESTROY(x)   {sceKernelDeleteSema(x);sleep(1);}
 
 extern "C" 
 {
@@ -44,10 +45,9 @@ int main(int argc, char **argv)
 {
 	SceSize am = sceKernelTotalFreeMemSize();
 	ModuleLog(LOG_INFO, "FTPD: main(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
-	while (g_ExitModule == false)
-	{
-		sleep(1);
-	}
+
+	BLOCKER_CREATE_AND_BLOCK(g_blocker, "fss_ftpd_blocker");
+
 	ModuleLog(LOG_INFO, "FTPD: main(): Unblocked; exiting.");
 	return 0;
 }
@@ -61,7 +61,7 @@ int ModuleStartFSS()
 	//while(PSPRadioExport_IsFSSMainBlocked() == false){sleep(1);};
 	//sleep(1);
 
-	ModuleLog(LOG_INFO, "g_ExitModule=%d", g_ExitModule);
+	//ModuleLog(LOG_INFO, "g_ExitModule=%d", g_ExitModule);
 	char *a = (char*)malloc(20);
 	sprintf(a, "modified 1234567890");
 		//  12345678901234567890
@@ -83,22 +83,6 @@ int ModuleStartFSS()
 				g_ConfDict->GetStr("USER:PASS"),
 				PSPRadioExport_GetMyIP());
 	
-// 		int threadFtpLoop=sceKernelCreateThread("THREAD_FTPD_SERVERLOOP", ftpdLoop, 0x18, 0x10000, 0, NULL);
-// 		if(threadFtpLoop >= 0) {
-// 			sceKernelStartThread(threadFtpLoop, 0, 0);
-// 		}
-
-//		return 0;	
-		//char *a = new char[10];
-		//sprintf(a, "abcdefghi");
-// 		SceSize am = sceKernelTotalFreeMemSize();
-// 		ModuleLog(LOG_INFO, "Available memory before malloc(10): %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
-// 		char *a = (char*)malloc(10);
-// 		sprintf(a, "abcdefghi");
-// 		am = sceKernelTotalFreeMemSize();
-// 		ModuleLog(LOG_INFO, "Available memory after malloc(10): %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
-// 		return 0;
-
 		CPSPThread *thServerLoop = new CPSPThread("FSS_FTPD_SERVERLOOP_TH", ftpdLoop, 80);
 	
 		if(thServerLoop != NULL) 
@@ -126,9 +110,8 @@ void* getModuleInfo(void)
 int module_stop(int args, void *argp)
 {
 	delete(g_ConfDict), g_ConfDict = NULL;
-	//PSPRadioExport_FSSUnBlockMain();
 	
-	g_ExitModule = true;
+	BLOCKER_UNBLOCK_AND_DESTROY(g_blocker);
 
 	return 0;
 }
