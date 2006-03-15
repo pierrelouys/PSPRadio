@@ -27,7 +27,7 @@
 int ftpdLoop(SceSize args, void *argp);
 
 PSP_MODULE_INFO("FSS_FTPD", 0, 1, 1);
-PSP_HEAP_SIZE_KB(128);
+PSP_HEAP_SIZE_KB(1024);
 
 //Configuration file: 
 #define CFG_FILENAME "fss_ftpd/ftpd.cfg"
@@ -58,13 +58,8 @@ int ModuleStartFSS()
 	char strCfgFile[256];
 	char strDir[256];
 	
-	//while(PSPRadioExport_IsFSSMainBlocked() == false){sleep(1);};
-	//sleep(1);
-
-	//ModuleLog(LOG_INFO, "g_ExitModule=%d", g_ExitModule);
-	char *a = (char*)malloc(20);
-	sprintf(a, "modified 1234567890");
-		//  12345678901234567890
+	sleep(1);
+	
 	SceSize am = sceKernelTotalFreeMemSize();
 	ModuleLog(LOG_INFO, "ModuleStartFSS(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
 

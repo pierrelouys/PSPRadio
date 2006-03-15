@@ -7,6 +7,9 @@
 	#include <PRXLoader.h>
 	using namespace std;
 
+	#ifdef DYNAMIC_BUILD
+		#define DEFAULT_UI_MODULE "UI_Text.prx"
+	#endif
 
 	/** Messages from PSPSound to decode thread */
 	enum EventIDsFromScreenHandlerToPSPRadio
@@ -90,12 +93,15 @@
 #else // static build
 		#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
 #endif
+
+#ifndef DYNAMIC_BUILD /** Static Build */
 		enum UIs
 		{
 			UI_TEXT = 0,
 			UI_3D = 1,
 			UI_GRAPHICS = 99,
 		};
+#endif
 
 		enum request_on_play_stop
 		{
@@ -107,7 +113,11 @@
 
 		CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen = PSPRADIO_SCREEN_PLAYLIST);
 		~CScreenHandler();
+#ifdef DYNAMIC_BUILD
+		IPSPRadio_UI *StartUI(char *strUIModule);
+#else /** Static Build */
 		IPSPRadio_UI *StartUI(UIs UI);
+#endif
 		void PrepareShutdown();
 
 		void CommonInputHandler(int iButtonMask, u32 iEventType); /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
@@ -116,7 +126,11 @@
 		bool DownloadSHOUTcastDB();
 
 		IScreen *GetCurrentScreen(){return m_CurrentScreen;}
+#ifdef DYNAMIC_BUILD
+		char *GetCurrentUI(){return m_CurrentUI;}
+#else
 		UIs GetCurrentUI(){return m_CurrentUI;}
+#endif
 		char *GetCWD(){return m_strCWD;}
 		CPSPSound *GetSound(){return m_Sound;}
 		IScreen *GetScreen(int Id){return Screens[Id];}
@@ -161,7 +175,11 @@
 		IScreen *m_StreamOwnerScreen;
 		Screen   m_InitialScreen;
 		CPRXLoader *m_UIModuleLoader;
+#ifdef DYNAMIC_BUILD
+		char *m_CurrentUI;
+#else
 		UIs m_CurrentUI;
+#endif
 		IPSPRadio_UI *m_UI;
 		CIniParser *m_Config;
 		CPSPSound *m_Sound;

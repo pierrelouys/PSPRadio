@@ -79,8 +79,8 @@ int CTextUI3D::Initialize(char *strCWD)
 char *strCfgFile = NULL;
 
 	/* Load settings from config file */
-	strCfgFile = (char *)malloc(strlen(strCWD) + strlen("TextUI3D/TextUI3D.cfg") + 10);
-	sprintf(strCfgFile, "%s/%s", strCWD, "TextUI3D/TextUI3D.cfg");
+	strCfgFile = (char *)malloc(strlen(strCWD) + strlen("UI_Text3D/TextUI3D.cfg") + 10);
+	sprintf(strCfgFile, "%s/%s", strCWD, "UI_Text3D/TextUI3D.cfg");
 	m_Settings = new CIniParser(strCfgFile);
 	free (strCfgFile), strCfgFile = NULL;
 	memset(&LocalSettings, 0, sizeof(LocalSettings));

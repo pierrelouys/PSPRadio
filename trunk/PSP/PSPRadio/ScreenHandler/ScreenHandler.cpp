@@ -45,7 +45,11 @@
 CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen)
 {
 	m_RequestOnPlayOrStop = NOTHING;
+#ifdef DYNAMIC_BUILD
+	m_CurrentUI = strdup(DEFAULT_UI_MODULE);
+#else
 	m_CurrentUI = UI_TEXT;
+#endif
 	m_UI = NULL;
 	m_strCWD = strdup(strCWD);
 	m_Config = Config;
@@ -126,11 +130,19 @@ CScreenHandler::~CScreenHandler()
 		Log(LOG_LOWLEVEL, "Exiting. Deleting Screens.");
 		delete(Screens[i]), Screens[i] = NULL;
 	}
+
+#ifdef DYNAMIC_BUILD
+	if (m_CurrentUI)
+	{
+		Log(LOG_LOWLEVEL, "Exiting. Deleting m_CurrentUI string.");
+		free(m_CurrentUI), m_CurrentUI = NULL;
+	}
+#endif
 	Log(LOG_LOWLEVEL, "~CScreenHandler() End.");
 }
 
 #ifdef DYNAMIC_BUILD
-	IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
+	IPSPRadio_UI *CScreenHandler::StartUI(char *strUIModule)
 	{
 		bool wasPolling = pPSPApp->IsPolling();
 		if (m_UI)
@@ -150,26 +162,12 @@ CScreenHandler::~CScreenHandler()
 			m_UIModuleLoader->Unload();
 			Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
 		}
-		Log(LOG_LOWLEVEL, "StartUI: Starting UI %d", UI);
+		Log(LOG_LOWLEVEL, "StartUI: Starting UI '%s'", strUIModule);
 		
-		char strModulePath[MAXPATHLEN];
-		switch(UI)
-		{
-			default:
-			case UI_TEXT:
-				sprintf(strModulePath, "%s/%s", GetCWD(), "TextUI.prx");
-				break;
-			case UI_GRAPHICS:
-				sprintf(strModulePath, "%s/%s", GetCWD(), "GraphicsUI.prx");
-				break;
-			case UI_3D:
-				sprintf(strModulePath, "%s/%s", GetCWD(), "TextUI3D.prx");
-				break;
-		}
 		
 		Log(LOG_LOWLEVEL, "In PSPRadioPRX: _global_impure_ptr=%p, _impure_ptr=%p", _global_impure_ptr, _impure_ptr);
 		
-		int id = m_UIModuleLoader->Load(strModulePath);
+		int id = m_UIModuleLoader->Load(strUIModule);
 		
 		if (m_UIModuleLoader->IsLoaded() == true)
 		{
@@ -178,7 +176,7 @@ CScreenHandler::~CScreenHandler()
 			modinfo.size = sizeof(modinfo);
 			sceKernelQueryModuleInfo(id, &modinfo);
 			Log(LOG_INFO, "'%s' Loaded at text_addr=0x%x",
-				strModulePath, modinfo.text_addr);
+				strUIModule, modinfo.text_addr);
 		
 			int iRet = m_UIModuleLoader->Start();
 			
@@ -187,7 +185,7 @@ CScreenHandler::~CScreenHandler()
 		}
 		else
 		{
-			Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strModulePath, m_UIModuleLoader->GetError());
+			Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strUIModule, m_UIModuleLoader->GetError());
 		}
 		
 		Log(LOG_INFO, "Calling ModuleStartUI() (at addr %p)", &ModuleStartUI);
@@ -195,7 +193,11 @@ CScreenHandler::~CScreenHandler()
 		
 		Log(LOG_INFO, "UI Started, m_UI = %p", m_UI);
 		
-		m_CurrentUI = UI;
+		if (m_CurrentUI)
+		{
+			free(m_CurrentUI), m_CurrentUI = NULL;
+		}
+		m_CurrentUI = strdup(strUIModule);
 		
 		Log(LOG_LOWLEVEL, "Calling m_UI->Initialize");
 		m_UI->Initialize(GetCWD());

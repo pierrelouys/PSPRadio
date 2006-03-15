@@ -118,7 +118,12 @@ int CPSPRadio::Setup_Logging(char *strCurrentDir)
 
 int CPSPRadio::Setup_UI(char *strCurrentDir)
 {
-	Log(LOG_LOWLEVEL, "UI Mode = %s", m_Config->GetStr("UI:MODE"));
+#ifdef DYNAMIC_BUILD
+	Log(LOG_LOWLEVEL, "Dynamic Build: UI Module = %s", m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE));
+
+	m_UI = m_ScreenHandler->StartUI(m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE));
+#else /** Static Build */
+	Log(LOG_LOWLEVEL, "Static Build: UI Mode = %s", m_Config->GetStr("UI:MODE"));
 
 	#ifdef GRAPHICS_UI
 	if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
@@ -134,7 +139,7 @@ int CPSPRadio::Setup_UI(char *strCurrentDir)
 	{
 		m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_TEXT);
 	}
-
+#endif
 	return 0;
 }
 

@@ -584,7 +584,7 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 		while(sceIoDread(dfd, &direntry) > 0)
 		{
 			//Log(LOG_LOWLEVEL, "Processing '%s'", direntry.d_name)
-			if((direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a file */
+			if((direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a directory */
 			{
 				if (strcmp(direntry.d_name, ".") == 0)
 					continue;

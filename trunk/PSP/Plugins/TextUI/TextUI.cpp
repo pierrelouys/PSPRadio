@@ -40,9 +40,6 @@
 #define COL_TO_PIXEL(c) ((c)*m_Screen->GetFontWidth())
 #define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
 
-
-#define TEXT_UI_CFG_FILENAME "TextUI/TextUI.cfg"
-
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 
 #define TextUILog ModuleLog
@@ -137,7 +134,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 			delete(m_Config);
 		}
 		strCfgFile = (char *)malloc(strlen(m_strCWD) + strlen(Screen->GetConfigFilename()) + 64);
-		sprintf(strCfgFile, "%s/TextUI/%s", m_strCWD, Screen->GetConfigFilename());
+		sprintf(strCfgFile, "%s/UI_Text/%s", m_strCWD, Screen->GetConfigFilename());
 	
 		TextUILog(LOG_LOWLEVEL, "LoadConfigSettings(): Using '%s' config file", strCfgFile);
 		

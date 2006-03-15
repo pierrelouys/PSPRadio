@@ -43,6 +43,8 @@ int main(int argc, char **argv)
 
 IPSPRadio_UI *ModuleStartUI()
 {
+	sleep(1);
+
 	ModuleLog(LOG_LOWLEVEL, "TextUI- ModuleStartUI()");
 
 	SceSize am = sceKernelTotalFreeMemSize();

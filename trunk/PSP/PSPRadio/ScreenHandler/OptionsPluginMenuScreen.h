@@ -15,13 +15,16 @@
 			void LoadFromConfig();
 			void SaveToConfigFile();
 
+			char *GetCurrentFSS();
+
 			
 		protected:
 			void OnOptionActivation();
+			int  RetrievePlugins(Options &Option, char *strPrefix, char *strActive, bool bInsertOff = false);
 		//	void PopulateOptionsData();
 		
 		private:
-			int LoadFSSPlugin(int iFSSIndex);
+			int LoadFSSPlugin(char *strPlugin);
 			
 		private:
 			CPRXLoader *m_FSSModuleLoader;

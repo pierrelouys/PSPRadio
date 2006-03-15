@@ -47,10 +47,10 @@ enum OptionIDs
 OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 {
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
-	{	OPTION_ID_UI,				"User Interface",			{"Text", "3D"},					1,1,2		},
-	{	OPTION_ID_FSS,				"FileSystemServers",		{"Off", "FTPD"},				1,1,2		},
+	{	OPTION_ID_UI,				"User Interface",			{""},				0,0,0		},
+	{	OPTION_ID_FSS,				"FileSystemServers",		{"Off"},			1,1,1		},
 
-	{  -1,  						"",							{""},							0,0,0		}
+	{  -1,  						"",							{""},				0,0,0		}
 };
 
 OptionsPluginMenuScreen::OptionsPluginMenuScreen(int Id, CScreenHandler *ScreenHandler):OptionsScreen(Id, ScreenHandler)
@@ -65,6 +65,18 @@ OptionsPluginMenuScreen::OptionsPluginMenuScreen(int Id, CScreenHandler *ScreenH
 	//LoadFromConfig();
 }
 
+char *OptionsPluginMenuScreen::GetCurrentFSS()
+{
+	if(m_FSSModuleLoader && m_FSSModuleLoader->IsStarted())
+	{
+		return m_FSSModuleLoader->GetFilename();
+	}
+	else
+	{
+		return "Off";
+	}
+}
+	
 /** Activate() is called on screen activation */
 void OptionsPluginMenuScreen::Activate(IPSPRadio_UI *UI)
 {
@@ -93,15 +105,16 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 	
 	while(m_OptionsList.size())
 	{
-		// Release memory allocated for network profile names
+		// Release allocated memory
 		OptionIterator = m_OptionsList.begin();
-// 		if ((*OptionIterator).Id == OPTION_ID_NETWORK_PROFILES)
-// 		{
-// 			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
-// 			{
-// 				free((*OptionIterator).strStates[i]);
-// 			}
-// 		}
+ 		if ( ((*OptionIterator).Id == OPTION_ID_UI) || 
+			 ((*OptionIterator).Id == OPTION_ID_FSS) )
+ 		{
+ 			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
+ 			{
+ 				free((*OptionIterator).strStates[i]);
+ 			}
+ 		}
 		m_OptionsList.pop_front();
 	}
 
@@ -124,10 +137,12 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 		switch(iOptNo)
 		{
 			case OPTION_ID_UI:
-				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
+				RetrievePlugins(/*option*/Option, /*prefix*/"UI_", m_ScreenHandler->GetCurrentUI());
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_FSS:
+				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_", GetCurrentFSS(), /*insert off*/true);
+				Option.iSelectedState = Option.iActiveState;
 				break;
 		}
 
@@ -138,37 +153,124 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 
 }
 
+int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, char *strActive, bool bInsertOff)
+{
+	int dfd;
+	char *strPath = m_ScreenHandler->GetCWD();
+	int iNumberOfPluginsFound = 0;
+	char *strPlugin = NULL;
+	SceIoDirent direntry;
+	
+	if (bInsertOff == true)
+	{
+		Option.strStates[0] = strdup("Off");
+		iNumberOfPluginsFound++;
+	}
+
+	Log(LOG_LOWLEVEL, "RetrievePlugins: Reading '%s' Directory", strPath);
+	dfd = sceIoDopen(strPath);
+	
+	Option.iActiveState = 1; /* Initial value */
+
+	/** Get all files */
+	if (dfd > 0)
+	{
+		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
+		memset(&direntry, 0, sizeof(SceIoDirent));
+		while(sceIoDread(dfd, &direntry) > 0)
+		{
+			if((direntry.d_stat.st_attr & FIO_SO_IFREG)) /** It's a file */
+			{
+				if (strcmp(direntry.d_name, ".") == 0)
+					continue;
+				else if (strcmp(direntry.d_name, "..") == 0)
+					continue;
+
+				Log(LOG_LOWLEVEL, "Processing '%s'", direntry.d_name);
+				if (strncmp(direntry.d_name, strPrefix, strlen(strPrefix)) == 0)
+				{
+					Log(LOG_LOWLEVEL, "RetrievePlugins(): Adding '%s' to list. Found %d elements", 
+						direntry.d_name, iNumberOfPluginsFound+1);
+					
+					strPlugin = (char*)malloc(128);
+					if (strPlugin)
+					{
+						char strFormat[64];
+						sprintf(strFormat, "%s%%s", strPrefix);
+
+						sscanf(direntry.d_name, strFormat, strPlugin);
+						
+						if (strrchr(strPlugin, '.'))
+							*strrchr(strPlugin, '.') = 0;
+						Log(LOG_LOWLEVEL, "direntry='%s' strPlugin='%s' strActive='%s'", direntry.d_name, strPlugin, strActive);
+
+						Option.strStates[iNumberOfPluginsFound] = strPlugin;
+						
+						if (strcmp(direntry.d_name, strActive) == 0)
+						{
+							Option.iActiveState = iNumberOfPluginsFound + 1;
+						}
+	
+						iNumberOfPluginsFound++;
+					}
+					else
+					{
+						Log(LOG_ERROR, "RetrievePlugins: Memomry error!");
+						break;
+					}
+				}
+			}
+		}
+		Option.iNumberOfStates = iNumberOfPluginsFound;
+		sceIoDclose(dfd);
+	}
+	else
+	{
+		Log(LOG_ERROR, "Unable to open '%s' Directory!", strPath);
+	}
+
+	return iNumberOfPluginsFound;
+}
+
 void OptionsPluginMenuScreen::OnOptionActivation()
 {
 	bool fOptionActivated = false;
-//	static time_t	timeLastTime = 0;
-//	time_t timeNow = clock() / (1000*1000); /** clock is in microseconds */
 	int iSelectionBase0 = (*m_CurrentOptionIterator).iSelectedState - 1;
-//	int iSelectionBase1 = (*m_CurrentOptionIterator).iSelectedState; 
+	char *strSelection  = (*m_CurrentOptionIterator).strStates[iSelectionBase0];
+	char strPluginRealName[128];
 
 	switch ((*m_CurrentOptionIterator).Id)
 	{
 		case OPTION_ID_UI:
-			m_ScreenHandler->StartUI((CScreenHandler::UIs)iSelectionBase0);
-			fOptionActivated = true;
+			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
+			{
+				sprintf(strPluginRealName, "UI_%s.prx", strSelection);
+				Log(LOG_INFO, "User selected to load '%s'", strPluginRealName);
+				m_ScreenHandler->StartUI(strPluginRealName);
+				fOptionActivated = true;
+			}
 			break;
 		case OPTION_ID_FSS:
-			Log(LOG_INFO, "User selected an FSS Plugin.");
-			if (iSelectionBase0 > 0)
+			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
 			{
-				m_UI->DisplayMessage("Starting Plugin . . .");
-				//sprintf(m_UI->buff, "original data");
-				//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
-				int res = LoadFSSPlugin(iSelectionBase0 - 1);
-				//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
-				if (res == 0)
+				sprintf(strPluginRealName, "FSS_%s.prx", strSelection);
+				Log(LOG_INFO, "User selected FSS Plugin '%s'.", strPluginRealName);
+				if (iSelectionBase0 > 0)
 				{
-					fOptionActivated = true;
-					m_UI->DisplayMessage("Plugin Started");
-				}
-				else
-				{
-					m_UI->DisplayMessage("Error Starting Plugin . . .");
+					m_UI->DisplayMessage("Starting Plugin . . .");
+					//sprintf(m_UI->buff, "original data");
+					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
+					int res = LoadFSSPlugin(strPluginRealName);
+					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
+					if (res == 0)
+					{
+						fOptionActivated = true;
+						m_UI->DisplayMessage("Plugin Started");
+					}
+					else
+					{
+						m_UI->DisplayMessage("Error Starting Plugin . . .");
+					}
 				}
 			}
 			break;
@@ -182,7 +284,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 	}
 }
 
-int OptionsPluginMenuScreen::LoadFSSPlugin(int iFSSIndex)
+int OptionsPluginMenuScreen::LoadFSSPlugin(char *strPlugin)
 {
 	char strModulePath[MAXPATHLEN+1];
 	char cwd[MAXPATHLEN+1];
@@ -193,7 +295,13 @@ int OptionsPluginMenuScreen::LoadFSSPlugin(int iFSSIndex)
 		m_FSSModuleLoader->Unload();
 	}
 
-	sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), "FSS_FTPD.prx");
+	/** Asked to just unload */
+	if (strcmp(strPlugin, "FSS_Off.prx") == 0)
+	{
+		return 0;
+	}
+
+	sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);
 
 	int id = m_FSSModuleLoader->Load(strModulePath);
 	

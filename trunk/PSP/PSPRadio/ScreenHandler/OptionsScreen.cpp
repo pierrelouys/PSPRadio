@@ -207,6 +207,9 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetInteger("DEBUGGING:LOGLEVEL", pLogging->GetLevel());
 		pConfig->SetInteger("SYSTEM:CPUFREQ", scePowerGetCpuClockFrequency());
 		pConfig->SetInteger("WIFI:PROFILE", m_iNetworkProfile);
+#ifdef DYNAMIC_BUILD
+		pConfig->SetString("PLUGINS:UI", m_ScreenHandler->GetCurrentUI());
+#else /**Static Build */
 		switch(m_ScreenHandler->GetCurrentUI())
 		{
 			case CScreenHandler::UI_TEXT:
@@ -219,6 +222,7 @@ void OptionsScreen::SaveToConfigFile()
 				pConfig->SetString("UI:MODE", "3D");
 				break;
 		}
+#endif
 		/** OPTION_ID_INITIAL_SCREEN */
 		pConfig->SetInteger("SYSTEM:INITIAL_SCREEN", m_ScreenHandler->GetInitialScreen());
 		/** OPTION_ID_INITIAL_SCREEN */

@@ -501,7 +501,7 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 		bool success;
 
 		ModuleLog(LOG_VERYLOW, "HSM:Loading Texture : %d", i);
-		sprintf(filename, "%s/TextUI3D/%s", strCWD, texture_list[i].filename);
+		sprintf(filename, "%s/UI_Text3D/%s", strCWD, texture_list[i].filename);
 		filebuffer = (unsigned char *) memalign(16, (int)(texture_list[i].width * texture_list[i].height * tcache.jsaTCacheTexturePixelSize(texture_list[i].format)));
 		ModuleLog(LOG_VERYLOW, "HSM:memory allocated");
 
@@ -545,7 +545,7 @@ void WindowHandlerHSM::LoadBackground(char *strCWD)
 {
 	char filename[MAXPATHLEN];
 
-	sprintf(filename, "%s/TextUI3D/%s", strCWD, "BackgroundImage.png");
+	sprintf(filename, "%s/UI_Text3D/%s", strCWD, "BackgroundImage.png");
 	m_backimage = (unsigned char *) memalign(16, SCR_WIDTH * SCR_HEIGHT * PIXEL_SIZE);
 
 	if (m_backimage == NULL)

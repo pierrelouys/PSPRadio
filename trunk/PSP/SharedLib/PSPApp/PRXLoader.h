@@ -30,6 +30,7 @@
 		bool IsLoaded()  { return m_IsLoaded; }
 		bool IsStarted() { return m_IsStarted; }
 		int  GetError()  { return m_error; }
+		char *GetFilename() { return m_FileName; }
 	
 	private:
 		SceUID StartModuleWithArgs(char *filename, int modid, int argc, char * const argv[]);

@@ -1,7 +1,7 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET = TextUI
+TARGET = UI_Text
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 #$(PSPRADIO_DIR)/pnglibExports.o
