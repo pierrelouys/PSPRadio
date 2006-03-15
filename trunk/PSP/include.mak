@@ -1,7 +1,7 @@
 #Note: BASE_DIR needs to be defined in the including Makefile to point to this directory.
 
-STATIC_GLOBAL_CFLAGS  = -G0 -mno-explicit-relocs
-DYNAMIC_GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -DDYNAMIC_BUILD
+STATIC_GLOBAL_CFLAGS  = -G0 -mno-explicit-relocs -Wall -Werror
+DYNAMIC_GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -Wall -Werror -DDYNAMIC_BUILD
 
 PSP_EBOOT_ICON = "$(BASE_DIR)/Resources/Icons_Sem/fade-icon0.png"
 PSP_EBOOT_PIC1 = "$(BASE_DIR)/Resources/Icons_Sem/fade-pic1.png"
