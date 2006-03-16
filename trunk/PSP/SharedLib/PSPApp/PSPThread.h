@@ -34,8 +34,8 @@
 					int stackSize = 0xFA0, SceUInt attr = PSP_THREAD_ATTR_USER, SceKernelThreadOptParam *option = NULL);
 		~CPSPThread();
 
-		int Start()
-				{ return m_thid>=0?sceKernelStartThread(m_thid, 0, NULL):-1; };
+		int Start(int argc = 0, char **argv = NULL)
+				{ return m_thid>=0?sceKernelStartThread(m_thid, argc, argv):-1; };
 		int Suspend()
 				{ return m_thid>=0?sceKernelSuspendThread(m_thid):-1; };
 		int Resume()

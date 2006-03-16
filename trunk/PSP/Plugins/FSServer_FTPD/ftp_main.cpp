@@ -23,15 +23,14 @@
 int ftpdLoop(SceSize args, void *argp) 
 {
     u32 err = 0, cbAddrAccept = 0;
-	struct sockaddr_in addrListen;
-	struct sockaddr addrAccept;
+	struct sockaddr_in addrListen, addrAccept;
 	
 	memset(&addrListen, 0, sizeof(struct sockaddr_in));
-	memset(&addrAccept, 0, sizeof(struct sockaddr));
+	memset(&addrAccept, 0, sizeof(struct sockaddr_in));
 	
 	ModuleLog(LOG_INFO, "ftpdLoop : Server loop init...\n");
 
-	SOCKET sockListen = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);///0);
+	SOCKET sockListen = socket(AF_INET, SOCK_STREAM, 0);//IPPROTO_TCP);///0);
 	if (sockListen < 0) 
 	{
 		ModuleLog(LOG_ERROR, "ftpdLoop : socket returned '%d'.\n", sockListen);
@@ -40,8 +39,8 @@ int ftpdLoop(SceSize args, void *argp)
 
 	addrListen.sin_family = AF_INET;
 	addrListen.sin_port = htons(21);
-	addrListen.sin_len = sizeof(struct sockaddr_in);
-	addrListen.sin_addr.s_addr = inet_addr(PSPRadioExport_GetMyIP());
+	//addrListen.sin_len = sizeof(struct sockaddr_in);
+	//addrListen.sin_addr.s_addr = inet_addr(PSPRadioExport_GetMyIP());
 
 	err = bind(sockListen, (sockaddr *)&addrListen, sizeof(addrListen));
 	if (err != 0) 
@@ -64,8 +63,9 @@ int ftpdLoop(SceSize args, void *argp)
 		cbAddrAccept = sizeof(addrAccept);
 		///addrAccept.sin_family = AF_INET;
 		///addrAccept.sin_len = sizeof(struct sockaddr_in);
-		ModuleLog(LOG_INFO, "ftpdLoop : calling accept.\n");
-		SOCKET sockClient = accept(sockListen, &addrAccept, &cbAddrAccept);
+		ModuleLog(LOG_INFO, "ftpdLoop : calling accept.");
+		SOCKET sockClient = accept(sockListen, (struct sockaddr *)&addrAccept, &cbAddrAccept);
+		ModuleLog(LOG_INFO, "ftpdLoop : accept returns %d.", sockClient);
 		if (sockClient < 0) 
 		{
 			goto done;
@@ -88,7 +88,7 @@ int ftpdLoop(SceSize args, void *argp)
 	
 			if(thClient != NULL) 
 			{
-				thClient->Start();
+				thClient->Start(4, (char**)&con);
 			} 
 			else 
 			{
