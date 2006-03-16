@@ -175,7 +175,7 @@ CScreenHandler::~CScreenHandler()
 			memset(&modinfo, 0, sizeof(modinfo));
 			modinfo.size = sizeof(modinfo);
 			sceKernelQueryModuleInfo(id, &modinfo);
-			Log(LOG_INFO, "'%s' Loaded at text_addr=0x%x",
+			Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
 				strUIModule, modinfo.text_addr);
 		
 			int iRet = m_UIModuleLoader->Start();

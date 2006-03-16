@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 		{
 			if (i == 3)
 			{
-				Log(LOG_INFO, "Main(Arg %d)='%s'", i, argv[i]); /** Log text address for debugging */
+				Log(LOG_ALWAYS, "TEXT_ADDR: PSPRadio.prx: Main(Arg %d)='%s'", i, argv[i]); /** Log text address for debugging */
 			}
 			else
 			{
