@@ -92,7 +92,7 @@ int synchsafeToNormal(char tagSize[4]) //Convert size from synchsafe, which mean
 		}
 		if(synchsafe%8) sizeloc++;
 	}
-	return size;
+	return size%256;
 }
 
 void printData() //Print the data parsed from a v1 tag
