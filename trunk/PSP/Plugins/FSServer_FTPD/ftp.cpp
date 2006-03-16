@@ -24,39 +24,47 @@ extern CIniParser *g_ConfDict; /** RC: Configuration file dictionary */
 
 int mftpRestrictedCommand(MftpConnection* con, char* command);
 
-void sendResponse(MftpConnection* con, char* s) {
+void sendResponse(MftpConnection* con, char* s) 
+{
 	strcat(con->comBuffer, s);
-	if (endsWith(con->comBuffer, "\n")) {
+	if (endsWith(con->comBuffer, "\n")) 
+	{
 		send(con->comSocket, con->comBuffer, strlen(con->comBuffer) , 0);
-		strcpy(con->comBuffer, "");
+		con->comBuffer[0] = 0;
 	}
 }
 
-void sendResponseLn(MftpConnection* con, char* s) {
+void sendResponseLn(MftpConnection* con, char* s) 
+{
 	strcat(con->comBuffer, s);
 	strcat(con->comBuffer, "\r\n");
 	send(con->comSocket, con->comBuffer, strlen(con->comBuffer) , 0);
-	strcpy(con->comBuffer, "");
+	con->comBuffer[0] = 0;
 }
 
-void sendData(MftpConnection* con, char* s) {
+void sendData(MftpConnection* con, char* s) 
+{
 	strcat(con->dataBuffer, s);
-	if (endsWith(con->dataBuffer, "\n")) {
+	if (endsWith(con->dataBuffer, "\n")) 
+	{
 		send(con->dataSocket, con->dataBuffer, strlen(con->dataBuffer) , 0);
-		strcpy(con->dataBuffer, "");
+		con->dataBuffer[0] = 0;
 	}
 }
 
-void sendDataLn(MftpConnection* con, char* s) {
+void sendDataLn(MftpConnection* con, char* s) 
+{
 	strcat(con->dataBuffer, s);
 	strcat(con->dataBuffer, "\r\n");
 	send(con->dataSocket, con->dataBuffer, strlen(con->dataBuffer) , 0);
-	strcpy(con->dataBuffer, "");
+	con->dataBuffer[0] = 0;
 }
 
+volatile unsigned short pasvPort=59735;
+int openDataConnectionPASV(MftpConnection* con) 
+{
+	ModuleLog(LOG_LOWLEVEL, "openDataConnectionPASV() begin (pasvport=%d)", pasvPort);
 
-unsigned short pasvPort=59735;
-int openDataConnectionPASV(MftpConnection* con) {
 	con->usePASV=1;
 
 	int err;
@@ -74,15 +82,23 @@ int openDataConnectionPASV(MftpConnection* con) {
 //	addrPort.sin_addr[3] = 0;
 
 	con->pasvSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (con->pasvSocket & 0x80000000) return 0;
+	if (con->pasvSocket >= 0) 
+	{
+		err = bind(con->pasvSocket, (struct sockaddr *)&addrPort, sizeof(addrPort));
+	
+		if (err == 0) 
+		{
+			err = listen(con->pasvSocket, 1);
 
-	err = bind(con->pasvSocket, (struct sockaddr *)&addrPort, sizeof(addrPort));
-	if (err) return 0;
+			if (err == 0)
+			{
+				pasvPort++;
+			}
+		}
+	}
+	
+	ModuleLog(LOG_LOWLEVEL, "openDataConnectionPASV() end (pasvport=%d)", pasvPort);
 
-	err = listen(con->pasvSocket, 1);
-	if (err) return 0;
-
-	pasvPort++;
 	return 0;
 }
 
