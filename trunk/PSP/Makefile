@@ -42,8 +42,8 @@ exports:
 	cd $(PLUGINS_DIR) && psp-build-exports -s FSS_Exports.exp
 	
 plugins:
-	cd $(PLUGINS_DIR)/TextUI && make
-	cd $(PLUGINS_DIR)/TextUI3D && make
+	cd $(PLUGINS_DIR)/UI_Text && make
+	cd $(PLUGINS_DIR)/UI_Text3D && make
 
 extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
@@ -58,8 +58,8 @@ clean_objects:
 	cd $(SHAREDLIB_DIR) && make clean
 	cd $(BOOTSTRAP_DIR) && make clean
 	cd $(PSPRADIO_DIR)  && make clean
-	cd $(PLUGINS_DIR)/TextUI && make clean
-	cd $(PLUGINS_DIR)/TextUI3D && make clean
+	cd $(PLUGINS_DIR)/UI_Text && make clean
+	cd $(PLUGINS_DIR)/UI_Text3D && make clean
 	make clean_extra_plugins
 	
 clean_extra_plugins:

@@ -59,3 +59,21 @@ char *PSPRadioExport_GetMyIP()
 {
 	return gPSPRadio->GetMyIP();
 }
+
+CBlocker FSSBlocker("FSSBlocker");
+bool     IsFSSBlocked = false;
+void	PSPRadioExport_FSSBlockMain()
+{
+	IsFSSBlocked = true;
+	FSSBlocker.Block();
+	IsFSSBlocked = false;
+}
+
+bool	PSPRadioExport_IsFSSMainBlocked()
+{
+	return IsFSSBlocked;
+}
+void	PSPRadioExport_FSSUnBlockMain()
+{
+	FSSBlocker.UnBlock();
+}

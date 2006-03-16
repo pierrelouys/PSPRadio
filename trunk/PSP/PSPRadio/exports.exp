@@ -16,6 +16,10 @@ PSP_BEGIN_EXPORTS
 		PSP_EXPORT_FUNC(PSPRadioExport_IsUSBEnabled)
 		PSP_EXPORT_FUNC(PSPRadioExport_GetMyIP)
 		PSP_EXPORT_FUNC(sceRtcGetCurrentClockLocalTime)
+		PSP_EXPORT_FUNC(PSPRadioExport_FSSBlockMain)
+		PSP_EXPORT_FUNC(PSPRadioExport_IsFSSMainBlocked)
+		PSP_EXPORT_FUNC(PSPRadioExport_FSSUnBlockMain)
+
 	PSP_EXPORT_END
 	
 			

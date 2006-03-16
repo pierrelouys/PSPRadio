@@ -36,7 +36,7 @@ Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/
 
 [Dir Plugins]
 Dirs=TextUI/TextUI3D/GraphicsUI/FSServer_FTPD
-Files=UI_Exports.exp/FSS_Exports.exp
+Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h
 
 [Dir Plugins/FSServer_FTPD]
 Dirs=
@@ -64,7 +64,7 @@ Files=Logging.cpp/Logging.h/Makefile
 
 [Dir SharedLib/PSPApp]
 Dirs=
-Files=bstdfile.cpp/bstdfile.h/httpget.cpp/Makefile/PSPApp.cpp/PSPApp.h/PSPSound.cpp/PSPSound.h/PSPSoundDecoder_MAD.cpp/PSPSoundDecoder_MAD.h/PSPEventQ.cpp/PSPEventQ.h/PSPSema.h/PSPSoundDecoder_OGG.cpp/PSPSoundDecoder_OGG.h/PSPSoundDecoder.cpp/PSPSoundDecoder.h/PSPApp_Network.cpp/PSPStream.cpp/PSPStream.h/PSPKeyHandler.cpp/PSPKeyHandler.h/PSPSoundBuffer.cpp/PSPSoundBuffer.h/ID3Parser.cpp/ID3Parser.h/PSPInit.cpp/PRXLoader.cpp/PRXLoader.h/PSPAppExports.exp
+Files=bstdfile.cpp/bstdfile.h/httpget.cpp/Makefile/PSPApp.cpp/PSPApp.h/PSPSound.cpp/PSPSound.h/PSPSoundDecoder_MAD.cpp/PSPSoundDecoder_MAD.h/PSPEventQ.cpp/PSPEventQ.h/PSPSema.h/PSPSoundDecoder_OGG.cpp/PSPSoundDecoder_OGG.h/PSPSoundDecoder.cpp/PSPSoundDecoder.h/PSPApp_Network.cpp/PSPStream.cpp/PSPStream.h/PSPKeyHandler.cpp/PSPKeyHandler.h/PSPSoundBuffer.cpp/PSPSoundBuffer.h/ID3Parser.cpp/ID3Parser.h/PSPInit.cpp/PRXLoader.cpp/PRXLoader.h/PSPAppExports.exp/PSPThread.cpp/PSPThread.h
 
 [Dir SharedLib/Tools]
 Dirs=

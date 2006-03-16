@@ -52,6 +52,7 @@ int CPRXLoader::Load(char *filename)
 	m_ModId = sceKernelLoadModule(filename, 0, &option);
 	
 	Log(LOG_LOWLEVEL, "Load('%s') Module Id=%d", filename, m_ModId);
+	sleep(1);
 	
 	if (m_ModId > 0)
 	{
@@ -79,6 +80,7 @@ int CPRXLoader::Unload()
 	
 	if (IsLoaded() == true)
 	{
+		Log(LOG_LOWLEVEL, "Stopping Module %d", m_ModId);
 		if (IsStarted() == true)
 		{
 			// Stop
@@ -87,12 +89,17 @@ int CPRXLoader::Unload()
 			m_IsStarted = false;
 		}
 		
+		Log(LOG_LOWLEVEL, "StopModule returned 0x%x", ret);
+		
 		// Unload
-		if(ret >= 0)
+		///if(ret >= 0)
 		{
 			Log(LOG_LOWLEVEL, "Unload(): Unloading Module");
 			ret = sceKernelUnloadModule(m_ModId);
+			Log(LOG_LOWLEVEL, "UnloadModule returned 0x%x", ret);
 		}
+		
+		sleep(1);
 	
 		m_ModId = 0;
 		m_IsLoaded = false;

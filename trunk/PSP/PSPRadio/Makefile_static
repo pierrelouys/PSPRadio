@@ -5,10 +5,10 @@ TARGET = PSPRadio
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = PSPRadio Static
 
-TEXTUI_OBJS   = $(PLUGINS_DIR)/TextUI/TextUI.o
-TEXTUI3D_OBJS = $(PLUGINS_DIR)/TextUI3D/TextUI3D.o $(PLUGINS_DIR)/TextUI3D/TextUI3D_Panel.o \
-				$(PLUGINS_DIR)/TextUI3D/TextUI3D_WindowManager_HSM.o \
-				$(PLUGINS_DIR)/TextUI3D/jsaVRAMManager.o $(PLUGINS_DIR)/TextUI3D/jsaTextureCache.o
+TEXTUI_OBJS   = $(PLUGINS_DIR)/UI_Text/TextUI.o
+TEXTUI3D_OBJS = $(PLUGINS_DIR)/UI_Text3D/TextUI3D.o $(PLUGINS_DIR)/UI_Text3D/TextUI3D_Panel.o \
+				$(PLUGINS_DIR)/UI_Text3D/TextUI3D_WindowManager_HSM.o \
+				$(PLUGINS_DIR)/UI_Text3D/jsaVRAMManager.o $(PLUGINS_DIR)/UI_Text3D/jsaTextureCache.o
 
 IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o \
 				$(TEXTUI_OBJS) \
@@ -27,9 +27,9 @@ INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I./ScreenHandler \
-		 -I$(PLUGINS_DIR)/TextUI \
-		 -I$(PLUGINS_DIR)/GraphicsUI \
-		 -I$(PLUGINS_DIR)/TextUI3D
+		 -I$(PLUGINS_DIR)/UI_Text \
+		 -I$(PLUGINS_DIR)/UI_Graphics \
+		 -I$(PLUGINS_DIR)/UI_Text3D
 
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti

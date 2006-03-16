@@ -218,8 +218,8 @@ CScreenHandler::~CScreenHandler()
 		return m_UI;
 	}
 #else
-	#include "../../Plugins/TextUI/TextUI.h"
-	#include "../../Plugins/TextUI3D/TextUI3D.h"
+	#include "../../Plugins/UI_Text/TextUI.h"
+	#include "../../Plugins/UI_Text3D/TextUI3D.h"
 	IPSPRadio_UI *CScreenHandler::StartUI(UIs UI)
 	{
 		bool wasPolling = pPSPApp->IsPolling();

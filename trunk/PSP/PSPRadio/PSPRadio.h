@@ -24,8 +24,7 @@
 #include "ScreenHandler.h"
 #include "PlayListScreen.h"
 #include "SHOUTcastScreen.h"
-#include "TextUI.h"
-#include "TextUI3D.h"
+#include <IPSPRadio_UI.h>
 #include "Screen.h"
 
 #define PSPRADIO_VERSION	"0.38.07"

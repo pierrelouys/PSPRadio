@@ -12,6 +12,10 @@
 		char *PSPRadioExport_GetProgramVersion();
 		bool  PSPRadioExport_IsUSBEnabled();
 		char *PSPRadioExport_GetMyIP();
+		//Blockers:
+		void PSPRadioExport_FSSBlockMain();
+		bool PSPRadioExport_IsFSSMainBlocked();
+		void PSPRadioExport_FSSUnBlockMain();
 	}
 
 #endif
