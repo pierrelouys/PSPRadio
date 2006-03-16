@@ -1,6 +1,7 @@
 #ifndef _PSPRADIO_EXPORTS_H_
 	#define _PSPRADIO_EXPORTS_H_
 
+	#include <Logging.h>
 	#define ModuleLog(level, format, args...) PSPRadioExport_Log(__FILE__, __LINE__, level, format, ## args)
 	
 	extern "C" 
@@ -12,10 +13,6 @@
 		char *PSPRadioExport_GetProgramVersion();
 		bool  PSPRadioExport_IsUSBEnabled();
 		char *PSPRadioExport_GetMyIP();
-		//Blockers:
-		void PSPRadioExport_FSSBlockMain();
-		bool PSPRadioExport_IsFSSMainBlocked();
-		void PSPRadioExport_FSSUnBlockMain();
 	}
 
 #endif

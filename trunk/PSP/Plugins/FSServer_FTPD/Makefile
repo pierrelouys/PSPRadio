@@ -4,8 +4,9 @@ include $(BASE_DIR)/include.mak
 TARGET = FSS_FTPD
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
+COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
 OBJS = main.o ftp_main.o ftp.o _itoa.o sutils.o  \
-		$(EXPORTED_OBJS)
+		$(COMMON_OBJS) $(EXPORTED_OBJS)
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1

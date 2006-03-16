@@ -4,8 +4,8 @@ include $(BASE_DIR)/include.mak
 TARGET = UI_Text3D
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-
-OBJS =	$(PSPRADIO_DIR)/IPSPRadio_UI.o $(EXPORTED_OBJS) \
+COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
+OBJS =	$(PSPRADIO_DIR)/IPSPRadio_UI.o $(COMMON_OBJS) $(EXPORTED_OBJS) \
 		main.o TextUI3D.o TextUI3D_Panel.o TextUI3D_WindowManager_HSM.o \
 		jsaVRAMManager.o jsaTextureCache.o
 

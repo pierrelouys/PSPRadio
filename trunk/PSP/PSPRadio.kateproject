@@ -35,8 +35,8 @@ Dirs=Graphics
 Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
 
 [Dir Plugins]
-Dirs=TextUI/TextUI3D/GraphicsUI/FSServer_FTPD
-Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h
+Dirs=FSServer_FTPD/UI_Graphics/UI_Text/UI_Text3D
+Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h/Common.cpp/Common.h
 
 [Dir Plugins/FSServer_FTPD]
 Dirs=
@@ -53,6 +53,22 @@ Files=LocalFilesScreen.cfg/LocalFilesScreen.png/main.cpp/Makefile/OptionsScreen.
 [Dir Plugins/TextUI3D]
 Dirs=Graphics
 Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/main.cpp/Makefile/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
+
+[Dir Plugins/UI_Graphics]
+Dirs=SDL-1.2.9/SharedLibLinux
+Files=GraphicsUI.cpp/GraphicsUI.h/GraphicsUIDefines.h/GraphicsUITheme.cpp/GraphicsUITheme.h/main.cpp/Makefile/Makefile.ThemeTool/ThemeTool.cpp/ThemeTool.h/ThemeTool.sln/ThemeTool.txt/ThemeTool.vcproj
+
+[Dir Plugins/UI_Text]
+Dirs=
+Files=LocalFilesScreen.cfg/LocalFilesScreen.png/main.cpp/Makefile/OptionsScreen.cfg/OptionsScreen.png/PlaylistScreen.cfg/PlayListScreen.png/SHOUTcastScreen.cfg/SHOUTcastScreen.png/TextUI.cpp/TextUI.h
+
+[Dir Plugins/UI_Text3D]
+Dirs=Graphics
+Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/main.cpp/Makefile/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
+
+[Dir Plugins/UI_Text3D/Graphics]
+Dirs=
+Files=BackgroundImage.png/Icon_Lists.png/Icon_Playstate.png/Icon_Power.png/Icon_Progress.png/Icon_USB.png/Icon_Volume.png/Icon_WiFi.png/Main_Corner_LL.png/Main_Corner_LR.png/Main_Corner_UL.png/Main_Corner_UR.png/Main_Fill.png/Main_Frame_B.png/Main_Frame_L.png/Main_Frame_R.png/Main_Frame_T.png/Msg_Corner_LL.png/Msg_Corner_LR.png/Msg_Corner_UL.png/Msg_Corner_UR.png/Msg_Fill.png/Msg_Frame_B.png/Msg_Frame_L.png/Msg_Frame_R.png/Msg_Frame_T.png/SmallFont_List.png/SmallFont_Message.png/SmallFont_Scroller.png/SmallFont_Static.png
 
 [Dir SharedLib]
 Dirs=Logging/libiniparser/PSPApp/Tools

@@ -4,9 +4,9 @@ include $(BASE_DIR)/include.mak
 TARGET = UI_Text
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-#$(PSPRADIO_DIR)/pnglibExports.o
+COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
 OBJS = main.o TextUI.o $(PSPRADIO_DIR)/IPSPRadio_UI.o \
-		$(EXPORTED_OBJS)
+		$(COMMON_OBJS) $(EXPORTED_OBJS)
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
