@@ -186,6 +186,9 @@ void getFrames(char * tag, int tsize) //Grab individual frames from v2 tag
 			loc++;
 			size--;
 		}
+		if (size <= 0)
+			break; 			/** This can become negative, lets break here */
+		Log(LOG_VERYLOW, "getFrames: memcpy(dest, tag+%d, %d-1)", loc, size);
 		memcpy(frames[numframes++].data, tag+loc, size-1);
 		loc+=(size-1);
 		//while(tag[loc]=='\0') loc++;
@@ -267,6 +270,11 @@ int GetID3Data(MetaData *MetaData)
 	int x;
 	
 	Log(LOG_INFO, "ID3 Parsing on '%s'", MetaData->strURI);
+/*	Log(LOG_LOWLEVEL, "Test. synchsafeToNormal(0)=%d 1=%d 2=%d 255=%d",
+		synchsafeToNormal(0),
+		synchsafeToNormal(1),
+		synchsafeToNormal(2),
+		synchsafeToNormal(255));*/
 	
 	gMetaData = MetaData;
 	
