@@ -6,7 +6,7 @@ OBJS = BootstrapMain.o $(PSPRADIO_DIR)/PSPRadioExports.o
 
 USE_PSPSDK_LIBC = 1
 
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall -I$(PSPRADIO_DIR) -I$(BASE_DIR)/SharedLib/Logging
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 

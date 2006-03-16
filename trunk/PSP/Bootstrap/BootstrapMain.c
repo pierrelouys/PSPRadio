@@ -15,6 +15,7 @@
 #include <pspsdk.h>
 #include <string.h>
 #include <stdio.h>
+#include <PSPRadio_Exports.h>
 
 #define PSPRADIO_PRX "PSPRadio.prx"
 
@@ -37,21 +38,30 @@ char *g_argv[MAX_ARGS];
 int  g_argc = 0;
 
 /** -- Exception handler */
-/* Example custom exception handler */
 void MyExceptionHandler(PspDebugRegBlock *regs)
 {
-	pspDebugScreenInit();
-	pspDebugScreenSetBackColor(0x000000FF);
-	pspDebugScreenSetTextColor(0xFFFFFFFF);
-	pspDebugScreenClear();
+	static int bFirstTime = 1;
 
-	pspDebugScreenPrintf("PSPRadio -- Exception Caught:\n");
-	pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
-	pspDebugScreenPrintf("Exception Details:\n");
-	pspDebugDumpException(regs);
-	pspDebugScreenPrintf("\nHolding select to capture a shot of this screen for reference\n");
-	pspDebugScreenPrintf("may or may not work at this point.\n");
-	pspDebugScreenPrintf("\nPlease Use the Home Menu to return to the VSH.\n");
+	if (bFirstTime)
+	{
+		pspDebugScreenInit();
+		pspDebugScreenSetBackColor(0x000000FF);
+		pspDebugScreenSetTextColor(0xFFFFFFFF);
+		pspDebugScreenClear();
+
+		pspDebugScreenPrintf("PSPRadio -- Exception Caught:\n");
+		pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
+		pspDebugScreenPrintf("Exception Details:\n");
+		pspDebugDumpException(regs);
+		pspDebugScreenPrintf("\nHolding select to capture a shot of this screen for reference\n");
+		pspDebugScreenPrintf("may or may not work at this point.\n");
+		pspDebugScreenPrintf("\nPlease Use the Home Menu to return to the VSH.\n");
+		pspDebugScreenPrintf("-----------------------------------------------------------------\n");
+
+		bFirstTime = 0;
+	}
+	pspDebugScreenPrintf("******* PSPRadio Exception! epc=0x%x ra=0x%x\n", regs->epc, regs->r[31]);
+/// doesn't work :(	ModuleLog(LOG_ERROR, "******* Exception! epc=0x%x ra=0x%x", regs->epc, regs->r[31]);
 }
 
 SceUID load_module(const char *path, int flags, int type)
@@ -228,7 +238,7 @@ int _start(SceSize args, void *argp)
 	return 0;
 }
 
-int module_stop(void)
+int module_stop(int args, void *argp)
 {
 	return 0;
 }
