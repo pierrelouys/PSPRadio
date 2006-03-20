@@ -20,7 +20,10 @@
 #include <iniparser.h>
 #include "_itoa.h"
 
+//#define ModuleLog(...)
+
 extern CIniParser *g_ConfDict; /** RC: Configuration file dictionary */
+extern MftpConnection *g_con; 
 
 int mftpRestrictedCommand(MftpConnection* con, char* command);
 
@@ -103,17 +106,32 @@ int openDataConnectionPASV(MftpConnection* con)
 }
 
 
-int openDataConnection(MftpConnection* con) {
+int openDataConnection(MftpConnection* con) 
+{
 	int err;
+	int ret = 0;
+	
+	ModuleLog(LOG_LOWLEVEL, "openDataConnection() start");
 
-	if (con->usePASV) {
+	if (con->usePASV) 
+	{
 		struct sockaddr_in addrAccept;
 		u32 cbAddrAccept;
 
 		cbAddrAccept = sizeof(addrAccept);
 		con->dataSocket = accept(con->pasvSocket, (struct sockaddr *)&addrAccept, &cbAddrAccept);
-		if (con->dataSocket & 0x80000000) return 0;
-	} else {
+		
+		if (con->dataSocket > 0)
+		{
+			ret = 1; /** Success */
+		}
+		else
+		{
+			ret = 0; /** Error */
+		}
+	} 
+	else 
+	{
 		struct sockaddr_in addrPort;
 		memset(&addrPort, 0, sizeof(struct sockaddr_in));
 
@@ -123,36 +141,59 @@ int openDataConnection(MftpConnection* con) {
 		addrPort.sin_addr = con->port_addr;
 
 		con->dataSocket = socket(AF_INET, SOCK_STREAM, 0);
-		if (con->dataSocket & 0x80000000) return 0;
+		if (con->dataSocket > 0)
+		{
 
-		err = connect(con->dataSocket, (struct sockaddr *)&addrPort, sizeof(struct sockaddr_in));
-
-		if (err) return 0;
+			err = connect(con->dataSocket, (struct sockaddr *)&addrPort, sizeof(struct sockaddr_in));
+	
+			if (err == 0) 
+			{
+				ret = 1; /** Success */
+			}
+			else
+			{
+				ret  = 0; /** Error */
+			}
+			
+		}
+		else
+		{
+			ret = 0; /** Error */
+		}
 	}
 
-	return 1;
+	ModuleLog(LOG_LOWLEVEL, "openDataConnection() end (ret=%d)", ret);
+	return ret;
 }
 
-int closeDataConnection(MftpConnection* con) {
+int closeDataConnection(MftpConnection* con) 
+{
 	int err=0;
 
 	err |= close(con->dataSocket);
-	if (con->usePASV) {
+	if (con->usePASV) 
+	{
 		err |= close(con->pasvSocket);
 	}
 
-	if (err) return 0; else return 1;
+	if (err == 0) 
+		return 1; /** Success */
+	else 
+		return 0; /** Error */
 }
 
 
-int mftpServerHello(MftpConnection* con) {
+int mftpServerHello(MftpConnection* con) 
+{
 	sendResponseLn(con, "220 FTP Server Ready");
 
 	return 0;
 }
 
-int mftpCommandPWD(MftpConnection* con, char* command) {
-	if (mftpRestrictedCommand(con, command)) {
+int mftpCommandPWD(MftpConnection* con, char* command) 
+{
+	if (mftpRestrictedCommand(con, command)) 
+	{
 		sendResponse(con, "257 \"");
 		sendResponse(con, con->curDir);
 		sendResponseLn(con, "\" is current directory.");
@@ -161,8 +202,10 @@ int mftpCommandPWD(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandCWD(MftpConnection* con, char* command) {
-	if (mftpRestrictedCommand(con, command)) {
+int mftpCommandCWD(MftpConnection* con, char* command) 
+{
+	if (mftpRestrictedCommand(con, command)) 
+	{
 		char* newDir=skipWS(&command[3]);
 		trimEndingWS(newDir);
 
@@ -173,12 +216,14 @@ int mftpCommandCWD(MftpConnection* con, char* command) {
 
 
 		char* parser=newDir;
-		if ((*newDir)=='/') {
+		if ((*newDir)=='/') 
+		{
 			strcpy(con->curDir,"/");
 			parser++;
 		}
 
-		do {
+		do 
+		{
 			if ((*parser)==0 || (*parser)=='/') {
 				*pParsedDir=0;
 				if (strcmp(parsedDir,".")==0) {
@@ -216,11 +261,17 @@ int mftpCommandCWD(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandLIST(MftpConnection* con,char* command) {
-	if (mftpRestrictedCommand(con, command)) {
-		if (openDataConnection(con)==0) {
+int mftpCommandLIST(MftpConnection* con,char* command) 
+{
+	ModuleLog(LOG_LOWLEVEL, "mftpCommandList begin");
+	if (mftpRestrictedCommand(con, command)) 
+	{
+		if (openDataConnection(con)==0) 
+		{
 			sendResponseLn(con, "425 impossible to open data connection.");
-		} else {
+		} 
+		else 
+		{
 			sendResponseLn(con, "150 Opening ASCII mode data connection for file list");
 
 			char path[MAX_PATH_LENGTH+1];
@@ -231,8 +282,10 @@ int mftpCommandLIST(MftpConnection* con,char* command) {
 			SceIoDirent curFile;
 
 			fd = sceIoDopen(path);
-			if (fd>0) {
-				do {
+			if (fd>0) 
+			{
+				do 
+				{
 					memset(&curFile, 0, sizeof(SceIoDirent));
 
 					ret = sceIoDread(fd, &curFile);
@@ -240,13 +293,16 @@ int mftpCommandLIST(MftpConnection* con,char* command) {
 					char sInt[16]; strcpy(sInt,"");
 
 					if (ret>0) {
-						if (FIO_SO_ISDIR(curFile.d_stat.st_attr)) {
+						if (FIO_SO_ISDIR(curFile.d_stat.st_attr)) 
+						{
 							sendData(con, "drwxrwxrwx   2 root     root     ");
 							_itoa((int) curFile.d_stat.st_size, sInt, 10);
 							sendData(con, sInt);
 							sendData(con, " Jan 01  1970 ");
 							sendDataLn(con, curFile.d_name);
-						} else if (FIO_SO_ISLNK(curFile.d_stat.st_attr)) {
+						} 
+						else if (FIO_SO_ISLNK(curFile.d_stat.st_attr)) 
+						{
 							sendData(con, "lrwxrwxrwx   1 root     root     ");
 							_itoa((int) curFile.d_stat.st_size, sInt, 10);
 							sendData(con, sInt);
@@ -254,7 +310,9 @@ int mftpCommandLIST(MftpConnection* con,char* command) {
 							sendData(con, curFile.d_name);
 							sendData(con, " -> ");
 							sendDataLn(con, "???");
-						} else {
+						} 
+						else 
+						{
 							sendData(con, "-rwxrwxrwx   1 root     root     ");
 							_itoa((int) curFile.d_stat.st_size, sInt, 10);
 							sendData(con, sInt);
@@ -272,14 +330,20 @@ int mftpCommandLIST(MftpConnection* con,char* command) {
 		}
 	}
 
+	ModuleLog(LOG_LOWLEVEL, "mftpCommandList end");
 	return 0;
 }
 
-int mftpCommandNLST(MftpConnection* con, char* command) {
-	if (mftpRestrictedCommand(con, command)) {
-		if (openDataConnection(con)==0) {
+int mftpCommandNLST(MftpConnection* con, char* command) 
+{
+	if (mftpRestrictedCommand(con, command)) 
+	{
+		if (openDataConnection(con)==0) 
+		{
 			sendResponseLn(con, "425 impossible to open data connection.");
-		} else {
+		} 
+		else 
+		{
 			sendResponseLn(con, "150 Opening ASCII mode data connection for file list");
 
 			char path[MAX_PATH_LENGTH+1];
@@ -310,8 +374,10 @@ int mftpCommandNLST(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandRETR(MftpConnection* con, char* command) {
-	if (mftpRestrictedCommand(con, command)) {
+int mftpCommandRETR(MftpConnection* con, char* command) 
+{
+	if (mftpRestrictedCommand(con, command)) 
+	{
 		if (openDataConnection(con)==0) {
 			sendResponseLn(con, "425 impossible to open data connection.");
 		} else {
@@ -576,7 +642,8 @@ int mftpCommandMKD(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandHELP(MftpConnection* con, char* command) {
+int mftpCommandHELP(MftpConnection* con, char* command) 
+{
 	sendResponseLn(con, "214-The following commands are recognized (* =>'s unimplemented).");
 	sendResponseLn(con, "214-USER    PASS    ACCT*   CWD     XCWD*    CDUP    XCUP*    SMNT*");
 	sendResponseLn(con, "214-QUIT    REIN*   PORT    PASV    TYPE    STRU*    MODE*    RETR");
@@ -589,7 +656,8 @@ int mftpCommandHELP(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandSITE(MftpConnection* con, char * command) {
+int mftpCommandSITE(MftpConnection* con, char * command) 
+{
 	char* param=skipWS(&command[5]);
 	trimEndingWS(param);
 	toUpperCase(param);
@@ -679,17 +747,24 @@ int mftpCommandPORT(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandUSER(MftpConnection* con, char* command) {
-	if (con->userLoggedIn) {
+int mftpCommandUSER(MftpConnection* con, char* command) 
+{
+	if (con->userLoggedIn) 
+	{
 		sendResponseLn(con, "503 You are already logged in!");
-	} else {
+	} 
+	else 
+	{
 		con->user[0]=0;
 		con->pass[0]=0;
 		char* pUser=skipWS(&command[5]);
 		trimEndingWS(pUser);
-		if (strlen(pUser)==0) {
+		if (strlen(pUser)==0) 
+		{
 			sendResponseLn(con, "500 'USER': command requires a parameter.");
-		} else {
+		} 
+		else 
+		{
 			strncpy(con->user, pUser, MAX_USER_LENGTH);
 			sendResponse(con, "331 Password required for ");
 			sendResponse(con, con->user);
@@ -701,26 +776,39 @@ int mftpCommandUSER(MftpConnection* con, char* command) {
 	return 0;
 }
 
-int mftpCommandPASS(MftpConnection* con, char* command) {
-	if (con->userLoggedIn) {
+int mftpCommandPASS(MftpConnection* con, char* command) 
+{
+	if (con->userLoggedIn) 
+	{
 		sendResponseLn(con, "503 You are already logged in!");
-	} else {
-		if (strlen(con->user)==0) {
+	} 
+	else 
+	{
+		if (strlen(con->user)==0) 
+		{
 			sendResponseLn(con, "503 Login with USER first.");
-		} else {
+		} 
+		else 
+		{
 			con->pass[0]=0;
 			char* pPass=skipWS(&command[5]);
 			trimEndingWS(pPass);
-			if (strlen(pPass)==0) {
+			if (strlen(pPass)==0) 
+			{
 				sendResponseLn(con, "500 'PASS': command requires a parameter.");
-			} else {
+			} 
+			else 
+			{
 				strncpy(con->pass, pPass, MAX_PASS_LENGTH);
 
 				if (strcmp(con->user, g_ConfDict->GetStr("USER:USER"))==0 
-					&& strcmp(con->pass, g_ConfDict->GetStr("USER:PASS"))==0) {
+					&& strcmp(con->pass, g_ConfDict->GetStr("USER:PASS"))==0) 
+				{
 					sendResponseLn(con, "230 You're logged in.");
 					con->userLoggedIn=1;
-				} else {
+				} 
+				else 
+				{
 					con->user[0]=0; con->pass[0]=0;
 					con->userLoggedIn=0;
 					sendResponseLn(con, "530 You're not allowed to log in.");
@@ -796,12 +884,16 @@ int mftpCommandQUIT(MftpConnection* con, char* command) {
 	return -1;
 }
 
-int mftpRestrictedCommand(MftpConnection* con, char* command) {
-	if (!con->userLoggedIn) {
+int mftpRestrictedCommand(MftpConnection* con, char* command) 
+{
+	if (!con->userLoggedIn) 
+	{
 		sendResponseLn(con, "530 Please login with USER and PASS.");
 
 		return 0;
-	} else {
+	} 
+	else 
+	{
 		return 1;
 	}
 }
@@ -873,9 +965,12 @@ int mftpDispatch(MftpConnection* con, char* command) {
 }
 
 //typedef int (*SceKernelThreadEntry)(SceSize args, void *argp);
-int mftpClientHandler(SceSize args, void *argp) {
+int mftpClientHandler(SceSize args, void *argp) 
+{
 	MftpConnection *con = *(MftpConnection **)argp;
 
+	ModuleLog(LOG_INFO, "mftpClientHandler start con=%p", con);
+	
 	con->dataSocket=0;
 	con->pasvSocket=0;
 	memset(con->comBuffer, 0, 1024);

@@ -61,7 +61,7 @@ int ModuleStartFSS()
 				g_ConfDict->GetStr("USER:PASS"),
 				PSPRadioExport_GetMyIP());
 	
-		CPSPThread *thServerLoop = new CPSPThread("FSS_FTPD_SERVERLOOP_TH", ftpdLoop, 80);
+		CPSPThread *thServerLoop = new CPSPThread("FSS_FTPD_SERVERLOOP_TH", ftpdLoop, 20);
 	
 		if(thServerLoop != NULL) 
 		{

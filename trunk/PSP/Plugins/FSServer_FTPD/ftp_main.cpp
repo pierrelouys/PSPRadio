@@ -19,6 +19,7 @@
 #include <iniparser.h>
 
 #define SOCKET int
+volatile MftpConnection *g_con = NULL; 
 
 int ftpdLoop(SceSize args, void *argp) 
 {
@@ -84,16 +85,21 @@ int ftpdLoop(SceSize args, void *argp)
 		{
 			con->comSocket=sockClient;
 	
-			CPSPThread *thClient = new CPSPThread("FSS_FTPD_CLIENT_TH", mftpClientHandler, 80);
+			mftpClientHandler(4, &con);
+			#if 0
+			CPSPThread *thClient = new CPSPThread("FSS_FTPD_CLIENT_TH", mftpClientHandler, 0x20);//80);
 	
 			if(thClient != NULL) 
 			{
-				thClient->Start(4, (char**)&con);
+				//ModuleLog(LOG_INFO, ")
+				g_con = con;
+				thClient->Start();
 			} 
 			else 
 			{
 				ModuleLog(LOG_ERROR, "ftpdLoop : Impossible to create client handling thread. err=0x%x", err);
 			}
+			#endif
 		}
 		else
 		{

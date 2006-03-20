@@ -1,7 +1,7 @@
 What's New for PSPRadio 
 ========================
 
-0.38.07 (r) (2006-03-20)
+0.38.07 (r927) (2006-03-20)
 NEW FEATURES
 (raf) Dynamic/Core: Now UIs are selected from a new plugins menu. The menu is auto populated with available plugins. Currently supported: UIs and FSS (File system Servers.)
 (raf) Dynamic/FSS: New Plugin: FTPD; not working quite right yet.
