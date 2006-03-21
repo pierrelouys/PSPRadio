@@ -326,20 +326,19 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 		{
 			if (OptionIterator == CurrentOptionIterator)
 			{
-				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_NAME_TEXT");//0xFFFFFF;
+				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_NAME_TEXT");
 			}
 			else
 			{
-				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_SELECTED_NAME_TEXT");//0x888888;
+				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_SELECTED_NAME_TEXT");
 			}
 			
 			Option = (*OptionIterator);
 			
-			//ClearRows(y);
 			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
 						Option.iActiveState);
 			
-			y+=m_Config->GetInteger("SCREEN_SETTINGS:Y_INCREMENT",16); //was 2*
+			y+=m_Config->GetInteger("SCREEN_SETTINGS:Y_INCREMENT",16);
 		}
 	}
 }
@@ -347,42 +346,62 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
 						  int iActiveState)
 {
-	int iTextPos = PIXEL_TO_COL(m_Config->GetInteger("SCREEN_SETTINGS:FIRST_ENTRY_X",40));
+	int x1 = 0, x2 = 0;
+	GetConfigPair("SCREEN_SETTINGS:X_RANGE", &x1, &x2);
+	int iTextPos = PIXEL_TO_COL(x1);
 	int color = 0xFFFFFF;
+	int iNameLen = strlen(strName);
+	int iOptionLen = 0;
+	int iArrowColor = 0xFFFFFF;
 	
+	uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
+	iTextPos += iNameLen;
 	if (iNumberOfStates > 0)
 	{
-		uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s: ", strName);
-		iTextPos += strlen(strName)+2;
-		for (int iStates = 0; iStates < iNumberOfStates ; iStates++)
+		uiPrintf(COL_TO_PIXEL(iTextPos), y, c, ": ");
+		iTextPos += 2;
+		int iInitState = 1;
+		if (iSelectedState > 2)
 		{
-			if (iStates+1 == iActiveState)
+			iInitState = iSelectedState - 1;
+			uiPrintf(COL_TO_PIXEL(iTextPos),y,iArrowColor, "< ");
+			iTextPos += 2;
+		}
+
+		for (int iStates = iInitState; iStates < iNumberOfStates+1 ; iStates++)
+		{
+			if (iStates == iActiveState)
 			{
-				color = GetConfigColor("SCREEN_SETTINGS:COLOR_ACTIVE_STATE");//0x0000FF;
+				color = GetConfigColor("SCREEN_SETTINGS:COLOR_ACTIVE_STATE");
 			}
-			else if (iStates+1 == iSelectedState) /** 1-based */
+			else if (iStates == iSelectedState) /** 1-based */
 			{
-				color = GetConfigColor("SCREEN_SETTINGS:COLOR_SELECTED_STATE");//0xFFFFFF;
+				color = GetConfigColor("SCREEN_SETTINGS:COLOR_SELECTED_STATE");
 			}
 			else
 			{
-				color = GetConfigColor("SCREEN_SETTINGS:COLOR_NOT_SELECTED_STATE");//0x888888;
+				color = GetConfigColor("SCREEN_SETTINGS:COLOR_NOT_SELECTED_STATE");
 			}
 			
-			if ((iStates+1 == iActiveState) && (iStates+1 == iSelectedState))
+			if ((iStates == iActiveState) && (iStates == iSelectedState))
 			{
-				color =  GetConfigColor("SCREEN_SETTINGS:COLOR_ACTIVE_AND_SELECTED_STATE");//0x9090E3;
+				color =  GetConfigColor("SCREEN_SETTINGS:COLOR_ACTIVE_AND_SELECTED_STATE");
 			}
-			
-			uiPrintf(COL_TO_PIXEL(iTextPos),y,color, "%s ", strStates[iStates]);
-			iTextPos += strlen(strStates[iStates])+1;
+				
+			iOptionLen = strlen(strStates[iStates-1]);
+			if (PIXEL_TO_COL(x2) - iTextPos > iOptionLen)
+			{
+				uiPrintf(COL_TO_PIXEL(iTextPos),y,color, "%s ", strStates[iStates-1]);
+				iTextPos += iOptionLen+1;
+			}
+			else
+			{
+				uiPrintf(COL_TO_PIXEL(iTextPos++),y,iArrowColor, ">");
+				break;
+			}
 		}
 	}	
-	else
-	{
-		uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
-	}
-	
+	m_Screen->ClearCharsAtYFromX1ToX2(y, COL_TO_PIXEL(iTextPos), x2);
 }
 
 void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)

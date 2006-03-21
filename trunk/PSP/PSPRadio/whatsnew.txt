@@ -3,6 +3,7 @@ What's New for PSPRadio
 0.38.08 (r) (2006-03-xx)
 NEW FEATURES
 (raf) Dyn/UI Plugins: Implemented albadross idea to use the plugin name to load configuration files. This allows to select different skins via the plugin menu. (Implemented for Text and Text3D plugins). (r930)
+(raf) TextUI: OptionsScreen and Plugins Menu can now display more options than what fits on the line. This was implemented using a new config element in the OptionsScreen.cfg (X_RANGE) so skins will need to be revised. (r934)
 BUG FIXES
 
 0.38.07 (r927) (2006-03-20)
