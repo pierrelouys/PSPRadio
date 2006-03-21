@@ -30,7 +30,7 @@
 #include <pspwlan.h>
 #include <psppower.h>
 #include "PRXLoader.h"
-#include "IPSPRadio_UI.h"
+#include <UI_Interface.h>
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "OptionsPluginMenuScreen.h"

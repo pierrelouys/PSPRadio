@@ -30,7 +30,7 @@
 #include <pspwlan.h> 
 #include <psphprm.h>
 #include "Main.h"
-#include "IPSPRadio_UI.h"
+#include <UI_Interface.h>
 #include "LocalFilesScreen.h"
 
 #define DEFAULT_MUSIC_DIRECTORY "ms0:/PSP/MUSIC"

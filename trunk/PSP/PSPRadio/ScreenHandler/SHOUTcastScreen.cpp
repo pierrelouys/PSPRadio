@@ -29,7 +29,7 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
-#include "IPSPRadio_UI.h"
+#include <UI_Interface.h>
 #include "SHOUTcastScreen.h"
 
 #define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"

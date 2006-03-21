@@ -1,5 +1,5 @@
 #include <PSPApp.h>
-#include "IPSPRadio_UI.h"
+#include "UI_Interface.h"
 
 IPSPRadio_UI::~IPSPRadio_UI()
 {

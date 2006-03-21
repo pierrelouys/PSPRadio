@@ -29,7 +29,7 @@
 #include <Logging.h>
 #include <pspwlan.h>
 #include <psppower.h>
-#include "IPSPRadio_UI.h"
+#include <UI_Interface.h>
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "OptionsScreen.h"

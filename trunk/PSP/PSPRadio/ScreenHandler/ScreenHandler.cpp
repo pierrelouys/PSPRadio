@@ -37,7 +37,7 @@
 #include "OptionsPluginMenuScreen.h"
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
-#include "IPSPRadio_UI.h"
+#include "UI_Interface.h"
 #include "PRXLoader.h"
 
 #define ReportError pPSPApp->ReportError

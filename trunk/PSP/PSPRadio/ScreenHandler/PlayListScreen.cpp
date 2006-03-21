@@ -29,7 +29,7 @@
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
-#include "IPSPRadio_UI.h"
+#include <UI_Interface.h>
 #include "PlayListScreen.h"
 
 PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)

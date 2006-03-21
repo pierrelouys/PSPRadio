@@ -8,7 +8,7 @@ Files=LogTool.cpp/Makefile
 
 [Dir PSPRadio]
 Dirs=ScreenHandler/Documents
-Files=IPSPRadio_UI.h/Makefile/PSPRadio.cfg/PSPRadio.cpp/whatsnew.txt/readme.txt/IPSPRadio_UI.cpp/MetaDataContainer.cpp/MetaDataContainer.h/PSPRadio.h/Main.cpp/Main.h/exports.exp/PSPRadio_Exports.cpp/PSPRadio_Exports.h/Makefile_static
+Files=Makefile/PSPRadio.cfg/PSPRadio.cpp/whatsnew.txt/readme.txt/MetaDataContainer.cpp/MetaDataContainer.h/PSPRadio.h/Main.cpp/Main.h/exports.exp/PSPRadio_Exports.cpp/PSPRadio_Exports.h/Makefile_static
 
 [Dir PSPRadio/GraphicsUI]
 Dirs=
@@ -36,7 +36,7 @@ Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/
 
 [Dir Plugins]
 Dirs=FSServer_FTPD/UI_Graphics/UI_Text/UI_Text3D
-Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h/Common.cpp/Common.h
+Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h/Common.cpp/Common.h/UI_Interface.cpp/UI_Interface.h
 
 [Dir Plugins/FSServer_FTPD]
 Dirs=

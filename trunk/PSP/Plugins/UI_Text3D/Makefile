@@ -5,7 +5,7 @@ TARGET = UI_Text3D
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS =	$(PSPRADIO_DIR)/IPSPRadio_UI.o $(COMMON_OBJS) $(EXPORTED_OBJS) \
+OBJS =	$(PLUGINS_DIR)/UI_Interface.o $(COMMON_OBJS) $(EXPORTED_OBJS) \
 		main.o TextUI3D.o TextUI3D_Panel.o TextUI3D_WindowManager_HSM.o \
 		jsaVRAMManager.o jsaTextureCache.o
 
@@ -13,7 +13,7 @@ OBJS =	$(PSPRADIO_DIR)/IPSPRadio_UI.o $(COMMON_OBJS) $(EXPORTED_OBJS) \
 BUILD_PRX=1
 PRX_EXPORTS=$(PLUGINS_DIR)/UI_Exports.exp
 
-INCLUDES = -I./ -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I$(PSPRADIO_DIR)/ScreenHandler 

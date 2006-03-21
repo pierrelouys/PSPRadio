@@ -7,13 +7,13 @@ TARGET = PSPRadio
 BUILD_PRX=1
 PRX_EXPORTS=exports.exp
 
-IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o $(PLUGINS_DIR)/PSPRadio_FSS.o
+IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o $(PLUGINS_DIR)/PSPRadio_FSS.o $(PLUGINS_DIR)/UI_Interface.o
 
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/SHOUTcastScreen.o  \
 		./ScreenHandler/OptionsScreen.o ./ScreenHandler/OptionsPluginMenuScreen.o \
 		./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
-		./IPSPRadio_UI.o PSPRadio_Exports.o \
+		PSPRadio_Exports.o \
 		$(IMPORTED_OBJS)
 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES)

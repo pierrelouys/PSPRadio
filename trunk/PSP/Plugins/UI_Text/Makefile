@@ -5,15 +5,15 @@ TARGET = UI_Text
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS = main.o TextUI.o $(PSPRADIO_DIR)/IPSPRadio_UI.o \
-		$(COMMON_OBJS) $(EXPORTED_OBJS)
+OBJS = main.o TextUI.o $(PLUGINS_DIR)/UI_Interface.o \
+		 $(EXPORTED_OBJS) $(COMMON_OBJS)
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
 # Define the name of our custom exports (minus the .exp extension)
 PRX_EXPORTS=$(PLUGINS_DIR)/UI_Exports.exp
 
-INCLUDES = -I./ -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I$(PSPRADIO_DIR)/ScreenHandler 

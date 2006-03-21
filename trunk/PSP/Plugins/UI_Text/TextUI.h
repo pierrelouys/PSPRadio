@@ -1,7 +1,7 @@
 #ifndef _PSPRADIOTEXTUI_
 #define _PSPRADIOTEXTUI_
 
-#include "IPSPRadio_UI.h"
+#include <UI_Interface.h>
 #include "PSPRadio_Exports.h"
 #include "Screen.h"
 
