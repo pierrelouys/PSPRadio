@@ -107,7 +107,7 @@ public:
 							 m_total_m = total_m;
 							 m_total_s = total_s;};
 
-	void Initialize(char *cwd);
+	void Initialize(char *cwd, char *name);
 
 public:
 	enum hsm_events
@@ -266,8 +266,8 @@ private:
 	void *options_handler();
 
 	void InitTextures();
-	void LoadTextures(char *strCWD);
-	void LoadBackground(char *strCWD);
+	void LoadTextures(char *strCWD, char *strName);
+	void LoadBackground(char *strCWD, char *strName);
 	void UpdateWindows();
 	void UpdateValue(int *current, int *target);
 	void UpdateValue(float *current, float *target);

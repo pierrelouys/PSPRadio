@@ -49,6 +49,7 @@ CTextUI::CTextUI()
 	TextUILog(LOG_VERYLOW, "CtextUI: Constructor start");
 	
 	m_Config = NULL;
+	m_strConfigDir = NULL;
 	m_lockprint = NULL;
 	m_lockclear = NULL;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
@@ -87,16 +88,26 @@ CTextUI::~CTextUI()
 	{
 		free(m_strCWD), m_strCWD = NULL;
 	}
-	
+	if (m_strConfigDir)	
+	{
+		free(m_strConfigDir), m_strConfigDir = NULL;
+	}
+
 	delete(m_Screen), m_Screen = NULL;
 	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
 
-int CTextUI::Initialize(char *strCWD)
+int CTextUI::Initialize(char *strCWD, char *strName)
 {
 	TextUILog(LOG_VERYLOW, "CTextUI::Initialize Start");
 	m_strCWD = strdup(strCWD);
 	//m_Screen->Init();
+	m_strConfigDir = strdup(strName);
+	/* strName is like 'UI_Text.prx', so we remove the extension */
+	if (strrchr(m_strConfigDir, '.'))
+	{
+		*strrchr(m_strConfigDir, '.') = 0;
+	}
 	
 	TextUILog(LOG_VERYLOW, "CTextUI::Initialize End");
 	
@@ -134,7 +145,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 			delete(m_Config);
 		}
 		strCfgFile = (char *)malloc(strlen(m_strCWD) + strlen(Screen->GetConfigFilename()) + 64);
-		sprintf(strCfgFile, "%s/UI_Text/%s", m_strCWD, Screen->GetConfigFilename());
+		sprintf(strCfgFile, "%s/%s/%s", m_strCWD, m_strConfigDir, Screen->GetConfigFilename());
 	
 		TextUILog(LOG_LOWLEVEL, "LoadConfigSettings(): Using '%s' config file", strCfgFile);
 		

@@ -200,7 +200,7 @@ WindowHandlerHSM::~WindowHandlerHSM()
 	ModuleLog(LOG_VERYLOW, "HSM:Destroyed");
 	}
 
-void WindowHandlerHSM::Initialize(char *cwd)
+void WindowHandlerHSM::Initialize(char *cwd, char *name)
 	{
 	CTextUI3D_Panel::FrameTextures	main_textures = {16, 16, {	TEX_MAIN_CORNER_UL,	TEX_MAIN_FRAME_T,	TEX_MAIN_CORNER_UR,
 																TEX_MAIN_FRAME_L,	TEX_MAIN_FILL,		TEX_MAIN_FRAME_R,
@@ -213,11 +213,11 @@ void WindowHandlerHSM::Initialize(char *cwd)
 
 	GUInit();
 
-	LoadBackground(cwd);
+	LoadBackground(cwd, name);
 	ModuleLog(LOG_VERYLOW, "HSM:Background loaded");
 	InitTextures();
 	ModuleLog(LOG_VERYLOW, "HSM:Initialized textures");
-	LoadTextures(cwd);
+	LoadTextures(cwd, name);
 	ModuleLog(LOG_VERYLOW, "HSM:Textures loaded");
 
 	/* Set initial positions and textures for panels */
@@ -487,7 +487,7 @@ void WindowHandlerHSM::InitTextures()
 }
 
 /* Utility methods */
-void WindowHandlerHSM::LoadTextures(char *strCWD)
+void WindowHandlerHSM::LoadTextures(char *strCWD, char *strName)
 {
 	char								filename[MAXPATHLEN];
 	unsigned char 						*filebuffer;
@@ -501,7 +501,7 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 		bool success;
 
 		ModuleLog(LOG_VERYLOW, "HSM:Loading Texture : %d", i);
-		sprintf(filename, "%s/UI_Text3D/%s", strCWD, texture_list[i].filename);
+		sprintf(filename, "%s/%s/%s", strCWD, strName, texture_list[i].filename);
 		filebuffer = (unsigned char *) memalign(16, (int)(texture_list[i].width * texture_list[i].height * tcache.jsaTCacheTexturePixelSize(texture_list[i].format)));
 		ModuleLog(LOG_VERYLOW, "HSM:memory allocated");
 
@@ -541,11 +541,11 @@ void WindowHandlerHSM::LoadTextures(char *strCWD)
 	}
 }
 
-void WindowHandlerHSM::LoadBackground(char *strCWD)
+void WindowHandlerHSM::LoadBackground(char *strCWD, char *strName)
 {
 	char filename[MAXPATHLEN];
 
-	sprintf(filename, "%s/UI_Text3D/%s", strCWD, "BackgroundImage.png");
+	sprintf(filename, "%s/%s/%s", strCWD, strName, "BackgroundImage.png");
 	m_backimage = (unsigned char *) memalign(16, SCR_WIDTH * SCR_HEIGHT * PIXEL_SIZE);
 
 	if (m_backimage == NULL)

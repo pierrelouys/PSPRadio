@@ -49,7 +49,7 @@ public:
 	~CTextUI();
 	
 public:
-	int Initialize(char *strCWD);
+	int Initialize(char *strCWD, char *strName);
 	void Terminate();
 
 	int SetTitle(char *strTitle);
@@ -96,6 +96,7 @@ private:
 	int 	m_LastBatteryPercentage;
 	pspTime m_LastLocalTime;
 	char *m_strCWD;
+	char *m_strConfigDir;
 	
 	//helpers
 	enum uicolors

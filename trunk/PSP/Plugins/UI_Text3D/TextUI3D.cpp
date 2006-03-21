@@ -62,6 +62,7 @@ CTextUI3D::CTextUI3D()
 	m_option_list = m_option_list_tail = NULL;
 	m_list_list = m_list_list_tail = NULL;
 	m_entry_list = m_entry_list_tail = NULL;
+	m_strConfigDir = NULL;
 }
 
 CTextUI3D::~CTextUI3D()
@@ -71,16 +72,29 @@ CTextUI3D::~CTextUI3D()
 		delete(m_Settings);
 		m_Settings = NULL;
 	}
+	if (m_strConfigDir)
+	{
+		free(m_strConfigDir);
+		m_strConfigDir = NULL;
+	}
+
 	ModuleLog(LOG_VERYLOW, "CTextUI3D: destroyed.");
 }
 
-int CTextUI3D::Initialize(char *strCWD)
+int CTextUI3D::Initialize(char *strCWD, char *strName)
 {
-char *strCfgFile = NULL;
+	char *strCfgFile = NULL;	
+
+	m_strConfigDir = strdup(strName);
+	/* strName is like 'UI_Text.prx', so we remove the extension */
+	if (strrchr(m_strConfigDir, '.'))
+	{
+		*strrchr(m_strConfigDir, '.') = 0;
+	}
 
 	/* Load settings from config file */
-	strCfgFile = (char *)malloc(strlen(strCWD) + strlen("UI_Text3D/TextUI3D.cfg") + 10);
-	sprintf(strCfgFile, "%s/%s", strCWD, "UI_Text3D/TextUI3D.cfg");
+	strCfgFile = (char *)malloc(strlen(strCWD) + strlen(m_strConfigDir) + strlen("/TextUI3D.cfg") + 10);
+	sprintf(strCfgFile, "%s/%s/%s", strCWD, m_strConfigDir, "TextUI3D.cfg");
 	m_Settings = new CIniParser(strCfgFile);
 	free (strCfgFile), strCfgFile = NULL;
 	memset(&LocalSettings, 0, sizeof(LocalSettings));
@@ -91,7 +105,7 @@ char *strCfgFile = NULL;
 	jsaVRAMManager::jsaVRAMManagerInit((unsigned long)0x154000);
 
 	/* Initialize WindowManager */
-	m_wmanager.Initialize(strCWD);
+	m_wmanager.Initialize(strCWD, m_strConfigDir);
 
 
 	sceKernelDcacheWritebackAll();

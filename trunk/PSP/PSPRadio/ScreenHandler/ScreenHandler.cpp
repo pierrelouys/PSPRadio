@@ -200,7 +200,7 @@ CScreenHandler::~CScreenHandler()
 		m_CurrentUI = strdup(strUIModule);
 		
 		Log(LOG_LOWLEVEL, "Calling m_UI->Initialize");
-		m_UI->Initialize(GetCWD());
+		m_UI->Initialize(GetCWD(), strUIModule);
 		
 		Log(LOG_LOWLEVEL, "Calling currentscreen activate in (m_CurrentScreen=%p)", m_CurrentScreen);
 		

@@ -14,7 +14,7 @@
 	public:
 		virtual ~IPSPRadio_UI();
 
-		virtual int Initialize(char *strCWD){return 0;};
+		virtual int Initialize(char *strCWD, char *strName){return 0;};
 		virtual void PrepareShutdown(){};
 		virtual void Terminate(){};
 

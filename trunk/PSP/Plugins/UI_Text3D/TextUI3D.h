@@ -107,7 +107,7 @@ public:
 	~CTextUI3D();
 
 public:
-	int Initialize(char *strCWD);
+	int Initialize(char *strCWD, char *strName);
 	void Terminate();
 	void PrepareShutdown();
 
@@ -167,6 +167,7 @@ private:
 	WindowHandlerHSM::TextItem			*m_option_list, *m_option_list_tail;
 	WindowHandlerHSM::TextItem			*m_list_list, *m_list_list_tail;
 	WindowHandlerHSM::TextItem			*m_entry_list, *m_entry_list_tail;
+	char								*m_strConfigDir;
 };
 
 #endif
