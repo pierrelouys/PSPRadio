@@ -10,7 +10,7 @@ TEXTUI3D_OBJS = $(PLUGINS_DIR)/UI_Text3D/TextUI3D.o $(PLUGINS_DIR)/UI_Text3D/Tex
 				$(PLUGINS_DIR)/UI_Text3D/TextUI3D_WindowManager_HSM.o \
 				$(PLUGINS_DIR)/UI_Text3D/jsaVRAMManager.o $(PLUGINS_DIR)/UI_Text3D/jsaTextureCache.o
 
-IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o \
+IMPORTED_OBJS = $(PLUGINS_DIR)/UI_Interface.o \
 				$(TEXTUI_OBJS) \
 				$(TEXTUI3D_OBJS)
 			
@@ -18,7 +18,7 @@ IMPORTED_OBJS = $(PLUGINS_DIR)/PSPRadio_UI.o \
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastScreen.o  \
 		./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
-		./IPSPRadio_UI.o PSPRadio_Exports.o \
+		PSPRadio_Exports.o \
 		$(IMPORTED_OBJS)
 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -g $(INCLUDES)
@@ -27,6 +27,7 @@ INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I./ScreenHandler \
+		 -I$(PLUGINS_DIR) \
 		 -I$(PLUGINS_DIR)/UI_Text \
 		 -I$(PLUGINS_DIR)/UI_Graphics \
 		 -I$(PLUGINS_DIR)/UI_Text3D

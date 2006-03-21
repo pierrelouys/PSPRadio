@@ -37,7 +37,7 @@
 #include "OptionsPluginMenuScreen.h"
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
-#include "UI_Interface.h"
+#include <UI_Interface.h>
 #include "PRXLoader.h"
 
 #define ReportError pPSPApp->ReportError
@@ -245,21 +245,23 @@ CScreenHandler::~CScreenHandler()
 			case UI_TEXT:
 				Log(LOG_INFO, "StartUI: Starting Text UI");
 				m_UI = new CTextUI();
+				m_UI->Initialize("./", "UI_Text");
 				break;
 			case UI_GRAPHICS:
 				Log(LOG_INFO, "StartUI: Starting Graphics UI  -Error, graphicsUI not enabled for this build.");
 				#ifdef GRAPHICS_UI
 					Log(LOG_INFO, "StartUI: Starting Graphics UI");
 					m_UI = new CGraphicsUI();
+					m_UI->Initialize("./", "UI_Graphics");
 				#endif
 				break;
 			case UI_3D:
 				Log(LOG_INFO, "StartUI: Starting Text3D UI");
 				m_UI = new CTextUI3D();
+				m_UI->Initialize("./", "UI_Text3D");
 				break;
 		}
 		m_CurrentUI = UI;
-		m_UI->Initialize("./");//strCurrentDir); /* Initialize takes cwd */ ///FIX!!!
 		//StartScreen(m_CurrentScreen);
 		Log(LOG_LOWLEVEL, "Calling currentscreen activate");
 		m_CurrentScreen->Activate(m_UI);
