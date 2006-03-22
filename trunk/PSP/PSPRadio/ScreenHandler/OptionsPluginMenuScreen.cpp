@@ -155,7 +155,7 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 
 int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, char *strActive, bool bInsertOff)
 {
-	int dfd;
+	int dfd = 0;
 	char *strPath = m_ScreenHandler->GetCWD();
 	int iNumberOfPluginsFound = 0;
 	char *strPlugin = NULL;
@@ -173,7 +173,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 	Option.iActiveState = 1; /* Initial value */
 
 	/** Get all files */
-	if (dfd > 0)
+	if (dfd >= 0)
 	{
 		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
 		memset(&direntry, 0, sizeof(SceIoDirent));
@@ -215,7 +215,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 					}
 					else
 					{
-						Log(LOG_ERROR, "RetrievePlugins: Memomry error!");
+						Log(LOG_ERROR, "RetrievePlugins: Memory error!");
 						break;
 					}
 				}
@@ -226,7 +226,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 	}
 	else
 	{
-		Log(LOG_ERROR, "Unable to open '%s' Directory!", strPath);
+		Log(LOG_ERROR, "Retrieve Plugins: Unable to open '%s' Directory! (Error=0x%x)", strPath, dfd);
 	}
 
 	return iNumberOfPluginsFound;

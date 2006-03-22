@@ -576,7 +576,7 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 	dfd = sceIoDopen(strPath);
 	
 	/** Get all directories */
-	if (dfd > 0)
+	if (dfd >= 0)
 	{
 		//Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Calling sceIoDread(%d,0x%x).",dfd, &direntry);
 		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
@@ -641,7 +641,7 @@ void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 	dfd = sceIoDopen(dirname);
 	
 	/** Get all files */
-	if (dfd > 0)
+	if (dfd >= 0)
 	{
 		//Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Calling sceIoDread(%d,0x%x).",dfd, &direntry);
 		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
@@ -685,7 +685,7 @@ void CMetaDataContainer::LoadPlaylistsFromDirectory(char *strDirName)
 	Log(LOG_LOWLEVEL, "Reading '%s' Directory", strDirName);
 	dfd = sceIoDopen(strDirName);
 
-	if (dfd > 0)
+	if (dfd >= 0)
 	{
 		//Log(LOG_LOWLEVEL, "CDirList::LoadDir(): Calling sceIoDread(%d,0x%x).",dfd, &direntry);
 		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
