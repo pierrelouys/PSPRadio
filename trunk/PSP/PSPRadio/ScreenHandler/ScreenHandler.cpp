@@ -40,6 +40,7 @@
 #include "LocalFilesScreen.h"
 #include <UI_Interface.h>
 #include "PRXLoader.h"
+#include "PSPRadio_Exports.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -303,7 +304,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			 (iButtonMask & PSP_CTRL_RTRIGGER) &&
 			 (iButtonMask & PSP_CTRL_START) )
 		{
-			gPSPRadio->SetPluginExclisiveAccess(false);
+			PSPRadioExport_GiveUpExclusiveAccess();
 		}
 	}
 	else /** Normal */

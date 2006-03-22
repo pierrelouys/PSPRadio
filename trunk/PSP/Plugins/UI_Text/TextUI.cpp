@@ -449,29 +449,39 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 
 void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 {
-	if (iRowEnd == -1)
-		iRowEnd = iRowStart;
-		
-	m_lockclear->Lock();
-	for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+	/** Don't clear the screen while a screenshot (or other activity) is
+		taking place */
+	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
-		m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, PSP_SCREEN_WIDTH);
+		if (iRowEnd == -1)
+			iRowEnd = iRowStart;
+			
+		m_lockclear->Lock();
+		for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+		{
+			//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
+			m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, PSP_SCREEN_WIDTH);
+		}
+		m_lockclear->Unlock();
 	}
-	m_lockclear->Unlock();
 }
 
 void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowEnd)
 {
-	if (iRowEnd == -1)
-		iRowEnd = iRowStart;
-		
-	m_lockclear->Lock();
-	for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+	/** Don't clear the screen while a screenshot (or other activity) is
+		taking place */
+	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		m_Screen->ClearCharsAtYFromX1ToX2(iRow, iColStart, iColEnd);
+		if (iRowEnd == -1)
+			iRowEnd = iRowStart;
+			
+		m_lockclear->Lock();
+		for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+		{
+			m_Screen->ClearCharsAtYFromX1ToX2(iRow, iColStart, iColEnd);
+		}
+		m_lockclear->Unlock();
 	}
-	m_lockclear->Unlock();
 }
 	
 	
