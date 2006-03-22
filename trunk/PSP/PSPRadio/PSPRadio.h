@@ -40,6 +40,7 @@ private:
 	CPSPSound *m_Sound;
 	IPSPRadio_UI *m_UI;
 	CScreenHandler *m_ScreenHandler;
+	bool bPluginExclusiveAccessSet;
 
 public:
 #ifdef DYNAMIC_BUILD
@@ -53,12 +54,16 @@ public:
 		m_Sound = NULL;
 		m_UI = NULL;
 		m_ScreenHandler = NULL;
+		bPluginExclusiveAccessSet = false;
 	};
 	
 	int Setup(int argc, char **argv);
 	int ProcessEvents();
 	
 	CIniParser *GetConfig(){return m_Config;}
+	void SetPluginExclisiveAccess(bool set) { bPluginExclusiveAccessSet = set; }
+	bool GetPluginExclisiveAccess() { return bPluginExclusiveAccessSet; }
+	IPSPRadio_UI *GetUI() { return m_UI; }
 
 private:
 	/** Setup */

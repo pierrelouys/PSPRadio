@@ -52,6 +52,7 @@ CTextUI::CTextUI()
 	m_strConfigDir = NULL;
 	m_lockprint = NULL;
 	m_lockclear = NULL;
+	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
 	m_Screen = new CScreen;
 	m_strTitle = strdup("PSPRadio by Raf");
@@ -346,14 +347,24 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
 						  int iActiveState)
 {
-	int x1 = 0, x2 = 0;
+	int x1 = -100, x2 = -100;
 	GetConfigPair("SCREEN_SETTINGS:X_RANGE", &x1, &x2);
 	int iTextPos = PIXEL_TO_COL(x1);
 	int color = 0xFFFFFF;
 	int iNameLen = strlen(strName);
 	int iOptionLen = 0;
 	int iArrowColor = 0xFFFFFF;
+
+	if (x1 == -100)
+	{
+		x1 = 28;
+	}
 	
+	if (x2 == -100)
+	{
+		x2 = 390;
+	}
+
 	uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
 	iTextPos += iNameLen;
 	if (iNumberOfStates > 0)
@@ -409,25 +420,30 @@ void CTextUI::uiPrintf(int x, int y, int color, char *strFormat, ...)
 	va_list args;
 	char msg[70*5/** 5 lines worth of text...*/];
 
-	/** -2  = Don't Print */
-	if (x != -2)
+	/** Don't print to the screen while a screenshot (or other activity) is
+		taking place */
+	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		va_start (args, strFormat);         /* Initialize the argument list. */
-		
-		vsprintf(msg, strFormat, args);
-	
-		if (msg[strlen(msg)-1] == 0x0A)
-			msg[strlen(msg)-1] = 0; /** Remove LF 0D*/
-		if (msg[strlen(msg)-1] == 0x0D) 
-			msg[strlen(msg)-1] = 0; /** Remove CR 0A*/
-	
-		if (x == -1) /** CENTER */
+		/** -2  = Don't Print */
+		if (x != -2)
 		{
-			x = PSP_SCREEN_WIDTH/2 - ((strlen(msg)/2)*m_Screen->GetFontWidth());
-		}
-		m_Screen->PrintText(x, y, color, msg);
+			va_start (args, strFormat);         /* Initialize the argument list. */
+			
+			vsprintf(msg, strFormat, args);
 		
-		va_end (args);                  /* Clean up. */
+			if (msg[strlen(msg)-1] == 0x0A)
+				msg[strlen(msg)-1] = 0; /** Remove LF 0D*/
+			if (msg[strlen(msg)-1] == 0x0D) 
+				msg[strlen(msg)-1] = 0; /** Remove CR 0A*/
+		
+			if (x == -1) /** CENTER */
+			{
+				x = PSP_SCREEN_WIDTH/2 - ((strlen(msg)/2)*m_Screen->GetFontWidth());
+			}
+			m_Screen->PrintText(x, y, color, msg);
+			
+			va_end (args);                  /* Clean up. */
+		}
 	}
 }
 

@@ -17,6 +17,7 @@ CPRXLoader::CPRXLoader()
 	m_error = 0;
 	m_IsStarted = false;
 	m_IsLoaded = false;
+	m_Name = strdup("Off");
 }
 
 CPRXLoader::~CPRXLoader()
@@ -26,7 +27,32 @@ CPRXLoader::~CPRXLoader()
 	{
 		free(m_FileName), m_FileName = NULL;
 	}
+	if (m_Name)
+	{
+		free(m_Name), m_Name = NULL;
+	}
 
+}
+
+void CPRXLoader::SetName(char *strName)
+{
+	if (m_Name)
+	{
+		free(m_Name);
+	}
+	m_Name = strdup(strName);
+}
+
+char *CPRXLoader::GetName()
+{
+	if (m_Name)
+	{
+		return m_Name;
+	}
+	else
+	{
+		return "Off";
+	}
 }
 
 

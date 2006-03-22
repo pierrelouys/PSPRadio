@@ -18,6 +18,7 @@
 */
 #include <stdarg.h>
 #include <PSPApp.h>
+#include "ScreenHandler.h"
 #include "PSPRadio_Exports.h"
 #include "Main.h"
 
@@ -58,4 +59,22 @@ bool PSPRadioExport_IsUSBEnabled()
 char *PSPRadioExport_GetMyIP()
 {
 	return gPSPRadio->GetMyIP();
+}
+
+void PSPRadioExport_RequestExclusiveAccess()
+{
+	gPSPRadio->SetPluginExclisiveAccess(true);
+	if (gPSPRadio->GetUI())
+	{
+		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
+	}
+}
+
+void PSPRadioExport_GiveUpExclusiveAccess()
+{
+	if (gPSPRadio->GetUI())
+	{
+		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
+	}
+	gPSPRadio->SetPluginExclisiveAccess(false);
 }

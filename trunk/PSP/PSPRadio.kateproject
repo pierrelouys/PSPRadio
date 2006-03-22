@@ -35,8 +35,12 @@ Dirs=Graphics
 Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
 
 [Dir Plugins]
-Dirs=FSServer_FTPD/UI_Graphics/UI_Text/UI_Text3D
-Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h/Common.cpp/Common.h/UI_Interface.cpp/UI_Interface.h
+Dirs=FSServer_FTPD/UI_Graphics/UI_Text/UI_Text3D/APP_NetScan
+Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h/Common.cpp/Common.h/UI_Interface.cpp/UI_Interface.h/APP_Exports.exp/APP_Exports.h
+
+[Dir Plugins/APP_NetScan]
+Dirs=
+Files=main.c/Makefile
 
 [Dir Plugins/FSServer_FTPD]
 Dirs=
@@ -69,6 +73,10 @@ Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/
 [Dir Plugins/UI_Text3D/Graphics]
 Dirs=
 Files=BackgroundImage.png/Icon_Lists.png/Icon_Playstate.png/Icon_Power.png/Icon_Progress.png/Icon_USB.png/Icon_Volume.png/Icon_WiFi.png/Main_Corner_LL.png/Main_Corner_LR.png/Main_Corner_UL.png/Main_Corner_UR.png/Main_Fill.png/Main_Frame_B.png/Main_Frame_L.png/Main_Frame_R.png/Main_Frame_T.png/Msg_Corner_LL.png/Msg_Corner_LR.png/Msg_Corner_UL.png/Msg_Corner_UR.png/Msg_Fill.png/Msg_Frame_B.png/Msg_Frame_L.png/Msg_Frame_R.png/Msg_Frame_T.png/SmallFont_List.png/SmallFont_Message.png/SmallFont_Scroller.png/SmallFont_Static.png
+
+[Dir Plugins/XC_NetScan]
+Dirs=
+Files=main.cpp/Makefile/main.c
 
 [Dir SharedLib]
 Dirs=Logging/libiniparser/PSPApp/Tools

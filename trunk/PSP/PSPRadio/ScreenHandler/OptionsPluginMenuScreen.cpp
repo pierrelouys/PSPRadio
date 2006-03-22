@@ -35,6 +35,7 @@
 #include "LocalFilesScreen.h"
 #include "OptionsPluginMenuScreen.h"
 #include <FSS_Exports.h>
+#include <APP_Exports.h>
 
 #define ReportError pPSPApp->ReportError
 
@@ -42,6 +43,7 @@ enum OptionIDs
 {
 	OPTION_ID_UI,
 	OPTION_ID_FSS,
+	OPTION_ID_APP,
 };
 
 OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
@@ -49,6 +51,7 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
 	{	OPTION_ID_UI,				"User Interface",			{""},				0,0,0		},
 	{	OPTION_ID_FSS,				"FileSystemServers",		{"Off"},			1,1,1		},
+	{	OPTION_ID_APP,				"Applications",				{"Off"},			1,1,1		},
 
 	{  -1,  						"",							{""},				0,0,0		}
 };
@@ -56,27 +59,34 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 OptionsPluginMenuScreen::OptionsPluginMenuScreen(int Id, CScreenHandler *ScreenHandler):OptionsScreen(Id, ScreenHandler)
 {
 	Log(LOG_LOWLEVEL, "OptionsPluginMenuScreen(): Id=%d", Id);
-	m_FSSModuleLoader = NULL;
-	m_FSSModuleLoader = new CPRXLoader();
-	if (m_FSSModuleLoader == NULL)
+	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
 	{
-		Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader.");
+		m_ModuleLoader[i] = NULL;
+		m_ModuleLoader[i] = new CPRXLoader();
+		if (m_ModuleLoader[i] == NULL)
+		{
+			Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader #%d.", i);
+		}
+		else
+		{
+			m_ModuleLoader[i]->SetName("Off");
+		}
 	}
 	//LoadFromConfig();
 }
 
-char *OptionsPluginMenuScreen::GetCurrentFSS()
+OptionsPluginMenuScreen::~OptionsPluginMenuScreen()
 {
-	if(m_FSSModuleLoader && m_FSSModuleLoader->IsStarted())
+	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
 	{
-		return m_FSSModuleLoader->GetFilename();
-	}
-	else
-	{
-		return "Off";
+		if (m_ModuleLoader[i])
+		{
+			delete(m_ModuleLoader[i]), m_ModuleLoader[i] = NULL;
+		}
 	}
 }
-	
+
+
 /** Activate() is called on screen activation */
 void OptionsPluginMenuScreen::Activate(IPSPRadio_UI *UI)
 {
@@ -107,8 +117,10 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 	{
 		// Release allocated memory
 		OptionIterator = m_OptionsList.begin();
- 		if ( ((*OptionIterator).Id == OPTION_ID_UI) || 
-			 ((*OptionIterator).Id == OPTION_ID_FSS) )
+ 		if (    ((*OptionIterator).Id == OPTION_ID_UI) 
+			 || ((*OptionIterator).Id == OPTION_ID_FSS) 
+			 || ((*OptionIterator).Id == OPTION_ID_APP) 
+			)
  		{
  			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
  			{
@@ -141,7 +153,11 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_FSS:
-				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_", GetCurrentFSS(), /*insert off*/true);
+				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_", m_ModuleLoader[PLUGIN_FSS]->GetName(), /*insert off*/true);
+				Option.iSelectedState = Option.iActiveState;
+				break;
+			case OPTION_ID_APP:
+				RetrievePlugins(/*option*/Option, /*prefix*/"APP_", m_ModuleLoader[PLUGIN_APP]->GetName(), /*insert off*/true);
 				Option.iSelectedState = Option.iActiveState;
 				break;
 		}
@@ -251,6 +267,8 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				m_UI->DisplayMessage("Starting Plugin . . .");
 
 				m_ScreenHandler->StartUI(strPluginRealName);
+
+				m_UI->DisplayMessage("Plugin Started");
 				fOptionActivated = true;
 			}
 			break;
@@ -264,7 +282,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					m_UI->DisplayMessage("Starting Plugin . . .");
 					//sprintf(m_UI->buff, "original data");
 					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
-					int res = LoadFSSPlugin(strPluginRealName);
+					int res = LoadPlugin(strPluginRealName, PLUGIN_FSS);
 					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
 					if (res == 0)
 					{
@@ -276,9 +294,45 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 						m_UI->DisplayMessage("Error Starting Plugin . . .");
 					}
 				}
+				else
+				{
+					m_UI->DisplayMessage("Stopping Plugin. . .");
+					LoadPlugin("Off", PLUGIN_FSS);
+					fOptionActivated = true;
+					m_UI->DisplayMessage("Plugin Stopped");
+				}
+			}
+		case OPTION_ID_APP:
+			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
+			{
+				sprintf(strPluginRealName, "APP_%s.prx", strSelection);
+				Log(LOG_INFO, "User selected APP Plugin '%s'.", strPluginRealName);
+				if (iSelectionBase0 > 0)
+				{
+					m_UI->DisplayMessage("Starting Plugin . . .");
+					//sprintf(m_UI->buff, "original data");
+					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
+					int res = LoadPlugin(strPluginRealName, PLUGIN_APP);
+					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
+					if (res == 0)
+					{
+						fOptionActivated = true;
+						m_UI->DisplayMessage("Plugin Started");
+					}
+					else
+					{
+						m_UI->DisplayMessage("Error Starting Plugin . . .");
+					}
+				}
+				else
+				{
+					m_UI->DisplayMessage("Stopping Plugin. . .");
+					LoadPlugin("Off", PLUGIN_APP);
+					fOptionActivated = true;
+					m_UI->DisplayMessage("Plugin Stopped");
+				}
 			}
 			break;
-
 	}
 
 	if (true == fOptionActivated)
@@ -288,48 +342,72 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 	}
 }
 
-int OptionsPluginMenuScreen::LoadFSSPlugin(char *strPlugin)
+int OptionsPluginMenuScreen::LoadPlugin(char *strPlugin, plugin_type type)
 {
 	char strModulePath[MAXPATHLEN+1];
 	char cwd[MAXPATHLEN+1];
 	
-	if (m_FSSModuleLoader->IsLoaded() == true)
+	if (type < NUMBER_OF_PLUGINS)
 	{
-		Log(LOG_INFO, "Unloading currently running plugin");
-		m_FSSModuleLoader->Unload();
-	}
-
-	/** Asked to just unload */
-	if (strcmp(strPlugin, "FSS_Off.prx") == 0)
-	{
-		return 0;
-	}
-
-	sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);
-
-	int id = m_FSSModuleLoader->Load(strModulePath);
 	
-	if (m_FSSModuleLoader->IsLoaded() == true)
-	{
-		SceKernelModuleInfo modinfo;
-		memset(&modinfo, 0, sizeof(modinfo));
-		modinfo.size = sizeof(modinfo);
-		sceKernelQueryModuleInfo(id, &modinfo);
-		Log(LOG_INFO, "'%s' Loaded at text_addr=0x%x",
-			strModulePath, modinfo.text_addr);
+		if (m_ModuleLoader[type]->IsLoaded() == true)
+		{
+			Log(LOG_INFO, "Unloading currently running plugin");
+			m_ModuleLoader[type]->Unload();
+			m_ModuleLoader[type]->SetName("Off");
+		}
 	
-		int iRet = m_FSSModuleLoader->Start();
+		/** Asked to just unload */
+		if (strcmp(strPlugin, "Off") == 0)
+		{
+			return 0;
+		}
+	
+		sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);
+	
+		int id = m_ModuleLoader[type]->Load(strModulePath);
 		
-		Log(LOG_INFO, "Module start returned: 0x%x", iRet);
+		if (m_ModuleLoader[type]->IsLoaded() == true)
+		{
+			m_ModuleLoader[type]->SetName(strPlugin);
+			
+			SceKernelModuleInfo modinfo;
+			memset(&modinfo, 0, sizeof(modinfo));
+			modinfo.size = sizeof(modinfo);
+			sceKernelQueryModuleInfo(id, &modinfo);
+			Log(LOG_INFO, "'%s' Loaded at text_addr=0x%x",
+				strModulePath, modinfo.text_addr);
 		
-		ModuleStartFSS();
-		
-		return 0;
-		
+			int iRet = m_ModuleLoader[type]->Start();
+			
+			Log(LOG_INFO, "Module start returned: 0x%x", iRet);
+			
+			switch(type)
+			{
+				case PLUGIN_UI:
+					break;
+				case PLUGIN_FSS:
+					ModuleStartFSS();
+					break;
+				case PLUGIN_APP:
+					ModuleStartAPP();
+					break;
+				case NUMBER_OF_PLUGINS: /**Not a real case */
+					break;
+			}
+	
+			return 0;
+			
+		}
+		else
+		{
+			Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strModulePath, m_ModuleLoader[type]->GetError());
+			return -1;
+		}
 	}
-	else
+	else /* type >= NUMBER_OF_PLUGINS */
 	{
-		Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strModulePath, m_FSSModuleLoader->GetError());
+		Log(LOG_ERROR, "Wrong type %d used to load plugin.", type);
 		return -1;
 	}
 }

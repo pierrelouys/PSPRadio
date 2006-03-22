@@ -9,6 +9,7 @@
  *
  * $Id: main.c 1531 2005-12-07 18:27:12Z tyranid $
  */
+#include <pspctrl.h>
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include <pspdisplay.h>
@@ -22,21 +23,28 @@
 #include <APP_Exports.h>
 #include <Common.h>
 
-PSP_MODULE_INFO("XC_NetScan", 0, 1, 1);
-PSP_HEAP_SIZE_KB(2048);
-/* Define the main thread's attribute value (optional) */
-///PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
+PSP_MODULE_INFO("APP_NetScan", 0, 1, 1);
+//PSP_HEAP_SIZE_KB(64);
 
 int wlanscan_main();
 
-int ModuleStartApp()
+int ModuleStartAPP()
 {
 	sleep(1);
 	
 	SceSize am = sceKernelTotalFreeMemSize();
 	ModuleLog(LOG_INFO, "ModuleStartApp(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
 
-	wlanscan_main();
+	int thid = 0;
+
+	thid = sceKernelCreateThread("app_thread", (void*) wlanscan_main, 0x50, 0xFA0, PSP_THREAD_ATTR_USER, 0);
+	if(thid >= 0)
+	{
+		sceKernelStartThread(thid, 0, 0);
+	}
+
+
+	//wait_for_button();
 	
 	return 0;
 }
@@ -63,6 +71,7 @@ int ModuleStartApp()
 #include <pspwlan.h>
 #include <string.h>
 
+#define printf pspDebugScreenPrintf
 
 /* Init the scan */
 int sceNet_lib_5216CBF5(const char *name);
@@ -124,31 +133,30 @@ void print_scan(unsigned char *data, size_t size)
 
 		pData = (struct ScanData *) data;
 		printf("==================\n");
-		printf("      BSS: %d\n", i);
-		printf("==================\n");
+		printf("****** BSS: %d\n", i);
 		strncpy(name, pData->name, 32);
 		name[32] = 0;
 		sceNetEtherNtostr(pData->bssid, bssid);
-		printf("BSSID: %s\n", bssid);
-		printf("SSID: %s\n", name);
-		printf("bsstype: ");
+		printf("BSSID: '%s' ", bssid);
+		printf("SSID: '%s' ", name);
+		printf("bsstype: '");
 		if(pData->bsstype == 1)
 		{
-			printf("Infrastructure\n");
+			printf("Infrastructure'\n");
 		}
 		else if(pData->bsstype == 2)
 		{
-			printf("Independent\n");
+			printf("Independent'\n");
 		}
 		else
 		{
-			printf("Unknown\n");
+			printf("Unknown'\n");
 		}
-		printf("Beacon Period: %d\n", pData->beaconperiod);
-		printf("DTIM period: %d\n", pData->dtimperiod);
-		printf("Timestamp: %d\n", pData->timestamp);
+		printf("Beacon Period: %d ", pData->beaconperiod);
+		printf("DTIM period: %d ", pData->dtimperiod);
+		printf("Timestamp: %d ", pData->timestamp);
 		printf("Local Time: %d\n", pData->localtime);
-		printf("Channel: %d\n", pData->channel);
+		printf("Channel: %d ", pData->channel);
 		printf("ATIM: %d\n", pData->atim);
 		printf("Capability Information: ");
 		for(loop = 0; loop < 8; loop++)
@@ -234,12 +242,12 @@ int wlanscan_main()
 {
 	int ret;
 
-// 	ret = sceNetInit(0x20000, 0x20, 0x1000, 0x20, 0x1000);
-// 	if(ret < 0)
-// 	{
-// 		printf("Error initialising network lib %08X\n", ret);
-// 		goto error;
-// 	}
+	PSPRadioExport_RequestExclusiveAccess();
+
+	pspDebugScreenInit();
+
+	printf(" WLANScan (based on pspsdk sample by James F)\n");
+	printf("----------------------------------------------\n");
 
 	ret = -1;
 	while(ret < 0)
@@ -261,7 +269,19 @@ int wlanscan_main()
 	do_scan();
 error:
 	sceWlanDevDetach();
-// 	sceNetTerm();
 
+	printf("* * Press X to Exit * *");
+	SceCtrlData pad;
+	for(;;) 
+	{
+		sceDisplayWaitVblankStart();
+		sceCtrlReadBufferPositive(&pad, 1);
+		if (pad.Buttons & PSP_CTRL_CROSS)
+		{
+			break;
+		}
+	}
+
+	PSPRadioExport_GiveUpExclusiveAccess();
 	return 0;
 }

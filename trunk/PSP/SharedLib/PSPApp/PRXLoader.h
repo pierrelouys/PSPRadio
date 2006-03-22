@@ -31,12 +31,17 @@
 		bool IsStarted() { return m_IsStarted; }
 		int  GetError()  { return m_error; }
 		char *GetFilename() { return m_FileName; }
+
+		/** Helpers */
+		void SetName(char *strName);
+		char *GetName();
 	
 	private:
 		SceUID StartModuleWithArgs(char *filename, int modid, int argc, char * const argv[]);
 		SceUID m_ModId;
 		int  m_error;
 		char *m_FileName;
+		char *m_Name;
 		bool m_IsStarted, m_IsLoaded;
 	};
 

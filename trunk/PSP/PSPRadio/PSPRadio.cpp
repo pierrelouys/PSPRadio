@@ -449,7 +449,10 @@ int CPSPRadio::ProcessEvents()
 
 void CPSPRadio::OnVBlank()
 {
-	m_ScreenHandler->OnVBlank();
+	if (bPluginExclusiveAccessSet == false)
+	{
+		m_ScreenHandler->OnVBlank();
+ 	}
 }
 
 int CPSPRadio::OnPowerEvent(int pwrflags)

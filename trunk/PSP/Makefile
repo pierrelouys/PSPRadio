@@ -40,6 +40,7 @@ exports:
 	cd $(PSPRADIO_DIR) && psp-build-exports -s exports.exp
 	cd $(PLUGINS_DIR) && psp-build-exports -s UI_Exports.exp
 	cd $(PLUGINS_DIR) && psp-build-exports -s FSS_Exports.exp
+	cd $(PLUGINS_DIR) && psp-build-exports -s APP_Exports.exp
 	
 plugins:
 	cd $(PLUGINS_DIR)/UI_Text && make
@@ -49,6 +50,9 @@ extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+	cd $(PLUGINS_DIR)/APP_NetScan   && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+	cd $(PLUGINS_DIR)/APP_NetScan   && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
 	
 clean:
 	make clean_objects

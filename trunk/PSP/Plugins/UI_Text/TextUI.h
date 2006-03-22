@@ -80,6 +80,7 @@ public:
 	void DisplayContainers(CMetaDataContainer *Container);
 	void DisplayElements(CMetaDataContainer *Container);
 	void OnCurrentContainerSideChange(CMetaDataContainer *Container);
+	void OnScreenshot(CScreenHandler::ScreenShotState state) { m_ScreenShotState = state; }
 	
 	void OnBatteryChange(int Percentage);
 	void OnTimeChange(pspTime *LocalTime);
@@ -97,7 +98,7 @@ private:
 	pspTime m_LastLocalTime;
 	char *m_strCWD;
 	char *m_strConfigDir;
-	
+	CScreenHandler::ScreenShotState m_ScreenShotState;
 	//helpers
 	enum uicolors
 	{

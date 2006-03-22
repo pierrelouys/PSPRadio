@@ -1,7 +1,7 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET = XC_NetScan
+TARGET = APP_NetScan
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
@@ -12,7 +12,7 @@ OBJS = main.o \
 BUILD_PRX=1
 USE_PSPSDK_LIBC = 0
 # Define the name of our custom exports (minus the .exp extension)
-PRX_EXPORTS=$(PLUGINS_DIR)/FSS_Exports.exp
+PRX_EXPORTS=$(PLUGINS_DIR)/APP_Exports.exp
 
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
@@ -32,9 +32,10 @@ LIBS =  -lpspwlan -lpspnet
 all: $(TARGET).prx
 
 install:
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
+#	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+#	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+#	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
