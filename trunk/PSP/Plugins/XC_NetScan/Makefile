@@ -1,11 +1,11 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET = FSS_FTPD
+TARGET = XC_NetScan
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS = main.o ftp_main.o ftp.o _itoa.o sutils.o  \
+OBJS = main.o \
 		$(COMMON_OBJS) $(EXPORTED_OBJS)
 
 # Define to build this as a prx (instead of a static elf)
@@ -24,7 +24,8 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR =
 
-LIBS =  -lstdc++  -lPSPApp -liniparser
+LIBS =  -lpspwlan -lpspnet
+#-lstdc++  -lPSPApp -liniparser
 #-lstdc++ -lPSPApp
 # -lTools
 
