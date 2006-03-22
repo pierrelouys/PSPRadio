@@ -244,8 +244,12 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 		case OPTION_ID_UI:
 			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
 			{
+				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
+
 				sprintf(strPluginRealName, "UI_%s.prx", strSelection);
 				Log(LOG_INFO, "User selected to load '%s'", strPluginRealName);
+				m_UI->DisplayMessage("Starting Plugin . . .");
+
 				m_ScreenHandler->StartUI(strPluginRealName);
 				fOptionActivated = true;
 			}
