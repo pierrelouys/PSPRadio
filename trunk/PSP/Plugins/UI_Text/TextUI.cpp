@@ -349,7 +349,6 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 {
 	int x1 = -100, x2 = -100;
 	GetConfigPair("SCREEN_SETTINGS:X_RANGE", &x1, &x2);
-	int iTextPos = PIXEL_TO_COL(x1);
 	int color = 0xFFFFFF;
 	int iNameLen = strlen(strName);
 	int iOptionLen = 0;
@@ -364,6 +363,7 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 	{
 		x2 = 390;
 	}
+	int iTextPos = PIXEL_TO_COL(x1);
 
 	uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
 	iTextPos += iNameLen;
