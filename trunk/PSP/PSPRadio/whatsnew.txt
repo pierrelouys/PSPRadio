@@ -4,6 +4,7 @@ What's New for PSPRadio
 NEW FEATURES
 (raf) Dyn/UI Plugins: Implemented albadross idea to use the plugin name to load configuration files. This allows to select different skins via the plugin menu. (Implemented for Text and Text3D plugins). (r930)
 (raf) TextUI: OptionsScreen and Plugins Menu can now display more options than what fits on the line. This was implemented using a new config element in the OptionsScreen.cfg (X_RANGE) so skins will need to be revised. (r934)
+(raf) Dynamic: Added Application plugins. Sample plugin added too: netscan. (If plugin stops responding, L+R+START can be used to return control to pspradio.).
 BUG FIXES
 (raf) Core: Corrected problem when reading directories, where a good read could be interpreted as bad, ended up in nothing being read at all. (r936)
 (raf) Core: When changing UIs, the sound is now stopped to prevent event queue fill-ups.
