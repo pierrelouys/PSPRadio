@@ -1,0 +1,173 @@
+  keystrokes table
+>==================<
+
+[This file explains the usage of the netrik interactive UI. See index.txt or
+index.html for an overview of available netrik documentation.]
+
+Note: netrik is still in early developement state; keystrokes and commands
+are subject to changes.
+
+_Introduction_
+
+netrik's user interface works just like the editor "vi", and some other common
+programs (e.g. "less").
+
+There are a couple of operation modes, each one with distinct behaviour;
+these modes can be switched upon need.
+
+The mode entered when starting netrik, and used most of the time, is "normal
+mode". In this mode you can move around the page, select links, etc. using
+various command letters, and sometimes alternatively the cursor, <PgUp>/<PgDn>
+and other keys. (The former have the advantage that you needn't take your
+hands off the normal typing position.) The typed letters do not show up
+anywhere in this mode; they only tell netrik to do some special action --
+just like the cursor keys.
+
+By typing ':' in normal mode, another mode is entered, named "command prompt".
+This is indicated by a ':' showing up at the beginning of the bottom screen
+line, and the cursor standing just behind this ':'. You can type in a command
+here. The command is executed as soon as you type <return>, and netrik returns
+to normal mode afterwards.
+
+If compiled using the GNU Readline library (default), you can use all the
+handy keystrokes for editing the command prompt that are also available in
+other programs using Readline. (e.g. the standard GNU/Linux shell "bash".)
+
+_Keystrokes in normal mode_
+
+ ^R        reload current page
+ 
+ b         
+ <left>    back to previous page in history
+ 
+ f         
+ <right>   forward to next page in history (after 'b')
+ 
+ B         back to page before last absolute URL entered/followed
+           (previous site)
+ 
+ F         forward to page before next absolute URL entered/followed
+ 
+ s         set page mark
+ 
+ S         remove page mark
+ 
+ r         return to previous page in history marked with 's'
+ 
+ R         forward to next page in history marked with 's'
+ 
+ ^H        cursor left
+ 
+ ^J        cursor down
+ 
+ ^K        cursor up
+ 
+ ^L        cursor right
+ 
+ j         scroll one line forward
+ 
+ J         
+ <down>    go to next link, or scroll one line forward
+           (if no more links on screen)
+ 
+ k         scroll one line backward
+ 
+ K         
+ <up>      go to previous link, or scroll one line backward
+           (if no more links on screen)
+ 
+ +         
+ =         go to first link in next line, or scroll one line forward
+           (if no more links on screen)
+ 
+ -         go to first link in previous line, or scroll one line backward
+           (if no more links on screen)
+ 
+ ^         
+ ^A        go to first link starting in line
+ 
+ -         go to first link in line
+           (different from '^' if there is a link wrapped from previous line)
+ 
+          
+ ^E        go to last link in line
+ 
+ H         go to first link on screen
+ 
+ L         go to last link on screen
+ 
+ M         go to midmost link (first link in second screen half)
+ 
+ <tab>     go to next link
+ 
+ p         go to previous link
+ 
+ <bs>      go to first link on page
+ 
+ u         show link URL
+ 
+ U         show absolute link target URL
+ 
+ c         show current page URL
+ 
+ <return>  follow selected link (or manipulate form control)
+ 
+ <del>     scroll two lines forward
+ 
+ <ins>     scroll two lines backward
+ 
+ ^F        
+ <space>   scroll one screen forward
+ 
+ ^B        scroll one screen backward
+ 
+ ^D        
+ <PgDn>    scroll one half screen forward
+ 
+ ^U        
+ <PgUp>    scroll one half screen backward
+ 
+ g         
+ <Home>    go to page top
+ 
+ G         
+ <End>     go to page end
+ 
+ q         quit netrik
+ 
+ /         start text search (s.b.)
+ 
+ :         enter command prompt (s.b.)
+
+_Command promt_
+
+Only one command is available for now (in two variations):
+
+:e URL     load file "URL" and display it in the pager
+           (URL relative to current page)
+ 
+:E URL     load file "URL" and display it in the pager
+           (absolute URL)
+
+_Text Search_
+
+Pressing '/' in normal mode opens the search prompt. This is similar to the
+command prompt (s.a.), only you are not prompted for a command, but for a
+search string. Type in what you want to search for, and confirm with <return>.
+
+If you have already done a search in this session, you can search again for
+the same string by only pressing <return> without entering any string.
+
+Use '^D' on an empty search prompt to abort the prompt and return to the pager.
+(If you have already typed some string you first need to delete it, using
+'^U' for example.)
+
+_Signals_
+
+Netrik intercepts the interrupt signal (SIGINT, usually produced by ^C ),
+and uses it to allow aborting a file or HTTP load. In other situations,
+it is ignored completely.
+
+Use the quit signal (SIGQUIT, usually ^\ ) to "violently" quit netrik. (This
+has the same effect as an unintercepted ^C.)
+

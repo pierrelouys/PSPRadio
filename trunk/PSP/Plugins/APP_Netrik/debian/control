@@ -1,0 +1,25 @@
+Source: netrik
+Section: web
+Priority: optional
+Maintainer: Edelhard Becker <edelhard@debian.org>
+Build-Depends: debhelper (>= 4), libncurses5-dev (>= 5.3.20030510-1), automake
+Standards-Version: 3.6.1
+
+Package: netrik
+Architecture: any
+Provides: www-browser
+Depends: ${shlibs:Depends}
+Description: text mode WWW browser with vi like keybindings
+ Netrik is an advanced text mode WWW browser. Its purpose is to give access to
+ as much of the Web as possible in text mode, without forsaking any comfort.
+ The user interface is looking roughly like a combination of gVim and PINE.
+ Some of the core ideas (not all implemented yet):
+   Context-(URL-)sensitive setup
+   Partially loaded pages
+   Half-graphical mode
+   Efficient navigation
+   Key mapping and macros (similar to vi and mutt)
+   Command prompt, menus and online help
+ .
+  Author: Olaf D. Buddenhagen AKA antrik <antrik@users.sourceforge.net>
+  Homepage: http://netrik.sourceforge.net/

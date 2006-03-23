@@ -1,0 +1,265 @@
+This is a list of the most important changes in each realese, from the user's
+point of view.
+
+See README for a more detailed description of the latest changes.
+
+1.15.3:
+- fixed handling of unknown numeric character references (was broken since 1.14.0)
+
+1.15.2:
+- fixed various crashes, memory errors, and other long standing bugs
+- updated/improved build system
+
+1.15.1:
+- fixed handling of <meta>
+
+1.15.0:
+- fix: dead form inputs
+- always hide <title>, <meta>, <style>, <script>
+- show URL also for form controls
+- correctly handle <textarea> with initial value
+- more parser improvements/fixes (comments)
+
+1.14.0:
+- more correct parsing/error reporting
+
+1.13.0:
+- suppress repeated HTML error messages
+
+1.12.1:
+- fixed URL parsing: allow '?' in query string
+- fixed handling of unknown single tag elements (don't eat content)
+
+1.12.0:
+- b/w mode
+- plain text output with --dump --bw
+
+1.11.0:
+- fixed various bugs (memory leaks, crashes etc.)
+- handle "." and ".." in relative URLs
+- don't put \r characters in --dump
+- print normal spaces in place of nbsp
+- made --broken-html the default
+
+1.10.3:
+- print connect IP
+- single keypress confirmation in scroll mode
+- fixed SIGWINCH handling
+
+1.10.2:
+- fixed link highlighting
+- modified (fixed) line wrapping
+- properly escape invalid URL chars
+
+1.10.1:
+- include Debian control files in dist
+- fixed various memory leaks
+- fixed all gcc-3.2 warnings and some real errors they showed
+
+1.10.0:
+- default to --dark-background and autoset --force-colors
+- choose color scheme on startup
+- discriminate attribute handling between console and xterm
+
+1.9.0:
+- implemented <input type="file">
+
+1.8.0:
+- compressed input files
+
+1.7.0:
+- implemented <textarea>
+
+1.6.0:
+- text search
+- added ^E, documented ^A
+- configurable anchor marks
+
+1.5.0:
+- set cursor on anchor
+- automatically activate link under cursor
+
+1.4.0:
+- real cursor
+- '^H', '^J', '^K' and '^L' commands
+- arrow keys remapping
+
+1.3.0:
+- heuristically find correct link on changed page
+
+1.2.2:
+- fixed '-' command
+
+1.2.1;
+- include forgotten links2.html to distribution
+
+1.2.0:
+- <backspace>, <tab>, 'p', '+', '-', '^', '0' and '$' commands
+
+1.1.0:
+- 'H', 'L' and 'M' commands
+- 'S' command
+- provisorial fix for unescaped special chars in URLs
+
+1.0.1:
+- fixed locale problems
+- handle "//" URLs
+- provisional SIGWINCH handling
+- don't try to reactivate no longer valid anchors
+- don't leave unclosed sockets
+
+1.0.0:
+- new HTTP parser (FSM) allows graceful error handling
+- always use GET in redirect
+- allow relative redirects
+
+0.20:
+- redirects
+
+0.19.2:
+- fixed bugs with special characters in HTML forms
+
+0.19.1:
+- fixed zero-size form input segfault
+
+0.19:
+- user break during loading
+
+0.18:
+- config file
+
+0.17.3:
+- greatly improved manpage and some other doc fixes
+
+0.17.2:
+- fixed memory errors (Valgrind) and some other bugs
+
+0.17.1:
+- use HTTP/1.0 in requests
+- get version number from README
+
+0.17:
+- implemented "hidden" form controls
+- modified color handling
+
+0.16:
+- implemented POST
+- fixed more form bugs
+
+0.15:
+- implemented most form control types
+- fixed form submitting and other form handling bugs
+
+0.14.1:
+- fixed compiling without Readline
+
+0.14:
+- full SGML support
+
+0.13:
+- partial form support
+- man page
+- fixes/improvements to build system
+
+0.12:
+- use Autoconf/Automake
+
+0.11.1:
+- use "\r\n" in HTTP request
+
+0.11:
+- handle URL parsing and file/http loading errors
+
+0.10:
+- 'u', 'U', 'c' and '^r' commands
+- left/right arrow key bindings
+
+0.9.1:
+- fixed bugs in loading from stdin
+- valid SGML comment parsing
+- FreeBSD port
+
+0.9:
+- don't reload page when following local anchors
+- display anchor position with markers
+- fixed bugs in anchor handling
+- use builtin HTTP code by default
+
+0.8.1:
+- fixed bugs in URL handling
+- new HTTP header parsing
+
+0.8:
+- implemented anchors
+- prevent "escaping" shell quote
+
+0.7.2:
+- quote URLs passed to wget
+
+0.7.1:
+- new <br> handling
+
+0.7:
+- new syntax error handling
+
+0.6.1:
+- fixed link selection crashes and other problems
+- correctly set highlighted link color in xterm
+
+0.6:
+- page history
+
+0.5.3:
+- fixed --broken-html/--ignore-broken (was broken since 0.5.1)
+
+0.5.2:
+- set cursor on active link
+
+0.5.1:
+- fixed URL handling
+
+0.5:
+- hyperlinks implemented
+- improved form rendering
+
+0.4.1:
+- using wget works around HTTP problems
+
+0.4:
+- command line options
+
+0.3:
+- load new files from within the pager
+
+0.2.2:
+- fixed segfault on non-glibc systems
+- fixed reading from stdin in interactive pager mode
+
+0.2.1:
+- fixed compiling problem with newer ncurses
+
+0.2:
+- some (simple) builtin HTTP support
+- simple pager
+
+0.1.1:
+- read from stdin
+
+0.1:
+- most important HTML elements supported
+
+0.0.3:
+- improved color handling (default background color etc.)
+- adopt to screen width
+
+0.0.2:
+- improved syntax parsing: should accept all correct HTML files (not only
+  XHTML), and most broken ones
+
+0.0.1:
+- improved syntax parsing: should accept all XHTML files
+- fixed compiling problem with newer ncurses
+
+0.0: Initial release. Reads *some* XHTML files, and dumps layouted page to
+screen. Very poor syntax parsing, few HTML elements supported; no pager, no
+HTTP support.

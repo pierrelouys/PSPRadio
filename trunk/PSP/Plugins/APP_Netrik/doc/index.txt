@@ -1,0 +1,16 @@
+  netrik documentation overview
+>===============================<
+
+This file is an overview of the available netrik documentation.
+
+The following files contain detailed information about various topics:
+- README: contains installation notes, a short introduction, and a couple
+  of other intersting topics
+- keys.*: explains the usage of the interactive pager
+- options.*: explains all available command line options
+- config.*: explains how to configure netrik (config file)
+- hacking.*: explains how netrik does all this groovy things ;-)
+- syntax_error.*: explains why netrik always complains about HTML
+  syntax errors, and what to do about it
+("*" means txt or html -- choose the one you prefer...)
+

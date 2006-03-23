@@ -1,0 +1,453 @@
+  netrik hacker's manual
+>========================<
+
+[This file contains a description of the viewer module. See hacking.txt or
+hacking.html for an overview of the manual.]
+
+_Pager Operation_
+
+As the pager doesn't just follow a static algorithm, but has to react to
+certain events (keyboard input), the structure is somewhat harder to retrace.
+
+The central pager function is _display()_, which contains the main loop
+(keyboard dispatcher) which performs some action(s) on each keypress, as well
+as the interface to main().
+
+These actions directly performed by the keyboard commands mostly do not have
+a direct visible effect; instead, they alter the pager state, which becomes
+visible with the next screen update -- this is performed in each main loop
+iteration before waiting for the next keypress. Some actions also require
+temporarily exiting the pager and returning to main(), which is fairly easy
+and transparent, as the pager state is stored directly in the page structure
+and the screen contents thus can be easily restored when reentering the pager.
+
+The pager state consists of three basic components: "pager_pos" is the line
+number (in page) of the first line visible on the screen. "active_link"
+contains the link number of the currently selected link. (Or -1 if none.)
+"cursor_x" and "cursor_y" tell where the cursor is on the page. (Not the
+screen!) The additional "sticky_cursor" flag allows keeping the cursor in
+its place while scrolling (if possible), instead of moving it to the screen top.
+
+Each of the major parameters is manipulated chiefly by one function:
+_scroll_to()_ sets "pager_pos", _activate_link()_ sets "active_link", and
+_set_cursor()_ sets the cursor position (and also manages the "sticky_cursor"
+status). The variables aren't independent, however -- scroll_to() may
+need to deactivate the active link if it moved off the screen, and often
+move the cursor; activate_link may need to scroll if the link is presently
+not an the screen, and always has to set the cursor position; set_cursor()
+has to deactivate any previously active link, and also scroll if the desired
+cursor position is outside the current screen. This interrelation requires the
+functions calling each other in a quite complicated manner, sometimes even
+recursively... Maybe we should try to write a generic function for updating
+all the states at once by a single request.
+
+Note that scroll_to() and activate_link() do not only set the state, but also
+(re)render the visible page part (using _render()_ , which is described in
+hacking-layout.*). Probably it would be better to do this in the main loop
+also. Moreover, activate_link() even modifies the page, which was a very bad
+idea and surely will be changed in the future.
+
+_display()_
+
+The viewer basically consists of a keyboard dispatcher that loops until some
+command was given that requires some action by main(). These include the
+quit command, link following, history commands, entering the command prompt,
+or text search.
+
+display() tells main() what action is required, by the return value which is an
+"enum Pager_ret".
+
+After main() has done it's work, display() will be called again; it will then
+continue just where it stopped, which is possible because the important pager
+state information (postion of the currently visible page part, cursor position,
+currently selected link) are stored in the page structure, which is described
+under _Page List Handling_ in hacking-page.*. Thus the way over main()
+is quite seemless; to the user it usually looks as if he was in the pager
+all the time.
+
+To allow for this, display() needs to do some work to restore the state
+upon startup.
+
+First, the page is scrolled to the previous position, using _scroll_to()_
+. "old_line" is set to PAGE_INVALID (meaning the pager presently displays
+nothing) before scrolling, so that the screen contents always will be drawn
+completely anew.
+
+Afterwards, the cursor position is set to the saved one using _set_cursor()_
+. Note that the position has to be stored before scroll_to(), as this function
+might move it out of the screen and adjust the cursor, in case a new cursor
+position was requested. (By a text search.)
+
+Finally, if there is a selected link, it is (re)activated with
+_activate_link()_ (described in hacking-links.*). The active link also has
+to be saved before scroll_to(), as the link position may have changed in the
+meantime, causing scroll_to() to deactivate the previouly selected link if
+it is no longer on the screen.
+
+Reactivating the link is omitted when the pager is restarted after a text
+search command ("search.type" is set) -- in this case the cursor position
+has higher priority and is not to be overwritten.
+
+Initialization is slightly different if an anchor was activated, which is
+indicated by "page->active_anchor" being set. In this case, instead of callig
+scroll_to() directly, _activate_anchor()_ (also described in hacking-links.*)
+is used. This one also scrolls (but to the anchor position, not the previous
+pager position), and additionally draws the anchor marks.
+
+After completing these initalizations, the keyboard input loop is entered,
+which reads one character in each iteration (note that the mvgetch() fuction
+used for that also updates the curses screen), and then dispatches to the
+requested command in a big switch.
+
+The cursor position (passed to mvgetch()) is determined from
+"page->cursor_[xy]", which are page coordinates, and have to be transformed
+to screen coordinates first.
+
+_Scrolling Commands_
+
+The scrolling commands are all implemented by simple calls to scroll_to()
+with different parameters. All relative movement commands can simply add or
+subtract a constant number of lines to move, as scroll_to() checks for the
+page boundaries.
+
+_scroll_to()_
+
+This function scrolls the visible page area to the desired position. It moves
+(or deletes) the screen content, and repaints newly visible areas using render()
+(see hacking-layout.*).
+
+It is called with the desired new position as argument. This position is
+described by the line number, of that line of the output page which is
+displayed in the first screen line.
+
+First the desired new position is checked to be in the valid range.
+
+If it is greater than the page length minus one screenwidth, it is set to that
+value. (The last page line can't move above the bottom screen line this way.)
+
+If smaller then zero, it is set to zero. (The page top can't move below the
+screen top.) Note that this will undo the above check, if the output page
+is smaller than one screenfull -- in this case, the page end is always above
+the screen end.
+
+Now that we know the real destination position, the difference to the present
+position (stored in the static "old_line") is calculated.
+
+If the absolute value of that difference is not more than a screenfull,
+scrolling is used. This is done by the insdelln() curses function, called with
+the cursor being in the first screen line. (Called with a negative value it
+deletes lines, causing the screen contents to scroll up; called with a positive
+argument, it inserts lines, causing the screen contents to scroll down.)
+
+After scrolling, the new lines revealed at the top or bottom of the screen
+need to be rendered. After scrolling down (negative "scroll_lines"), the first
+"scroll_lines" of the screen have to be repainted. This is done by calling
+render() with "scroll_lines" as the height, 0 as the screen position (the
+first lines of the screen are repainted), and "new_line" as page position.
+("new_line" contains the page position of the first screen line.)
+
+After scrolling up, the last screen lines have to be repainted. This is
+done similar. The hight is "-scroll_lines" ("scroll_lines" is negative when
+scrolling up), the screen position is the screen end minus "-sroll_lines", and
+the page position is the page position of the first screen line ("new_line")
+plus the screen position of the rendered area.
+
+If the difference is too big for scrolling, the whole screen is erased and
+repainted.
+
+The first time this function is called, "old_line" has the value PAGE_INVALID
+(defined as the biggest possible positive int value), indicating that the
+screen contains nothing valid yet. There is no special handling necessary for
+this case -- "scroll_lines" gets a very big value, and thus the whole screen
+is always repainted.
+
+Finally, the cursor position is updated, if necessary. If the cursor is no
+longer on the screen (more exactly, inside the active screen area), it is
+set to the home position with _set_cursor()_ .  If the "sticky_cursor"
+flag is not set, the cursor is always homed.
+
+_Cursor Movement Commands_
+
+Just like the scrolling commands, the cursor movement commands are all
+implemented by single calls to a specific function (set_cursor()) with the
+desired new position, which is calculated from the current one.
+
+_set_cursor()_
+
+set_cursor() is responsible for setting the cursor to some desired page
+position (not screen position!). It also sets the "sticky_cursor" flag,
+so that the cursor will stay in it's place (again, page position) until reset.
+
+If called with -1 as x and y position, the "sticky_cursor" flag is cleared
+instead, and the cursor set to the home position -- which is column 0 in the
+first line inside the active screen area.
+
+If the requested new position is outside the present active screen area,
+the page first needs to be scrolled. If the position is before the active
+screen area, we scroll as many lines back as the position is outside; if it
+is behind the active area, we scroll as many lines forward.
+
+Now we test whether the requested position is on the screen, and truncate
+if not. The y position is actually tested against the page boundaries (after
+scrolling, those should be equal in case the requested position is outside);
+only the x position is tested against the screen boundaries, as there is
+presently no x scrolling.
+
+Finally, we test whether there is some link at the new cursor position. If
+there is one, and it wasn't already active, we activate it now. (Using
+_activate_link()_ , see hacking-links.*.) If there was a link active
+up to now, but there is no link at the new position, the old one is
+deactivated. (activate_link() does this automatically, as -1 will be passed
+as the link number in this situation.)
+
+Only now the cursor is set to the new position, and the sticky status set. (Or
+reset, if homing.)
+
+_Link Selection Commands_
+
+As explained under _display()_ above, the pager keeps track of the current
+active link by the "active_link" variable in the "page" struct. (-1 means no
+link is active.)
+
+All link selection commands are implemented using a generic link search
+function to find out which link to activate, and then just activating it with
+_activate_link()_ (see hacking-links.*).
+
+_find_link()_
+
+Finding the link to activate is done with the find_link() function. This
+function is flexible enough to implement almost all link selection commands
+with only one invocation.
+
+find_link() looks for the first link or the last link (depending on
+"match_type") inside a desired range.
+
+The search area is primarily specified by the coordinates "start_x", "start_y"
+and "end_x", "end_y", enclosing a part of the page inside which the links
+to be considered have to *start*. (As usual, the start coordinates give
+the first allowed positin, while the end coordinates give the first invalid
+position.)  Note that regardless of the beginning and end positions being
+given by coordinate pairs, the range is actually linear: It spanns from the
+start position to the end of the line, includes (in whole) the following
+lines till "end_y", and concludes with the beginning of the line "end_y"
+before the end position.
+
+line zero
+ 
+line one with <zeroth link> in it
+ 
+line two with <firST LINK> IN IT      <-- start_y
+                  ^start_x
+LINE THREE WITH <SECOND LINK> IN IT
+ 
+LINE FOUR
+ 
+LINE FIVE WITH <THIRD LInk> in it     <-- end_y
+                        ^end_x
+line six with <fourth link> in it
+
+(The second and third links are inside the area, the zeroth, first, and
+fourth not.)
+
+There is one additional parameter limiting the search area: "end_line" limits
+the range where links can *end*. (As usual, it gives the first invalid line.)
+This is necessary as some commands only activate links that are already inside
+the screen completely.
+
+"end_line" or "end_x" and "end_y" can be specified alternatively, or both --
+only links inside both ranges will be considered.
+
+If any of the y paramaters ("start_y", "end_y", "end_line") is given as
+"-1", it is ignored, i.e. the range extends to the end beginning/end of the
+page. For the x parameters, the behaviour is more complicated: "-1" actually
+means that the range starts/ends *before* the beginning of the line; thus,
+"start_x" being -1 means the whole "start_y" line is inside the range, but
+"end_x" being -1 means the whole line is *outside* the range, i.e. only links
+ending *before* "end_y" are accepted. (Just as with "end_line" and other range
+ends.) This may look confusing at first, but it is consistent: Giving "end_x"
+means that the beginning of the "end_y" line is inside the range *additionally*
+to the lines before "end_y", just as "start_x" means the beginning of the
+"start_x" line is not inside. If this isn't clear, take another look at the
+figure above, and imagine what happens when "start_x" and/or "start_y" are
+moved to the beginning of the line.
+
+The implemetation of find_link() is actually fairly small, though not simple.
+
+First, two macros are defined: INSIDE_START() testing whether "link" starts
+behind the beginning of the range (i.e. whether "start_x" and "start_y" are
+fulfilled), and INSIDE_END(), which tests the end of the area -- both the
+end of the link start range ("end_x" and "end_y") and the link end ("end_line").
+
+The first step is finding the candidate link -- when "match_type" is FIND_FIRST,
+this is the first link starting after the beginning of the range, and with
+FIND_LAST the last link before the end of the range.
+
+The candidate located using a binary search. (Note that "first" and "last" are
+really only helper variables for the search, just like "mid". The fact that,
+depending on "match_type", one of those is actually the result, is only a side
+effect of the search algorithm; but the respective other one is only garbage.
+You should *not* confuse them for always being the first and last link inside
+the area -- only one of the bounds is checked in this search!)
+
+   link0 link1              link2    link3  link4
+        start =>|           ^candidate
+
+Now we test whether the candidate is actually a valid link (inside the link
+number range), i.e. there are *any* links inside the boundary.
+
+Finally, the other boundary has to be tested.
+
+   link0 link1              link2    link3  link4
+              =>|           ^              |<= end
+                            |------------->|
+                                  candidate < end => OK
+
+(If there are no links inside the range, still a candidate matching the first
+bound may have been found.)
+
+   link0 link1              link2    link3  link4
+              =>|     |<=   ^
+                      |<----|
+                         candidate > end => nothing in range
+
+If no link matching the criteria was found, find_link() returns -1.
+
+_active_start() and active_end()_
+
+Cheking whether a link is (or would be) inside the valid screen area for active
+links, primarily during link selection but also in a few other places, is done
+using the active_start() and active_end() functions. These simply return the
+bounds of the valid area (in page coordinates, not screen coordinates!).
+
+Normally, the area starts in the line that shows up at the screen top (i.e.
+"pager_pos") plus "cfg.link_margin" -- this is one line below the screen
+top with the default setting. The end is the last line on screen minus the
+link margin, accordingly. (But note that active_end returns the number of
+the *first invalid* line, i.e. *after* the end of the valid area, as all end
+coordinates are specfied this way!)
+
+An exception is the pager being at the top (for active_start()) or bottom
+(for active_end()) of the page -- in this case the valid area includes the
+first or last page lines, as these can never move into the normal valid
+area. (The page top can't ever move below the screen top; same for bottom.)
+
+The "pos" parameter allows specifying some other pager position (relative to
+the current "page->pager_pos") to check; 0 means using the current position.
+
+_Command Implementations_
+
+Thanks to the powerful _find_link()_ function, the commands are actually very
+simple. Most commands just consist of one call to find_link() to find the new
+link, and a call to _activate_link()_ with the new link number to activate it.
+
+The simplest commands are those independant of the current cursor position.
+('H', 'L', 'M') These just pass a range of line numbers (aquired with
+active_start() and active_end()) to find_link().
+
+Many commands however search forward or backward starting from the current
+cursor position. These just pass the cursor position as the start (for those
+searching forward) or the end of the search range, respectively. There is
+one little complication when searching forward: If a link is active already
+(implying the cursor is at the link start), a search starting with the cursor
+position will always give the active link again. Thus, "x_start" needs to be
+incremented by one in this case.
+
+The other end of the range depends on how far the specific command searches:
+Some (<tab>, 'p') search till the end of the document, while others ('J', 'K',
+and also '+' and '-') only to the end of the active screen area, optionally
+with scrolling one line.
+
+The latter also have to test whether a link was actually found in the desired
+area, and just scroll one line with _scroll_to()_ otherwise.
+
+Some commands ('+', '-', '^', '' and '0') do not directly search from the
+cursor position, but in a range relative to the cursor line. Those are very
+similar. Two of them are more complicated however:
+
+'-' is complicated, because it has to find the first link in some range (the
+previous line having any links), but the beginning of that range isn't fixed
+-- there might be already links in the previous line, but we might also have
+to go a few lines back. Before we can search for the desired link, we have
+to find out the line where to search. This is done with another invocation
+of find_link(), looking for the last link starting before the current line;
+as this link is obviously in the previous line having links, we can use this
+link's starting line as the beginning of our search range.
+
+a line with the <first link>
+ 
+a line with the <second link> and the <third link>       <-- start_y=new_link->y_start
+                ~~~~~~~~~~~~~goal     ^^^^^^^^^^^^new_link (helper)
+a line with no links
+ 
+another line with no links
+ 
+a line with the <fourth link>                            <-- page->cursor_y
+        ^cursor position
+another line
+
+'0' is complicated, because -- opposite to all other commands -- it has to
+find a link *ending* in or after some given line. find_link() has no provision
+for that; extending it in this way just for this single command would be stupid.
+
+Thus, we have to use a trick: We first search for the last link ending *before*
+the current line (so we can use the existing "end_line" parameter), and then
+just look for the next link -- which is obviosly the first one ending in or
+after the current line.
+
+_History Commands_
+
+The history commands all work alike:
+
+'b' goes back to the previous page by setting the current position in the
+history one backwards (decrementing). The page is then (re)loaded by quitting
+the pager with "RET_HISTORY" -- main() then invokes the necessary actions for
+loading the page, before restarting display().  (load_page() and init_load()
+take care for correct loading of pages from history.)
+
+'f' goes forward in the same manner (incrementing "pos").
+
+'B' searches the history backwards, until it finds some page that is followed
+either by one with the "absolute" flag set or by an internal page (the
+internal page is treated like a new site). If nothing is found the search
+stops at the first entry in the history, and that one is taken.
+
+'F' searches forwards, also looking for a page followed by an absoulte URL. The
+last entry is taken if nothing was found.
+
+'^r' causes the current page to be reloaded, by returning RET_HISTORY, but
+not changing the position in the page list. Thus it is not really a history
+command from the user's point of view -- but technically, it is.
+
+'r' searches backwards for a page with "mark" set. It also takes the first
+page if nothing was found; 'R' does the same forwards.
+
+The marks are set by the 's' command. This one simply sets the "mark" flag
+of the current "page" structure.
+
+_Link Following_
+
+When a link is followed by typing <return>, "RET_LINK" is returned, and the
+main program follows the current "active_link". This process is described
+under _main()_ in hacking-links.*.
+
+_URL commands_
+
+The 'u' command causes display() to return "RET_LINK_URL"; main() then shows
+the URL of the currently active link.
+
+'c' returns "RET_URL", and main() shows the current page URL.
+
+'U' returns "RET_ABSOLUTE_URL", causing main() to print the absolute link
+target URL which is used when the link is actually followed.
+
+_Other Commands_
+
+When 'q' is typed the pager simply returns with "RET_QUIT", indicating that
+the main program should quit also.
+
+When ':' is typed the pager quits too, but returns "RET_COMMAND"; this means
+that the main program should enter command mode.
+
+'/' is very similar: "pager_ret" is set to "RET_SEARCH"; additionally,
+"search.type" is set to "SEARCH_FORWARD".
+

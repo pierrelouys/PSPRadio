@@ -1,0 +1,4329 @@
+$#<html>
+$#<head>
+$#<title>netrik hacker's manual: layout engine</title>
+$#</head>
+$#<body>
+
+$#<h1 align="center">netrik hacker's manual<br />>========================&lt;</h1>
+§  netrik hacker's manual
+§>========================<
+
+[This file contains a description of the layouting module. See hacking.txt or
+$$<a$+href="hacking.html">$$hacking.html$$</a>$$ for an overview of the manual.]
+
+$=$$<h2>$$$_0. Overview$_$$</h2>$$
+
+The whole layouting is split up into several, fairly simple passes, which are
+executed one after the other. See the 
+$$<a$+href="hacking.html#notes">$$notes in hacking.*$$</a>$$ for a discussion of
+this approach.
+
+The first pass is the $$<a$+href="#parseSyntax">$$$_parse_syntax()$_$$</a>$$
+function, which creates a $$<a$+href="#syntaxTree">$$$_Syntax Tree$_$$</a>$$ of
+the document. This tree contains all HTML elements and their content, but the
+elements have no special meaning yet.
+
+$$<a$+href="#dumpTree">$$$_dump_tree()$_$$</a>$$ can be used to output the syntax
+tree.
+
+In the next pass ($ $$<a$+href="#parseElements">$$$_parse_elements()$_$$</a>$$$ ),
+all element and attribute names are looked up in tables and stored as enums to
+facialiate further processing.
+
+If not compiled with -DXHTML_ONLY, an additional pass is inserted after element
+parsing: In $$<a$+href="#sgmlRework">$$$_$5$.$ sgml_rework()$_$$</a>$$$ , the
+syntax tree is modified to fix the wrong element nesting caused by missing end
+tags in SGML documents.
+
+dump_tree() can be used again to dump all element and attribute types as found
+in the lookup, and the possibly modified tree structure.
+
+The third pass is the central processing step.
+$$<a$+href="#parseStruct">$$$_parse_struct()$_$$</a>$$ interprets the elements
+and their attributes, and creates a $$<a$+href="#itemTree">$$$_Structure
+Tree$_$$</a>$$$ , which contains all the items that will be visible on the
+output page.
+
+The fourth pass prepares the page for rendering. In
+$$<a$+href="#preRender">$$$_pre_render()$_$$</a>$$, all items created in
+parse_struct() are assigned actual sizes and positions in the output page. Also,
+a structure $$<a$+href="#pageMap">$$"page_map[]"$$</a>$$ is created, needed for
+fast lookup what items are present in any given line.
+
+All of the passes mentioned above are necessary to prepare the rendering, and
+are executed from $$<a$+href="#layout">$$$_layout()$_$$</a>$$$ .
+
+The actual rendering is done in render.c. However, this isn't done for the
+whole page like the other layouting passes. Instead, every time some region of
+the output page needs to be displayed,
+$$<a$+href="#render">$$$_render()$_$$</a>$$ is called to render exactly that
+region.
+
+Alternatively, The whole page can be dumped to the terminal line by line, using
+$$<a$+href="#dump">$$$_dump()$_$$</a>$$$ .
+
+The third function in render.c is $$<a$+href="#dumpItems">$$$_dump_items()$_$$</a>$$$ .
+This is not really a rendering function; it only dumps the item tree, including
+the (coloured) text.
+
+$=$$<h2>$$$_1. layout.c$_$$</h2>$$
+
+This file forms the framework for the layouting process. It contains functions
+to load a file and prepare it for rendering, but also to free the memory used
+by a document when it is no longer needed.
+
+$#<a name="layout" id="layout">
+
+$=$$<h3>$$$_layout()$_$$</h3>$$
+
+layout() is given a URL of a file or web resource to load, and does all
+actions necessary to be able to render the corresponding page. 
+
+Before starting any of the loading or layouting operations, a descriptor is
+allocated where all the data structures created inside layout() will be stored.
+
+The descriptor is a "struct Layout" pointer. It contains the following data:
+
+$#<ul> <li>
+§§$- A pointer to the input ressource descriptor ("input")
+$#</li> <li>
+§§$- An additional pointer "url" to the effective page URL, necessary to hold the
+§§$  URL after the input resource descriptor is freed
+$#</li> <li>
+§§$- Pointers to all data structures necessary for the layouting ("syntax_tree",
+§§$  "item_tree", "page_map[]")
+$#</li> <li>
+§§$- Pointers to the "$$<a$+href="hacking-links.html#linkList">$$link_list$$</a>$$" and "$$<a$+href="hacking-links.html#anchorList">$$anchor_list$$</a>$$" data structures
+$#</li> </ul>
+
+After allocating the descriptor, layout() first opens the resource with
+$$<a$+href="hacking-load.html#initLoad">$$init_load()$$</a>$$. (Described in
+hacking-load.*)
+
+Afterwards, $$<a$+href="#parseSyntax">$$$_parse_syntax()$_$$</a>$$$ ,
+$$<a$+href="#parseElements">$$$_parse_elements()$_$$</a>$$$ ,
+$$<a$+href="#sgmlRework">$$$_$5$.$ sgml_rework()$_$$</a>$$$ ,
+$$<a$+href="#parseStruct">$$$_parse_struct()$_$$</a>$$$ , and
+$$<a$+href="#preRender">$$$_pre_render()$_$$</a>$$ are called in sequence.
+These functions are responsible for preparing the page for rendering.
+
+The file loading itself is done inside parse_syntax(), which uses the
+$$<a$+href="hacking-load.html#load">$$load()$$</a>$$ function from load.c (see
+$$<a$+href="hacking-load.html">$$hacking-load.*$$</a>$$) to read a data block
+every time the input buffer is empty. It processes the data in the buffer
+character by character (keeping track of the current read position by
+"input->buf_ptr"), and when it reaches the end it calls load() again to get the
+next data block.
+
+After parse_struct(), the syntax tree is no longer needed. It is freed by
+$$<a$+href="#freeSyntax">$$$_free_syntax()$_$$</a>$$$ .
+
+At this point also the "link_list" and "anchor_list" data structures are
+created using
+$$<a$+href="hacking-links.html#linkList">$$make_link_list()$$</a>$$ and
+$$<a$+href="hacking-links.html#anchorList">$$make_anchor_list()$$</a>$$. (See
+$$<a$+href="hacking-links.html">$$hacking-links.*$$</a>$$ )
+
+$#</a>    <!-- layout -->
+
+$#<a name="freeLayout" id="freeLayout">
+
+$=$$<h3>$$$_free_layout()$_$$</h3>$$
+
+When a page is unloaded (usually before loading a new page), this function is
+called to free all the data structures created by the layouting process to
+allow rendering (Item tree, page map, link list, anchor list), i.e. all data
+stored in the "Layout" descriptor, except for "input" and "syntax_tree", which
+are already freed during the layouting process. (s.a.) The descriptor itself is
+also freed.
+
+$#</a>    <!-- freeLayout -->
+
+$#<a name="resize" id="resize">
+
+$=$$<h3>$$$_resize()$_$$</h3>$$
+
+The resize() function is somewhat similar to
+$$<a$+href="#layout">$$$_layout()$_$$</a>$$ -- it calls the same subfunctions
+to create a combination of an item tree with assigned coordinates and a page
+usage map. The difference is that resize() does not start from scratch, but
+only repeats the steps necessary to adapt to a new screen width; the properties
+determined by the document itself (i.e. the item tree) are kept.
+
+So we actually just call pre_render() (see $$<a$+href="#preRender">$$$_7.
+pre-render.c$_$$</a>$$$ ) again. (Note that the minimal item sizes calculated
+in $$<a$+href="calcWidth">$$$_calc_width()$_$$</a>$$$ could be kept also; for
+simplicity, we just pre-render completely again anyways -- this shouldn't be
+too big a loss, we believe. When implementing rendering of incompletely loaded
+pages, we will have to create some mechanism to skip such unnecessary
+re-calculations per item anyways.)
+
+As resize() starts from a "ready" page, not from scratch, it has to free the
+old data structures (page map) before creating new ones.
+
+$#</a>    <!-- resize -->
+
+$#<a name="parseSyntax" id="parseSyntax">
+
+$=$$<h2>$$$_2. parse-syntax.c$_$$</h2>$$
+
+The first thing to be done when layouting is parsing the syntax of the input
+file. This is done by parse_syntax(). This function creates a syntax tree. The
+pointer to the head of this tree is returned to layout() and stored as
+"layout->syntax_tree" there.
+
+$=$$<h3>$$$_Syntax Tree$_$$</h3>$$
+
+Every node of "syntax_tree" is a structure of the type "Element" (defined in
+"syntax.h") and corresponds to one HTML element. (An element in an HTML
+document is represented by an HTML-tag, and the corresponding end tag, if any.)
+End tags do not create tree nodes, as they only close elements already stored.
+
+$#<a name="testHtml" id="testHtml">
+
+For the supplied "test/0.html":
+
+$§   header text
+$§
+$§   <html><head> </head>
+$§   <body>
+$§      <h1> heading </h1>
+$§      <p>
+$§         first paragraph of text; 
+$§         includes  multiple spaces and newlines,
+$§         <em> emphasized text </em>and 
+$§         <strong> strong text </strong>
+$§      </p>
+$§      <p>
+$§         <center>starting with an evil center tag,</center>
+$§         this very long second paragraph contains some special characters (including a simple space...):
+$§         &amp;; &lt;&gt;&quot;=/ plus a big gap&nbsp;&nbsp;&nbsp;and two unicode escapes
+$§         (decimal: &#161; and hexal: &#xbf;)
+$§         but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§         (this anchor also is the only tag with parameters);
+$§         and finally a blank row <br /> (a single tag)
+$§      </p>
+$§   </body>
+$§   </html>
+
+$#</a>    <!--testHtml-->
+
+the syntax tree looks like this:
+
+$#<a name="syntaxTree" id="syntaxTree">
+
+$§  ++>NULL
+$§  +
+$§+---+
+$§| ! |-. <++
+$§+---+ |   +
+$§      v   +
+$§ ,-----------.
+$§("header text")
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+   <+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§        | head |->| body |-. <++++++++++++++                                              +
+$§        +------+  +------+ | <+            +                                              +
+$§                           v  +            +                                              +     <+++++++++++++++++++++++++++++++++++++++++++++++++
+$§                        +----++          +---+     <++++++++++++++++++++                +---+   <++++++++++++++++++++++++++++++++                +
+$§                        | h1 |-. <+   ,->| p |---. <++                 +             ,->| p |-. <++++++++++++++++++             +                +    (back
+$§                        +----+ |  +   |  +---+   |   +                 +             |  +---+ | <+                +             +                +    to top)
+$§                               v  +   |          v   +                 +             |        |  +                +             +                +          ^
+$§                          ,--------.  |  ,------------------.       ,----.           |        |  +          ,----------.   ,---------.   ,---------------.  |
+$§                         (" heading") | (" first...newlines,")     (" and")          |        v  +         (" this...em") ("ded...row") (" (a single tag)") |
+$§                          `--+---+-'  |  `-----+----+-------'     +-+----+-+         |   +--------+         `---+---+--'   `--+----+-'   `-----+---+-----'  |
+$§                             | ? |----'        | em |-. <++    ,->| strong |-. <++   |   | center |-. <++    ,->| a |-. <+ ,->| br |---------->| ? |--------'
+$§                             +---+             +----+ |   +    |  +--------+ |   +   |   +--------+ |   +    |  +---+ |  + |  +----+           +---+
+$§                                                      v   +    |             v   +   |              v   +    |        v  + |
+$§                                           ,----------------.  |     ,------------.  |   ,----------------.  |      ,---.+ |
+$§                                          (" emphasized text") |    (" strong text") |  (" starting...tag,") |     ("bed") |
+$§                                           `--------+---+---'  |     `-----+---+--'  |   `--------+---+---'  |      +---+  |
+$§+++> "parent"                                       | ? |------'           | ? |-----'            | ? |------'      | ? |--'
+$§---> "list_next"                                    +---+                  +---+                  +---+             +---+
+
+$#</a>    <!--syntaxTree-->
+
+(I'm really curious if anyone can read this ;-) )
+
+The "Element" structure includes:
+
+$#<ul> <li>
+§§$- The pointers "list_next" and "parent" describe the tree structure.
+§§$  "parent" points to the element (node) which contains this one in its content
+§§$  (text) area. "list_next" points to the next element as it appears in the
+§§$  input stream.
+$#</li> <li>
+§§$- The "closed" flag is a helper flag for $$<a$+href="#sgmlRework">$$$_$5$.$ sgml_rework()$_$$</a>$$ and has
+§§$  no meaning outside of it.
+$#</li> <li>
+§§$- The union "name" describes what kind of element this node represents. ("html",
+§§$  "head" etc.) It can store the element name either as a pointer to a string
+§§$  (as appears in the input stream), or as an enum number.
+$#</li> <li>
+§§$- "attr_count" stores the number of attributes of this element. (Attributes
+§§$  are the parameters of an element, which appear inside the start tag, like:
+§§$  href="foo" etc.)
+$#</li> <li>
+§§$- "attr" points to an array of "Attr" structures. Each of these structures
+§§$  contains the data for one attribute; it consists of a union of type
+§§$  "Attr_name", which, like "Element_name", stores the attribute name either as a
+§§$  string or as an enum; and a union of type "Attr_value", which stores the
+§§$  value of the attribute. (String or number.)
+$#</li> <li>
+$#<a name="elementText">
+§§$- The "content" string stores the content. (The text between the tags.) Every
+§§$  element stores the content between the previous tag and the start tag of this
+§§$  element. Thus it does not store the content of the element itself, but part
+§§$  of the content of the *parent* element. This simplifies processing a bit,
+§§$  because this way no facility for storing content blocks divided by
+§§$  sub-elements is needed -- the sub-elements store the content themselves. The
+§§$  caveat is that a lot of dummy elements are needed to store the content if no
+§§$  further sub-element follows them. This is quite a big inefficiency, as nearly
+§§$  every real element also needs a dummy element to store its content. This
+§§$  should change in the future -- if we won't drop the syntax-tree in its
+§§$  present form at all... Which we will :-)
+$#</a>    <!--elementText-->
+$#</li> </ul>
+
+$=$$<h3>$$$_Initialization$_$$</h3>$$
+
+Before starting parsing, we have to create the tree top. (We call it the global
+element.) This is done by setting "cur_el" to NULL and calling add_element().
+
+$#<a name="addElement" id="addElement">
+
+$=$$<h4>$$$_add_element()$_$$</h4>$$
+
+This function creates a new node and inserts it into the syntax tree; thus it
+has to set the "parent" and "list_next" pointers too, and adjust some
+pointes of other nodes to point to this one.
+
+"parent" is set to "cur_el", as any new tag is created while parsing the
+content area of its parent. "list_next" is set to NULL, as the new node is
+always the last one in the list. "list_next" of "last_el" (the last node in the
+list up to now) is set to point to the new node; this is omitted if "cur_el" is
+NULL, indicating that there are no other nodes yet.
+
+$#</a>    <!--addElement-->
+
+$#<a name="parsing" id="parsing">
+
+$=$$<h3>$$$_Parsing$_$$</h3>$$
+
+The parser itself works in a very simple way. It is some kind of state machine.
+For every input character, one action is taken, selected by a dispatcher
+depending on the current state (stored in "parse_mode") and the input char
+itself. Several combinations (e.g. tag start) change the current state, thus
+the following character(s) are parsed in a different mode. (Other actions are
+taken.)
+
+Sometimes a character that causes a mode switch has to be parsed in the new
+mode itself. In this case the flag "recycle" is set after the mode change,
+causing the dispatch to be repeated for the same char, but in the new mode.
+
+Again, the parsing is not very efficient in the present implementation. (In
+fact, it is by far the most time consuming part of the whole layouting.)
+Especially the huge switch is quite slow. (Good compilers have a fairly
+efficient implementation of the switch itself; however, it still causes many
+unpredictable branches.) There are some possibilities to optimize this. The
+bigger problem is that the inner loop is quite big, and may not fit into the
+processor's instruction cache, thus making it terribly slow. Maybe splitting
+the parsing into several simpler passes would help. However, we are planning to
+switch to a completely different, (hopefully) much more efficient parser system
+in the next major release...
+
+The default parsing mode is "PM_CONTENT", which is the mode for parsing element
+content. Any normal character encountered in this mode is simply added to
+"text_buf" by "buf_add_char()". A ' ', '\t', '\n', '\r' or '\f' aren't stored;
+we switch to "PM_BLANK" instead. Any following blank space is ignored. As soon
+as a normal character occurs again, we store a single ' ' and swich back to
+"PM_CONTENT".
+
+$§input:
+$§         first paragraph of text; 
+$§         includes  multiple spaces and newlines,
+$§                      ^
+$§                      file position
+$§
+$§text_buf: " first paragraph of text; includes mul"
+
+$=$$<h4>$$$_<pre> Blocks$_$$</h4>$$
+
+After a <pre> tag, the mode isn't switched back to "PM_CONTENT", but to
+"PM_PRE". In this mode all blank space characters are stored to "text_buf"
+as non-breakable spaces, except newlines which are stored directly.
+
+The mode is ended and switched to "PM_CONTENT" again when a closing "</pre>"
+tag is encountered.
+
+PM_PRE is also (mis-)used for <textarea>: The content of a <textarea> is used
+as the initial value; and this is plain text, so it has to be treated
+literally, without messing with the blanks. Thus it can be handled similar to
+<pre>, except that blanks are really stored directly, not even converted to
+&nbsp; . The "textarea" flag indicates we are in a <textarea> not a real <pre>,
+and this exception needs to be applied.
+
+Note that this is quite a dirty hack, which may not work in all situations.
+(<textarea> inside <pre>...) However, the new parser in 2.x will handle this
+totally diffent anyway, so it's not worth more effort with the old parser.
+
+$=$$<h4>$$$_References$_$$</h4>$$
+
+An '&' indicates a character reference (unicode escape) or entity reference
+(named escape), and starts the reference parsing mode "PM_AMP". On entering
+this mode, the current write position in "text_buf" is saved to "amp_pos".
+
+$§input: [...] &lt; [...]
+$§             ^
+$§text_buf: "[...] &"
+$§                 ^^
+$§                  text_buf_len
+$§                 amp_pos
+
+There are several submodes in the PM_AMP family, keeping track of the reference
+syntax -- this is necessary in SGML mode, as there is no other method to
+reliably discover the end of the reference or a '&' character which isn't
+actually a reference.
+
+Nonetheless, all characters occuring in any of these submodes are added to
+"text_buf"; actually evaluating the reference is done only when it's end is
+encountered. The mode is then switched back to the previous parsing mode before
+the reference occured (saved in "prev_mode_amp") -- references can occur in
+content and in attribute values.
+
+$§input: [...] &lt; [...]
+$§                ^
+$§text_buf: "[...] &lt;"
+$§                 ^   ^
+$§                     text_buf_len
+$§                 amp_pos
+
+The text between the saved start position of the escape sequence and the
+current positon is converted then, depending on the type of the reference.
+
+If it's a symbolic (named) reference, the string is looked up in "ref_table[]",
+which is a table of named characters, defined in facilities.c$ .
+
+For numerical character references, the integer value is extracted, using
+decimal or hexadecimal conversion, depending on whether the number starts with
+'x'. (Note that we have different parser states for decimal and hexal; however,
+testing for the 'x' instead of the parser state saves us one condition, as we
+would have to test the 'x' anyways -- the parser treats every alphanumerical
+sequence starting with a letter as a hex number.)
+
+If a replacement char was found either in the table or by the number
+conversion, the reference is removed from "text_buf" and the replacement char
+is inserted instead.
+
+$§text_buf: "[...] <"
+$§                  ^
+$§                  text_buf_len
+
+If no replacement was found, the string is left unchanged. Probably we will
+mark unknown escapes with some visible attribute in the future.
+
+$=$$<h4>$$$_Tags$_$$</h4>$$
+
+A '<' starts tag parsing. There is a a whole bunch of tag parsing modes. The
+one entered after the '<' is "PM_TAG_START", which indicates that the tag name
+should follow next.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                  ^
+$§text_buf: "[...] but also an anchor em"
+$§tree:
+$§     +
+$§     +     
+$§   +---+   
+$§-->| p |-.     <== cur_el
+$§   +---+ | <+         
+$§         |  +         
+$§         |  +         
+$§         v  +         
+$§    +--------+        
+$§    | center |-. <++  
+$§    +--------+ |   +  
+$§               v   +  
+$§    ,----------------.
+$§   (" starting...tag,")
+$§    `--------+---+---'   <-- last_el
+$§             | ? |->NULL
+$§             +---+
+
+$=$$<h5>$$$_Start Tags$_$$</h5>$$
+
+If the following character is an normal char, it's a start tag. (Or a single
+tag, which is treated the same way for now.) "PM_TAG_NAME" is entered. A new
+element node is created by
+$$<a$+href="#addElement">$$$_add_element()$_$$</a>$$$ . Any content in front of
+this new element, which was stored in "text_buf" up to now, is stored to the
+new node's "$$<a$+href="#elementText">$$text$$</a>$$" field by "insert_buf".
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                   ^
+$§text_buf: ""
+$§tree:
+$§    +    
+$§  +---+
+$§->| p |-. <++++++++++++++++++
+$§  +---+ | <+                +
+$§        |  +  <==           +
+$§        |  +          ,----------. 
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'    <--
+$§   | center |-. <++    ,->|   |->NULL
+$§   +--------+ |   +    |  +---+
+$§              v   +    |
+$§   ,----------------.  |
+$§  (" starting...tag,") |
+$§   `--------+---+---'  |
+$§            | ? |------'
+$§            +---+       
+
+Normal characters encounterd in "PM_TAG_NAME" mode (including the one that
+started the mode) are stored to "text_buf".
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                   ^
+$§text_buf: "a"
+
+A blank space character ends "PM_TAG_NAME" and switches to "PM_TAG", which indicates that
+attributes may follow. "text_buf" is stored as the element name.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                    ^
+$§text_buf: ""
+$§tree:
+$§    +    
+$§  +---+
+$§->| p |-. <++++++++++++++++++
+$§  +---+ | <+                +
+$§        |  +  <==           +
+$§        |  +          ,----------. 
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'    <--
+$§   | center |-. <++    ,->| a |->NULL
+$§   +--------+ |   +    |  +---+
+$§              v   +    |
+$§   ,----------------.  |
+$§  (" starting...tag,") |
+$§   `--------+---+---'  |
+$§            | ? |------'
+$§            +---+       
+
+A following normal char is the beginning of an attribute name, and switches to
+"PM_ATTR_NAME". Characters encounterd in "PM_ATTR_NAME" mode are also stored to "text_buf".
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                        ^
+$§text_buf: "name"
+
+The attribute name ends with an '=' or a blank char. A new entry is created in the "attr[]"
+array, and "text_buf" is stored as the attribute name. Mode is switched to
+"PM_ATTR_NAME_END" first, which indicates that the attribue value should follow.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                         ^
+$§text_buf: ""
+$§attr:   name:   data:
+$§        "name"  ""
+
+If the attribute name was ended by an '=', mode is switched immediately to
+"PM_ATTR_VALUE", otherwise as soon as an '=' is encountered. (After any amount
+of whitespace.)
+
+White space in "PM_ATTR_VALUE" mode (after the '=') is ignored too.
+
+Next char must be either a '"' or a '\'', and switches to "PM_ATTR_DATA_QUOT"
+or "PM_ATTR_DATA_APOS", respectively. In this modes characters are stored to
+"text_buf" again.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                                ^
+$§text_buf: "anchor"
+$§attr:   name:   data:
+$§        "name"  ""
+
+A second '"' (or '\'', respectively) ends this mode. "text_buf" is stored as
+the attribute value for the new "attr" entry.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                                 ^
+$§text_buf: ""
+$§attr:   name:   data:
+$§        "name"  "anchor"
+
+Mode is swiched back to "PM_TAG". Now blank space may follow (which is
+ignored), followed by another attribute.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                                   ^
+
+In "PM_TAG" mode also a '>' may occur, ending tag parsing and switching back to
+the mode before tag parsing had begun. (PM_CONTENT or PM_BLANK.) In this case,
+"cur_el" is set to "last_el"; this means descending in the syntax tree to the
+newly created node.
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                                          ^
+$§text_buf: ""
+$§attr:   name:   data:
+$§        "name"  "anchor"
+$§        "href"  ""
+$§tree:
+$§    +    
+$§  +---+
+$§->| p |-. <++++++++++++++++++
+$§  +---+ | <+                +
+$§        |  +                +
+$§        |  +          ,----------. 
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'     <==
+$§   | center |-. <++    ,->| a |->NULL  <--
+$§   +--------+ |   +    |  +---+
+$§              v   +    |
+$§   ,----------------.  |
+$§  (" starting...tag,") |
+$§   `--------+---+---'  |
+$§            | ? |------'
+$§            +---+       
+
+A '>' may also occur in "PM_TAG_NAME" mode, meaning the element has no
+attributes.
+
+$§input: <html> <head> [...]
+$§            ^
+
+In this case creating the new node and storing the name, and descending into
+the element are done in one step. (By "recycle".)
+
+$=$$<h5>$$$_End Tags$_$$</h5>$$
+
+If the first character after the '<' is a '/', the tag is an end tag, and we
+switch to "PM_END_TAG_START", and then to "PM_END_TAG_NAME" on the first
+letter.
+
+If any text was pending in "text_buf" before the tag, we have to store it
+somewhere. As an end tag normally does not create a new element node, we have
+to create a dummy node for this. (Very inefficient, s.a.)
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                                               ^
+$§tree:
+$§    +
+$§  +---+
+$§->| p |-. <++++++++++++++++++
+$§  +---+ | <+                +
+$§        |  +                +
+$§        |  +          ,----------.
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'    <==
+$§   | center |-. <++    ,->| a |-. <+
+$§   +--------+ |   +    |  +---+ |  +
+$§              v   +    |        v  +
+$§   ,----------------.  |      ,---.+
+$§  (" starting...tag,") |     ("bed")
+$§   `--------+---+---'  |      +---+        <--
+$§            | ? |------'      | ? |->NULL
+$§            +---+             +---+
+
+Normal chars in "PM_END_TAG_NAME" mode are stored to "text_buf", too.
+"PM_END_TAG_NAME" can be ended immediately by a '>', or by blank space
+(switching to "PM_END_TAG_SPACE") followed by '>'.
+
+The tag name extracted to "text_buf" is compared against the element name of
+the current element, to see if the end tag matches, and then abdannoned. The
+element is closed by ascending to the parent. 
+
+$§input: [...] but also an anchor em<a name="anchor" href="">bed</a>ded inside a word
+$§                                                                 ^
+$§tree:
+$§    +
+$§  +---+
+$§->| p |-. <++++++++++++++++++
+$§  +---+ | <+                +
+$§        |  +    <==         +
+$§        |  +          ,----------.
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'
+$§   | center |-. <++    ,->| a |-. <+
+$§   +--------+ |   +    |  +---+ |  +
+$§              v   +    |        v  +
+$§   ,----------------.  |      ,---.+
+$§  (" starting...tag,") |     ("bed")
+$§   `--------+---+---'  |      +---+        <--
+$§            | ? |------'      | ? |->NULL
+$§            +---+             +---+
+
+$=$$<h5>$$$_Single Tags$_$$</h5>$$
+
+If a '/' appears instead of an attribute name in "PM_TAG" mode, "parse_mode" is
+set to "PM_SINGLE_TAG", indicating an (XML) single tag.
+
+$§input: [...] and finally a blank row <br /> (a single tag)
+$§                                         ^
+
+The '/' can also immediately follow the element name. (In "PM_TAG_NAME" mode.)
+
+$§input: <hr/>
+$§          ^
+
+In this case, creating the node and switching to a single tag are done in one
+step by "recycle".
+
+In any case, a '>' has to follow, and switches back to normal mode just like in
+a start tag, only it does not descend (set the new node as "cur_el") -- a
+single tag has no content area; the content following a single tag still
+belongs to the parent.
+
+$§input: [...] and finally a blank row <br /> (a single tag)
+$§                                          ^
+$§tree:
+$§    +
+$§  +---+   <++++++++++++++++++++++++++++++++
+$§->| p |-. <++++++++++++++++++             +
+$§  +---+ | <+                +             +
+$§        |  +   <==          +             +
+$§        |  +          ,----------.   ,---------. 
+$§        v  +         (" this...em") ("ded...row")
+$§   +--------+         `---+---+--'   `--+----+-'      <--
+$§   | center |-. <++    ,->| a |-. <+ ,->| br |->NULL
+$§   +--------+ |   +    |  +---+ |  + |  +----+   
+$§              v   +    |        v  + |
+$§   ,----------------.  |      ,---.+ |
+$§  (" starting...tag,") |     ("bed") |
+$§   `--------+---+---'  |      +---+  |
+$§            | ? |------'      | ? |--'
+$§            +---+             +---+
+
+$=$$<h4>$$$_Comments$_$$</h4>$$
+
+In "PM_TAG_START" mode (after the '<'), also an '!' can follow, indicating that
+we have not any tag at all, but either a comment, a DOCTYPE declaration, or a
+CDATA section. "parse_mode" is set to "PM_EXCLAM" in this case.
+
+$§input: some text <!--a test-comment--> and more text
+$§                  ^
+
+If a '-' follows, it's a comment. Mode is switched to "PM_COMMENT_START".
+
+$§input: some text <!--a test-comment--> and more text
+$§                   ^
+
+Now a second '-' has to follow, switching to "PM_COMMENT". In this mode any
+characters but a '-' are simply ignored.
+
+$§input: some text <!--a test-comment--> and more text
+$§                          ^
+$§text_buf: "some text"
+
+A '-' switches to "PM_COMMENT_END1", which means that it *may* be the comment end.
+
+$§input: some text <!--a test-comment--> and more text
+$§                           ^
+
+However, if it is followed by any other char than a second '-', mode is
+switched back to "PM_COMMENT".
+
+$§input: some text <!--a test-comment--> and more text
+$§                            ^
+
+A second '-' in "PM_COMMENT_END1" switches to "PM_COMMENT_END2", which means
+that now the comment really ends.
+
+$§input: some text <!--a test-comment--> and more text
+$§                                    ^
+
+Now the '>' has to follow, and switches back to parsing mode before the
+beginning of the comment ("prev_mode_tag").
+
+$§input: some text <!--a test-comment--> and more text
+$§                                     ^
+
+$=$$<h4>$$$_DOCTYPE Declarations$_$$</h4>$$
+
+If a normal char occurs in "PM_EXCLAM", we assume it is the "D" in "<!DOCTYPE".
+
+$§input: garbage <!DOCTYPE somedoc> more garbage
+$§                 ^
+
+We treat DOCTYPE declarations as comments. Any characters but '>' are ignored.
+
+$§input: garbage <!DOCTYPE somedoc> more garbage
+$§                               ^
+$§text_buf: "garbage"
+
+A '>' returns to normal mode.
+
+$§input: garbage <!DOCTYPE somedoc> more garbage
+$§                                ^
+
+This isn't a very reliable detection, as according to the grammer, an unescaped
+'>' may appear in some system literal inside the declaration. However, we
+assume that this won't happen... (We would have to parse the whole declaration
+otherwise.)
+
+$=$$<h4>$$$_CDATA Sections$_$$</h4>$$
+
+A '[' in "PM_EXCLAM" mode starts a CDATA section, indicated by
+"PM_CDATA_START". If there is a pending blank ("prev_mode_tag" is "PM_BLANK"),
+it has to be stored *before* the CDATA.
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                   ^
+$§text_buf: "some text "
+
+Following normal chars (should) belong to the "CDATA" string, and are ignored.
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                        ^
+$§text_buf: "some text "
+
+A second '[' in "PM_CDATA_START" mode switches to "PM_CDATA", indicating that
+the actual data will follow.
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                         ^
+
+Any characters in "PM_CDATA" mode but '>' are stored directly to "text_buf".
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                                   ^
+$§text_buf: "some text a tricky ]"
+
+When a '>' occurs, the previous two chars (in "text_buf") are tested against
+"]]". If they do not match, the '>' is simply stored just as any other
+character.
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                                    ^
+$§text_buf: "some text a tricky ]>"
+
+If they match, the last two characters are removed from "text_buf" (they belong
+to the CDATA terminator), and mode is switched back to "PM_CONTENT". (It
+doesn't need to be switched back to the mode before the CDATA section, as any
+pending blanks already have been stored, and a CDATA section can't start in
+other modes than "PM_TEXT" or "PM_BLANK".)
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                                                     ^
+$§text_buf: "some text a tricky ]> CDATA section]]"
+
+$§input: some text <![CDATA[a tricky ]> CDATA section]]> and more text
+$§                                                      ^
+$§text_buf: "some text a tricky ]> CDATA section"
+
+$=$$<h4>$$$_Processing Instructions$_$$</h4>$$
+
+The '<' may also be followed by a '?', indicating a processing instruction.
+Mode is switched from "PM_TAG_START" to "PM_INSTR".
+
+$§input: some text <?a fake? processing instruction??> more text
+$§                  ^
+
+Processing instructions are also treated as comments. Any chars but '?' are
+ignored in "PM_INSTR".
+
+$§input: some text <?a fake? processing instruction??> more text
+$§                        ^
+$§text_buf: "some text"
+
+A '?' switches to "PM_INSTR_END", indicating this *may* be the end of the
+processing instruction.
+
+$§input: some text <?a fake? processing instruction??> more text
+$§                         ^
+
+If a normal char follows the '?', mode is switched back to "PM_INSTR".
+
+$§input: some text <?a fake? processing instruction??> more text
+$§                          ^
+
+If a second '?' follows, "PM_INSTR_END" is kept, as the first one isn't the end
+of the processing instruction, but the new one could be.
+
+$§input: some text <?a fake? processing instruction??> more text
+$§                                                  ^
+
+A '>' in PM_INSTR_END really ends the processing instruction, and switches to
+"prev_mode_tag".
+
+$§input: some text <?a fake? processing instruction??> more text
+$§                                                   ^
+
+$=$$<h3>$$$_SGML Mode$_$$</h3>$$
+
+When compiled without the "-DXHTML_ONLY" option, a few cases more are possible.
+
+$=$$<h4>$$$_Unclosed Tags$_$$</h4>$$
+
+In SGML, not every element has to have an end tag.
+
+When an end tag is encountered, we ascend in the syntax tree not only once, but
+until an element is found that matches the end tag. Thus, all elements in
+between are automatically closed.
+
+$§input:
+$§<body>
+$§   <p>
+$§      some text
+$§      <hr>
+$§   </p>
+$§   ^
+$§
+$§+------+
+$§| body |-.<+
+$§+------+ | +
+$§         v +
+$§       +---+
+$§       | p |-.<+
+$§       +---+ | +
+$§             v +
+$§        ,-------.
+$§       (some text)
+$§        `-+----+'
+$§      --> | hr |->NULL
+$§      ==> +----+
+
+$§input:
+$§<body>
+$§   <p>
+$§      some text
+$§      <hr>
+$§   </p>
+$§      ^
+$§
+$§+------+
+$§| body |-.<+   <==
+$§+------+ | +
+$§         v +
+$§       +---+
+$§       | p |-.<+
+$§       +---+ | +
+$§             v +
+$§        ,-------.
+$§       (some text)
+$§        `-+----+'
+$§      --> | hr |->NULL
+$§          +----+
+
+$=$$<h4>$$$_Unquoted Attribute Values$_$$</h4>$$
+
+When a normal char occurs in "PM_ATTR_VALUE" mode, "PM_ATTR_DATA_NOQUOTE" is entered.
+
+$§input: <sometag someattribute=somevalue minimized third="nothing">
+$§                              ^
+
+This mode is just like  "PM_ATTR_DATA_QUOT" or "PM_ATTR_DATA_APOS", only it
+is ended by a blank or the tag end.
+
+$§input: <sometag someattribute=somevalue minimized third="nothing">
+$§                                       ^
+
+$=$$<h4>$$$_Mimimized Attributes$_$$</h4>$$
+
+In SGML, attributes without a value are possible. This is recognized when a
+normal char or the tag end occurs in "PM_ATTR_NAME_END" mode instead of the
+'='.
+
+$§input: <sometag someattribute=somevalue minimized third="nothing">
+$§                                                  ^
+
+The attribute is ended immediately. "text_buf[]" (which is empty in this case)
+is stored just like at the end of an unquoted attribute value. Mode is set to
+"PM_TAG", and the current character (the tag end or beginning of next
+attribute) is processed in this mode.
+
+$=$$<h4>$$$_SGML Comments$_$$</h4>$$
+
+Comments also allow more complicated syntax. For one, blank space is possible
+between the "--" ending the comment string and the '>' ending the declaration.
+Thus, blank space in PM_COMMENT_END2 is ignored.
+
+Moreover, another comment string may follow the end. Thus, a '-' in
+PM_COMMENT_END2 switches back to PM_COMMENT_START, similary to the '-' after
+the "<!".
+
+$§input: <!--comment start--  --second comment string in same declaration--  >
+$§                            ^
+
+Finally, SGML also allows empty declarations ("<!>"), which are also a kind of
+comment. Thus a '>' in PM_EXCLAM switches immediately to PM_COMMENT_END2 and
+recycles.
+
+$§input: <!>
+$§         ^
+
+$=$$<h4>$$$_Unclosed Tags$_$$</h4>$$
+
+In SGML, tags needn't be closed by '>', if the tag end can be deduced from the
+context. In practise, this means that a tag can also be ended by a '<'
+character, which may be the beginning of a following tag. Thus we have to
+handle this in all situations where a '>' could also occur.
+
+$=$$<h4>$$$_Unhandled Constructs$_$$</h4>$$
+
+SGML also allows some constructs that aren't recognized by any browser we know
+of. These include empty tags (<> and </>) and "net mode".
+
+Netrik recognizes these constructs and prints a warning, but doesn't handle
+them either -- there is no point in this, as autors couldn't use them anyways
+due to lack of support in other browsers. Handling them correctly would
+actually even break some pages, because it would behave different than all
+other browsers.
+
+$=$$<h4>$$$_Loose '&' and '<' Chars$_$$</h4>$$
+
+If some illegal char occurs in a entity/character reference, it's not really a
+reference, but an unescaped '&'. We keep the whole sequence literally and
+switch back to "prev_mode_amp".
+
+$§input: x = a & b
+$§              ^
+$§text_buf: "x = a & "
+
+Similar for illegal characters in "PM_TAG_START" (and some other PM_TAG*
+modes), which indicate an unescaped '<'. We store a '<' and switch back to
+"prev_mode_tag".
+
+$§input: if(a < b)
+$§             ^
+$§text_buf: "< "
+
+$#</a>    <!-- parsing -->
+
+$=$$<h3>$$$_Finishing$_$$</h3>$$
+
+Parsing is ended by EOF. This should only appear in "PM_CONTENT" or "PM_BLANK"
+mode (not inside some tag, comment, CDATA section or chracter/entity
+reference), and only if the current element is the global one (not while
+parsing some element's content).
+
+The "list_next" pointer of the last node is set to point back to the tree top.
+This faciliates easier processing in the following steps.
+
+$=$$<h3>$$$_Error Handling$_$$</h3>$$
+
+When using -DXHTML_ONLY, every syntax error encountered causes netrik to print
+an error message and immediately quit. (The XML standard requires this.)
+
+Without -DXHTML_ONLY, netrik is more tolerant.
+
+$=$$<h4>$$$_Workarounds$_$$</h4>$$
+
+Netrik uses simple workarounds for some of the most common cases of broken
+HTML.
+
+Most notable is comment parsing: As SGML comments have a quite complicated
+syntax, reasonable error handling is also quite complicated.
+
+If someting else then '>' (end of comment declaration), '-' (beginning of
+second comment string), or blank space follows in PM_COMMENT_END2 (after a
+"--"), then the "--" was probably not intended to have any special meaning, but
+simply to be part of the comment. Thus, mode is switched back to PM_COMMENT.
+
+$§input: <!-- some broken -- comment -->
+$§                           ^
+
+The same is done for unexpected characters in PM_COMMENT_RESTART mode, which is
+most common for "---" inside a comment.
+
+$§input: <!-- some broken --- comment -->
+$§                            ^
+
+There is one exception to this, however: If a '>' follows in PM_COMMENT_START
+mode, and it was preceeded not only by one '-' (the one which started
+PM_COMMENT_START) but two or more, then the the '>' together with the last two
+'-' was probably intended as as an XML-like "-->" comment end.
+
+$§input: <!--- anything --->
+$§                        ^
+$§parse_mode: PM_COMMENT_START
+$§dash_count: 3
+
+The "dash_count" variable keeps track of how many dashes have been encountered
+in a row; it is incremented every time a '-' apprears in some of the comment
+parsing modes, and is reset to 0 every time some other character is
+encountered.
+
+"dash_count" is also used in another situation: If a '>' follows in PM_COMMENT
+or PM_COMMENT_END1, normally it is part of the comment. The '>' is ignored and
+mode stays PM_COMMENT. (Or is switched back from PM_COMMENT_END1.)
+
+$§input: <!-- comment with > and -> in it -->
+$§                                ^
+
+However, if there were two or more dashes in front of the '>', this "-->"
+combination was probably also intended as a comment end. A comment consisting
+of a series of dashes is a typical example:
+
+$§input: <!------>
+$§              ^
+$§parse_mode=PM_COMMENT
+$§dash_count=6
+
+However, only a little warning can be printed in this case -- this is valid
+SGML, and *has* to be treated as part of the comment, even if it's probably not
+what the page author intended! Printing an error and using a workaround would
+mean deliberately to violate the standard in favour of broken pages, which is
+probably not a very good idea...
+
+There is another trick however, which contervails this in most situations: As
+soon as any clear error is detected, a "broken" flag is set for the time of
+this comment. If the above situation occurs afterwards, we treat it as an error
+and abort the comment -- as we are sure that the comment has errors, there is
+no point in continuing as if the comment was correct.
+
+There are also a couple of specific workarounds for tags:
+
+Spurious quotes inside the attribute value are quite common when the autor
+forgets the opening quote but not the closing one. These have to be ignored. (A
+warning is printed, but they aren't stored as part of the value or handled
+otherwise.)
+
+Very often we find illegal characters in unquoted attribute values. (According
+to the standard, only name characters are allowed here.) These produce a
+warning, but are otherwise handled like legal chars -- as long as there are not
+ambigious. (A '<' is always an error for example, as it usually indicates
+another tag start.)
+
+Other unexpected characters in tags (e.g. "a<b =" or something the like) are
+handled by immediatly aborting tag parsing and returning to normal mode. This
+seems the surest bet, because such a situation usually indicates that the
+construct wasn't intended as a tag at all, only looked similar by incident. By
+bailing out as soon as possible, we try to limit the damage -- staying in tag
+mode might produce more critical problems, like hiding or misinterpreting
+considerable parts of the remaining document.
+
+Note that even better would be storing the whole preceeding part of the
+presumed tag literally as content. it would be much more complicated however;
+we haven't bothered to implement this.
+
+Unexpected characters in any other mode are simply ignored, hoping for the
+best.
+
+$=$$<h4>$$$_html_error()$_$$</h4>$$
+
+Whenever some syntax error is detected (no matter whether workarounds are
+available), html_error() is called, with several parameters describing the
+error. This function is responsible for everything that needs to be done when
+an error occurs.
+
+Before taking any action, the requested error message is tested against an
+array with all errors printed so far. Only if the message is new, the function
+proceeds; otherwise, an "ignored"-counter is incremented, and the function
+returns early.
+
+Only now html_error() starts it's normal operation: First, it prints an the
+message. The message text is passed from parse_syntax(), and used as the format
+string for printf(). If the error message requires additional arguments, they
+are passed at the end of the parameter list when calling html_error().
+
+If the parsing mode requires that, html_error() quits immediately afterwards.
+The mode is determined by the config variable "cfg.parser", which is an "enum
+Parser_mode", with the possible values FUSSY_HTML, CLEAN_HTML, VALID_HTML,
+BROKEN_HTML and IGNORE_BROKEN. The parser quits only in FUSSY_HTML mode, or
+when -DXHTML_ONLY is enabled. If the input resource from which the page is
+loaded is a pipe from wget (see
+$$<a$+href="hacking-load.html">$$hacking-load.*$$</a>$$$), the pipe is closed
+before quitting to assure a cleaner exit.
+
+In all other modes, an additonal message passed from parse_syntax() is printed
+afterwards, informing in which way netrik will handle the error. (workaround,
+ignore etc.)
+
+Finally the error level passed from parse_syntax() is compared against the
+highest error level up to know, and the new higest level is returned.
+
+$#$$<a name="warn" id="warn">
+
+$=$$<h4>$$$_Warning messages$_$$</h4>
+
+parse_syntax keeps track of most severe syntax error that was found while
+parsing the page in "err_level", which is of type "enum Syntax_error" and can
+have the following values:
+
+$#<ul> <li>
+§§$- SE_NO: No errors were found
+$#</li> <li>
+§§$- SE_BREAK: The user issued an interrupt (SIGINT) while loading the document.
+§§$  This isn't really an error, but can be handled very convenient this way...
+$#</li> <li>
+§§$- SE_DISCOURAGED: Some constructs were found that are strictly speaking valid
+§§$  SGML, but explicitely discouraged in the HTML standard. These may be handled
+§§$  differently by other browsers -- especially comments.
+$#</li> <li>
+§§$- SE_UNIMPLEMENTED: Also valid SGML and discouraged in HTML, but not handled
+§§$  correctly by netrik nor any other popular browser.
+$#</li> <li>
+§§$- SE_WORKAROUND: Real errors were found, but workarounds could be applied that
+§§$  work in most cases.
+$#</li> <li>
+§§$- SE_CRITICAL: Something went terribly wrong: We have an error situation which
+§§$  we can not make out, and thus no useful workaround could be applied. The page
+§§$  almost certainly will look broken, often with considerable parts or the
+§§$  content missing. (e.g. a misinterpreted comment or missing closing quote)
+$#</li> <li>
+§§$- SE_FAIL: This isn't really a syntax error. It is not used inside
+§§$  parse_syntax() itself; it's only set before returning when a file loading
+§§$  error was detected, for the sake of the calling function.
+$#</li> <li>
+§§$- SE_NODATA: Similar to SE_FAIL. This is set if EOF is returned by load()
+§§$  before *any* data has been read.
+$#</li> </ul>
+
+After the whole page is parsed, a warning message is printed if some error was
+found. The message text depends on the error level. The error level is also
+passed back to main(), which then waits for a keypress before starting the
+pager, so the message will be seen.
+
+In IGNORE_BROKEN mode the warning is suppressed, and "err_level" is reset. In
+BROKEN_HTML mode, all but SE_CRITICAL errors are suppresed; and in VALID_HTML,
+all but SE_CRITICAL and SE_WORKAROUND.
+
+SE_BREAK is set if EOF is returned, but at the same time "input->user_break"
+has been set, indicating that it's not really EOF, but transfer was interrupted
+by the user. Other errors are supressed in this mode, as a user break during
+loading might cause several syntax errors (unclosed elements etc.) with the
+page itself being not to blame for.
+
+SE_NODATA is set if EOF is returned by load() before any data has been read.
+(This can be caused by failure to open the resource, but also by an empty
+file/http response.) It's handled like a normal syntax error; the only
+difference is that it can't be masked even by IGNORE_BROKEN. The syntax tree
+consists only of the global element; it will be correctly rendered to an empty
+page.
+
+SE_FAIL isn't set during parsing. Before returning, parse_syntax() checks
+whether "input->type" is RES_FAIL; if it is, an error message is printed, and
+SE_FAIL is set (so main() knows an error occured). However, this test is only
+necessary if SE_NODATA isn't set; otherwise, an error message has already been
+printed and an error code would be returned anyways. As EOF is returned by
+load() also when an error occured, SE_NODATA is already set for most errors;
+SE_FAIL is only used if the error occurs after some data could be read.
+
+$#</a>    <!-- warn -->
+
+$#<a name="freeSyntax" id="freeSyntax">
+
+$=$$<h3>$$$_free_syntax()$_$$</h3>$$
+
+This function is responsible for freeing the memory used by the syntax tree
+when it is no longer needed.
+
+The whole tree is traversed by "list_next", and the element nodes are freed one
+by one.
+
+As the "list_next" pointer is necesary to find the next node, but not longer
+available after freeing the current node, it is saved in "next_el" before
+freeing. At the the beginning of the next iteration this is copied to "cur_el".
+
+Before freeing the element node itself, all dynamic data belonging to the node
+has to be freed.
+
+$#</a>    <!--freeSyntax-->
+
+$#</a>    <!--parseSyntax-->
+
+$#<a name="dumpTree" id="dumpTree">
+
+$=$$<h2>$$$_3. dump-tree.c$_$$</h2>$$
+
+dump_tree() is primarily used for dumping the syntax tree generated by
+parse_sytax() for debugging purposes. The reason it resides in an own file is
+that it could be easily modified to be a really useful function for dumping a
+HTML document's structure. This may be implemented in the future, if someone
+shows interest...
+
+The implementation of dump_tree() is quite straightforward, as the function
+only needs to print every node in the order it occured in the HTML file.
+
+For every node, first the text is printed. (If "dump_content" is given.) The
+reason it is printed in front of the node itself is because it's also the
+content in front of the element in the original HTML file.
+
+Next, the current tree depth is shown by a number of '|'. The current depth is
+always stored in "depth".
+
+Afterwards the element name is printed, and all attributes with their values.
+Depending on "elements_parsed", either the raw values extracted from the
+document are printed, or the transformed values generated by parse_elements().
+
+The next node is reached by the "list_next" pointer of the current node. Before
+going to the next node the tree depth of the new node needs to be calculated.
+This is done by assuming that the next node is below the current one, and than
+going up, until we find the parent of the new node. This idea is explained in
+more detail in $$<a$+href="#parseStruct">$$$_6. parse-struct.c$_$$</a>$$$ .
+
+$#</a>    <!--dumpTree-->
+
+$#<a name="parseElements" id="parseElements">
+
+$=$$<h2>$$$_4. parse-elements.c$_$$</h2>$$
+
+parse_elements() is responsible for making out the elements and attributes from the
+syntax tree. (Extraced by parse_syntax().)
+
+All elements but the first one (which is always ELEMENT_GLOBAL) are processed one
+by one; the tree is traversed via "list_next". For every element, the name is
+looked up in "element_table[]" by comparing to all entries, in a loop.
+
+$#<a name="elementTable" id="elementTable">
+
+"element_table[]" contains all names of ordinary elements, then the "?"
+representing ELEMENT_NO, and finally "!" representing ELEMENT_GLOBAL. (It also contains
+other properties of the elements; more on this in
+$$<a$+href="#parseElementsProcessing">$$$_Processing$_$$</a>$$ in
+$$<a$+href="#parseStruct">$$$_6. parse-struct.c$_$$</a>$$$ .)
+
+$#</a>    <!--elementTable-->
+
+The last two aren't checked against the element name.
+
+As soon as a match is found, the loop is left and the entry number is stored to
+"syntax_tree" in place of the string. The entry number is an "enum
+Element_type", defined in syntax.h; it tells the element type in the following
+processing passes.
+
+If none of the ordinary entries matched, the entry nuber, which now is ELEMENT_NO
+(as this one follows after the ordinary entries), is stored anyhow, indicating
+that the element is unknown. If no element name was stored ("cur_el->name.str"
+is NULL), indicating a dummy tag, ELEMENT_NO is set also.
+
+After the element name, all attribute names are processed in a loop. They are
+looked up in "attr_table[]" the same way the element name is.
+
+The attribute value isn't processed at all yet.
+
+$#</a>    <!--parseElements-->
+
+$#<a name="sgmlRework" id="sgmlRework">
+
+$=$$<h2>$$$_5. sgml_rework()$_$$</h2>$$
+
+Before the syntax tree is further processed, sgml_rework() (from sgml.c) is
+applied. (Unless compiled with -DXHTML_ONLY.)
+
+This function is responsible for fixing the problems arising from the fact that
+SGML allows certain end tags to be left out; thus the syntax parser doesn't
+recognize the elements' ends, and stores all following elements as children,
+even if they should actually be at the same level. (e.g. the list items in a
+list.) sgml_rework() goes over the complete (broken) tree, finds such
+situations, and unnests the elements, thus creating a correct syntax tree.
+
+It won't be covered in too much detail here, as this is only a temporary
+solution; it will become obsolete with the planned new parser(s).
+
+The recognition of the missing element ends is done by the "element_group" enum
+in "$$<a$+href="#elementTable">$$element_table[]$$</a>$$". This Enum has the
+values GROUP_SINGLE for single tag elements (elements which mustn't have any
+content), GROUP_OBLIGATE for all elements where the end tag can't be left out,
+and several others for various kinds of elements with optional end tag.
+
+The whole tree is scanned element by element (using "list_next"), and each one
+is tested to fullfill one of the offending conditions. Two things have to be
+handled: Unclosed single tag elements, and unclosed optional end tag elements.
+
+The second situation is more complicated. If the element is of some type with
+optional end tag, it could terminate a previous (unclosed) element from the
+same group; e.g. a <li> will terminate the previous <li>. It doesn't terminate
+elements from other groups, though; a <td> inside a <tr> doesn't terminate the
+<tr>, for example. Thus, the group of the current element needs to be tested
+against the group of the parent (all elements following an unclosed one are
+stored as its children by the parser!); if they are the same, the parent is
+actually an element that should be terminated at the position where the child
+starts, and the child should follow it, at the same depth. This means that the
+child has to be "lifted" out of the parent. However, we don't do that
+immediately; we only set the "closed" flag of the parent element for now, and
+the lifting will be done later.
+
+However, it's not enough to test only the immediate parent: The element may
+follow some other unclosed element, and thus be a child of it, e.g. a <tr>
+following a <td>, which is inside the previous <tr>. This also needs to be
+recognized, and *both* the previous <tr> and the <td> have to be closed. Thus,
+not only the immediate parent's group is compared, but all ancestors are
+scanned. The scanning only stops on an element with obligate end tag -- as the
+element's end is always known for these, nothing will be ever stored inside
+that element that doesn't belong there, and nothing should be lifted out. (In
+nested tables for example, the <tr>s and <td>s of the inner table shouldn't
+mess with the ones of the outer table -- this is ensured by the scanning of the
+inner table's rows and columns stopping at the inner <table> element.) The
+"closed" flag is set for all the closed ancestors.
+
+Some more handling is necessary due to the fact that an element node always
+stores the content which appears *before* the element. When an element is
+lifted, the content musn't be lifted also -- it appeared *before* the element,
+and thus also before the previous element's end, so it has to stay where it is.
+We have to create a new dummy tag inside the closed element therefore, taking
+the place of the lifted element and storing its content.
+
+However, this isn't done when the parent was already closed. This happens if
+the parent is a single tag element. These elements end right where they start,
+not at the beginning of the next element; the content also has to be lifted
+out. (Nothing is allowed to stay inside a single tag element!)
+
+The actual lifting is done after processing the element: If the parent is
+closed, we have to "leave" it. (This is done by setting the "parent" to the
+previous grandparent -- this way, the element is no longer a child of the old
+parent, but a sibling.) Thus the element that closed it's parent is lifted
+right afterwards; all following elements of the parent will be lifted also,
+after being processed. Any preceeding elements (as well as the possibly created
+new dummy) won't be lifted on the other hand, as they won't be processed
+anymore.
+
+Single tag elements are handled more or less the other way round: They are not
+closed by some child (which turns out to actually be a sibling), but close
+*themselfs*, as soon as they are encountered. This way all children will be
+lifted out, no matter what.
+
+No other processing is necessary for single tag elements, as they won't ever
+terminate some other element.
+
+$#</a>    <!-- sgmlRework -->
+
+$#<a name="parseStruct" id="parseStruct">
+
+$=$$<h2>$$$_6. parse-struct.c$_$$</h2>$$
+
+After the syntax tree was generated by parse_syntax(), we have to "understand"
+it. This is done by parse_struct(), which is the central pass of the layouting
+process. In this function the syntax tree, which contains a nearly 1:1
+reproduction of the HTML file, is converted to an item tree, which contains a
+representation of what will be actually shown as the output of the browser --
+text blocks, blank rows, boxes grouping severel other items.
+
+$=$$<h3>$$$_Structure Tree$_$$</h3>$$
+
+For 0.html, we have to convert the syntax tree:
+
+$§  ++>NULL
+$§  +
+$§+---+
+$§| ! |-. <++
+$§+---+ |   +
+$§      v   +
+$§ ,-----------.
+$§("header text")
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+   <+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§        | head |->| body |-. <++++++++++++++                                              +
+$§        +------+  +------+ | <+            +                                              +
+$§                           v  +            +                                              +     <+++++++++++++++++++++++++++++++++++++++++++++++++
+$§                        +----++          +---+     <++++++++++++++++++++                +---+   <++++++++++++++++++++++++++++++++                +
+$§                        | h1 |-. <+   ,->| p |---. <++                 +             ,->| p |-. <++++++++++++++++++             +                +    (back
+$§                        +----+ |  +   |  +---+   |   +                 +             |  +---+ | <+                +             +                +    to top)
+$§                               v  +   |          v   +                 +             |        |  +                +             +                +          ^
+$§                          ,--------.  |  ,------------------.       ,----.           |        |  +          ,----------.   ,---------.   ,---------------.  |
+$§                         (" heading") | (" first...newlines,")     (" and")          |        v  +         (" this...em") ("ded...row") (" (a single tag)") |
+$§                          `--+---+-'  |  `-----+----+-------'     +-+----+-+         |   +--------+         `---+---+--'   `--+----+-'   `-----+---+-----'  |
+$§                             | ? |----'        | em |-. <++    ,->| strong |-. <++   |   | center |-. <++    ,->| a |-. <+ ,->| br |---------->| ? |--------'
+$§                             +---+             +----+ |   +    |  +--------+ |   +   |   +--------+ |   +    |  +---+ |  + |  +----+           +---+
+$§                                                      v   +    |             v   +   |              v   +    |        v  + |
+$§                                           ,----------------.  |     ,------------.  |   ,----------------.  |      ,---.+ |
+$§                                          (" emphasized text") |    (" strong text") |  (" starting...tag,") |     ("bed") |
+$§                                           `--------+---+---'  |     `-----+---+--'  |   `--------+---+---'  |      +---+  |
+$§                                                    | ? |------'           | ? |-----'            | ? |------'      | ? |--'
+$§                                                    +---+                  +---+                  +---+             +---+
+
+to this structure tree:
+
+$#<a name="itemTree" id="itemTree">
+
+$§***> "string"                                                                             (back  <+++++++++
+$§xxx> "first_child"                                                                      to first          +
+$§+++> "parent"                                                                             item)        +-----+
+$§===> "next"                                                                                         ,->| box |-->NULL
+$§---> "list_next"                                                                                    |  +-----+<==#
+$§                                                                                                    |  x  ^  #===#
+$§  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  +
+$§  x                                                                                                 |     +
+$§  x  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§  x  +         +           +          +           +          +           +          +          +    |
+$§  v  +         +           +          +           +          +           +          +          +    |
+$§+------+   +-------+   +------+   +-------+   +------+   +-------+   +------+   +------+   +------+ |
+$§| text |-->| blank |-->| text |-->| blank |-->| text |-->| blank |-->| text |-->| text |-->| text |-'
+$§+----*-+==>+-------+==>+----*-+==>+-------+==>+----*-+==>+-------+==>+----*-+==>+----*-+==>+----*-+==>NULL
+$§  x  *         x         x  *         x         x  *         x         x  *       x  *       x  * 
+$§  v  *         v         v  *         v         v  *         v         v  *       v  *       v  *   ,--------------.
+$§NULL *       NULL      NULL *       NULL      NULL *       NULL      NULL *     NULL *     NULL **>("(a single tag)")
+$§     v                      v                      v                      v          *              `--------------'
+$§ ,-----------.          ,-------.           ,------------.       ,---------------.   *   ,----------------.
+$§("header text")        ("heading")         ("first...text")     ("starting...tag,")  **>("this...blank row")
+$§ `-----------'          `-------'           `------------'       `---------------'       `----------------'
+
+$#</a>    <!--itemTree-->
+
+which, in turn, is a representation of this output page:
+
+$#<a name="itemPage" id="itemPage">
+
+$§+-------------------------------------------------------------------------------------------------+
+$§|+-----------+                                                                                    |
+$§||header text|                                                                                    |
+$§|+-----------+                                                                                    |
+$§|                                                                                                 |
+$§|+-------+                                                                                        |
+$§||heading|                                                                                        |
+$§|+-------+                                                                                        |
+$§|                                                                                                 |
+$§|+-----------------------------------------------------------------------------------------------+|
+$§||first paragraph of text; includes multiple spaces and newlines, emphasized text and strong text||
+$§|+-----------------------------------------------------------------------------------------------+|
+$§|                                                                                                 |
+$§|+---------------------------------+                                                              |
+$§||starting with an evil center tag,|                                                              |
+$§|+---------------------------------+                                                              |
+$§|+-----------------------------------------------------------------------------------------------+|
+$§||this very long second paragraph contains some special characters (including a simple space...):||
+$§|| &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ and hexal: ¿) but also an anchor||
+$§|| embedded inside a word (this anchor also is the only tag with parameters); and finally a blank||
+$§|| row                                                                                           ||
+$§|+-----------------------------------------------------------------------------------------------+|
+$§|+--------------+                                                                                 |
+$§||(a single tag)|                                                                                 |
+$§|+--------------+                                                                                 |
+$§+-------------------------------------------------------------------------------------------------+
+
+$#</a>    <!--itemPage-->
+
+Note that there are no actual sizes or postions for the items, and no line
+breaks inside the text items; this is all done in a later processing step
+(pre-render.c). The item tree at this point only represents the structure of
+the output page. (The line breaks in the fifth text block aren't really there;
+we have inserted them in the figure because the text block is a bit too long to
+put in a single line...)
+
+The item tree looks complicated at first, but it's a quite trivial example when
+taking a closer look. (This is becuase at the time of creating the 0.html file
+used here, netrik wasn't able to do anything more complicated...) However, it
+should be sufficient to get the idea...
+
+Every node of the item tree consists of an "Item" structure. This structure is
+declared in "items.h". It contains:
+
+$#<ul> <li>
+§§$- The pointers "list_next", "next", "parent", and "first_child" connect the
+§§$  nodes inside the tree. "list_next" points to the next node in the order they
+§§$  are generated. Note that in contrast to the element tree, in the item tree
+§§$  any children are generated *before* the parent. "next" points to the next
+§§$  item at the same tree depth and in the same branch, i.e. the next sibling.
+§§$  "parent" points to the parent item, and "first_child" to the first sub-item.
+§§$  More pointers are necessary than for the element tree, because the item tree
+§§$  is traversed in several differnt ways while processing.
+$#</li> <li>
+§§$- The "center" flag indicates whether the item is centered. As not all items
+§§$  use this, and the exact meaning varies between different item types, it may
+§§$  be reasonable to move this to the item specific data. We'll decide on this as
+§§$  soon as enought HTML facilities are implemented.
+$#</li> <li>
+§§$- "x_start", "x_end", "y_start" and "y_end" define a square area inside the
+§§$  layouted page, in which the item is displayed. In some processing steps
+§§$  "x_end" end "y_end" are also "abused" to store the minimal size of the item.
+$#</li> <li>
+§§$- "type" is an enum storing what kind of item this node represents. (Currently
+§§$  ITEM_TEXT, ITEM_BOX, ITEM_FORM, ITEM_BLANK, ITEM_BLOCK_ANCHOR or
+§§$  ITEM_INLINE_ANCHOR.)
+$#</li> <li>
+§§$- "data" is an union storing all data specific to different item types.
+§§$  Currently this can be the pointer to a text string for text items, to an
+§§$  (block or inline) anchor struct, or to a form paramters struct.
+$#</li> </ul>
+
+$=$$<h3>$$$_add_item()$_$$</h3>$$
+
+New items are created by add_item(). This function allocates a new "Item"
+structure, and sets some pointers. The item isn't inserted into the tree
+directly; it's only inserted into a list of all items at the current tree
+depth. This is a single linked list maintained by the "first_item" and
+"last_item" pointers of "state" (there is one such list for each tree depth),
+and the "next" pointers of the item structures. The only other pointers set are
+"list_next". The "parent" and "first_child" pointers aren't set; this is done
+later when the items are actually inserted into the tree, while ascending from
+the current depth. (For the first item in every tree depth the "parent" is
+explicitly set to NULL, indicating that there is no parent yet.)
+
+This function is called directly to create box items, and from add_string() to
+create text items. Under certain conditions it also creates a blank item before
+the actual text item or box item; more on this later, under
+$$<a$+href="#blankLines">$$$_Blank Lines$_$$</a>$$$ .
+
+When called with the "virtual" flag, this function behaves slightly different:
+No line break/blank line handling is done; the status remains unchanged. This
+is for creating the $$<a$+href="#virtual">$$$_Virtual Boxes$_$$</a>$$ used for
+anchors.
+
+$#<a name="string" id="string">
+
+$=$$<h3>$$$_String$_$$</h3>$$
+
+The actual text data of text items is stored in a different place. Every text
+item points to a "String" structure (also declared in "items.h"). This
+structure consists of a normal C-string containing the text itself, and an
+array of "Div" structures, containing all attribute information. (Color etc.) A
+"String" can consist of several divisions with different attributes. Every
+"Div" structure stores the attributes for one such division, and the ending
+position of the division inside the string. (More exactly: the position *after*
+the end of the div -- which is the starting position of the next div.) The end
+of the last division is also used to find out the string length. This is quite
+inefficient...
+
+The "String" structure also contains "line_table[]", which holds the positions
+of all line breaks inside the string; more on this in $$<a
+href="#preRender">$$$_7. pre-render.c$_$$</a>$$$ .
+
+Finally, it contains an array of
+"$$<a$+href="hacking-links.html#linkStruct">$$Link$$</a>$$" structures, which
+describe all the links (and form elements) inside this text block. See
+$$<a$+href="hacking-links.html">$$hacking-links.*$$</a>$$ for this.
+
+$#</a>    <!-- string -->
+
+$#<a name="parseElementsProcessing" id="parseElementsProcessing">
+
+$=$$<h3>$$$_Processing$_$$</h3>$$
+
+Many properties of the various element types are data-driven. This presently
+includes the line break/blank line handling, elements creating a box around all
+children, and elements whose content is not to be rendered. This properties are
+stored to the same "$$<a$+href="#elementTable">$$element_table[]$$</a>$$" as
+the name strings used by parse_elements(). In future probably more properties
+will be data driven, making the code simpler, and also necessary for handling
+style sheets, which allow changing of almost all formatting properties.
+
+The item tree is generated while traversing the element tree. Processing of
+each element is done in two steps: One step is done before entering an element
+(descending in the element tree), and the second step is done after leaving the
+element (ascending). Between those two steps, the same is done for all
+sub-elements. You guess it: This is a recursive algorithm. Only we haven't
+implemented it recursively, as mentioned in chapter 0. In this function the
+pseudo-recursive implementation is most evident; we even have to use a
+pseudo-stack.
+
+The processing could also be split into a couple of much simpler passes using
+some temporary data structures, e.g. one generating the "normal" items, one
+generating blank items, one generating the strings, one "optimizing" the tree
+(lifting items where possible). This would be much easier to understand, and
+probably it would have been a good idea for the beginning. However, it would be
+much less efficient; that's why we won't step back to such an implementation
+after already having the present one.
+
+$=$$<h4>$$$_Pre-processing$_$$</h4>$$
+
+The first action in every iteration of the outer loop is to do the first
+processing step (s.a.) for the current element ("cur_el") -- in every iteration
+exactly one element is pre-processed.
+
+$§  ++>NULL
+$§  +
+$§+---+
+$§| ! |-. <++
+$§+---+ |   +
+$§      v   +
+$§ ,-----------.
+$§("header text")
+$§ `-+------+--'  <-- cur_el   <== depth
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+
+$§        | head |->| body |-.
+$§        +------+  +------+ |
+
+First, we store any text from the current element node to the current open text
+item by add_string().
+
+$§state[0]->first_item -->NULL   (depth 0)
+$§state[0]->last_item **>NULL
+$§---
+$§+------+         <-- first_item
+$§| text |-->NULL  <** last_item    <== depth=1
+$§+----*-+==>NULL  
+$§  x  *     
+$§  v  *     
+$§NULL *     
+$§     v     
+$§ ,-----------. 
+$§("header text")
+$§ `-----------' 
+
+The next thing is processing of line breaks and paragraph breaks, depending
+what kind of element we have. More on this later, in $$<a
+href="#textBlocks">$$$_Text Blocks$_$$</a>$$ and $$<a
+href="#blankLines">$$$_Blank Lines$_$$</a>$$$ .
+
+$=$$<h4>$$$_Recursing$_$$</h4>$$
+
+Then we recurse into the element (descend in the element tree).
+
+$§  ++>NULL
+$§  +
+$§+---+
+$§| ! |-. <++
+$§+---+ |   +
+$§      v   +
+$§ ,-----------.
+$§("header text")
+$§ `-+------+--'  <-- cur_el
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+
+$§        | head |->| body |-.     <== depth
+$§        +------+  +------+ |
+
+$§state[0]->first_item -->NULL   (depth 0)
+$§state[0]->last_item **>NULL
+$§---
+$§+------+         <-- state[1].first_item   (depth 1)
+$§| text |-->NULL  <** state[1].last_item
+$§+----*-+==>NULL  
+$§  x  *     
+$§  v  *     
+$§NULL *     
+$§     v     
+$§ ,-----------. 
+$§("header text")
+$§ `-----------' 
+$§---
+$§first_item -->NULL    <== depth=2
+$§last_item **>NULL
+
+This is done by push_state(). This function doubles the top of stack, and
+returns a pointer to the newly created entry, which is used as the current
+state. ("first_item" and "last_item" aren't copied, but set to NULL; "id_attr"
+and "link_type" are set to -1.)
+
+The stack stores all variables which are specific to every tree depth. Note
+that the stack uses the depths from the element tree, not from the item tree.
+The depths in the item tree are completely different, and change while
+processing -- which is one of the most tricky parts about parse_struct().
+
+Currently the data stored is:
+
+$#<ul> <li>
+§§$- Visibilty of element's content ("visible")
+$#</li> <li>
+§§$- Text attributes ("text_mode" and "high").
+$#</li> <li>
+§§$- The nesting depth "list_depth" of item lists. (Determines the indent of list
+§§$  items.)
+$#</li> <li>
+§§$- The two pointers "first_item" and "last_item", necessary to maintain the list
+§§$  of all items at a given depth.
+$#</li> <li>
+§§$- The type of the link or form control created by the element in the
+§§$  "link_type" enum (a value of -1 indicates there is no link at all)
+$#</li> <li>
+§§$- The URL of links or value of form elements in the "link_value" string
+$#</li> <li>
+§§$- The "form_enabled" flag indicates whether a form element is to be submitted to the
+§§$  server
+$#</li> <li>
+§§$- The name of a possible <select> element, bequeathed to its <option> elements
+$#</li> <li>
+§§$- The kind of the <select> element, also bequeathed
+$#</li> <li>
+§§$- "link_start" stores the position where a link or inline anchor beginns inside
+§§$  the current string
+$#</li> <li>
+§§$- "link_item" stores the text item in which a link/anchor beginns
+$#</li> <li>
+§§$- For elements with an anchor, "id_attr" stores which attribute contains the
+§§$  anchor id (or name)
+$#</li> </ul>
+
+After descending, first some generic processing is performed.
+
+This includes setting "cur_state->visible" depending on the parent element
+type's "visible" property.
+
+Also, "link_start" is set to the current string end, so any text generated
+inside this element will become part of the link or anchor, if the element
+creates one. If there is no string item open, 0 is stored, so the link will
+begin at the start of the string if a new string beginns inside the element.
+
+Aferwards, some element type specific handling is done. Mostly this is
+outputing of special element indicators. (This could be made data-driven, and
+probably it will do so soon.)
+
+For some element types, also values of the current state are modified; this
+would be the argument passing in a real recursive implementation.
+
+$=$$<h4>$$$_Ascending$_$$</h4>$$
+
+The last step of every outer loop iteration is returning from recursion
+(ascending in the element tree). But in contrast to descending, ascending isn't
+done once per outer loop iteration. Instead, there is an inner loop, that
+ascends as often as needed to reach the level of the next element -- this can
+be zero, once or several times.
+
+We know how long we need to ascend by starting at the level of the current
+element and looking for the parent of the new element; as soon as we find it,
+we know we needn't ascend any more. "depth" is adjusted every time we ascend,
+and all actions for leaving the element (unrecursing) are taken. ("depth" is
+always one below the depth of "new_el".)
+
+If the next element is a child of the current one, no ascending is necessary.
+We have descended one step in the pre-processing step of the current iteration,
+and this is ok; we keep it. ("cur_el" is alredy the parent of "list_next".)
+
+$§ ,-----------.
+$§("header text")
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+
+$§        | head |->| body |-. <++++++++++++++   
+$§        +------+  +------+ | <+            +   
+$§                           v  +            +   
+$§                        +----++          +---+ 
+$§            cur_el  --> | h1 |-. <+   ,->| p |->
+$§            new_el  xx> +----+ |  +   |  +---+ 
+$§                               v  +   |
+$§                          ,--------.  |
+$§                         (" heading") |
+$§                          `--+---+-'  |      <== depth
+$§               list_next **> | ? |----'
+$§                             +---+     
+
+If the next element is at the same level as the current one (single tags or
+other elements with no sub-elements), we need to ascend exactly one time, to
+get back to the level of the current element, after we have descended in the
+pre-processing step.
+
+$§ ,-----------.
+$§("header text")
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+ <**
+$§    --> | head |->| body |-. <++++++++++++++
+$§    xx> +------+  +------+ | <+            +   
+$§                           v  +            +   
+$§                        +----++          +---+ 
+$§                        | h1 |-. <+   ,->| p |->      <==
+$§                        +----+ |  +   |  +---+ 
+$§                               v  +   |
+$§                          ,--------.  |
+$§                         (" heading") |
+$§                          `--+---+-'  |
+$§                             | ? |----'
+$§                             +---+     
+
+$§ ,-----------.
+$§("header text") <xx
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+ <**
+$§    --> | head |->| body |-. <++++++++++++++       <==
+$§        +------+  +------+ | <+            +   
+$§                           v  +            +   
+$§                        +----++          +---+ 
+$§                        | h1 |-. <+   ,->| p |->
+$§                        +----+ |  +   |  +---+ 
+$§                               v  +   |
+$§                          ,--------.  |
+$§                         (" heading") |
+$§                          `--+---+-'  |
+$§                             | ? |----'
+$§                             +---+     
+
+Of course it's a bit of overhead first to descend into an element, just to
+ascend from it right after. But it saves a lot of code for special handling of
+such childless elements. Many of the actions of both the first step and the
+second step have to be done for them also -- putting them together and leaving
+out the descending and ascending wouldn't save that much, while complicating
+the code quite a lot. We may consider some way in the future if profiling shows
+this would be rewarding.
+
+If the next element is above the current one, we have to ascend more than once.
+(Once to get back to the level of the current one, the others to ascend to the
+new level.)
+
+$§ ,-----------.
+$§("header text")     
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+    
+$§        | head |->| body |-. <++++++++++++++          
+$§        +------+  +------+ | <+            +   
+$§                           v  +            +   
+$§                        +----++          +---+ 
+$§                        | h1 |-. <+   ,->| p |-> <**
+$§                        +----+ |  +   |  +---+ 
+$§                               v  +   |
+$§                          ,--------.  |
+$§                         (" heading") |
+$§                          `--+---+-'  |
+$§                         --> | ? |----'
+$§                         xx> +---+     
+$§
+$§                                            <==
+
+$§ ,-----------.
+$§("header text")     
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+    
+$§        | head |->| body |-. <++++++++++++++          
+$§        +------+  +------+ | <+            +   
+$§                           v  +            +   
+$§                        +----++          +---+ 
+$§                    xx> | h1 |-. <+   ,->| p |-> <**
+$§                        +----+ |  +   |  +---+ 
+$§                               v  +   |
+$§                          ,--------.  |
+$§                         (" heading") |
+$§                          `--+---+-'  |        <==
+$§                         --> | ? |----'
+$§                             +---+     
+
+$§ ,-----------.
+$§("header text")     
+$§ `-+------+--'
+$§   | html |-. <++++++++
+$§   +------+ | <+      +
+$§            v  +      +
+$§        +------+  +------+ <xx
+$§        | head |->| body |-. <++++++++++++++          
+$§        +------+  +------+ | <+            +   
+$§                           v  +            +   
+$§                        +----++          +---+ 
+$§                        | h1 |-. <+   ,->| p |-> <**     <==
+$§                        +----+ |  +   |  +---+ 
+$§                               v  +   |
+$§                          ,--------.  |
+$§                         (" heading") |
+$§                          `--+---+-'  |
+$§                         --> | ? |----'
+$§                             +---+     
+
+In every ascending iteration, first we do some element type specific handling
+again, mostly outputing element end indicators. Then we pop the previous state
+from the stack.
+
+$§ ++>NULL
+$§ +
+$§ + .--------------------------------.
+$§ + v                                |
+$§+---+        <xx                    |
+$§| ! |-. <++  <**                    |
+$§+---+ |   +                         |
+$§      v   +                         |
+$§ ,-----------.                      |
+$§("header text")                     |          <==
+$§ `-+------+--'                      |
+$§   | html |-. <+++++++++++          |
+$§   +------+ |            +          |
+$§            |          [...]      [...]
+$§          [...]          +          |
+$§            |    ,---------------.  |
+$§            |   (" (a single tag)") |
+$§            |    `-----+---+-----'  |  <--
+$§            `--------->| ? |--------'
+$§                       +---+
+
+$§state[0]->first_item -->NULL   (depth 0)
+$§state[0]->last_item **>NULL
+$§---         ,-- first_item
+$§+------+ <--'     +------+   +------+ <** last_item
+$§| text |--[...]-->| text |-->| text |-->NULL              <== depth=1
+$§+----*-+==[...]==>+----*-+==>+----*-+==>NULL
+$§  x  *              x  *       x  * 
+$§  v  *              v  *       v  *   ,--------------.
+$§NULL *            NULL *     NULL **>("(a single tag)")
+$§     v                 *              `--------------'
+$§ ,-----------.         *   ,----------------.
+$§("header text")        **>("this...blank row")
+$§ `-----------'             `----------------'
+
+$§ ++>NULL <xx
+$§ +
+$§ + .--------------------------------.
+$§ + v                                |
+$§+---+                               |
+$§| ! |-. <++  <**                    |          <==
+$§+---+ |   +                         |
+$§      v   +                         |
+$§ ,-----------.                      |
+$§("header text")                     |
+$§ `-+------+--'                      |
+$§   | html |-. <+++++++++++          |
+$§   +------+ |            +          |
+$§            |          [...]      [...]
+$§          [...]          +          |
+$§            |    ,---------------.  |
+$§            |   (" (a single tag)") |
+$§            |    `-----+---+-----'  |  <--
+$§            `--------->| ? |--------'
+$§                       +---+
+
+$§first_item -->NULL        <== depht=0
+$§last_item **>NULL
+$§---         ,-- state[1].first_item
+$§+------+ <--'     +------+   +------+ <** state[1].last_item     (depth 1)
+$§| text |--[...]-->| text |-->| text |-->NULL
+$§+----*-+==[...]==>+----*-+==>+----*-+==>NULL
+$§  x  *              x  *       x  * 
+$§  v  *              v  *       v  *   ,--------------.
+$§NULL *            NULL *     NULL **>("(a single tag)")
+$§     v                 *              `--------------'
+$§ ,-----------.         *   ,----------------.
+$§("header text")        **>("this...blank row")
+$§ `-----------'             `----------------'
+
+$=$$<h4>$$$_Inserting into Item Tree$_$$</h4>$$
+
+Afterwards, the probably most interesting part follows: The sub-items created
+inside the element we are just leaving, are inserted into the item tree
+properly.
+
+If the element we are leaving enforces a box (looked up in "element_table[]"), a new
+box item is created. (Box items are always created when leaving the element,
+and thus *after* all items inside the box.)
+
+$§                                  -->    +-----+
+$§                                  **> ,->| box |-->NULL     <== depht=0
+$§                                      |  +-----+==>NULL
+$§                                      |      
+$§                                      |      
+$§                                      |      
+$§                                      |      
+$§                                      |
+$§                                      |
+$§+------+ <--      +------+   +------+ | <**           (depth 1)
+$§| text |--[...]-->| text |-->| text |-'
+$§+----*-+==[...]==>+----*-+==>+----*-+==>NULL
+$§  x  *              x  *       x  * 
+$§  v  *              v  *       v  *   ,--------------.
+$§NULL *            NULL *     NULL **>("(a single tag)")
+$§     v                 *              `--------------'
+$§ ,-----------.         *   ,----------------.
+$§("header text")        **>("this...blank row")
+$§ `-----------'             `----------------'
+
+The "parent" pointers of all immediate children are set to the new box item,
+and "first_child" of the new item is set to the first of them.
+
+$§                                  -->    +-----+
+$§                                  **> ,->| box |-->NULL     <== depht=0
+$§                                      |  +-----+==>NULL
+$§                                      |  x  ^
+$§  xxxxxxxx[...]xxxxxxxxxxxxxxxxxxxxxxxxxxx  +
+$§  x                                   |     +
+$§  x  +++++[...]++++++++++++++++++++++++++++++
+$§  x  +                +          +    |
+$§  v  +                +          +    |
+$§+------+ <--      +------+   +------+ | <**           (depth 1)
+$§| text |--[...]-->| text |-->| text |-'
+$§+----*-+==[...]==>+----*-+==>+----*-+==>NULL
+$§  x  *              x  *       x  * 
+$§  v  *              v  *       v  *   ,--------------.
+$§NULL *            NULL *     NULL **>("(a single tag)")
+$§     v                 *              `--------------'
+$§ ,-----------.         *   ,----------------.
+$§("header text")        **>("this...blank row")
+$§ `-----------'             `----------------'
+
+If the element does not create a box, things are more tricky: We have to "lift"
+all sub-elements to the new level. This is done by concatenating the list of
+elements of the depth we are leaving to the list of elements of the depth we
+are entering.
+
+$§state[0]->first_item -->NULL   (depth 0)
+$§state[0]->last_item **>NULL
+$§---
+$§+------+         <-- state[1].first_item   (depth 1)
+$§| text |-->NULL  <** state[1].last_item
+$§+----*-+==>NULL  
+$§  x  *     
+$§  v  *     
+$§NULL *     
+$§     v     
+$§ ,-----------. 
+$§("header text")
+$§ `-----------' 
+$§---
+$§state[2]->first_item -->NULL   (depth 2)
+$§state[2]->last_item **>NULL
+$§---       ,-- state[3].first_item
+$§+------+<-'+-------+ <** state[3].last_item    (depth 3)
+$§| text |-->| blank |-->NULL           
+$§+----*-+==>+-------+==>NULL  
+$§  x  *         x      
+$§  v  *         v      
+$§NULL *       NULL     
+$§     v     
+$§ ,-------. 
+$§("heading")
+$§ `-------' 
+$§---
+$§+------+        <-- first_item
+$§| text |-->NULL <** last_item      <== depth=4
+$§+----*-+==>NULL
+$§  x  *       
+$§  v  *       
+$§NULL *       
+$§     v       
+$§ ,------------. 
+$§("first...text")
+$§ `------------' 
+
+$§  +------+   <+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§->| body |-. <++++++++++++++                                              +
+$§  +------+ | <+            +                                              +
+$§ xx^       v  +            +                                              +   
+$§        +----++          +---+     <++++++++++++++++++++                +---+ 
+$§==>     | h1 |-. <+   ,->| p |---. <++                 +         **> ,->| p |->
+$§depth=3 +----+ |  +   |  +---+   |   +                 +             |  +---+ 
+$§               v  +   |          v   +                 +             |
+$§          ,--------.  |  ,------------------.       ,----.           |
+$§         (" heading") | (" first...newlines,")     (" and")          |
+$§          `--+---+-'  |  `-----+----+-------'     +-+----+-+         |
+$§             | ? |----'        | em |-. <++    ,->| strong |-. <++   |
+$§             +---+             +----+ |   +    |  +--------+ |   +   |
+$§                                      v   +    |             v   +   |
+$§                           ,----------------.  |     ,------------.  |
+$§                          (" emphasized text") |    (" strong text") |
+$§                           `--------+---+---'  |     `-----+---+--'  |
+$§                                    | ? |------'       --> | ? |-----'
+$§                                    +---+                  +---+      
+
+$§state[0]->first_item -->NULL   (depth 0)
+$§state[0]->last_item **>NULL
+$§---
+$§+------+         <-- state[1].first_item   (depth 1)
+$§| text |-->NULL  <** state[1].last_item
+$§+----*-+==>NULL  
+$§  x  *     
+$§  v  *     
+$§NULL *     
+$§     v     
+$§ ,-----------. 
+$§("header text")
+$§ `-----------' 
+$§---
+$§state[2]->first_item -->NULL   (depth 2)
+$§state[2]->last_item **>NULL
+$§---       ,-- first_item
+$§+------+<-'+-------+   +------+ <** last_item
+$§| text |-->| blank |-->| text |-->NULL      <== depth=3
+$§+----*-+==>+-------+==>+----*-+==>NULL
+$§  x  *         x         x  *       
+$§  v  *         v         v  *       
+$§NULL *       NULL      NULL *       
+$§     v                      v       
+$§ ,-------.          ,------------. 
+$§("heading")        ("first...text")
+$§ `-------'          `------------' 
+
+In the second case, we need an additional step if the element we are leaving
+was a <center> element (or some element with an align="center" attribute): In
+this case all sub-elements have to be centered one by one. (Elements creating a
+box are centered as a whole.)
+
+Finally, we have to do some more line break/blank line handling.
+
+$#</a>    <!--parseElementsProcessing-->
+
+$#<a name="textBlocks">
+
+$=$$<h3>$$$_Text Blocks$_$$</h3>$$
+
+One single text block can be created by several elements. Every series of text
+parts not interrupted by elements requirering line breaks (or blank lines)
+around them is stored to a single text item; it can even contain newline
+characters created by <br> elements. This is done by calling add_string() every
+time text data is encountered.
+
+The color for the text added by some element is determined from the current
+"state->text_mode" and "state->high". The normal color for the text mode is
+looked up in "color_map[]", and than its bit 3 is negated if the text is
+highlighted. This is more or less a hack; we'll have to replace this by some
+serious attribute handling at some point...
+
+$=$$<h4>$$$_add_string()$_$$</h4>$$
+
+This function concatenates the new text to the "string" of "string_item", which
+is a global variable pointing to the current open text item. If the new text
+has other attributes than the last division of the "string" so far, a new
+division is created for the new text; otherwise, the text is simply added to
+the last division.
+
+$§text_item->string:
+$§            div[0].end      div[1].end   div[2].end
+$§                     v               v   v
+$§text: "[...]newlines, emphasized text and"
+$§       `~~~~~v~~~~~~'`~~~~~~~v~~~~~~'`~v'
+$§                 div[1].color=MAGENTA  div[2].color=WHITE
+$§    div[0].color=WHITE
+
+$§+------------------------------------------------+
+$§|+-----------+                                   |
+$§||header text|                                   |
+$§|+-----------+                                   |
+$§|                                                |
+$§|+-------+                                       |
+$§||heading|                                       |
+$§|+-------+                                       |
+$§|                                                |
+$§|+----------------------------------+            |
+$§||[...]newlines, emphasized text and|            |
+
+$§ ,------------------.       ,----.          
+$§(" first...newlines,")     (" and")         
+$§ `-----+----+-------'     +-+----+-+        
+$§       | em |-. <++    ,->| strong |-. <++  
+$§       +----+ |   +    |  +--------+ |   +  
+$§              v   +    |             v   +  
+$§   ,----------------.  |     ,------------. 
+$§  (" emphasized text") |    (" strong text")
+$§   `--------+---+---'  |     `-----+---+--' 
+$§            | ? |------'       --> | ? |-->
+$§            +---+                  +---+      
+
+$§text_item->string:
+$§            div[0].end      div[1].end   div[2].end  div[3].end
+$§                     v               v   v           v
+$§text: "[...]newlines, emphasized text and strong text"
+$§       `~~~~~v~~~~~~'`~~~~~~~v~~~~~~'`~v'`~~~~~v~~~~'
+$§                 div[1].color=MAGENTA          div[3].color=STRONG WHITE
+$§      div[0].color=WHITE               div[2].color=WHITE
+
+$§+------------------------------------------------+
+$§|+-----------+                                   |
+$§||header text|                                   |
+$§|+-----------+                                   |
+$§|                                                |
+$§|+-------+                                       |
+$§||heading|                                       |
+$§|+-------+                                       |
+$§|                                                |
+$§|+----------------------------------------------+|
+$§||[...]newlines, emphasized text and strong text||
+
+A new division can also be enforced, by an additional call of add_text() with
+NULL as text before adding the next text part. (This is necessary to prevent
+multiple consecutive links from being merged into one div, as link highlighting
+is done div-wise.)
+
+Appending to an existing text item is only possible if the last created item
+was a text item, and there was no breaking element. (Neither the last one, nor
+the new one, nor anyone in between.) Otherwise, a new text item has to be
+created, and a new "String" structure for it. This is the only place where new
+text items are created.
+
+$§|                                   |
+$§|+---------------------------------+|
+$§||starting with an evil center tag,||
+$§|+---------------------------------+|
+
+$§  +---+
+$§->| p |-. <++++++++++++++++++      
+$§  +---+ | <+                +      
+$§        |  +                +      
+$§        |  +          ,----------. 
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'  <--
+$§   | center |-. <++    ,->| a |->
+$§   +--------+ |   +    |  +---+
+$§              v   +    |
+$§   ,----------------.  |
+$§  (" starting...tag,") |
+$§   `--------+---+---'  |
+$§            | ? |------'
+$§            +---+       
+
+$§|                                   |
+$§|+---------------------------------+|
+$§||starting with an evil center tag,||
+$§|+---------------------------------+|
+$§|+---------------------+            |
+$§||this very...anchor em|            |
+
+If there is a space at the beginning of a string, it is discarded while
+creating the string, for a text block always starts with a word.
+
+$#</a>    <!--textBlocks-->
+
+$=$$<h3>$$$_Line Breaks$_$$</h3>$$
+
+As soon as an element forcing a line break is either entered or left (there are
+no elements creating a break only before or only behind it), "string_item" is
+set to NULL, indicating that no more text can be added to the last text item,
+and new text has to create a new one.
+
+$§  +---+
+$§->| p |-. <++++++++++++++++++      
+$§  +---+ | <+                +      
+$§        |  +                +      
+$§        |  +          ,----------. 
+$§        v  +         (" this...em")
+$§   +--------+ <xx     `---+---+--'  <**
+$§   | center |-. <++    ,->| a |->
+$§   +--------+ |   +    |  +---+
+$§              v   +    |
+$§   ,----------------.  |
+$§  (" starting...tag,") |
+$§   `--------+---+---'  | <--            <==
+$§            | ? |------'
+$§            +---+       
+
+$§|                                   |
+$§|+---------------------------------+|
+$§||starting with an evil center tag,||
+
+$§  +---+ <xx
+$§->| p |-. <++++++++++++++++++      
+$§  +---+ | <+                +      
+$§        |  +                +      
+$§        |  +          ,----------. 
+$§        v  +         (" this...em")
+$§   +--------+         `---+---+--'  <**      <==
+$§   | center |-. <++    ,->| a |->
+$§   +--------+ |   +    |  +---+
+$§              v   +    |
+$§   ,----------------.  |
+$§  (" starting...tag,") |
+$§   `--------+---+---'  | <--
+$§            | ? |------'
+$§            +---+       
+
+$§|                                   |
+$§|+---------------------------------+|
+$§||starting with an evil center tag,||
+$§|+---------------------------------+|
+
+$#<a name="blankLines" id="blankLines">
+
+$=$$<h3>$$$_Blank Lines$_$$</h3>$$
+
+Probably the most tricky part is handling of blank lines. Similar to line
+breaks, items needing blank lines have them before *and* after them. However,
+when two such items meet, they have only *one* blank line between them.
+Furthermore, a blank line is *never* inserted before the first or after the
+last item inside a box. That's why blank lines cannot be simply inserted when
+entering an element causing blank lines, or when leaving it. Instead, only
+"requests" for blank lines are stored in "para_blank", and if certain
+conditions are met, a blank line is inserted before the next item (inside
+add_item()).
+
+Actually, the blank line is inserted not in front of the new item, but after
+the last item, at the same tree depth as that one. This is important, to ensure
+that a blank line generated in front of a box is actually inserted *outside* of
+the box, not inside it, as would be the case if it was inserted at the current
+depth. The global "blank_depth" variable is responsible for this, and is set to
+the current depth every time a blank line request is generated. The blank item
+is then inserted directly to the "state" structure at "blank_depth" in
+add_item(). This is surely very bad programming style ;-)
+
+The blank line requests are managed by the global "para_blank" variable. A
+value of 1 indicates that a blank line is needed, and will be generated by the
+next add_item(). A value of 0 indicates that no blank line is needed in any
+case; this situation can only occur when there are no items inside the current
+box yet. A value of -1 indicates that a blank line *may* be necessary. That is
+the case when we already have some items inside the current box, but the last
+item does not need a blank line; a blank line needs to be inserted only when
+the following item wants one.
+
+When entering an element needing a blank line, a request is generated
+("para_blank" set to 1 and "blank_depth" is stored) if "para_blank" was -1,
+indicating that there are already items in the current box.
+
+$§      +
+$§  +------+
+$§->| body |-. <++++++++++++++    
+$§  +------+ | <+            +    
+$§           v  +            +    
+$§        +----++          +---+  
+$§   -->  | h1 |-. <+   ,->| p |->
+$§ cur_   +----+ |  +   |  +---+  
+$§ tag           v  +   |
+$§          ,--------.  |
+$§         (" heading") |
+$§          `--+---+-'  |
+$§             | ? |----'
+$§             +---+     
+
+$§+------------------+
+$§|+-----------+     |
+$§||header text|     |
+$§|+-----------+     |
+$§??? (para_blank=-1)
+
+$§      +
+$§  +------+
+$§->| body |-. <++++++++++++++    
+$§  +------+ | <+            +    
+$§           v  +            +    
+$§        +----++          +---+  
+$§   -->  | h1 |-. <+   ,->| p |->
+$§   ==>  +----+ |  +   |  +---+  
+$§ blank_        v  +   |
+$§ depth    ,--------.  |
+$§         (" heading") |
+$§          `--+---+-'  |
+$§       **>   | ? |----'
+$§  list_next  +---+     
+$§(new "cur_el")
+
+$§+------------------+
+$§|+-----------+     |
+$§||header text|     |
+$§|+-----------+     |
+$§| (para_blank=1)   |
+$§       ...
+$§|+-------+         | (will be created later)
+$§||heading|         |
+$§|+-------+         |
+
+If "para_blank" is already 1, the request is left unchanged; a blank line will
+be inserted already.
+
+$§|                  |
+$§|+-------+         |
+$§||heading|         |
+$§|+-------+         |
+$§| (para_blank=1)   |
+
+$§   |
+$§   v
+$§+----+ <==       +---+ <--
+$§| h1 |-. <+   ,->| p |---. <++
+$§+----+ |  +   |  +---+   |   +
+$§       v  +   |          v   +
+$§  ,--------.  |  ,------------------. 
+$§ (" heading") | (" first...newlines,")
+$§  `--+---+-'  |  `-----+----+-------' 
+$§     | ? |----'    **> | em |-.
+$§     +---+             +----+ |
+
+$§|                  |
+$§|+-------+         |
+$§||heading|         |
+$§|+-------+         |
+$§| (para_blank=1)   |
+$§       ...
+$§|+------------+    |
+$§||first...text|    |
+$§|+------------+    |
+
+If "para_blank" is 0 nothing is done, even if the element would normally need a
+blank line: No blank line is ever inserted in front of the first item inside a
+box.
+
+$§+-----------+
+$§(para_blank=0)
+
+$§+---+
+$§| ! |-. <+
+$§+---+ |  +
+$§      v  +
+$§    +---++
+$§--> | p |-. <+
+$§    +---+ |  +
+$§          v  +
+$§    ,---------.
+$§   ("some text")
+$§    `--+---+--'
+$§   **> | ? |->
+$§       +---+
+
+$§+-----------+
+$§     ...
+$§|+---------+|
+$§||some text||
+$§|+---------+|
+
+When some item (text or box) is inserted by add_item(), "para_blank" is always
+set to -1, as now there is at least one item in the current box.
+
+$§+------------------+
+$§|+-----------+     |
+$§||header text|     |
+$§|+-----------+     |
+$§| (para_blank=1)   |
+
+$§      +
+$§  +------+
+$§->| body |-. <++++++++++++++    
+$§  +------+ | <+            +    
+$§           v  +            +    
+$§        +----++          +---+  
+$§        | h1 |-. <+   ,->| p |->
+$§        +----+ |  +   |  +---+  
+$§               v  +   |
+$§          ,--------.  |
+$§         (" heading") |
+$§          `--+---+-'  |
+$§         --> | ? |----'
+$§             +---+     
+
+$§+------------------+
+$§|+-----------+     |
+$§||header text|     |
+$§|+-----------+     |
+$§|                  |
+$§|+-------+         |
+$§||heading|         |
+$§|+-------+         |
+$§??? (para_blank=-1)
+
+When leaving an element needing a blank line, a request is generated also, and
+will be handled in the next add_item(). Otherwise, the current state is kept.
+
+$§      +
+$§  +------+
+$§->| body |-. <++++++++++++++    
+$§  +------+ | <+            +    
+$§           v  +            +    
+$§        +----++          +---+  
+$§    xx> | h1 |-. <+   ,->| p |-> <**
+$§new_el  +----+ |  +   |  +---+  
+$§               v  +   |
+$§          ,--------.  |
+$§         (" heading") |
+$§          `--+---+-'  |
+$§         --> | ? |----'
+$§             +---+     
+
+$§+------------------+
+$§|+-----------+     |
+$§||header text|     |
+$§|+-----------+     |
+$§|                  |
+$§|+-------+         |
+$§||heading|         |
+$§|+-------+         |
+$§??? (para_blank=-1)
+
+$§      +
+$§  +------+ <xx
+$§->| body |-. <++++++++++++++    
+$§  +------+ | <+            +    
+$§           v  +            +    
+$§        +----++          +---+  
+$§    ==> | h1 |-. <+   ,->| p |-> <**
+$§        +----+ |  +   |  +---+  
+$§               v  +   |
+$§          ,--------.  |
+$§         (" heading") |
+$§          `--+---+-'  |
+$§         --> | ? |----'
+$§             +---+     
+
+$§+------------------+
+$§|+-----------+     |
+$§||header text|     |
+$§|+-----------+     |
+$§|                  |
+$§|+-------+         |
+$§||heading|         |
+$§|+-------+         |
+$§| (para_blank=1)   |
+
+When entering an element generating a box, "para_blank" is reset to 0.
+
+$§|                |
+$§|+---------+     |
+$§||some text|     |
+$§|+---------+     |
+$§??? (para_blank=-1)
+
+$§  +--------+            +------+
+$§->| center |-.       ,->| form |-.  <--
+$§  +--------+ |       |  +------+ |
+$§             v       |           |
+$§        ,---------.  |           |
+$§       ("some text") |           v
+$§        `--+---+--'  |         +---+
+$§           | ? |-----'    **>  | p |->
+$§           +---+               +---+
+
+$§|                |
+$§|+---------+     |
+$§||some text|     |
+$§|+---------+     |
+$§|+--------------+|
+$§(para_blank=0)
+
+However, it's left unchanged if there is already a request, indicating that a
+blank line will be inserted *in front* of the box by the next add_item().
+
+$§|                |
+$§|+---------+     |
+$§||some text|     |
+$§|+---------+     |
+$§| (para_blank=1) |
+
+$§  +---+            +------+
+$§->| p |-. <==   ,->| form |-.  <--
+$§  +---+ |       |  +------+ |
+$§        v       |           |
+$§   ,---------.  |           |
+$§  ("some text") |           v
+$§   `--+---+--'  |         +---+
+$§      | ? |-----'    **>  | p |->
+$§      +---+               +---+
+
+$§|                |
+$§|+---------+     |
+$§||some text|     |
+$§|+---------+     |
+$§| (para_blank=1) |
+$§|+--------------+|
+
+When leaving a box creating element, any request generated inside the box is
+discarded. We never insert a blank line after the last item of a box.
+
+$§ ++>NULL
+$§ + .--------------------------------.
+$§ + v                                |
+$§+---+        <xx                    |
+$§| ! |-. <++  <**                    |
+$§+---+ |   +                         |
+$§      v   +                         |
+$§ ,-----------.                      |
+$§("header text")                     |
+$§ `-+------+--'                      |
+$§   | html |-. <+++++++++++          |
+$§   +------+ |            +          |
+$§            |          [...]      [...]
+$§          [...]          +          |
+$§            |    ,---------------.  |
+$§            |   (" (a single tag)") |
+$§            |    `-----+---+-----'  |  <--
+$§            `--------->| ? |--------'
+$§                       +---+
+
+$§|+--------------+  |
+$§||(a single tag)|  |
+$§|+--------------+  |
+$§| (para_blank=1)   |
+
+$§ ++>NULL <xx
+$§ + .--------------------------------.
+$§ + v                                |
+$§+---+                               |
+$§| ! |-. <++  <**                    |
+$§+---+ |   +                         |
+$§      v   +                         |
+$§ ,-----------.                      |
+$§("header text")                     |
+$§ `-+------+--'                      |
+$§   | html |-. <+++++++++++          |
+$§   +------+ |            +          |
+$§            |          [...]      [...]
+$§          [...]          +          |
+$§            |    ,---------------.  |
+$§            |   (" (a single tag)") |
+$§            |    `-----+---+-----'  |  <--
+$§            `--------->| ? |--------'
+$§                       +---+
+
+$§|+--------------+  |
+$§||(a single tag)|  |
+$§|+--------------+  |
+$§+------------------+
+$§??? (para_blank=-1)
+
+However, if the last request was generated *before* descending into the element
+creating the box (only possible if the box is empty), it is kept, and the blank
+is inserted when the box is added.
+
+$§|                |
+$§|+---------+     |
+$§||some text|     |
+$§|+---------+     |
+$§| (para_blank=1) |
+$§|+--------------+|
+
+$§  +---+            +------+ <xx      +---+   
+$§->| p |-. <==   ,->| form |-.     ,->| p |->  <**
+$§  +---+ |       |  +------+ |     |  +---+
+$§        v       |           |     |
+$§   ,---------.  |           |     |
+$§  ("some text") |           v     |
+$§   `--+---+--'  |        +------+ |
+$§      | ? |-----'   -->  | span |-'
+$§      +---+              +------+
+
+$§|                |
+$§|+---------+     |
+$§||some text|     |
+$§|+---------+     |
+$§|                |
+$§|+--------------+|
+$§|+--------------+|
+
+$=$$<h4>$$$_<br> elements$_$$</h4>$$
+
+<br> elements used to break text blocks as described above. This however turned
+out to be a bug: some elements (e.g. <a>) can span over a <br>, and these were
+handled incorrectly with that approach.
+
+Now simply a '\n' is added to the text block when <br> is encountered, and then
+correctly handled while $$<a$+href="#lineBreaking">$$$_Breaking String into
+Lines$_$$</a>$$$ .
+
+$#</a>    <!-- blankLines -->
+
+$#<a name="links" id="links">
+
+$=$$<h3>$$$_Links$_$$</h3>$$
+
+When a link element is encountered (any <a> element having a "href"),
+"cur_state->link_type" is set (to FORM_NO), indicatating that the element
+creates a link. The URL (from the "href" attribute) is saved in
+"cur_state->link_value".
+
+The link is then stored when leaving the link element. (After processing all
+sub-elements.) The link start is set to "cur_state->link_start", which was the
+string end position while entering the link element; the link end is set to the
+current string end position. This way the link spans all text generated inside
+the element.
+
+There is some additional handlig necessary to workaround broken links, however.
+(This used to be important to make forms work with SGML at all; now that full
+SGML support is implemented, it probably only helps a few broken pages...)
+
+When a link doesn't end in the same string as it started (checked by
+"cur_state->link_item", which was the current string item when entering the
+link element), it is stored in the starting string, not the current one.
+However, if there was no active text item when the link started (indicating the
+link starts at the beginning of a text block), we can't determine the starting
+string. In this case, we store it in the current string -- normally, this is
+the right thing to do; if the link spans multiple strings, on the other hand,
+at least the last part ist stored this way.
+
+Some magic is necessary to handle nested links: The link which is stored later
+is the outer one, i.e. it starts *before* the previously stored inner link... To
+handle this in a useful fashion, we also have to *store* it before the inner
+link. Thus, instead of simply appending it at the end of the string's link list,
+we have to shift all inner links one position behind, and put the new (outer)
+link at the free position created in front of them.
+
+Additionally, two hashes of the link URL and the text inside the link are
+stored for each link; this is necessary to recognize the right link to
+reactivate when a page is revisited but its content changed. See
+$$<a$+href="hacking-page.html#reactivating">$$_Reactivating Link$_$$</a>$$ in
+hacking-page.* for details.
+
+$#</a>    <!-- links -->
+
+$=$$<h3>$$$_Forms$_$$</h3>$$
+
+Form elements are handled very similar, and by the same code. The only
+difference is that "link_type" is set to some form type instead of FORM_NO, and
+the initial "value" of the element is stored in the structure tree so it will
+be submitted to the server, and (for some form control types) displayed on the
+page via $$<a$+href="hacking-links.html#setForm">$$$_set_form()$_$$</a>$$ (see
+hacking-links.*).
+
+Also, "form_enabled" is set for all elements that will be submitted to the
+server. It is always set for elements that are submitted unconditionally
+(text/password/hidden input fields), and set to the initial state for elements
+that are submitted depending on their state (radio buttons, checkboxes,
+<select> options). Submit buttons initially aren't enabled.
+
+Some special handling is necessary for <select> options: They do not have an
+own "name" attribute to store in "Link->name" like other form elements; the
+"name" for all options is given in the <select> element instead. Thus it needs
+to be passed to all the options by the state stack, in "select_name". The same
+for the link type (FORM_OPTION or FORM_MULTIOPTION) of the option links: It
+depends on the presence of the "multiple" attribute in the <select> element,
+and is passed in "select_type" for that reason.
+
+$#<a name="virtual" id="virtual">
+
+$=$$<h3>$$$_Virtual Items$_$$</h3>$$
+
+There are two kinds of "virtual" Items: ITEM_BLOCK_ANCHOR and
+ITEM_INLINE_ANCHOR. As the names suggest, both types are presently used for
+anchors. The difference is that block anchors are created by block elements
+with an "id" attribute, and span one or more block elements, while inline
+anchors are created inside text blocks by the classical "a" element or by any
+inline element with an "id", and span only a text part.
+
+"virtual" means that these items do not affect layouting like other items; they
+only create some additional structure.
+
+$=$$<h4>$$$_Block Anchors$_$$</h4>$$
+
+As block anchors span multiple other elements, they have to act as boxes,
+containing a series of virtual children. In contrast to real box items, they do
+not get their size assigned by the parent, and do not assign size to their
+virtual children. The children get their size assigned by the real parent
+directly, and the size of the virtual box is determined afterwards, from the
+outer bounds of all virtual children.
+
+In the present implementation, virtual box items aren't inserted normally as
+parents of their virtual children into the item tree. They are simply inserted
+as normal items after their virtual children, at the same tree depth. The
+virtual box is created only by special pointers, handled only in the necessary
+places; the normal tree traversal functions do not know about them. This is a
+hack; the idea was to integrate them into the existing system changing as
+little as possible. Most probably this will be replaced by a clean
+implementation using real parent/children relations in the future.
+
+$§virtual tree:
+$§                                                                  +-----+
+$§                                                               ,->| box |
+$§                                                               |  +-----+
+$§                                                               |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§  x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§  v +                                      +              +    |
+$§+------+                           +--------------+   +------+ |
+$§| text |-.                      ,->| block anchor |-->| text |-'
+$§+------+=|======================|=>+--------------+==>+------+==>NULL
+$§         |                      |    x     ^
+$§         |    xxxxxxxxxxxxxxxxxxxxxxxx     +
+$§         |    x  +++++++++++++++++++++++++++
+$§         |    v  +         +    |
+$§         |  +------+   +------+ |
+$§         `->| text |-->| text |-'
+$§            +------+   +------+==>NULL
+
+$§real tree:
+$§
+$§°°°> virtual child                                              +-----+
+$§                                                             ,->| box |
+$§                  virtual box                                |  +-----+
+$§           ,----------^----------.                           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§  x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§  v +          +          +              +              +    |
+$§+------+   +------+   +------+   +--------------+   +------+ |
+$§| text |-->| text |-->| text |-->| block anchor |-->| text |-'
+$§+------+==>+------+==>+------+==>+--------------+==>+------+==>NULL
+$§             ^                          °
+$§             °                          °
+$§             °°°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+$=$$<h4>$$$_Inline Anchors$_$$</h4>$$
+
+As inline anchors are contained within text elements, they have to act as
+children of text items. Text item however can't have children in the present
+implementation; thus, inline anchors presently are also only virtual children.
+
+Similar to the virtual boxes created by block anchors, these virtual children
+are stored after their virtual parent, at the same tree depth. This is a hack
+just as the virtual boxes, and will be replaced also.
+
+Additionally to the virtual parent (and the name of the anchor), inline anchors
+need to store the position of their start and end inside the parent string.
+
+$§virtual tree:
+$§
+$§%%%> anchor_start,anchor_end                                                +-----+
+$§                                                                         .->| box |
+$§                                                                         |  +-----+
+$§                                                                         |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§  x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§  v +                                                    +          +    |
+$§+------+                                             +------+   +------+ |
+$§| text |-.                                        .->| text |-->| text |-'
+$§+------+=|========================================|=>+------+==>+------+==>NULL
+$§         |                                        |    x ^ *
+$§         |                                        |    x + *   ,--------------------.                           
+$§         |    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx + **>("anchor1 and anchor2.")                          
+$§         |    x     ++++++++++++++++++++++++++++++++++++++     `--------------------'                           
+$§         |    x     +                   +         |             ^      ^    ^      ^
+$§         |    x     +                   +         |             %      %    %      %
+$§         |    x     +    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    %      %
+$§         |    x     +    %              +    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+$§         |    v     +    %              +    %    |
+$§         |  +---------------+   +---------------+ |
+$§         `->| inline anchor |-->| inline anchor |-'
+$§            +---------------+==>+---------------+==>NULL
+
+$§real tree:
+$§
+$§°°°> virtual parent                                                       +-----+
+$§                                                                       .->| box |
+$§                                                                       |  +-----+
+$§                                                                       |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§  x +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$§  v +          +              +                   +               +    |
+$§+------+   +------+   +---------------+   +---------------+   +------+ |
+$§| text |-->| text |-->| inline anchor |-->| inline anchor |-->| text |-'
+$§+------+==>+------+==>+---------------+==>+---------------+==>+------+==>NULL
+$§             *  ^             °%                  °%
+$§%%%%%%%%%%%%%*%%°%%%%%%%%%%%%%°%                  °%
+$§%            *  °             °                   °%
+$§%            *  °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°%
+$§%            v                                     %
+$§%  ,--------------------.                          %
+$§% ("anchor1 and anchor2.")                         %
+$§%  `--------------------'                          %
+$§%   ^      ^    ^      ^                           %
+$§%   %      %    %      %                           %
+$§%%%%%%%%%%%%    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Links are very similar to inline anchors, and probably will be stored the same
+way as anchors in the future, once ITEM_INLINE is cleanly implemented. The
+present different handling of links and anchors is by purpose -- to see which
+method turns out to be better. (Presently, it looks much like the anchor-method
+is better.)
+
+$#</a>    <!-- virutal -->
+
+$=$$<h3>$$$_Finishing$_$$</h3>$$
+
+After all elements of the syntax tree are traversed, the structure tree is
+finalized by setting "next" of the tree top (the global item) to point back to
+itself, and "parent" point to the first item.
+
+parse_struct() returns a "struct Item" pointer to the tree top. This is passed
+as argument to the following passes by main().
+
+Is is a bit strange that "parent" of the tree top points to the first item.
+However, it is important to have some simple way of accessing the first item,
+as some of the following passes start with the fist item; but only the pointer
+to the tree top is passed on the following passes. Maybe we should use some
+function that finds the first item by following "first_child" instead -- as
+this is done only once in every processing pass, it wouldn't be too big an
+unefficiency.
+
+$#</a>    <!--parseStruct-->
+
+$#<a name="freeItems" id="freeItems">
+
+$=$$<h3>$$$_free_items()$_$$</h3>$$
+
+This function is responsible for freeing the memory used by the item tree.
+
+Just as $$<a$+href="#freeSyntax">$$$_free_syntax()$_$$</a>$$$ , the tree is
+traversed by "list_next", and every node is freed, including all data belonging
+to it.
+
+For text items, the associated strings are freed also; for anchor items, the
+anchor data is freed.
+
+$#</a>    <!--freeItems-->
+
+$#<a name="preRender" id="preRender">
+
+$=$$<h2>$$$_7. pre-render.c$_$$</h2>$$
+
+So far, the item tree only represents the structure of the page, i.e. the
+dependencies of the items. The Items have no actual sizes nor positions yet.
+
+$§# ################################################################################################
+$§
+$§# +-----------
+$§# |header text
+$§
+$§# ***
+$§# *
+$§
+$§# +-------
+$§# |heading
+$§
+$§# ***
+$§# *
+$§
+$§# +-----------------------------------------------------------------------------------------------
+$§# |first paragraph of text; includes multiple spaces and newlines, emphasized text and strong text
+$§
+$§# ***
+$§# *
+$§
+$§# +---------------------------------
+$§# |starting with an evil center tag,
+$§
+$§# +-----------------------------------------------------------------------------------------------
+$§# |this very long second paragraph contains some special characters (including a simple space...):
+$§# | &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ and hexal: ¿) but also an anchor
+$§# | embedded inside a word (this anchor also is the only tag with parameters); and finally a blank
+$§# | row                                                                                           
+$§
+$§# +--------------
+$§# |(a single tag)
+
+pre_render() assigns coordinates inside the layouted page to all items. It also
+breaks the text blocks into lines.
+
+This process is reversible (it doesn't alter any data stored before; it only
+creates additional data), and thus resizing the output area of the viewer will
+be possible without regenerating the item tree. (And without reloading the
+file.)
+
+The coordinates are stored to "x_start", "x_end", "y_start" and "y_end" of the
+item structures. For every text item, the positions of all line breaks are
+stored in "line_table[]". This is the only way line breaks are indicated; the
+text string itself isn't altered. Thus the rendering function has to look at
+this table while generating output. ($ $$<a$+href="#renderC">$$$_8. render.c$_$$</a>$$$ )
+
+Besides of assigning the coordinates, pre_render() also generates the
+"page_map[]". This is a structure telling which items occupy every line of the
+output page. For every line, a table is generated, containing references to all
+elements that show up in this line. It's described more thoroughly in
+$$<a$+href="#createMap">$$$_create_map()$_$$</a>$$$ .
+
+The processing is split into five smaller passes, executed successively by
+pre_render(). It also could be done in one single, pseudo-recursive pass. Most
+probably this would be more efficient; it would be harder to understand, too.
+Maybe we will change this at some point...
+
+$#<a name="calcWidth" id="calcWidth">
+
+$=$$<h3>$$$_calc_width()$_$$</h3>$$
+
+In the first pass, the minimal x-width of all items is calculated. This is done
+by traversing the item tree by "list_next" (bottom to top). This ensures that
+the sizes of all children are calculated before the parent. In every iteration
+one item is processed. The actions taken depends on the type of the item.
+
+For text items, the minimal width (stored in "x_end") is set to the width of
+the longest word in the text block, as in other browsers. Note that we *can*
+generate narrower text blocks; netrik can break words that do not fit on a
+line, and probably also scrolling of items will be possible in the future.
+(AFAIK no other browser does any of that, although it was recommended by the
+W3C for years...)
+
+$§# ###############[...]
+$§
+$§# +------+
+$§# |header|
+$§   ^     ^x_end=6
+$§   0
+$§
+$§# ***
+$§# *
+$§
+$§# +-------
+$§# |heading
+$§[...]
+
+For blank lines, the minimal width is set to 0 -- blank lines do not need any
+width; anchor items as well.
+
+$§# ###############[...]
+$§
+$§# +------+
+$§# |header|
+$§
+$§# **
+$§# **
+$§   ^x_end=0
+$§
+$§# +-------
+$§# |heading
+$§[...]
+
+Finding the longest word is quite easy. The whole text block is processed char
+by char in a loop. For each char, the current word length "len" is incremented.
+When the word ends (space or string end encountered), "len" is reset to 0.
+"longest" keeps the current maximum, and is stored to "x_end" after the whole
+text block was processed.
+
+For box items, the minimal width is the one of the widest sub-item.
+
+$§# ##############
+$§
+$§# +------+     #
+$§# |header|     #
+$§
+$§# **           #
+$§# **           #
+$§
+$§# +-------+    #
+$§# |heading|    #
+$§
+$§# **           #
+$§# **           #
+$§
+$§# +----------+ #
+$§# |emphasized| #
+$§
+$§# **           #
+$§# **           #
+$§
+$§# +--------+   #
+$§# |starting|   #
+$§
+$§# +------------#
+$§# |parameters);#
+$§
+$§# +------+     #
+$§# |single|     #
+$§   ^           ^x_end
+$§   0
+
+As all sub-items are processed before the parent, we already know the widths of
+the sub-items when processing a box item. We simply go trough all immediate
+children (start with "first_child" and go on by "next") and look for the
+maximum.
+
+$#</a>    <!--calcWidth-->
+
+$#<a name="assignWidth" id="assignWidth">
+
+$=$$<h3>$$$_assign_width()$_$$</h3>$$
+
+The second pass assigns the x-coordinates (x_start and x_end) to all items.
+(Presently, this is trivial: all items have the same coordinates as their
+parent, which is the global item...) For text items, the positions of line
+breaks are also calculated.
+
+$=$$<h4>$$$_Traversing Item Tree Top to Bottom$_$$</h4>$$
+
+In this pass, the tree is traversed top to bottom, as the coordinates of the
+sub-items depend on the coordinates of the parent. This is a bit more
+complicated than traversing bottom to top, as there is no equivalent of the
+"list_next" pointer for this.
+
+If the current item has children, we proceed with the first child. (Descend.)
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                      ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§       cur_item xx>    +-----+                +-----+ |
+$§                    ,->| box |-.           ,->| box |-'
+$§    new cur_item    |  +-----+=|===========|=>+-----+==>NULL
+$§          |         |    x ^   |           |    x ^
+$§  xxxxxxxx|xxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++|+++++++++++++++++   |    x  ++++++++++++
+$§  v  +    |    +    |          |    v  +   |
+$§+------+<-'+------+ |          |  +------+ |
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x          x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+If the current item has no children, we go to the "next" item.
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                      ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§                       +-----+                +-----+ |
+$§                    ,->| box |-.           ,->| box |-'
+$§                    |  +-----+=|===========|=>+-----+==>NULL
+$§                    |    x ^   |           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++++++++++++++++++++   |    x  ++++++++++++
+$§  v  +         +    |          |    v  +   |
+$§+------+   +------+ | <--      |  +------+ |
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x  ^xx     x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+If there is no "next" item (we are already at the last item of this depth), we
+have to ascend before we can go to the next item.
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                      ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§                       +-----+                +-----+ |
+$§                --> ,->| box |-.           ,->| box |-'
+$§                    |  +-----+=|===========|=>+-----+==>NULL
+$§                    |    x ^   |           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++++++++++++++++++++   |    x  ++++++++++++
+$§  v  +         +    |          |    v  +   |
+$§+------+   +------+ | <xx      |  +------+ |
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x          x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                      ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§                       +-----+         -->    +-----+ |
+$§                    ,->| box |-.           ,->| box |-'
+$§                    |  +-----+=|===========|=>+-----+==>NULL
+$§                    |    x ^   |           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++++++++++++++++++++   |    x  ++++++++++++
+$§  v  +         +    |          |    v  +   |
+$§+------+   +------+ | <xx      |  +------+ |
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x          x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+If we still do not have a "next" item after ascending, we ascend again.
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                      ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§                       +-----+         -->    +-----+ |
+$§                    ,->| box |-.           ,->| box |-'
+$§                    |  +-----+=|===========|=>+-----+==>NULL
+$§                    |    x ^   |           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++++++++++++++++++++   |    x  ++++++++++++
+$§  v  +         +    |          |    v  +   |
+$§+------+   +------+ |          |  +------+ |  <xx
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x          x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                  --> ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§                       +-----+                +-----+ |
+$§                    ,->| box |-.           ,->| box |-'
+$§                    |  +-----+=|===========|=>+-----+==>NULL
+$§                    |    x ^   |           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++++++++++++++++++++   |    x  ++++++++++++
+$§  v  +         +    |          |    v  +   |
+$§+------+   +------+ |          |  +------+ |  <xx
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x          x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+After all items have been processed, we'll ascend until we get back to the top
+item, which's "next" pointer points back to itself; Thus we stay at the tree
+top after following "next", and the main loop is terminated.
+
+$§                                                         <+++
+$§                                                            +
+$§                                                         +-----+
+$§                                                  --> ,->| box |-->NULL
+$§                                                      |  +-----+<==#
+$§                                                      |    x ^ #===#
+$§                         xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx +
+$§                         x +++++++++++++++++++++++++++++++++++
+$§                         v +                     +    |
+$§                       +-----+                +-----+ |
+$§                    ,->| box |-.           ,->| box |-'
+$§                    |  +-----+=|===========|=>+-----+==>NULL
+$§                    |    x ^   |           |    x ^
+$§  xxxxxxxxxxxxxxxxxxxxxxxx +   |    xxxxxxxxxxxxx +
+$§  x  +++++++++++++++++++++++   |    x  ++++++++++++
+$§  v  +         +    |          |    v  +   |
+$§+------+   +------+ |          |  +------+ |  <xx
+$§| text |-->| text |-'          `->| text |-'
+$§+------+==>+------+==>NULL        +------+==>NULL
+$§  x          x                      x
+$§  v          v                      v
+$§  NULL       NULL                   NULL
+
+$=$$<h4>$$$_Assigning x-Coordinates$_$$</h4>$$
+
+When processing an item, not the coordinates of "cur_item" are assigned, but
+the coordinates of its *sub-items*. "cur_item" has had its coodinates assigned
+while its parent was processed. This is an exact reversal of $$<a
+href="#calcWidth">$$$_calc_width()$_$$</a>$$$ : Instead of "cur_item" getting
+its size from its sub-items, the sub-items get their size from "cur_item".
+
+The coordinates for the global item are assigned before calling assign_width().
+x-start is set to 0, x-end is set to the output width passed from main(). (The
+screen width when cfg.term_width is set; otherwise, either a constant value (in
+--dump mode) or the maximum of screen width and page width.) Play around with
+them if you like. (If set to a narrow box, you can see the word breaking work.)
+
+$§##################################################################################
+$§
+$§#------+                                                                         #
+$§#header|                                                                         #
+$§
+$§#*                                                                               #
+$§#*                                                                               #
+$§[...]
+$§#------------+                                                                   #
+$§#parameters);|                                                                   #
+$§
+$§#------+                                                                         #
+$§#single|                                                                         #
+$§ ^x_start=0                                                                      ^x_end=80
+
+For box (and form) items, the coordinates of all immediate children are simply
+set to the ones of the box. (This will have to change at some point, but it's
+ok for now...) It's done in a simple loop processing the children by
+"first_child" and "next", just as in
+$$<a$+href="#calcWidth">$$$_calc_width()$_$$</a>$$$ .
+
+$§##################################################################################
+$§
+$§+--------------------------------------------------------------------------------+
+$§|header text                                                                     |
+$§
+$§**********************************************************************************
+$§*                                                                                *
+$§[...]
+$§+--------------------------------------------------------------------------------+
+$§|this very long second paragraph contains some special characters (including a   |
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|
+$§|only tag with parameters); and finally a blank row                              |
+$§
+$§+--------------------------------------------------------------------------------+
+$§|(a single tag)                                                                  |
+
+Blank items have no children. Nothing has to be done. The same for anchor items.
+
+Text items have no children, too; but they need to be broken into lines. (This
+could be done in a seperate pass...)
+
+$#<a name="lineBreaking" id="lineBreaking">
+
+$=$$<h4>$$$_Breaking String into Lines$_$$</h4>$$
+
+The breaking into lines is a bit complicated, because netrik has the ability to
+break words that do not fit on a single line. And: It does this smartly,
+avoiding line breaks whenever possible.
+
+The line breaking does not alter the string structure itself. The only output
+is "line_table[]" (containing the positions of all line breaks inside the
+string), and its length (The number of line breaks), which is stored as the
+height of the text item in "y_end".
+
+Before starting, some constants are calculated: The width of the text block is
+the difference of x_end and x_start. The pointer to the start of the text
+string is taken from the string structure and stored in "string_start".
+
+The text block is processed word-wise. In each iteration of the outer loop one
+word is processed. (There are some exceptions though for extremely long words;
+this will be explained in a moment.)
+
+First, "word_end" is retrieved. It points to the space, newline or string
+terminator that ends the word to be processed. "next_word_start" is set to
+"word_end+1", assuming that we will proceed with the next word (which starts
+after the space); however, this may by altered later.
+
+$§                     line_table[0]
+$§                     v
+$§string: "I am a very simple and stupid example sentence."
+$§         ^           ^      ^  ^^
+$§         s           l      w  en
+$§string_start  line_start        next_word_start
+$§                               word_end
+$§                            word_start
+$§output:
+$§ x_start     x_end
+$§ |<- width ->|
+$§ v    12     v
+$§+------------+
+$§|I am a very |
+$§|simple and stupid example sentence.
+$§ ^      ^  ^^
+$§ l      w  en
+
+Then we test if the whole word fits into the current open line (which's
+starting position is stored in "line_start"). 
+
+$§                     v
+$§string: "I am a very simple and stupid example sentence."
+$§         ^           ^      ^  ^^^ 
+$§         s           l      w  enb 
+$§                                 line_start+width (line end/Break position)
+$§                     |<- width ->|
+$§                         (12)
+$§+------------+
+$§|I am a very |
+$§|simple and stupid example sentence.
+$§ ^      ^  ^^^ 
+$§ l      w  enb 
+$§            e<b -> no wrap
+
+If it does, we do nothing, and simply proceed with the next word. "word_start"
+is set to "next_word_start" before the next iteration.
+
+$§                     v
+$§string: "I am a very simple and stupid example sentence."
+$§         ^           ^          ^
+$§         s           l          n
+$§                                ^
+$§                                w
+
+Otherwise, we have to generate a line wrap, and put the word on a new line.
+
+$§                     v
+$§string: "I am a very simple and stupid example sentence."
+$§         ^           ^          ^^    ^^
+$§         s           l          wb    en
+$§+------------+
+$§|I am a very |
+$§|simple and stupid example sentence.
+$§ ^          ^^    ^^
+$§ l          wb    en
+$§              e>=b -> wrap
+
+Normally, we simply wrap the line at the current word, by setting "line_start"
+to "word_start", and adding a line break at this position to "line_table[]".
+
+$§                                line_table[1]
+$§                     v          v
+$§string: "I am a very simple and stupid example sentence."
+$§         ^                      ^     ^^
+$§         s                      w     en
+$§                                ^
+$§                                l
+$§+------------+
+$§|I am a very |
+$§|simple and  |
+$§|stupid example sentence.
+$§ ^     ^^
+$§ w     en
+$§ ^
+$§ l
+
+However, things are more complicated due to the ability of breaking too long
+words. We have to decide whether we simply put the word on a new line as
+described above, or if it's necessary/better to break it at the line end. And
+this is the tricky part.
+
+We can't just break all words, as it would cause many really unnecessary
+breaks, which is really ugly and hard to read.
+
+$§+------------+
+$§|Having aRea\|
+$§|llyLongWord |
+$§|followed by |
+$§|anotherLong\|
+$§|Word, I am  |
+$§|quite inter\|  <--
+$§|esting.     |
+$§+------------+
+
+Wrapping before every word that doesn't fit on the line end is also not
+optimal:
+
+$§+------------+
+$§|Having      |  <--
+$§|aReallyLong\|
+$§|Word        |  <--
+$§|followed by |
+$§|anotherLong\|
+$§|Word, I am  |
+$§|quite       |
+$§|interesting.|
+$§+------------+
+
+There is lots of space wasted, and it looks quite ugly.
+
+A better solution is putting the beginning of a word on the current line always
+as long as this doesn't introduce an additional (unnecessary) word break:
+
+$§+------------+
+$§|Having aRea\|  <--
+$§|llyLongWord |
+$§|followed by |
+$§|anotherLong\|
+$§|Word, I am  |
+$§|quite       |  <--
+$§interesting. |
+$§+------------+
+
+(The first arrow shows a case where the beginnig of the word was put on the
+line end to better fill the space, the second one a case where this is not done
+to avoid an unnecessary word break.)
+
+The Problem here is to decide whether we can put the beginning of the word on
+the line end without introducing an additional line break. For this, we
+truncate the word, chopping off as many whole line widths ("width-1", because
+of the break chars) from the end of the word as possible, and test if the
+remaining part fits on the current line.
+
+$§                v      v       v        v
+$§string: "I am a second example sentence with aVeryLongWord in me."
+$§                                        ^    ^ ^    ^     ^^
+$§                                        l    w t    b     en
+$§                                               trunc_word_end=word_end-(width-1)
+$§                                               |<-      ->|
+$§                                               width-1 (11)
+$§+------------+
+$§|I am a      |
+$§|second      |
+$§|example     |
+$§|sentence    |
+$§|with a\     |
+$§ ^    ^ ^    ^
+$§ l    w t    b
+$§         t<=b -> fill line
+$§
+$§|VeryLongWord| (truncated part)
+$§             ^
+$§             e
+
+Or:
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                        ^    ^      ^ ^          ^^
+$§                                        l    w      b t          en
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with anEvenAB\
+$§ ^    ^      ^ ^
+$§ l    w      b t
+$§             t>b -> put word on new line
+$§
+$§|itLongerWord|
+$§             ^
+$§             e
+
+For a longer word, the truncation is done more than once:
+
+$§                      v       v         v
+$§string: "I am another example sentence, with aTerriblyLongWordThatDoesn'tSeemToEnd in me."
+$§                                        ^    ^   ^  ^       ^          ^          ^^
+$§                                        l    w   T  b       t          t          en
+$§                                                 (final)
+$§+------------+
+$§|I am another|
+$§|example     |
+$§|sentence,   |
+$§|with aTe\   |
+$§ ^    ^   ^  ^
+$§ l    w   T  b  t<=b -> fill line
+$§
+$§|rriblyLongW\|
+$§             ^
+$§             t
+$§|ordThatDoes\|
+$§             ^
+$§             t
+$§|n'tSeemToEnd in me.
+$§             ^^
+$§             en
+
+or:
+
+$§                      v
+$§string: "This example has again aTerriblyLongWordThatDoesn'tSeemToEnd in some other sentence."
+$§                      ^         ^ ^ ^          ^          ^          ^^
+$§                      l         w b T          t          t          en
+$§+------------+
+$§|This example|
+$§|has again aTe\
+$§ ^         ^ ^ ^
+$§ l         w b T
+$§              t>b -> don't fill
+
+This is done in a loop. We also could do it by a modulo division, but
+evaluating a quite complicated expression is probably less efficient than a
+simple loop, which is entered only in exceptional cases anyways. (Words wider
+than a line are not very common, after all...) Also, it is easier to
+understand, isn't it?...
+
+Note that this only takes effect for words that actually need to be broken --
+words shorter than the line width will never be truncated; the remaining part
+will still not fit on the line, so the word is just put on the new line as
+described above.
+
+If we decide on the first way, we fill up the current line with the beginning
+of the word. (The last char is kept empty for the word break indicator
+displayed in the output.) The "line_start" is set accordingly, so that the rest
+of the word will be put on the next line.
+
+$§                v      v       v        v          v
+$§string: "I am a second example sentence with aVeryLongWord in me."
+$§                                             ^     ^^     ^^
+$§                                             w     lb     en
+$§+------------+
+$§|I am a      |
+$§|second      |
+$§|example     |
+$§|sentence    |
+$§|with aVeryL\|
+$§|ongWord in me.
+$§ ^      ^^
+$§ l      en
+
+If the second way was chosen, things are quite easy: The line wrap is inserted
+at the beginning of the word. Again, this is the same case as for short words
+that aren't broken at all -- there is no extra handling for this.
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                             ^                   ^^
+$§                                             w                   en
+$§                                             ^
+$§                                             l
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with        |
+$§|anEvenABitLongerWord in me."
+$§ ^                   ^^
+$§ l                   en
+
+Now we need to test if the remainder fits on the new line; if it does not, we
+have to adjust "next_word_start" to make sure processing in the next loop
+iteration will not continue with the next word, but with the part of the
+current word that does not fit on the new line.
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                             ^           ^       ^^
+$§                                             l           b       en
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with        |
+$§|anEvenABitLongerWord in me."
+$§ ^           ^       ^^
+$§ l           b       en
+$§                e>=b -> more breaks necessary
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                             ^          ^^        °
+$§                                             l          nb        n
+$§                                                                  (old value)
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with        |
+$§|anEvenABitLongerWord in me."
+$§ ^          ^^        °
+$§ l          nb        n
+
+This way we will scan for the word end again in the next iteration; but
+starting with the part of the word that does not fit on the new line. (This is
+unefficient of course, but this case is quite rare, and it's not worth adding
+special code for handling this.)
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                             ^          ^        ^^
+$§                                             l          w        en
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with        |
+$§|anEvenABitLongerWord in me."
+$§ ^          ^^       ^^
+$§ l          wb       en
+
+As the new line is already filled up with the previous word part, a line break
+will always be inserted just in front of the remainder, and the remainder will
+be put into another line.
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                             ^          ^^       ^^
+$§                                             l          wb       en
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with        |
+$§|anEvenABitLongerWord in me."
+$§ ^          ^^       ^^
+$§ l          wb       en
+$§                e>b -> wrap
+
+$§         v            v       v         v    v
+$§string: "I am a third example sentence, with anEvenABitLongerWord in me."
+$§                                                        ^°       ^^
+$§                                                        wb       en
+$§                                                        ^
+$§                                                        l
+$§+------------+
+$§|I am a third|
+$§|example     |
+$§|sentence,   |
+$§|with        |
+$§|anEvenABitL\|
+$§|ongerWord in me."
+$§ ^        ^^
+$§ l        en
+
+Of course it's also possible that the remainder still doesn't fit on a line,
+and has to be broken again.
+
+$§                      v       v         v          v
+$§string: "I am another example sentence, with aTerriblyLongWordThatDoesn'tSeemToEnd in me."
+$§                                                   ^          ^^                  ^^
+$§                                                   l          wb                  en
+$§+------------+
+$§|I am another|
+$§|example     |
+$§|sentence,   |
+$§|with aTerri\|
+$§|blyLongWordThatDoesn'tSeemToEnd in me.
+$§ ^          ^^                  ^^
+$§ l          wb                  en
+$§                   e>b -> wrap
+
+$§                      v       v         v          v
+$§string: "I am another example sentence, with aTerriblyLongWordThatDoesn'tSeemToEnd in me."
+$§                                                   ^          ^^       ^          ^^
+$§                                                   l          wb       t          en
+$§+------------+
+$§|I am another|
+$§|example     |
+$§|sentence,   |
+$§|with aTerri\|
+$§|blyLongWordThatDoes\|
+$§ ^          ^^       ^
+$§ l          wb       t
+$§                 t>b -> don't fill
+
+$§                      v       v         v          v          v
+$§string: "I am another example sentence, with aTerriblyLongWordThatDoesn'tSeemToEnd in me."
+$§                                                              ^          ^^       ^
+$§                                                              w          nb       e
+$§                                                              ^
+$§                                                              l
+$§+------------+
+$§|I am another|
+$§|example     |
+$§|sentence,   |
+$§|with aTerri\|
+$§|blyLongWord\|
+$§|ThatDoesn'tSeemToEnd in me.
+$§ ^          ^^       ^
+$§ l          nb       e
+
+This will be repeated, until the whole word is stored.
+
+$§                      v       v         v          v          v
+$§string: "I am another example sentence, with aTerriblyLongWordThatDoesn'tSeemToEnd in me."
+$§                                                              ^          ^^       ^^
+$§                                                              l          wb       en
+$§                                                                            e>b -> wrap
+
+$§                      v       v         v          v          v          v
+$§string: "I am another example sentence, with aTerriblyLongWordThatDoesn'tSeemToEnd in me."
+$§                                                                         ^        ^^
+$§                                                                         w        en
+$§                                                                         ^
+$§                                                                         l
+$§+------------+
+$§|I am another|
+$§|example     |
+$§|sentence,   |
+$§|with aTerri\|
+$§|blyLongWord\|
+$§|ThatDoesn't\|
+$§|SeemToEnd in me.
+$§ ^        ^^
+$§ l        en
+
+Of course, a line break is always inserted in front of the word no matter if it
+would fit on the old line, if the word follows a newline character.
+
+Implementing this without considerable bloat and slowdown requires a little
+trick: We test for the newline after normally scanning for the word end. Now if
+there is a newline, we just set "word_end" to "word_start+width" -- we just
+pretend that the current word is exactly as long as the line, so it will always
+be put on a new line.
+
+$§                v      v       v        v      v      
+$§string: "I am a stupid example sentence with a newline/in me."
+$§         ^                                     ^       ^ ^^^
+$§         s                                     l       w enb
+$§+------------+
+$§|I am a      |
+$§[...]
+$§|newline/in me.
+$§ ^       ^ ^^^
+$§ l       w enb
+$§        ^newline in front of word
+
+$§                v      v       v        v      v      
+$§string: "I am a stupid example sentence with a newline/in me."
+$§         ^                                     ^       ^  ^^        ^
+$§         s                                     l       w  nb        e
+$§+------------+
+$§|I am a      |
+$§[...]
+$§|newline/in me.
+$§ ^       ^  ^^        ^
+$§ l       w  nb        e
+$§                e>b -> wrap
+
+$§+------------+
+$§|I am a      |
+$§[...]
+$§|newline/    |
+$§|in me.
+$§ ^  ^        ^
+$§ w  n        e
+$§ ^
+$§ l
+
+Note that "next_word_start" is *not* modified; this is important to ensure that
+processing in the next iteration will continue with the following word
+normally!
+
+$#</a>    <!--lineBreaking-->
+$#</a>    <!--assignWidth-->
+
+$=$$<h3>$$$_calc_ywidth()$_$$</h3>$$
+
+The third pass is simple again. calc_ywidth() calculates minimal heights
+(y-widths) for all items.
+
+Presently this is complete overkill; assign_ywidth() doesn't really need this.
+However, it will be necessary as soon as interesting elements are
+implemented (tables) -- which hopefully won't be too long now...
+
+Like $$<a$+href="#calcWidth">$$$_calc_width()$_$$</a>$$$ , it traverses the tree
+bottom to top, and for every item it stores the minimal height to "y_end".
+
+Blank lines always have the height of 1. Anchor items have no height. (They are virtual...)
+
+Text items have their height assigned already in
+$$<a$+href="#assignWidth">$$$_assign_width()$_$$</a>$$$ , while $$<a
+href="#lineBreaking">$$$_Breaking String into Lines$_$$</a>$$$ .
+
+$§##################################################################################
+$§
+$§+--------------------------------------------------------------------------------+___
+$§|header text                                                                     |__0
+$§+--------------------------------------------------------------------------------+  1<--y_end
+$§
+$§**********************************************************************************___
+$§*                                                                                *__0
+$§**********************************************************************************  1<--
+$§[...]
+$§+--------------------------------------------------------------------------------+___
+$§|this very long second paragraph contains some special characters (including a   |  0
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |  1
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|  2
+$§|only tag with parameters); and finally a blank row                              |__3
+$§+--------------------------------------------------------------------------------+  4<--
+$§
+$§+--------------------------------------------------------------------------------+___
+$§|(a single tag)                                                                  |__0
+$§+--------------------------------------------------------------------------------+  1<--
+
+The height of a box item is calculated by summing up the height of all its
+sub-items. This is done by "first_child" and "next", just as seeking the widest
+sub-item in $$<a$+href="#calcWidth">$$$_calc_width()$_$$</a>$$$ .
+
+$§##################################################################################
+$§
+$§+--------------------------------------------------------------------------------+
+$§|header text                                                                     |
+$§+--------------------------------------------------------------------------------+ <--  1
+$§
+$§********************************************************************************** 
+$§*                                                                                * 
+$§********************************************************************************** <-- +1
+$§[...]                                                                                 [...]
+$§+--------------------------------------------------------------------------------+ 
+$§|this very long second paragraph contains some special characters (including a   | 
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ | 
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the| 
+$§|only tag with parameters); and finally a blank row                              | 
+$§+--------------------------------------------------------------------------------+ <-- +4
+$§
+$§+--------------------------------------------------------------------------------+ 
+$§|(a single tag)                                                                  | 
+$§+--------------------------------------------------------------------------------+ <-- +1
+$§
+$§################################################################################## <## 13
+$§                                                                                   item_tree->y_end
+
+$#<a name="assignYwidth" id="assignYwidth">
+
+$=$$<h3>$$$_assign_ywidth()$_$$</h3>$$
+
+The fourth pass is also fairly simple. It assigns y-coordinates to all items.
+There is no initialisation necessary before calling it, as the y_end of the
+global item is already set by calc_ywidth(), and y_start is always 0.
+
+Like in $$<a$+href="#assignWidth">$$$_assign_width()$_$$</a>$$$ , the tree is
+traversed top to bottom, and the sizes of all sub-items are assigned while
+processing the parent.
+
+Thus, text and blank items do not need any processing -- they do not have any
+children.
+
+For box items, the coordinates of all sub-items are assigned in a loop, like in
+$$<a$+href="#assignWidth">$$$_assign_width()$_$$</a>$$$ . Every item is put
+immediately after the previous one, i.e. it starts where the previous one ends.
+We keep track of the current position by "y_pos". At the beginning it is
+initialized to "y_start" of the box.
+
+$§##################################################################################
+$§                                                                                   0 <##           <== y_pos
+$§                                                                                     item_tree->y_start
+
+For every item, y_start is set to the current y_pos.
+
+$§                                                                                     y_end  y_start
+$§                                                                                        |     |
+$§+--###############################################################################____  v     v
+$§|header text                                                                     |___0       <--
+$§*                                                                                *___1 <--   <**  
+$§|heading                                                                         |___2 <**   <----
+$§*                                                                                *___3 <---- <****
+$§|first paragraph of text; includes multiple spaces and newlines, emphasized text |   4 <**** <--  
+$§|and strong text                                                                 |___5       
+$§*                                                                                *___6 <--   <**  
+$§|starting with an evil center tag,                                               |___7 <**   <----
+$§|this very long second paragraph contains some special characters (including a   |   8 <---- <--    <==
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |           cur_item->y_start=y_pos=8
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|
+$§|only tag with parameters); and finally a blank row                              |
+$§+--------------------------------------------------------------------------------+ <-- cur_item->y_end=4
+$§
+$§+--------------------------------------------------------------------------------+ 
+$§|(a single tag)                                                                  | 
+$§+--------------------------------------------------------------------------------+ <----  1
+$§
+$§################################################################################## <## 13
+
+"y_end" of an item is determined by adding the y-size (stored in "y_end" up to
+now) to "y_start" of the item.
+
+$§+--###############################################################################____
+$§|header text                                                                     |___0       <--
+$§*                                                                                *___1 <--   <**  
+$§|heading                                                                         |___2 <**   <----
+$§*                                                                                *___3 <---- <****
+$§|first paragraph of text; includes multiple spaces and newlines, emphasized text |   4 <**** <--  
+$§|and strong text                                                                 |___5       
+$§*                                                                                *___6 <--   <**  
+$§|starting with an evil center tag,                                               |___7 <**   <----
+$§|this very long second paragraph contains some special characters (including a   |   8 <---- <--    <==
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |   9
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|  10
+$§|only tag with parameters); and finally a blank row                              |__11
+$§+--------------------------------------------------------------------------------+  12 <-- cur_item->y_end=cur_item->ystart+cur_item->y_end=12
+$§
+$§+--------------------------------------------------------------------------------+
+$§|(a single tag)                                                                  |
+$§+--------------------------------------------------------------------------------+ <----  1
+$§
+$§################################################################################## <## 13
+
+"y_pos" is adjusted to the end of the item.
+
+$§+--###############################################################################____
+$§|header text                                                                     |___0       <--
+$§*                                                                                *___1 <--   <**  
+$§|heading                                                                         |___2 <**   <----
+$§*                                                                                *___3 <---- <****
+$§|first paragraph of text; includes multiple spaces and newlines, emphasized text |   4 <**** <--  
+$§|and strong text                                                                 |___5       
+$§*                                                                                *___6 <--   <**  
+$§|starting with an evil center tag,                                               |___7 <**   <----
+$§|this very long second paragraph contains some special characters (including a   |   8 <---- <--
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |   9
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|  10
+$§|only tag with parameters); and finally a blank row                              |__11
+$§+--------------------------------------------------------------------------------+  12 <--          <==
+$§
+$§+--------------------------------------------------------------------------------+
+$§|(a single tag)                                                                  |
+$§+--------------------------------------------------------------------------------+<----  1
+$§
+$§################################################################################## <## 13
+
+In the next iteration, "y_pos" -- which now points to the end of the current
+item -- is used as the beginning of the new item.
+
+$§+--###############################################################################____
+$§|header text                                                                     |___0       <--
+$§*                                                                                *___1 <--   <**  
+$§|heading                                                                         |___2 <**   <----
+$§*                                                                                *___3 <---- <****
+$§|first paragraph of text; includes multiple spaces and newlines, emphasized text |   4 <**** <--  
+$§|and strong text                                                                 |___5       
+$§*                                                                                *___6 <--   <**  
+$§|starting with an evil center tag,                                               |___7 <**   <----
+$§|this very long second paragraph contains some special characters (including a   |   8 <---- <--
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |   9
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|  10
+$§|only tag with parameters); and finally a blank row                              |__11
+$§|(a single tag)                                                                  |  12 <--   <----   <==
+$§+--------------------------------------------------------------------------------+<----  1
+$§
+$§################################################################################## <## 13
+
+$#<a name="linkCoords" id="linkCoords">
+
+$=$$<h4>$$$_Link Coordinates$_$$</h4>$$
+
+Coordinates of links and anchors (both x and y!) are presently also assigned
+here. Probably it would be a better idea to do that in extra pass... As soon as
+the current link implementation is dropped and anchors are cleanly implemented,
+the assignment can be cleanly and logically split between assign_xwidth() and
+assign_ywidth(), just as for other item types.
+
+Link coordinates are assigned by the parent text item. The text block is
+scanned, one link after the other, for the lines containing the link start and
+end. (The first line that ends after the link start, and the first line that
+ends at/after the link end.) As an optimization, the search for the next link
+is started in the line where the previous ended, not from beginning -- links
+can't be nested.
+
+After having the line, (and thus also the y coordinate), the x coordinate is
+calculated by adding the link's relative position inside the line
+(link[].start-line_start) to the x coordinate of the line start. (Which is
+equal to the item start for normal text, but has to be calculated seperately
+for every line in centered text items.)
+
+Inline anchors are very similar; however, they get their coordinates while
+processing the anchor item, not the text item containing them. (The text item
+doesn't know anything about the anchors.) Anchors can be nested if created by
+<span> or so; thus the above optimization isn't possible. (It would be harder
+anyhow, due to the anchors being processed every one on its own.)
+
+Block anchors need another processing, of course: If they are empty, they keep
+the coordinates assigned to them by the parent box; otherwise, all (immediate)
+virtual children are scanned for the minimum/maximum for each of the four
+coordinates; these are assigned as the coordinates of the anchor virtual box.
+
+$#</a>    <!-- linkCoords -->
+
+$#</a>    <!-- assignYwidth -->
+
+$#<a name="createMap" id="createMap">
+
+$=$$<h3>$$$_create_map()$_$$</h3>$$
+
+$#<a name="pageMap" id="pageMap">
+
+The last sub-pass generates the "page_map[]". (This could be also done inside
+assign_ywidth()...) This map is necessary to quickly determine which elements
+show up in the visible area of the page, when it is displayed in the viewer.
+
+The page usage map stores references to all items that show up in any given
+line of the output page. This is a very simple approach, but it should be
+perfectly sufficient as long as netrik has no full graphic mode -- and this
+will be probably for quite a while...
+
+"page_map[]" is an array containing an "Item_list" structure for every line of
+the output page. This structure is declared in items.h . It contains a count of
+items in this line, and an array of pointers to the items.
+
+$#</a>    <!--pageMap-->
+
+The whole line map is allocated at the beginning. Afterwards, all items are
+processed in a loop. For every item that is visible on the screen (presently
+this are only text items), a reference to this item is stored to every line of
+"page_map[]" between "y_start" and "y_end" of the item.
+
+$§                                                                                      line|page_map[line]
+$§+--###############################################################################__  ----+--------------
+$§|header text                                                                     |__    0 | t0
+$§*                                                                                *__    1 | -
+$§|heading                                                                         |__    2 | t1
+$§*                                                                                *______3_|_-____
+$§|first paragraph of text; includes multiple spaces and newlines, emphasized text |      4 | t2  <-- cur_item->y_start
+$§|and strong text                                                                 |______5_|_t2___
+$§*                                                                                *__    6 | -   <-- cur_item->y_end
+$§|starting with an evil center tag,                                               |__    7 | -
+$§|this very long second paragraph contains some special characters (including a   |      8 | -
+$§|simple space...): &; <>"=/ plus a big gap###and two unicode escapes (decimal: ¡ |      9 | -
+$§|and hexal: ¿) but also an anchor embedded inside a word (this anchor also is the|     10 | -
+$§|only tag with parameters); and finally a blank row                              |__    1 | -
+$§|(a single tag)                                                                  |__   12 | -
+$§###############################################################################--+  
+
+"page_map[]" is returned to pre_render(), and from there to main(), where it is
+passed to $$<a$+href="#dump">$$$_dump()$_$$</a>$$ or to
+$$<a$+href="#render">$$$_render()$_$$</a>$$ (via
+$$<a$+href="hacking-pager.html#display">$$$_display()$_$$</a>$$$ , see
+$$<a$+href="hacking-pager.html">$$hacking-pager.*$$</a>$$) along with "item_tree".
+
+$#</a>    <!--createMap-->
+
+$#<a name="freeMap" id="freeMap">
+
+$=$$<h3>$$$_free_map()$_$$</h3>$$
+
+This function frees the memory allocated for the page map.
+
+First it goes through the table line by line, and frees the associated "list"
+for each one. Afterwards, it frees the table itself.
+
+$#</a>    <!--freeMap-->
+
+$#</a>    <!--preRender-->
+
+$#<a name="renderC" id="renderC">
+
+$=$$<h2>$$$_8. render.c$_$$</h2>$$
+
+With the item tree and the page usage map prepared in pre_render(), we can now
+actually render the page. There are two different rendering functions:
+
+dump() renders the whole page and dumps the output to the terminal. The output
+is layouted correctly, using all the coordinates and text attributes.
+
+render() renders only a specified area of the page, and outputs it to the
+curses screen.
+
+$#<a name="dump" id="dump">
+
+$=$$<h3>$$$_dump()$_$$</h3>$$
+
+The page is rendered line by line, using
+"$$<a$+href="#pageMap">$$page_map[]$$</a>$$" (see
+$$<a$+href="#createMap">$$$_create_map()$_$$</a>$$ above) to determine which
+items we need to render in every line. Of course this isn't really necessary,
+as we do not ever have more than one item in a line presently. However, using
+"page_map[]" here is *not* overkill, just for a change ;-) On the contrary,
+this is a pragmatic approach. Dumping the page item by item without using
+"page_map[]" would be more efficient; however, it would be also more
+complicated than dumping line by line.
+
+In each line, we process all items (from "page_map[line]") one after the other.
+If there was actually more then one item (which is impossible presently...),
+they would be printed one after the other -- with disasterous results... No
+code is implemented for really handling this situation yet.
+
+First action to do for each item is setting the cursor position to the
+beginning of the text of this line. (Retrieved by
+$$<a$+href="#linePos">$$$_line_pos()$_$$</a>$$ and stored in "x_start".) This
+we do by going forward as much character positions as necessary, by printing
+that many space characters.
+
+Now we can output the text itself. To know what is actually to be printed in
+this line, the start and end positions of this line's text inside the string
+(text block) are retrieved with $$<a$+href="#lineStartEnd">$$$_line_start() and
+line_end()$_$$</a>$$$ . (And stored in "text_start" and "text_end".)
+
+Having this, we print all attribute divisions in a loop. But first we have to
+find the first one that shows up in the current line.
+
+$§                                               div[0].end     ...    div[3].end
+$§                                               v               v   v          v
+$§text: "first[...]multiple spaces and newlines, emphasized text and strong text"
+$§       |                  ^                    |                         ^
+$§                          text_start                                   text_end
+
+In every iteration we print all the text between "div_start" end "div_end",
+which normally point to the start and end of the current division. For the
+first iteration, "div_start" is set to "text_start" -- we only want the part of
+the div that acutally shows up in the line.
+
+$§                                               v               v   v          v
+$§text: "first[...]multiple spaces and newlines, emphasized text and strong text"
+$§                          ^                    ^                         ^
+$§                       div_start=text_start    div_end=div[0].end      text_end
+$§
+$§output:
+$§first paragraph of text; contains multiple
+$§spaces and newlines,                               <-- line
+
+The next div starts where the current one ends.
+
+$§                                               v               v   v          v
+$§text: "first[...]multiple spaces and newlines, emphasized text and strong text"
+$§                          ^                    ^               ^         ^
+$§                          text_start           div_start       div_end text_end
+
+The last division is truncated to "text_end" -- as with the first one, we only
+want the part that shows up in the current line.
+
+$§                                               v               v   v          v
+$§text: "first[...]multiple spaces and newlines, emphasized text and strong text"
+$§                          ^                                    ^         ^
+$§                                                       div_start       div_end
+$§                                                                      =text_end
+$§
+$§output:
+$§first paragraph of text; contains multiple
+$§spaces and newlines, emphasized text and strong
+
+Before actually printing the text, it is copied into a temporary string, but
+replacing all &nbsp; characters by normal spaces. (There are various problems
+resulting from putting real '\xa0' characters on the screen: For one, with
+fonts where this char isn't really blank (always the case if the charset isn't
+iso-8859-x) it's unusable. Also, copying via screen/GPM/X clipboard usually has
+undesired results.)
+
+Finally, we test if the line ends with a word break, and print the break
+character if it does. We know it does when the character at the line end is a
+word character (not a space, newline, or string end), because every word end is
+followed by the space separating it from the next word; if there is no space at
+the line end, we are inside a wrapped word.
+
+$§                    v                     v
+$§text "Some sentence containing aVeryLongAndThusBrokenWord."
+$§                                          ^
+$§output:
+$§Some sentence
+$§containing aVeryLongAn\
+$§...
+$§dThusBrokenWord.
+
+$#</a>    <!--dump-->
+
+$#<a name="render" id="render">
+
+$=$$<h3>$$$_render()$_$$</h3>$$
+
+render() works similar to $$<a$+href="#dump">$$$_dump()$_$$</a>$$$ . The main difference is how the output is
+printed. However, there are a couple of differences in screen position handling
+and other calculations also.
+
+render() takes the starting positon of the rendered area inside the page, the
+starting position on the screen, and the size of the rendered area as
+arguments.
+
+The area is processed line by line, and every line is processed item by item,
+just like in dump().
+
+"x_start" describes the starting column relative to the beginning of the
+rendered area, not the screen. (dump() always dumps whole lines, and thus there
+is no difference.) If it turns out that the line starts before the rendered
+area, it has to be truncated. the ending position "x_end" is calculated in a
+similar fashion.
+
+Before the line is printed (div by div, as in dump()), the cursor is set to the
+start position of the line. The column is the starting position relative to the
+area ("x_start"), plus the starting position of the area on the screen;
+likewise the row.
+
+Before anything is printed, we test if some part of the line shows up inside
+the rendered area at all. The word break indicator is also printed only if the
+line ends inside the area.
+
+If render() was called with the "overpaint" flag, the requested area is cleaned
+before rendering anything, so any garbage will be removed. (Areas not
+containing any text aren't affected otherwise.) This is done by overwriting the
+desired part of each line with a string of spaces.
+
+$#</a>    <!--render-->
+
+$#<a name="dumpItems" id="dumpItems">
+
+$=$$<h3>$$$_dump_items()$_$$</h3>$$
+
+dump_items() dumps the item tree, including the text of text items. The text is
+printed with correct attributes, but ignoring any coordinates and line breaks.
+This function is for debugging purposes, and may be called anywhere inside or
+after pre_render() (anywhere after parse_struct()).
+
+The reason this function is in render.c is that it needs the same screen
+handling functions as $$<a$+href="#dump">$$$_dump()$_$$</a>$$$ . Moreover, it
+works in a very similar fashion.
+
+The difference is that it does not dump line by line, but item by item
+(traversing the tree top to bottom). After printing some information about the
+item itself, it dumps the text division by division in the same way dump()
+does, only it doesn't need to care about positions or line breaks; it dumps the
+whole string at once.
+
+$#</a>    <!--dumpItems-->
+
+$#</a>    <!--renderC-->
+
+$#<a name="itemsC" id="itemsC">
+
+$=$$<h2>$$$_10. items.c$_$$</h2>$$
+
+items.c contains a few simple helper functions intended to simplify retrieving
+some common date from the structure (item) tree.
+
+The advantage of using such helper functions, even if they are really simple,
+is less code duplication -- which improves maintainability and probably makes
+the code also easier to understand. (This is actually an approach toward
+so-called object oriented programming...) On the other hand, these functions
+are extremly inefficient, as they calculate intermediate values which could be
+shared, and the calling overhead itself is fairly big for such simple
+functions. (Effectively probably increasing code size.) Maybe we should try to
+define them as macros, or just put them into an include file so they can be
+inlined during optimized compilation. (Let the compiler decide...)
+
+$#<a name="lineStartEnd" id="lineStartEnd">
+
+$=$$<h3>$$$_line_start() and line_end()$_$$</h3>$$
+
+line_start() and line_end() are used to find out at which position some
+specific text line starts/ends inside the string of a (wrapped) text block.
+
+The positions are read from the line_table[] (see
+$$<a$+href="lineBreaking">$$$_Breaking String into Lines$_$$</a>$$). This is
+normally trivial, but there are exceptions for the first and last lines.
+
+line_end() has an additional quirk: If the line ends with a blank, the line end
+position is decremented -- when a line wraps at a blank, this blank is always
+discarded.
+
+Note that the line number given to these functions is *not* the line number
+relative to the start of the text block, but the page line.
+
+$#</a>    <!-- lineStartEnd -->
+
+$#<a name="linePos" id="linePos">
+
+$=$$<h3>$$$_line_pos()$_$$</h3>$$
+
+The horizontal page position of a single text line can be retrieved using
+line_pos(). This is useful because of centered text items, where the line
+starts do not equal the text block start, and differ from line to line.
+
+The line number argument is in page coordinates just as in
+$$<a$+href="#lineStartEnd">$$$_line_start() and line_end()$_$$</a>$$ above.
+
+$#</a>    <!-- linePos -->
+
+$#</a>    <!-- itemsC -->
+
+$#</body>
+$#</html>

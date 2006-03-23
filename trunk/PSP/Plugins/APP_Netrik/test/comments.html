@@ -1,0 +1,36 @@
+<html><head></head>
+<body>
+   <p>
+      1. visible,
+      <!-- normal comment, -->
+      2. visible,
+      <!-- rather untypical -----, but valid > sgml -- -- comment-> ,--
+      >
+      3. visible,
+      <!>
+      4. visible,
+      <!-- a typical -- broken--comment, -->
+      5. visible,
+      <!-- valid (misinterpreted) SGML comment and ---->
+      text that was probably intended -- to be visible > but won't,
+      -->
+      6. visible,
+      <!--- another typical broken comment, --->
+      (7.) visible due to workaround,-->
+      <!---- a very nasty broken comment, that should now also be worked around, ---->
+      (8.) now also visible due to workaround,-->
+      <!----- yet another typical broken comment, ----->
+      (9.) visible due to workaround,-->
+      <!-------->
+      10. visible,
+      <!------- and don't forget this one, ------->
+      (11.) visible due to workaround,-->
+      <!-- comment that is valid----> but strange-----> and will produce a warning,-->
+      12. visible.
+   </p>
+   <p>
+      <!------> (a broken comment producing a warning, and causing an error at EOF because never terminated)
+      more text that was intended to be visible 
+   </p>
+</body>
+</html>

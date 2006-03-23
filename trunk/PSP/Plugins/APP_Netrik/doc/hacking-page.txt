@@ -1,0 +1,335 @@
+  netrik hacker's manual
+>========================<
+
+[This file contains a description of the page handling system. See hacking.txt
+or hacking.html for an overview of the manual.]
+
+The page handling system is responsible for the central browser functionality:
+Loading pages to be displayed, loading new pages when links are followed etc.
+This also includes all page history handling, as all page loads either affect
+the page list (history), or depend on it, or both; and all history commands
+involve a page load.
+
+The page handling is also a central component, because it invokes all of the
+other modules: The file loader (hacking-load.*) is used to fetch a new document
+(file) if necessary, and the layout engine (hacking-layout.*</a>) to prepare
+it for rendering; the pager (hacking-pager.* is (indirectly) invoked to display
+the new page; and the link handling mechanism tells when and what page to
+load. Moreover, most of the modules are also coupled to the page handling,
+because they use the page structure handled by the page loading mechanism.
+
+So the page handling is really the central component, controlling the program
+flow. Thus it can only partially be located in an own file (page.c); part of
+the page handling has to be done in main() directly.
+
+_load_page()_
+
+load_page() ist the main function of load.c, and does most of the work. It
+is responsible for loading a page so that it will be shown in the pager next
+time display() (see hacking-pager.*) is called.
+
+The exact actions necessary to achieve that vary on the nature of the load
+operation. In the most basic operation mode it requires adding a new entry
+to the page list and loading a new document to use. Sometimes however there
+are only changes to the page list while the document is reused, or the page
+history stays unchanged while some existing entry is reactivated and the
+settings reloaded. The case of reloading some document while the page list
+isn't altered, is possible as well.
+
+load_page() takes almost the same arguments as layout(): A base URL, which is
+usually the URL of the current page, which is used as the base when following
+a realtive link or so; a main URL (as string), which can be absolute or
+relative, in the latter case to be combined with the base URL to form an
+absolute target URL; an optional form item, which tells where to find the
+form data of a form to submit while loading a new document; the page width
+telling how to layout loaded pages; and an error handle informing whether
+some problem occured while loading the document.
+
+In case a new document needs to be loaded, all of these parameters are simply
+passed on to layout(), which is responsible for actually loading a document from
+a file or an HTTP server, as well as invoking all necessary layouting passes
+so that the document can be actually rendered and displayed in the pager.
+This process is described in hacking-layout.*.
+
+load_page() takes an additional "reference" parameter. This one may refer
+to some entry in the page list (normally the currently used entry), which
+contains an already loaded document to reuse. In this case no document load
+needs to be performed (i.e. layout() isn't called), as the layouting data of
+the reference page is reused. (Most of the other parameters aren't used in
+this case.) This feature is used when jumping to an anchor inside a document --
+it doesn't require loading a new document.
+
+First action (even before loading the document) is creating a page descriptor
+-- regardless whether a new document is loaded or existing layouting data
+is reused.
+
+This however is left out if the page is reloaded from history (indicated by
+"url" being NULL), and thus already has a descriptor somewhere in the page list.
+
+_Page List Handling_
+
+The page list (history) is a global variable (of type "struct Page_list"), which
+basically consists of an array of pointers to individual page descriptors. It
+also stores the current number of entries in the list, as well es the current
+active entry. (The one that describes the page visible in the pager.)
+
+The list has one entry for each page in the page history. Normally the last
+entry is the visible page, but other pages are also possible after going back
+in history.
+
+Each page descriptor is of type "struct Page". This struct contains:
+
+- The "layout" pointer, which points to a descriptor with the document's
+  layouting data created by layout().
+- The page URL in the split URL structure "url"
+- The current position of the pager, stored as the index of the first line
+  visible on the screen ("pager_pos")
+- The cursor position in "cursor_x" and "cursor_y"
+- The hashes "url_fingerprint" and "text_fingerprint", used to recognize
+  whether the link is identical to a link in the page (necessary when reloading
+  a page from history)
+- The link number of the link currently active in the pager ("active_link")
+- The optionl anchor number of an anchor to jump to when starting the pager
+  ("active_link")
+- The "mark" flag indicating that a return mark has been set on this page
+
+The page list is manipulated exclusively by load_page() and its helper
+functions. load_page() is also responsible for keeping the list up to date,
+so it always contains exactly those entries that shall be used by the history
+commands.
+
+Thus, before a new page descriptor is created, the page list needs to be
+adjusted.
+
+Normally a new entry is simply appended at the end of the list; however,
+there are several other cases.
+
+When loading some new page while not being at the last entry in the page list
+(after going back to some older page from the page history), all entries
+after the current one have to be discarded.
+
+Moreover, if the current page is an internal page (either a page loaded
+from stdin, or an error page), it isn't to be kept in history; in that case,
+we go further back until we find the last normal page entry.
+
+All entries after the current or the last normal one are then cleared by
+calling free_page() in a loop.
+
+Afterwards, the new page descriptor is created.
+
+When revisiting some page from history, it also may be necessary to delete
+internal pages, if leaving such. The last non-internal page is determined
+(starting with the end of the list), and all following are deleted.
+
+_add_page()_
+
+The add_page() function (in url-history.c) is responsible for actually creating
+the new page list entry. The list is a "struct Page_list", and contains the
+following information:
+
+- "num" is the number of entries currently stored in the list
+- "pos" is the entry number of the entry corresponding to the currently visible
+  page
+- The history entries themselfs are stored in "page", which is an array of
+  pointers to the page descriptors of all pages.
+
+The new entry is added at the position indicated by "page_list.pos".
+
+First the array is resized to the new history size -- the history now will
+end with the new entry generated. Then a new page descriptor is created and
+the pointer to it is stored at the proper position (the last list entry).
+
+After creating the descriptor, some default values are set. (Pager position
+etc.)
+
+_Loading_
+
+Now having the page descriptor, we need to get the layouting data someway so
+that the page can be displayed in the pager.
+
+Again, the standard case is loading a new document using layout(). The pointer
+to the layouting data returned by that function is simply stored in the page
+descriptor. The URL is extracted from the layouting data and stored in the
+explicit "url" pointer of the page descriptor, which is necessary in case
+the layout data will be discarded (when loading another document), but the
+page is kept in history.
+
+_Local Links_
+
+As mentioned before, it's also possible instead of loading a new document, to
+reuse existing layouting data of another one by passing a "reference" page. The
+primary application of that is when following a link that points to some anchor
+in the same document -- that doesn't require reloading the whole document,
+but just jumping to the anchor. Of course, it is also used when returning to
+the previous page after following such a local link, or going forward again.
+
+The (pointer to) the layout data descriptor is simply copied from the page
+list entry indicated by the given "reference" parameter.
+
+As layout() and thus also init_load() (see hacking-load.*) isn't used in this
+case, merge_urls() has to be called directly. If URL merging fails here,
+load_page() returns immediately; no page descriptor is created and nothing
+else is changed.
+
+Also, if some anchor is active in the reference page, highlight_link() needs
+to be used to remove the highlighting, to get a "clean" item tree.
+
+_Reactivating Link_</h3>
+
+When revisiting a page from history, and some link was active when we last
+left that page, that link is reactivated for convenience. This is non-trivial
+in case the page contents changed in the meantime -- we need a heuristic to
+find out which is the right link.
+
+The best matching link is determined by examining several properties of the
+links: The link number, the position on the page (x and y), and two hashes
+identifying the link url and the text describing the link.
+
+The properties of each link are stored in its link structure while they are
+extracted in _parse_struct()_ (see hacking-layout.*): The position is stored
+in each link in "x_start" and "y_start" anyways. The hashes are extracted
+with fingerprint() (which just generates a very simple (fast!) checksum of a
+string part (memory range) specified by its starting and ending address), and
+stored in "url_fingerprint" and "text_fingerprint". The link number is implicit.
+
+Each time a link is activated with _activate_link_ (described in
+hacking-links.*), the properties of the link are copied to the page descriptor,
+so that they can be compared against the actual links when revisiting
+the page later. The hashes are stored in dedicated "url_fingerprint" and
+"text_fingerprint" again. The position is stored in "cursor_x" and "cursor_y".
+(Presently, those values are set *only* when a link is activated, and solely
+for the sake of the link retrieval -- this will change as soon as real cursor
+handling is implemented...)
+
+When revisiting a page, as a first step we do a quick test whether the link
+with the old number is still the same. If all five conditions are fulfilled
+(i.e. the link number is still valid, and the other four values are identical),
+we know nothing has changed, and need no further processing.
+
+If some of the conditions fails, on the other hand, we need to test all links
+on the page using the heuristics. First deviations are calculated seperately
+for each property: "dev_url" and "dev_text" are flags, which eqal 0 if the hash
+in the tested link is identical to the one of the old link, and 1 otherwise.
+"dev_x" is also a flag, being 0 if the horizontal position is identical.
+"dev_y" and "dev_num" are different: These are float numbers (also in the
+range 0 to 1) describing a relative deviation, i.e. the ratio between the
+number of lines/links off and the total number of lines/links in the (new) page.
+
+All of these are finally combined to form the total deviation, which is just
+a weighted sum of all; the lower the value, the better the link matches.
+
+All links are tested in a loop, and the best match is then stored as the new
+"active_link". (Instead of testing all, we could limit the search to a smaller
+range by pre-testing some of the criteria. However, a situation were this
+would make a difference is unrealistic; it would be just a waste of code,
+meaning wasted developement time, increased binary size, and most important
+additional error sources and worse maintainability.)
+
+At start "best" is set to -1 (i.e. no link), and "best_deviation" to 1.0. Thus,
+only links with a deviation below or eqal 1 are considered at all; if none
+was found, "active_link" is assigned -1, and no link will be activated. This
+is important to ensure that only links will be activated which are actually
+*similar* to the original one, not activating some unrelated random link
+which happens to be nearest the old one.
+
+Of course, this heuristic isn't perfect by any means; however, it is certainly
+more than sufficient. Anything better would be waste of performance and
+developement efforts. Recognition whether a candidate is worth considering
+should be robust. Choosing the best if there are multiple similar candidates
+is suboptimal, but such a situation is really unlikely; and if it occurs,
+the question which is really the best link is disputable alyways...
+
+The files test/mod[12].html are provided for testing the heuristics. These
+need to be loaded alternatively; this is easy with Hurd, but not possible
+with classical Unix systems; thus, it's necessary to use a web server with
+a CGI script, or tcplisten:
+
+while true; do for i in test/mod*.html; do cat test/stat_only.http i|tcplisten 8000; done; done
+
+(Point netrik to http://localhost:8000 and use ^R command.)
+
+_Anchors_
+
+If the URL contains a fragment identifier, the corresponding anchor is
+retrieved from the anchor list, and stored in "page->active_anchor"; this is
+described under _Anchors_ in hacking-links.*. The pager then jumps to the
+anchor position and highligts it upon startup.
+
+_Handling in main()_
+
+Although load_page() does a great part of the work, some things have to be
+taken care of in main(); particularily determining in which manner the new
+page is to be loaded (reuse current document or load new one), and clearing
+the layout data of an old document before loading a new one. Maybe that could
+be done in load_page() too; however, it's not worth considering that now,
+as it will probably need to be handled completely different with the planned
+new basic program structure. (Using an event queue and a main dispatcher.)
+
+Another thing that needs to be handled in main() is initiating a page load
+in reaction to commands given by the user inside the pager (or on the command
+promt), which often can't be clearly seperated from the load operation itself.
+
+If the user activates the command prompt (by typing ':' inside the pager)
+and issues the ":e" or ":E" command, the URL is extracted from the command,
+and load_page() is called to load the desired new page. The URL of the current
+page is used as base for a relative URL with ":e". With ":E" (and also for
+":e", if the current page is internal), no base is used; the URL is always
+interpreted absolutely.
+
+These commands never pass a reference page, i.e. always involve loading a
+new document. (Even though it is possible to jump to a local anchor using
+":e #anchor".)
+
+If a link/form control was activated by pressing <return> on a selected link
+inside the pager, the action depends on the link or from element type. For
+normal links load_page() is used with the current URL as base, just as with
+":e". The link URL is extracted from the text item containing the link with
+get_link(), by help of the "link_list" structure. This process is described
+under _Following Links_ in hacking-links.*.
+
+The only difference to the ":e" command (except for the way of getting the
+target URL) is that the current page is passed as "reference" to load_page()
+if the URL starts with '#' (i.e. points to an anchor in the same document), so
+that the document isn't reloaded in that case, but only the anchor is activated.
+
+Form submit buttons are quite similar to normal links. First, get_form_item()
+(also in hacking-links.*) is used to retrieve the item (from the structure
+tree) that describes to the form in which the button resides. This is
+used to get the form's submit address ("action") first. Having this,
+load_page() is used to do the submit; the form item is passed as the "form"
+argument. (And passed on to init_load() there; see hacking-load.*.) This
+is both to tell init_load() that a form is to be submitted, and where to
+find the form data. init_load() (and its sub-functions) then take care of
+extracting the form data (using _url_encode()_ or _mime_encode()_ from
+forms.c, also described in hacking-links.*) and submitting it to the server.
+The resulting response page is loaded just like any other document.
+
+Other form controls do not issue a load operation, but only adjust the
+form value appropriately. (This is described under _Manipulating_ in
+hacking-links.*.)
+
+The 'u', 'U' and 'c' pager commands also aren't really load operations,
+but they are described here because they involve similar actions as the
+preparations for a page load.
+
+If 'u' was typed, the link URL is retrieved the same way like when following
+a link, and then just printed to the screen.
+
+'U' is similar. Instead of printing the (relative) link URL directly, it
+merges it with the current page URL, thus getting the same absolute target
+URL that would be used if the link was actually followed.
+
+'c' simply prints the "full_url" component of the current page URL.
+
+If a history command was given, load_page() is called with the (split) URL
+taken from the requested "page_list" entry. We know which entry to take by
+"page_list.pos", which is set the desired new value before returning from
+the pager.
+
+If the history entry refers to the same HTML document as the one displayed
+up to now, the current page descriptor is passed as "reference". To determine
+whether it is the same document, we need to check if all entries between the
+old and the new one (regardles whether the new one is before or after the
+old one in history) have "local" URLs, i.e. if the newer of the two entries
+was created only by following links to local anchors from the older one.
+

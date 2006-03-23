@@ -1,0 +1,206 @@
+.TH NETRIKRC 5 "April 19th, 2004"
+.SH NAME
+netrikrc \- netrik configuration file
+
+.SH DESCRIPTION
+\fBNetrik\fP(1) will read the file \fI~/.netrikrc\fP (i.e. the file .netrikrc
+in your home directory), if present, to get default settings.
+.P
+The file structure is very simple: All options that can be given as command
+line arguments to netrik can also be listed in this file. Just put all options
+you wish (including the leading "--") here, one on a line.
+.P
+As every option also has an inverted version (usually --no-foo instead of
+--foo, but there are a few excepions), You still can override the defaults from
+this file by command line options.
+.P
+You can also specify a URL in the config file, simply putting it on a line
+without any options. It will serve as a home page: It will be loaded when no
+other file is given upon netrik invocation, and ignored otherwise.
+
+.SH OPTIONS
+Note: \fBnetrik\fP is still in early development state; options are subject
+to changes.
+.TP
+.B --force-colors
+Force usage of \fBnetrik\fP's default text colors (white on black for
+normal text), even if the terminal has other defaults. Without this
+option, \fBnetrik\fP tries to adopt to the terminal's default. (Thus
+keeping the light background of most xterms.)
+.TP
+.B --no-term-width
+When using the pager, this causes a page that contains extremely long
+words to be rendered wider than the screen, instead of breaking the
+word. Note however that side scrolling isn't implemented yet -- you
+won't be able to see the end of the line when using this option... In
+dump mode, this option causes usage of the default width of 80 columns
+instead of what the terminal definition says. (Words are always broken
+in dump mode.)
+
+.TP
+.B --fussy-html
+Abort on any HTML syntax errors or warnings encountered. A short error
+description is printed. (This description may not be terribly useful at
+times...) This mode is primarily intended for HTML debugging. (Note however
+that \fBnetrik\fP may oversee some errors; but most are reported.)
+.TP
+.B --clean-html
+Do not abort on HTML syntax errors. Error descriptions are printed for every
+syntax error (or warning), but \fBnetrik\fP tries to parse the page anyhow.
+Workarounds are used for some typical syntax errors (e.g. unescaped '<' or
+'&' characters); other errors are ignored. After the whole page is loaded,
+if some error(s) were found, a warning message is printed (according to the
+severity of the worst encountered bug), and the pager starts after a
+keypress.
+.TP
+.B --valid-html
+This mode is identical to --clean-html, except that \fBnetrik\fP doesn't pause
+after loading completes, if only warnings were generated but no real errors
+were encountered. (i.e. constructs that are discouraged in the standard, but
+strictly speaking are valid.)
+.TP
+.B --broken-html   (default)
+This mode is identical to --valid-html, except that \fBnetrik\fP also doesn't
+pause if only simple errors with known workaround were encountered, which
+probably won't disturb layouting. Usage should be avoided if possible. (The
+file syntax_error.txt or syntax_error.html in the documentation directory (see
+\fBSEE ALSO\fP below) explains why.)
+.TP
+.B --ignore-broken
+In this mode no warning is showm for any syntax errors, even if they might
+cause heavily broken layouting. Don't use!
+
+.TP
+.B --debug
+Before displaying (or dumping) the page, some intermediate layouting
+stages are shown. (This output is described in the README.) Try it --
+it's quite interesting to watch \fBnetrik\fP work :-) It can be also
+useful to find HTML errors in a page, as it dumps the page while
+loading/parsing it.
+.br
+(This option is not available if compiled with --disable-debug to ./configure)
+.TP
+.B --warn-unknown
+Issue a warning when encountering an unknown HTML element or
+attribute. This is probably only useful for debugging purposes, as
+there are quite a lot of (legal) HTML facilities \fBnetrik\fP doesn't
+know.
+.TP
+.B --dump
+Just dump the file given as argument to the screen and quit, instead
+of starting the pager. (The page is layouted correctly.)
+.br
+You may want to give the --bw option also (see below), which will ensure the
+dump is plain text without any control sequences.
+.TP
+.B --no-proxy
+Ignore the "http_proxy" and "HTTP_PROXY" environment variables with
+--builtin-http. (No effect on wget! See below.)
+.TP
+.B --no-builtin-http
+Use \fBwget\fP(1) to retrieve pages from a HTTP server, instead of the builtin
+HTTP handling code. Note that HTTP redirects in most cases cause
+relative links in the page to be broken when using wget. The builtin
+HTTP code seems to work good now; using wget shouldn't be
+necessary. (FTP pages however are always loaded via wget.)
+.TP
+.B --no-anchor-offset
+When jumping to an anchor (following a link with a fragment
+identifier), the page will be scrolled (if possible) so that the
+anchor will stand just below the screen top. (In the second line,
+which is the first line in which links can be activated.) By default,
+the anchor is at about 1/5 of the screen height below the top.
+.TP
+.B --cursor-keys
+Use the arrow keys to move the cursor, instead of the lynx-like navigation used
+by default. (This is useful for blind users, as it allows using the "flash
+cursor" keys found on braille displays.)
+.TP
+.B --xterm
+Assume the terminal has xterm-like attribute handling. (i.e. needs a workaround
+to display a bright background color.)
+.br
+This setting is used automatically if the terminal type ($TERM environment
+variable) contains the string "xterm", so you only need to set it manually if
+you have some other terminal that also needs that workaround.
+.br
+Note that this workaround works *only* on xterm (and maybe some other
+terminals), but not on linux console, so you can't just set it categorically!
+.TP
+.B --console
+Assume the terminal doesn't need and understand the xterm workaround for
+bright background colors. (See above.)
+.TP
+.B --dark-background
+Use the color definitions from \fIcolors-dark.c\fP (formerly
+\fIcolors.alt.c\fP). A black background will be used (even if the terminal uses
+a bright background by default!), and a set of foreground colors which look
+very nice on black backgound. (But would be unusable on bright background.)
+.br
+This is the default now.
+.TP
+.B --bright-background
+Use color definitions from \fIcolors-bright.c\fP (formerly
+\fIcolors.default.c\fP). The terminal's default colors will be used for
+background and normal text, and an alternative color scheme suitable for bright
+background will be used for other text types.
+.br
+Use this if you have a terminal with bright background (like most xterms), and
+also want to stick to that in \fBnetrik\fP.
+.br
+Note that this can be used on a terminal with dark background as well; some
+colors are somewhat hard to read, however.
+.TP
+.B --no-force-colors
+Use terminal's default colors even with --dark-background, instead of forcing
+usage of \fBnetrik\fP's default text colors (white on black for normal text).
+This is useful if you use the default (dark) colors and your terminal has a
+black background anyways -- forcing the default colors is only a waste of time in
+this situation.
+.TP
+.B --bw
+Start up in b/w mode. Useful to avoid the warning about missing color
+capabilities if you really have a terminal not capable of switching text
+colors. Also useful together with --dump option.
+.TP
+.B --color
+Undo --bw option.
+
+.SH EXAMPLES
+The following config file:
+.P
+.RS
+--broken-html
+.br
+--no-anchor-offset
+.br
+file:///usr/local/share/doc/netrik/index.html
+.RE
+.P
+means:
+.P
+--broken-html: Do not to stop on smaller HTML errors. (Use --valid-html or
+--clean-html on the command line to override that for a single \fBnetrik\fP
+invocation).
+
+--no-anchor-offset: When going to an anchor, scroll the page so that the anchor will appear at the
+screen top, instead of 1/5 of the screen hight below the top. (Use --anchor-offset to override.)
+
+file:///usr/local/share/doc/netrik/index.html: When no other file name/URL is
+specified on the command line, open the netrik documentation overview. (If
+netrik was installed from a Debian or RPM package, use
+file:///usr/share/doc/netrik/index.html instead.)
+
+.SH VERSION
+This manual page documents the config file for netrik 1.15.3.
+
+.SH AUTHOR
+Netrik was created and is maintained by Olaf D. Buddenhagen AKA antrik
+(<antrik@users.sf.net>), with major contributions from Patrice Neff, Sören
+Schulze, and others. (For a full listing of all contributors see AUTHORS in the
+doc directory, see below.)
+.P
+This man page was created by antrik.
+
+.SH SEE ALSO
+\fBnetrik\fP(1)

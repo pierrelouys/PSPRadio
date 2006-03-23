@@ -1,0 +1,48 @@
+The ASAP section lists features that we consider quite important and which are
+not too hard to implement, without any major changes to the program structure.
+These things may be implemented in some of the 1.x releases, but may also be
+moved to 2.x or some later point if the 2.0 branch starts before they are
+implemented.
+
+The 2.x section shows the things that we will probably go into when starting
+the next unstable branch.
+
+The future section aggregates all features which we have a mind to implement in
+the mid-near feature, but don't know in which version yet. (Probably after 2.x)
+
+The "nice to have" section lists suggestions and ideas that we consider useful,
+but do not have any concrete plans to implement any time soon. Of course,
+volunteers for those are welcome.
+
+Versions 2.x and later are open for anything you can think of :-) (See
+http://netrik.sf.net/dev.html for ideas...)
+
+The parenthesis give information about the difficulty level of each task. If
+you are interested in working on some of these, please subscribe to the mailing
+list (see _Keeping in Touch_ in README), and tell us what you want to do.
+
+As soon as possible, but no specific target version:
+- better website
+
+- improved command line handling (fairly easy, very little knowledge necessary)
+- introductory helpfile
+- improved keyboard handling (medium, little knowledge)
+- open helpfile (docs overview) with special command in pager (probably fairly
+  easy, little or medium knowledge)
+- cookies (fairly easy, some knowledge of loading module)
+- file download (medium, good knowledge of loading module)
+- display plain text files (fairly simple, good knowledge of layouting)
+- mailcap handling (medium, some(?) knowledge of loading module)
+- monochrome display support (medium, some knowledge of a few parts of
+  layouting and pager)
+- add missing character entity references (&foo;) (very easy, no knowledge of
+  netrik code)
+
+Planned for 2.x:
+- new syntax parser (very complicated, very good knowledge of layouting module)
+
+x.x:
+- special --debug-html mode to help finding errors in HTML code
+
+Nice to have:
+- tabbed browsing (complicated, good knowledge)

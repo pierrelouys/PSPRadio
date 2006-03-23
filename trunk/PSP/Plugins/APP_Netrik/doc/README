@@ -1,0 +1,336 @@
+  netrik 1.15.3 (beta)
+>======================<
+
+
+_What it is_ (INTRODUCTION)
+
+Netrik is the ANTRIK Internet Viewer/Browser/Explorer/Navigator/whatever. (Tell
+us which one you like best :-) )
+
+Netrik is Free Source Software published under the GNU GPL; see LICENSE for
+details.
+
+If you haven't already done so, you may want to take a look at the SourceForge
+page at http://netrik.sourceforge.net/ , where you can read extensive
+discussion on topics like: What it is all about; why it is there; how it
+developes; what features are intended; why we consider it necessary etc.
+
+For short, netrik is a really fancy text mode WWW browser (somewhat similar to
+lynx, links, w3m -- only better :-) ), having all possible features making
+sense in text mode -- including multi-windowing and JavaScript; and with a
+really nice UI. Well, strictly speaking, it will be...
+
+
+_What is new_ (CHANGES)
+
+1.15.3: Fixes a serious bug in syntax parsing, that caused parts of the page
+being eaten. (Wrong handling of unknown/invalid numeric character references.)
+
+1.15.2: Fixes lots of bugs, including a crash in the search command (and other
+potential crashes), a bug in link highlighting on centered text, handling of
+local file names with spaces, anchors at the end of a text block, and text at
+the end of a page. The build system has also been somewhat improved, and
+updated for current autoconf.
+
+1.15.1: Fixes a little but critical bug in handling of <meta> elements, which
+made the content of many pages invisible.
+
+1.15:
+
+This release has various important bugfixes and simple but useful feature
+improvements in HTML form handling and more fixes/improvements to the parser
+(especially handling of broken comments).
+
+See NEWS for changes in previous releases.
+
+
+_Where it runs_ (SYSTEM REQUIREMENTS)
+
+Netrik is developed and tested under GNU/Linux. It doesn't use anything
+specific for Linux, though; thus it should also compile on any other Unix-like
+operating system. However, you may need to get some libraries that aren't
+typically available on non-GNU systems; some changes/enhancements to
+configure.in may also be necessary. Just try it out and let us know if it works
+:-)
+
+For viewing pages on FTP servers, or if you don't want to use the builtin HTTP
+handling, you also need to have GNU Wget installed. (Of course you can replace
+it with your favourite HTTP loader, by changing the command in configure.in)
+
+Netrik used to work on FreeBSD; this will need to be re-implemented for the new
+build system, however. (Your help is welcome :-) )
+
+
+_How to use_ (INSTALL)
+
+Installation is triggered by the typical command sequence:
+
+   ./configure && make && make install
+
+in the netrik directory. (If you got netrik from CVS, you'll have to do
+"autoreconf -i" first.)
+
+In the case some of the commands fails without printing a useful diagnostic
+message, please send a bug report. (See _Bugs_.)
+
+All installation steps should work automatically; no user interaction is
+necessary. However, you may want to set some options influencing important
+features of the program. Use
+
+   ./configure --help
+
+to find out what options are available.
+
+Some details of the compiling process can also be influenced by make variables,
+e.g.
+
+   CC=gcc-3.0 ./configure
+
+Especially LDFLAGS and CPPFLAGS may be useful, to give the location of a
+library and its headers if it resides in an unusual place.
+
+The installation process should be straightforward, if you have all necessary
+libraries installed. See _Why it fails_ below if you run into trouble.
+
+
+For DEBIAN USERS, installation is even simpler: Just use the command
+
+   debuild -b -us -uc
+
+in the unpacked source directory, and then install the resultig package with
+
+   dpkg -i ../netrik_*.deb
+
+(Assuming you have no other .deb matching the wildcard already lying about;
+use the shell's <tab>-completion feature to get the correct file name.)
+
+
+_What you can do with it_ (USAGE)
+
+Well, netrik implements most all basic browser functionality now, so you can do
+the same as with any other browser -- read local HTML files, browse the web.
+(There are some limitations however: No file save/download, no cookies, no
+SSL.)
+
+The most typical use would be invoking with just the name of some local file or
+with some HTTP URL as argument (you can usually leave out the "http://"), which
+will load the resource and startup in interactive browser mode.
+
+Use 'j' and 'k' to scroll the page, up and down arrows (or uppercase 'J' and
+'K') to select links, and the return key to follow a link. (There are many more
+link selection commands; you may for example prefer using a combination of
+'+'/'-' and <tab>/'p' instead of 'J' and 'K'. See doc/keys.html or doc/keys.txt
+for a complete listing.)
+
+See "man netrik" and/or the various documentation files in doc/ for other
+invocation methods, command line options, and more browser commands.
+
+Netrik may also be quite useful for a quick test of HTML files (using --debug)
+-- it should complain about almost all syntax errors. (The man page has an
+example.)
+
+
+_Why it fails_ (TROUBLESHOOTING)
+
+INSTALLATION (especially on non-GNU systems) often fails because some libries
+are missing:
+
+If you want to have fancy command line editing in netrik, you need a shared
+library version of the GNU Readline library, and the developement files
+(headers) going with it. If using GNU/Linux, your distribution should provide a
+package named something like "libreadline-dev"; some distributions fail to do
+so, however. In that case you can get the source (from your distribution or
+from ftp://ftp.gnu.org/gnu/readline/ ) and compile it with "make shared" and
+"make install-shared".
+
+You also need the ncurses developement files. (These are mandatory.) Your
+distribution should provide a "libncurses-dev" package (or something similar);
+some distributions have only one "ncurses" package providing both the library
+and the developement files.
+
+On FreeBSD, the GNU Getopt port (libgnugetopt) needs to be installed.
+
+STARTUP often causes troube because of a wrong terminal setting: As netrik
+normally uses text colors excessiveley, it complains if it can't use colors.
+Thus, your $TERM environment variable needs to be set to some color terminal
+type in order to run netrik; e.g. "linux", "xterm" or "ansi", but not "linux-m"
+or "vt100".
+
+Note: On some systems, the "xterm" terminal definition also doesn't contain the
+color settings; if it fails with just "xterm", try "xterm-color" instead.
+
+Netrik can also run in a (very crude) monochrome mode now. If you actually have
+a monochrome terminal, you can avoid the warning about colors on each startup:
+Use the --bw option on the command line, or put it into your ~/.netrikrc. (See
+doc/config.txt or doc/config.html for details.)
+
+
+_Keeping in Touch_ (MAILING LIST)
+
+As of course you are very interested in netrik ;-), you may want to subscribe
+to the mailing list. Probably not all messages will be of interest to you, but
+you will have a good overview on current netrik developement.
+
+To subscribe, either send a mail to
+netrik-general-request@lists.sourceforge.net with the word "subscribe" as
+subject, or go to http://lists.sourceforge.net/lists/listinfo/netrik-general .
+
+Again, you can go to the project homepage at http://netrik.sf.net/ and find
+lots of information there. (Both topical and general.)
+
+
+_How it works_
+
+Netrik consists basically of three big modules: The layout engine, the
+file/HTTP loader, and the pager. However, these aren't clearle separated, but
+closely interlocked; especially the loader is coupled very tighly to the layout
+engine, or one might say: built around it.
+
+Of these three, the layouting is the biggest and probably most intresting part
+-- while the others are made mostly of special solutions for several aspects of
+their functionality, the layout engine has a quite consistent, really
+interesting concept:
+
+The whole layouting is done by a series of simple processing steps applied one
+after the other, each one generating a new data structure from the output of
+the previous one.
+
+The first step (parse-syntax.c) reads the input stream (using load.c), and
+creates a syntax tree, which contains all the elements (HTML tags) as well as
+the content (the text between the tags) assigned to each element.
+
+The next step (parse-elements.c) looks up the element names -- which were
+stored as strings up to now -- in a table, and assigns enumerated numbers to
+each one, to faciliate further processing.
+
+An additional pass is used now to fix the broken tree that is created by the
+syntax parser with SGML documents. (Containing unclosed elements.)
+
+The third step (parse-struct.c) is the central part of the process: The syntax
+tree, which is a representation of the file stucture, is converted to a
+structure tree, which is a representation of the page as it appears on the
+screen. It contains one item for each thing visible on the page, like text
+blocks, blank lines, boxes etc.
+
+The fourth step (pre-render.c) places the items on the page. From the sizes of
+the items it determines at which coordinates inside the page every single item
+will be displayed. It also generates a page allocation map, allowing for fast
+lookup which items are present at a certain page position.
+
+After all these preparation passes, the interactive viewer (pager.c) is called.
+Every time the visible page area changes, it uses render.c to display the new
+region, according to the information from the item tree generated before.
+
+See doc/hacking.txt or doc/hacking.html for a more in-depth discussion.
+
+
+_Dumps_
+
+If invoked with the "--debug" option, netrik prints lots of additional
+information while loading/layouting the page, before the pager is (re)started.
+Most every program part generates some messages, which are often (more or less)
+self-explanatory; however, by far the most -- and most interesting -- dumps are
+generated by the layout engine:
+
+While parsing the syntax, every parsed character is dumped. If a parsing error
+occurs (or something worse, like segmentation fault), the last character dumped
+is the one which caused the problem. (The same is already done while parsing
+the HTTP header, if loading by HTTP.)
+
+After syntax parsing has finished, the whole parse tree is dumped. It may be a
+bit confusing, as a node's text is printed *before* a node, not after it, as
+one may expect. This however makes sense, because it's actually the content
+occuring *in front of* the element. It's probably less confusing than as if it
+would be printed after the node, although it was in front of the node in the
+HTML file...
+
+After parse-elements.c and sgml.c have finished, the tree is dumped again, but
+this time the element and attribute names are looked up from a table by the
+assigned enum numbers. Also, this second tree dump happens after the SGML
+fixing, as opposed to the first. Dummy elements are indicated by a question
+mark, and the global element (tree top) by an exclamation mark.
+
+After parse-struct.c and pre-render.c have finished, the resulting item tree is
+dumped. The coordinates assigned by pre-render.c for each item are printed, and
+the text strings of text items are dumped in the correct colours. Links and
+anchors are also listed for each text item.
+
+Again, see doc/hacking.txt for a more thorough description.
+
+
+_Benchmarks_
+
+I've decided that it's time to repeat the benchmarks, for at least three
+reasons: First of all, much time has passed since I last compared, and many
+browsers are available in new Versions. (Especially the graphical ones.)
+
+Then, I realized that some browsers (links, and especially Netscape4) behave
+considerably different when loading local files than when loading via HTTP.
+This time I've compared HTTP speed, as this is more realistic...
+
+Finally, to allow a more useful comparision between the text based and the
+graphical browsers, I've removed all image references from the test files.
+
+The most important obeservation was that links needs additional time to load
+from HTTP. (The amount of time doesn't depend on the document contents, but
+fluctuates.) For simple documents, this is quite considerable: The loading time
+is up to about twice as long as for local files. That's why this time netrik,
+w3m and links all had very similar results. (Sometimes links was faster,
+sometimes netrik.) Lynx was still much slower. (It doesn't seem to scale well
+with big files...)
+
+The difference to the graphical browsers wasn't that big this time. When
+loading local files, Netscape was nearly as fast as netrik/w3m/links, for most
+files. (For files with tables, it was actually much faster then the
+table-enabled text mode browsers links and w3m.)
+
+However, it exposes a very strange behaviour when loading from HTTP: For very
+simple HTML files, it gets *much* slower; but with the more complicated files,
+it was still super-fast...
+
+Opera is also gotten much better, and is sometimes nearly as fast as Netscape
+with local files now. Due to Netscape's anomaly with simple files, it's
+sometimes even faster over HTTP.
+
+Mozilla is also gotten faster, but is still very much slower than Netscape or
+even Opera.
+
+Note: The tests were done with a couple of very large files (1 MB), so they
+only measure pure HTML parsing (and HTTP loading) speed, but no response times
+in realistic circumstances...
+
+
+_Feedback_
+
+If you just want to tell us that you love netrik (of course you do :-) ), or if
+you think our code is inefficient, or if you do not like our arrogant tone, or
+if you found some bug, or if you think netrik is ugly and useless, or if you
+don't like our indentation, or if you found typos somewhere, or if you think
+our comments are cryptic, or if you think something could be done better, or if
+you have a suggestion for some feature, or if you want to know something, or if
+your cat likes watching you using netrik -- in short, if ever you feel the
+irresistable desire to tell us something: Do so.
+
+Send an e-mail to netrik-general@lists.sourceforge.net . Keep in mind that this
+is a public mailing list, and everyone can look at the archives. If you prefer
+a more "personal" way, you can also mail the project admin (which happens to be
+me): antrik@users.sourceforge.net
+
+
+_Contribute_
+
+If you want the fame of participating in the greatest project of the new
+millenium ;-), or if you just feel obliged to return something to netrik for
+all the happy hours you spent with it :-), or maybe if you simply want to see
+your favourite feature implemented as soon as possible: Just subscribe to the
+mailing list. (s.a., _Keeping in Touch_) It's that simple. Really. (You may
+also introduce yourself after subscribing, but you needn't.) If you want to
+start right away, a glance at the ToDo file should give you some ideas.
+
+
+_Bugs_
+
+Netrik is still far from complete, and many things won't work. However, all
+features that are implemented should work correcty -- so if you find some bug,
+don't hesitate to report it; send an e-mail. Again, the address is
+netrik-general@lists.sourceforge.net
