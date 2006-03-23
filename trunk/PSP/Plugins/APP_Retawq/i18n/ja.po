@@ -1,0 +1,1311 @@
+# retawq/i18n/ja.po - Japanese message catalog
+# This file is part of retawq (<http://retawq.sourceforge.net/>), a network
+# client created by Arne Thomassen; retawq is basically released under certain
+# versions of the GNU General Public License and WITHOUT ANY WARRANTY.
+# Read the file COPYING for license details, README for program information.
+# Copyright (C) 2006 Hiroshi Kawashima <kawashima@iname.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: retawq 0.2.6c\n"
+"POT-Creation-Date: 2006-03-19 00:00+0000\n"
+"PO-Revision-Date: 2006-03-19 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+domain "retawq"
+
+# cookie.c
+
+msgid " (expired)"
+msgstr " (失効しました)"
+
+msgid " (secure)"
+msgstr " (保護)"
+
+msgid "%s\n<br>%s=%s, domain=%s, path=%s, comment=%s, %sflags=%d%s%s%s"
+msgstr "%s\n<br>%s=%s, ドメイン=%s, パス=%s, コメント=%s, %sフラグ=%d%s%s%s"
+
+msgid ", ports="
+msgstr ", ポート="
+
+msgid "\n<br>cookies:"
+msgstr "\n<br>クッキー:"
+
+msgid "expiry=%ld, "
+msgstr "有効期限=%ld, "
+
+# cursesbi.c
+
+msgid "bad terminfo file"
+msgstr "誤った terminfo ファイルです"
+
+msgid "bad value of environment variable TERM"
+msgstr "環境変数 TERM の値が誤っています"
+
+msgid "required value missing in terminfo file"
+msgstr "必要な値が terminfo ファイルの中にありません"
+
+# cursesx.c
+
+msgid "can't create window"
+msgstr "ウインドウを作成できません"
+
+msgid "can't load font %s"
+msgstr "フォント %s をロードできません"
+
+msgid "can't watch X display connections"
+msgstr "X ディスプレイ接続を見ることができません"
+
+# init.c
+
+msgid "%s\"%s\" isn't a regular file"
+msgstr "%s\"%s\" は通常ファイルではありません"
+
+msgid "%scan't get system information about \"%s\" (error #%d, %s)"
+msgstr "%s \"%s\" のシステム情報が取得できません (エラー #%d, %s)"
+
+msgid "%scan't open \"%s\" (error #%d, %s)"
+msgstr "%sファイル\"%s\"をオープンできません (エラー #%d, %s)"
+
+msgid "%scan't read file \"%s\" (error #%d, %s)"
+msgstr "%sファイル\"%s\"を読み出せません (エラー #%d, %s)"
+
+msgid "%sfile \"%s\" is empty"
+msgstr "%sファイル\"%s\"は空です"
+
+msgid "%sparsing the built-in configuration%s"
+msgstr "%sビルトイン設定を解析しています%s"
+
+msgid "%sreading file \"%s\""
+msgstr "%sファイル\"%s\"を読み込んでいます"
+
+msgid "%swarning: %s\n"
+msgstr "%s警告: %s\n"
+
+msgid "; skipping section"
+msgstr "; セクションをスキップします"
+
+msgid "; try \"retawq --help\""
+msgstr "; \"retawq --help\"を試してみてください"
+
+msgid "Fcolors"
+msgstr "Fカラー"
+
+msgid "Fcookies"
+msgstr "Fクッキー"
+
+msgid "Fkeymaps"
+msgstr "Fキーマップ"
+
+msgid "Flocal CGI"
+msgstr "Fローカル CGI"
+
+msgid "Flocal directory options"
+msgstr "Fローカルディレクトリオプション"
+
+msgid "Fnews"
+msgstr "Fニュース"
+
+msgid "Run-time configuration: "
+msgstr "実行時設定: "
+
+msgid "\"allow\" or \"deny\" expected"
+msgstr "\"allow\" または \"deny\" を指定してください"
+
+msgid "bad command identifier"
+msgstr "誤ったコマンドIDです"
+
+msgid "bad key identifier"
+msgstr "誤ったキーIDです"
+
+msgid "bad keymap kind; skipping section"
+msgstr "誤ったキーマップです。このセクションを無視します"
+
+msgid "can't initialize terminal"
+msgstr "端末を初期化できません"
+
+msgid "configuration section %s (line %d): %s"
+msgstr "設定セクション %s (行 %d) : %s"
+
+msgid "ignoring repeated option"
+msgstr "重複したオプションを無視します"
+
+msgid "need to be launched on a terminal"
+msgstr "端末上で実行してください"
+
+msgid "no subsections possible; skipping remainder of section"
+msgstr "サブセクションは許されません。セクションの残りを無視します"
+
+msgid "number expected (0..3)"
+msgstr "数字を指定してください (0..3)"
+
+msgid "path must be absolute or \"*\"; skipping remainder of section"
+msgstr "パスは絶対パスか \"*\"で指定してください。セクションの残りを無視します"
+
+msgid "repeatedly defined key"
+msgstr "重複したキー定義です"
+
+msgid "retawq: "
+msgstr "retawq: "
+
+msgid "too many arguments in line"
+msgstr "一行の引数が多すぎます"
+
+msgid "unknown command-line option: \"%s\"%s"
+msgstr "未知のコマンドラインオプションです: \"%s\"%s"
+
+msgid "unknown section name \"%s\"; skipping section"
+msgstr "\"%s\"は未知のセクション名です。このセクションを無視します"
+
+msgid "with the current configuration, DNS hostname lookups will \"block\" the whole program, and it will seem to hang"
+msgstr "現在の設定では DNS ホスト名解決はブロックするので、プログラム全体がハングアップしたように見えます"
+
+msgid "won't allow everything (\"*\") for security reasons; skipping remainder of section"
+msgstr "セキュリティ上の理由から'全て'(\"*\") は許されません。セクションの残りを無視します"
+
+# main.c
+
+msgid "# Session file for retawq (http://retawq.sourceforge.net/)\n"
+msgstr "# retawq (http://retawq.sourceforge.net/) のセッションファイル\n"
+
+msgid "%s - error #%d, %s"
+msgstr "%s - エラー #%d, %s"
+
+msgid "%s server %s:%d can't protect data - allow cleartext?"
+msgstr "%s サーバー %s:%d はデータを保護しません - 平文を許可しますか?"
+
+msgid "%s%s%s %s for %s %s%s%s:%d: "
+msgstr "%s%s%s %s for %s %s%s%s:%d: "
+
+msgid "(cookies) "
+msgstr "(クッキー) "
+
+msgid "(new window)"
+msgstr "(新しいウインドウ)"
+
+msgid ", (s)kip"
+msgstr ", (s)kip"
+
+msgid "Add Bookmark"
+msgstr "ブックマークに追加"
+
+msgid "Ambiguous command - "
+msgstr "曖昧なコマンド - "
+
+msgid "Apply"
+msgstr "適用"
+
+msgid "Back"
+msgstr "バック"
+
+msgid "Can't find marker \"%s\" in URL pattern"
+msgstr "マーカー \"%s\" を URL パターンに見つけられません"
+
+msgid "Can't find the jump shortcut \"%s\""
+msgstr "\"%s\"というジャンプショートカットを見つけられません"
+
+msgid "Can't reset - not inside a form?"
+msgstr "リセットできません - フォームの中ではないとか?"
+
+msgid "Can't save"
+msgstr "保存できません"
+
+msgid "Can't submit - not inside a form?"
+msgstr "実行できません - フォームの中ではないとか?"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Cancelled\n"
+msgstr "キャンセルされました\n"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Command only available in console mode\n"
+msgstr "コマンドはコンソールモードでのみ有効です\n"
+
+msgid "Confirmation Required"
+msgstr "確認が必要です"
+
+msgid "Connecting to %s"
+msgstr "%s に接続中"
+
+msgid "Context"
+msgstr "コンテキスト"
+
+msgid "Creating: "
+msgstr "作成中: "
+
+msgid "Do not edit manually while retawq is running!"
+msgstr "Retwq 実行中には手動で編集しないでください!"
+
+msgid "Document empty"
+msgstr "文書が空です"
+
+msgid "Done"
+msgstr "完了"
+
+msgid "Download"
+msgstr "ダウンロード"
+
+msgid "Download from: "
+msgstr "以下からダウンロード: "
+
+msgid "Download to: "
+msgstr "以下にダウンロード: "
+
+msgid "Dump"
+msgstr "ダンプ"
+
+msgid "Dump to File"
+msgstr "ファイルにダンプ"
+
+msgid "Dump to: "
+msgstr "以下にダンプ: "
+
+msgid "Edit URL: "
+msgstr "URL を編集: "
+
+msgid "Enable this Element"
+msgstr "この要素を有効にする"
+
+msgid "Enforced Reload"
+msgstr "強制再ロード"
+
+msgid "Enter URL"
+msgstr "URL を入力"
+
+msgid "Execute"
+msgstr "実行"
+
+msgid "Execute Shell Command"
+msgstr "シェルコマンドを実行"
+
+msgid "Execute shell command: "
+msgstr "シェルコマンドを実行: "
+
+msgid "Failed!"
+msgstr "失敗!"
+
+msgid "Fdownloads"
+msgstr "Fダウンロード"
+
+msgid "Fdumps"
+msgstr "Fダンプ"
+
+msgid "File exists - (o)verwrite, (a)ppend, (c)ancel?\n"
+msgstr "ファイルが存在します  - (o)verwrite, (a)ppend, (c)ancel?\n"
+
+msgid "File size: local %d, remote %d"
+msgstr "ファイルサイズ: ローカル %d, リモート %d"
+
+msgid "Forward"
+msgstr "前進"
+
+msgid "Found!"
+msgstr "発見!"
+
+msgid "Fscroll bars"
+msgstr "Fスクロールバー"
+
+msgid "Ftext-mode mouse"
+msgstr "Fテキストモードマウス"
+
+msgid "Fthis kind of menus"
+msgstr "Fこの類のメニュー"
+
+msgid "Go"
+msgstr "行く"
+
+msgid "Go to URL: "
+msgstr "この URL へ行く: "
+
+msgid "Hashmarks: %s\n"
+msgstr "ハッシュマーク: %s\n"
+
+msgid "History"
+msgstr "履歴"
+
+msgid "Jump"
+msgstr "ジャンプ"
+
+msgid "Jump to URL"
+msgstr "URL にジャンプ"
+
+msgid "Jump to: "
+msgstr "以下にジャンプ: "
+
+msgid "Key not handled"
+msgstr "キーは処理されませんでした"
+
+msgid "Keyboard command not handled"
+msgstr "キーボードコマンドは処理されませんでした"
+
+msgid "Local current directory: \"%s\"\n"
+msgstr "ローカルのカレントディレクトリ: \"%s\"\n"
+
+msgid "No URL history available yet!"
+msgstr "まだ URL 履歴が存在しません!"
+
+msgid "No bookmarks document URL configured"
+msgstr "ブックマーク文書のURLが設定されていません"
+
+msgid "No home URL configured"
+msgstr "ホームURLが設定されていません"
+
+msgid "No jump shortcuts configured"
+msgstr "ジャンプショートカットが設定されていません"
+
+msgid "No open window!"
+msgstr "ウインドウが開いていません!"
+
+msgid "No search engine URL configured"
+msgstr "サーチエンジンのURLが設定されていません"
+
+msgid "No shell command given"
+msgstr "シェルコマンドがありません"
+
+msgid "Not connected (or no task selected)\n"
+msgstr "未接続です(またはタスクが選択されていません)\n"
+
+msgid "Not found!"
+msgstr "見つかりません!"
+
+msgid "Open Link in New Window"
+msgstr "新しいウインドウでリンクを開く"
+
+msgid "Open Local File/Directory"
+msgstr "ローカルファイル/ディレクトリを開く"
+
+msgid "Open in New Window"
+msgstr "新しいウインドウで開く"
+
+msgid "Options"
+msgstr "オプション"
+
+msgid "Overwrite existing%s?"
+msgstr "既存の%sを上書きしますか?"
+
+msgid "Proceed"
+msgstr "続行"
+
+msgid "Proxy login failed"
+msgstr "プロクシーログインに失敗しました"
+
+msgid "Quit"
+msgstr "終了"
+
+msgid "Really close this window?"
+msgstr "本当にこのウインドウを閉じますか?"
+
+msgid "Really enable this element?"
+msgstr "本当にこのエレメントを有効にしますか?"
+
+msgid "Really interpret as HTML?"
+msgstr "本当にHTMLとして解釈しますか?"
+
+msgid "Really quit retawq?"
+msgstr "本当にretawqを終了しますか?"
+
+msgid "Really reset this form?"
+msgstr "本当にこのフォームをリセットしますか?"
+
+msgid "Really submit this form to \"%s\" (%s)?"
+msgstr "本当にこのフォームを\"%s\" (%s)に送信しますか?"
+
+msgid "Received %d %sbytes"
+msgstr "%d %sバイトを受信しました"
+
+msgid "Reload"
+msgstr "再ロード"
+
+msgid "Removing: "
+msgstr "削除中: "
+
+msgid "Result of \"%s\""
+msgstr "\"%s\"の結果"
+
+msgid "Resume"
+msgstr "再開"
+
+msgid "Resume Session"
+msgstr "セッションを再開"
+
+msgid "Resume session from: "
+msgstr "以下からセッションを再開: "
+
+msgid "Resume upload? [(r)esume, (o)verwrite%s]"
+msgstr "アップロードを再開しますか? [(r)esume, (o)verwrite%s]"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Save As..."
+msgstr "保存..."
+
+msgid "Save Document"
+msgstr "ドキュメントを保存"
+
+msgid "Save Link As..."
+msgstr "リンクを保存..."
+
+msgid "Save Session"
+msgstr "セッションを保存"
+
+msgid "Save document as: "
+msgstr "ドキュメントを保存: "
+
+msgid "Save session as: "
+msgstr "セッションを保存: "
+
+msgid "Saving"
+msgstr "保存中"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Search String"
+msgstr "文字列を検索"
+
+msgid "Search string backwards: "
+msgstr "後ろ向きに文字列を検索: "
+
+msgid "Search string: "
+msgstr "文字列を検索: "
+
+msgid "Sending: "
+msgstr "送信中: "
+
+msgid "Show Element Info"
+msgstr "エレメントの情報を表示"
+
+msgid "Source Code"
+msgstr "ソースコード"
+
+msgid "Submit this Form"
+msgstr "このフォームを送信"
+
+msgid "Switching to: "
+msgstr "切り替え: "
+
+msgid "TLS error - %s"
+msgstr "TLSエラー - %s"
+
+msgid "TLS handshaking"
+msgstr "TLSハンドシェーク"
+
+msgid "Task"
+msgstr "タスク"
+
+msgid "Terminal too small"
+msgstr "端末が小さすぎます"
+
+msgid "That's not a link"
+msgstr "これはリンクではありません"
+
+msgid "This element is disabled!"
+msgstr "このエレメントは無効です!"
+
+msgid "This element is read-only!"
+msgstr "このエレメントは読み出し専用です!"
+
+msgid "This selection list is empty!"
+msgstr "この選択リストは空です!"
+
+msgid "Too few arguments\n"
+msgstr "引数が足りません\n"
+
+msgid "Too many arguments\n"
+msgstr "引数が多すぎます\n"
+
+msgid "Too many tasks\n"
+msgstr "タスクが多すぎます\n"
+
+msgid "URL: "
+msgstr "URL: "
+
+msgid "Unknown command. Try \"help\".\n"
+msgstr "未知のコマンドです。\"help\"を試してください。\n"
+
+msgid "Upload local file: "
+msgstr "ローカルファイルをアップロード: "
+
+msgid "Upload to FTP URL: "
+msgstr "FTP URL にアップロード: "
+
+msgid "User Input"
+msgstr "ユーザ入力"
+
+msgid "Waiting for reply"
+msgstr "応答待ち中"
+
+msgid "Window List"
+msgstr "ウインドウリスト"
+
+msgid "\nEntering console runmode. Use the command \"help\" for a list of commands.\n"
+msgstr "\nコンソールランモードに入ります。\"help\"コマンドでコマンド一覧を見ることができます。\n"
+
+msgid "append to remote file"
+msgstr "リモートファイルに追加"
+
+msgid "automated"
+msgstr "自動化"
+
+msgid "busy"
+msgstr "使用中"
+
+msgid "can't download to file"
+msgstr "ファイルにダウンロードできません"
+
+msgid "can't dump line"
+msgstr "行をダンプできません"
+
+msgid "can't dump to file"
+msgstr "ファイルにダンプできません"
+
+msgid "change local directory"
+msgstr "ローカルディレクトリの変更"
+
+msgid "change remote directory"
+msgstr "リモートディレクトリの変更"
+
+msgid "change to remote parent directory"
+msgstr "リモートディレクトリの親ディレクトリに移動"
+
+msgid "close some connection(s)"
+msgstr "接続を閉じます"
+
+msgid "customized"
+msgstr "カスタマイズされています"
+
+msgid "delete remote directory"
+msgstr "リモートディレクトリを削除"
+
+msgid "delete remote file"
+msgstr "リモートファイルを削除"
+
+msgid "disabled "
+msgstr "無効化 "
+
+msgid "disk cache file"
+msgstr "ディスクキャッシュファイル"
+
+msgid "download via URL"
+msgstr "URLからダウンロード"
+
+msgid "execext-shell configuration: %s"
+msgstr "\"execext-shell\" 設定: %s"
+
+msgid "execute a shell command"
+msgstr "シェルコマンドを実行"
+
+msgid "file field"
+msgstr "ファイルフィールド"
+
+msgid "fragment not found"
+msgstr "フラグメントはありませんでした"
+
+msgid "hashmarks on/off"
+msgstr "ハッシュマークのオン/オフ"
+
+msgid "hidden field"
+msgstr "隠されたフィールド"
+
+msgid "label a task"
+msgstr "タスクに名前をつける"
+
+msgid "list contents of remote directory"
+msgstr "リモートディレクトリの内容"
+
+msgid "looking for fragment"
+msgstr "フラグメントを検索中"
+
+msgid "make remote directory"
+msgstr "リモートディレクトリを作成"
+
+msgid "mouse click: %d, %d"
+msgstr "マウスクリック : %d, %d"
+
+msgid "mouse off"
+msgstr "マウス・オフ"
+
+msgid "mouse on"
+msgstr "マウス・オン"
+
+msgid "multi-option "
+msgstr "マルチオプション "
+
+msgid "no task\n"
+msgstr "タスクがありません\n"
+
+msgid "of %d "
+msgstr "%dの "
+
+msgid "open a connection to a server (via URL)"
+msgstr "サーバー(URLで)への接続を開く"
+
+msgid "password"
+msgstr "パスワード"
+
+msgid "password field"
+msgstr "パスワードフィールド"
+
+msgid "print help information"
+msgstr "ヘルプ情報の表示"
+
+msgid "print remote working directory"
+msgstr "リモートワーキングディレクトリの表示"
+
+msgid "print version information"
+msgstr "バージョン情報の表示"
+
+msgid "proxy"
+msgstr "プロクシー"
+
+msgid "quit retawq"
+msgstr "retawqを終了"
+
+msgid "radio button"
+msgstr "ラジオボタン"
+
+msgid "read-only "
+msgstr "読みだし専用 "
+
+msgid "receive one file"
+msgstr "一つのファイルを受信"
+
+msgid "reset button"
+msgstr "リセットボタン"
+
+msgid "script status: "
+msgstr "スクリプトの状態 : "
+
+msgid "selection"
+msgstr "選択"
+
+msgid "send a verbatim command"
+msgstr "逐次的にコマンドを送る"
+
+msgid "send account"
+msgstr "アカウントを送る"
+
+msgid "send password"
+msgstr "パスワードを送る"
+
+msgid "send site-specific command"
+msgstr "サイト特有のコマンドを送る"
+
+msgid "send username"
+msgstr "ユーザ名を送る"
+
+msgid "server"
+msgstr "サーバー"
+
+msgid "server status: "
+msgstr "サーバーの状態 : "
+
+msgid "set file transfer restart marker"
+msgstr "ファイル転送再開マーカーの設定"
+
+msgid "set file transfer type to ASCII"
+msgstr "ファイル転送タイプを ASCII に設定"
+
+msgid "set file transfer type to binary"
+msgstr "ファイル転送タイプをバイナリに設定"
+
+msgid "show information about existing task(s)"
+msgstr "現在のタスクの情報を表示"
+
+msgid "source"
+msgstr "ソース"
+
+msgid "standard"
+msgstr "標準"
+
+msgid "start TLS/SSL handshake (p/c/s)"
+msgstr "TLS/SSL ハンドシェークを開始(p/c/s)"
+
+msgid "submit button"
+msgstr "送信ボタン"
+
+msgid "switch to <task-id>"
+msgstr "<task-id>に切り替え"
+
+msgid "text field"
+msgstr "テキストフィールド"
+
+msgid "text-area field"
+msgstr "テキスト領域フィールド"
+
+msgid "upload one file"
+msgstr "一つのファイルをアップロード"
+
+msgid "upload via URL"
+msgstr "URLでアップロード"
+
+msgid "username"
+msgstr "ユーザ名"
+
+# parser.c
+
+msgid "Reset"
+msgstr "リセット"
+
+msgid "Submit"
+msgstr "送信"
+
+msgid "[a form image]"
+msgstr "[フォームイメージ]"
+
+msgid "[a frame]"
+msgstr "[フレーム]"
+
+msgid "[a push button]"
+msgstr "[押しボタン]"
+
+msgid "[an option]"
+msgstr "[オプション]"
+
+# renderer.c
+
+msgid "[an embedded object of type \"%s\"]"
+msgstr "[\"%s\"型の埋め込みオブジェクト]"
+
+msgid "[an embedded object]"
+msgstr "[埋め込みオブジェクト]"
+
+msgid "[an image-map hotspot]"
+msgstr "[イメージマップホットスポット]"
+
+msgid "[empty selection list]"
+msgstr "[空の選択リスト]"
+
+# resource.c
+
+msgid " <b>Warning</b>: this version is out of date!"
+msgstr " <b>警告</b> : このバージョンは賞味期限切れです!"
+
+msgid " line"
+msgstr " 行"
+
+msgid " lines"
+msgstr " 行"
+
+msgid "(Attached resource)"
+msgstr "(添付リソース)"
+
+msgid "(de-)compression"
+msgstr "圧縮/伸長"
+
+msgid "(de-)cryption"
+msgstr "暗復号"
+
+msgid "(no error)"
+msgstr "(エラー無し)"
+
+msgid "(no subject)"
+msgstr "(サブジェクト無し)"
+
+msgid "(request state unknown - internal error)"
+msgstr "(未知の要求状態 - 内部エラー)"
+
+msgid "(resource state unknown - internal error)"
+msgstr "(未知のリソース状態 - 内部エラー)"
+
+msgid "; IP address: "
+msgstr "; IP アドレス : "
+
+msgid "; not HTTP/1.1"
+msgstr "; HTTP/1.1 ではない"
+
+msgid "; server: \""
+msgstr "; サーバー : \""
+
+msgid "<html><head><title>About retawq</title></head>\n<body>\n<h3 align=\"center\"><b>retawq %s (%s mode%s)</b></h3>\n<p>The web browser <b>retawq</b> is released <b>without any warranty</b>. The project home page is <a href=\"http://retawq.sourceforge.net/\">retawq.sourceforge.net</a>.</p>\n"
+msgstr "<html><head><title>retawq について</title></head>\n<body>\n<h3 align=\"center\"><b>retawq %s (モード %s%s)</b></h3>\n<p>ウェブブラウザ <b>retawq</b>は<b>無保証</b>でリリースされています。プロジェクトのホームページは<a href=\"http://retawq.sourceforge.net/\">retawq.sourceforge.net</a>です。</p>\n"
+
+msgid "<p>Currently using <a href=\"http://directory.fsf.org/ncurses.html\">ncurses</a> library version \"%s\".</p>\n"
+msgstr "<p>現在 <a href=\"http://directory.fsf.org/ncurses.html\">ncurses</a>ライブラリバージョン \"%s\"を使っています。</p>\n"
+
+msgid "<p>Currently using <a href=\"http://www.gnupg.org/\">libgcrypt</a> library version %s.%s</p>\n"
+msgstr "<p>現在 <a href=\"http://www.gnupg.org/\">libgcrypt</a>ライブラリバージョン %s.%s を使っています</p>\n"
+
+msgid "<p>Currently using <a href=\"http://www.gnutls.org/\">GnuTLS</a> library version %s.%s</p>\n"
+msgstr "<p>現在 <a href=\"http://www.gnutls.org/\">GnuTLS</a> ライブラリバージョン %s.%s を使っています</p>\n"
+
+msgid "<p>Currently using <a href=\"http://www.gtk.org/\">GTK</a> library version %d.%d.%d on display \"%s\".</p>\n"
+msgstr "<p>現在 <a href=\"http://www.gtk.org/\">GTK</a> ライブラリバージョン %d.%d.%d をディスプレイ \"%s\" で使っています。</p>\n"
+
+msgid "<p>Currently using <a href=\"http://www.openssl.org/\">OpenSSL</a> library version \"%s\".%s</p>\n"
+msgstr "<p>現在 <a href=\"http://www.openssl.org/\">OpenSSL</a>ライブラリバージョン \"%s\".%s を使っています</p>\n"
+
+msgid "<p>Currently using <a href=\"http://www.x.org/\">X Window System</a> library version %d.%d (vendor: %s, release %d) on display \"%s\".</p>\n"
+msgstr "<p>現在 <a href=\"http://www.x.org/\">X Window System</a>ライブラリバージョン %d.%d (ベンダー : %s, リリース %d)をディスプレイ\"%s\"で使っています。</p>\n"
+
+msgid "<p>No information known yet.</p>\n"
+msgstr "<p>情報がありません。</p>\n"
+
+msgid "<p>Start messages:"
+msgstr "<p>開始メッセージ:"
+
+msgid "<p>This program contains support for: "
+msgstr "<p>このプログラムは以下をサポートしています: "
+
+msgid "<p>Using <a href=\"http://www.matrixssl.org/\">MatrixSSL</a>.</p>\n"
+msgstr "<p><a href=\"http://www.matrixssl.org/\">MatrixSSL</a>を使っています。</p>\n"
+
+msgid "<p>fd #%d, scheme %s%s%s</p>"
+msgstr "<p>fd #%d, スキーム %s%s%s</p>"
+
+msgid "<p>none</p>"
+msgstr "<p>無し</p>"
+
+msgid "Activity"
+msgstr "アクティビティ"
+
+msgid "Bad URL"
+msgstr "誤った URL"
+
+msgid "Bad request kind (internal error)"
+msgstr "誤った要求 (内部エラー)"
+
+msgid "Can't calculate random numbers"
+msgstr "乱数を生成できません"
+
+msgid "Can't create internal pipe"
+msgstr "内部パイプを生成できません"
+
+msgid "Can't create new process"
+msgstr "新しいプロセスを生成できません"
+
+msgid "Can't create socket"
+msgstr "ソケットを生成できません"
+
+msgid "Can't execute program"
+msgstr "プログラムを実行できません"
+
+msgid "Can't lookup host name"
+msgstr "ホスト名を解決できません"
+
+msgid "Can't read/write file/directory"
+msgstr "ファイル/ディレクトリを読み書きできません"
+
+msgid "Connecting"
+msgstr "接続中"
+
+msgid "Connection failed"
+msgstr "接続に失敗しました"
+
+msgid "Connection refused"
+msgstr "接続が拒否されました"
+
+msgid "Connection reset by peer"
+msgstr "相手が接続をリセットしました"
+
+msgid "Contents of FTP directory \"%s\""
+msgstr "FTP ディレクトリの内容 \"%s\""
+
+msgid "Contents of local directory \"%s\""
+msgstr "ローカルディレクトリの内容 \"%s\""
+
+msgid "Contents of the host information cache"
+msgstr "ホスト情報キャッシュの内容"
+
+msgid "Document complete"
+msgstr "文書が完成"
+
+msgid "Exchanging messages"
+msgstr "メッセージの交換中"
+
+msgid "Forbidden by configuration"
+msgstr "設定によって禁止されています"
+
+msgid "Help"
+msgstr "ヘルプ"
+
+msgid "Hostname missing"
+msgstr "ホスト名がありません"
+
+msgid "Index of news articles %d-%d in the group %s on the server %s, latest first"
+msgstr "ニュース記事 %d-%d の索引(グループ %s, サーバ %s 上の)、最新記事が最初のエントリー"
+
+msgid "Internal handshake bug"
+msgstr "内部ハンドシェークのバグ"
+
+msgid "List of available news groups on the server %s"
+msgstr "サーバ %s 上で利用可能なニュースグループのリスト"
+
+msgid "Local CGI error: can't execute \"%s\" (error #%d, %s)%s"
+msgstr "ローカル CGI エラー: \"%s\" を実行できません (エラー#%d, %s)%s"
+
+msgid "Looking up host name"
+msgstr "ホスト名を解決中"
+
+msgid "News group %s, articles %d-%d, server %s"
+msgstr "ニュースグループ %s, 記事 %d-%d, サーバ %s"
+
+msgid "News groups on %s"
+msgstr "%s 上のニュースグループ"
+
+msgid "Parent directory"
+msgstr "親ディレクトリ"
+
+msgid "Port number invalid"
+msgstr "ポート番号が不正です"
+
+msgid "Preparing"
+msgstr "準備中"
+
+msgid "Proxy authentication required"
+msgstr "プロクシの認証が必要です"
+
+msgid "Receiving"
+msgstr "受信中"
+
+msgid "Redirection problem"
+msgstr "リダイレクトに問題があります"
+
+msgid "Scheme/protocol disabled"
+msgstr "スキーム/プロトコルが無効です"
+
+msgid "Server closed connection"
+msgstr "サーバが接続を閉じました"
+
+msgid "Server response invalid"
+msgstr "サーバの応答が不正です"
+
+msgid "Specific network unreachable"
+msgstr "特定のネットワークに到達できません"
+
+msgid "Stopped"
+msgstr "停止"
+
+msgid "TLS-related error"
+msgstr "TLS に関係したエラー"
+
+msgid "This directory is empty."
+msgstr "このディレクトリは空です。"
+
+msgid "Time-out (server busy)"
+msgstr "タイムアウト(サーバビジー)"
+
+msgid "Too many open file descriptors"
+msgstr "開いているファイルデスクリプタが多すぎます"
+
+msgid "Unknown scheme/protocol"
+msgstr "未知のスキーム/プロトコル"
+
+msgid "\n<br>port %d: scheme %s; flags: %d"
+msgstr "\n<br>ポート %d : スキーム %s; フラグ: %d"
+
+msgid "\n<br>port %d: scheme %s; flags: %d; rating: %d%s%s%s%s"
+msgstr "\n<br>ポート %d : スキーム %s; フラグ: %d; レート: %d%s%s%s%s"
+
+msgid "\n<p>IP address: "
+msgstr "\n<p>IP アドレス: "
+
+msgid "\n<p>name: \"%s\"; flags: %d"
+msgstr "\n<p>名前: \"%s\"; フラグ: %d"
+
+msgid "\n\n(Note: an error like \"file not found\" might mean \"script interpreter not found\" here.)"
+msgstr "\n\n(注意: ここでは、\"ファイルが見つかりません\" のようなエラーは \"スクリプトのインタープリタが見つかりません\" を意味する場合があります。)"
+
+msgid "account required"
+msgstr "アカウントが必要"
+
+msgid "application data"
+msgstr "アプリケーションデータ"
+
+msgid "authentication required"
+msgstr "認証が必要"
+
+msgid "can't create thread"
+msgstr "スレッドを生成できません"
+
+msgid "can't execute \"%s\""
+msgstr "\"%s\" を実行できません"
+
+msgid "can't setup file descriptors"
+msgstr "ファイルディスクリプタを設定できません"
+
+msgid "ciphers"
+msgstr "暗号"
+
+msgid "content follows"
+msgstr "コンテントは以下に"
+
+msgid "disconnecting"
+msgstr "切断中"
+
+msgid "entering passive mode"
+msgstr "パッシブモードに入ります"
+
+msgid "error"
+msgstr "エラー"
+
+msgid "fatal alert"
+msgstr "致命的な警報"
+
+msgid "file"
+msgstr "ファイル"
+
+msgid "file/directory not found"
+msgstr "ファイル/ディレクトリが見つかりません"
+
+msgid "group selected"
+msgstr "グループが選択されました"
+
+msgid "handshake"
+msgstr "ハンドシェーク"
+
+msgid "initialization"
+msgstr "初期化"
+
+msgid "intermediary"
+msgstr "中間の"
+
+msgid "library feature unimplemented"
+msgstr "ライブラリ機能が未実装"
+
+msgid "logged in"
+msgstr "ログインしました"
+
+msgid "memory"
+msgstr "メモリー"
+
+msgid "news groups follow"
+msgstr "ニュースグループが以下に"
+
+msgid "no such article"
+msgstr "そのような記事はありません"
+
+msgid "no such news group"
+msgstr "そのようなニュースグループはありません"
+
+msgid "okay"
+msgstr "オーケー"
+
+msgid "packet"
+msgstr "パケット"
+
+msgid "password required"
+msgstr "パスワードが必要"
+
+msgid "protected reply"
+msgstr "ほごされた返事"
+
+msgid "public key"
+msgstr "公開鍵"
+
+msgid "read"
+msgstr "読みだし"
+
+msgid "read(DNS) failed"
+msgstr "読みだし(DNS)失敗"
+
+msgid "redirection"
+msgstr "リダイレクト"
+
+msgid "request error"
+msgstr "要求エラー"
+
+msgid "retawq Compile-Time Configuration Options"
+msgstr "retawq コンパイル時設定オプション"
+
+msgid "retawq: OpenSSL initialization failed\n"
+msgstr "retawq: OpenSSL の初期化に失敗\n"
+
+msgid "retawq: TLS library error during operation \"%s\": #%d%s%s - %s\n"
+msgstr "retawq: 実行中の TLS ライブラリエラー \"%s\": #%d%s%s - %s\n"
+
+msgid "retawq: execext-shell error: %s (error #%d, %s)"
+msgstr "retawq : execext-shell エラー: %s (エラー %d, %s)"
+
+msgid "retawq: local CGI error: can't setup file descriptors (error #%d, %s)\n"
+msgstr "retawq :ローカル CGI エラー: ファイルディスクリプタを設定できません(エラー %d, %s)\n"
+
+msgid "server closed"
+msgstr "サーバーが閉じました"
+
+msgid "server error"
+msgstr "サーバーエラー"
+
+msgid "server ready"
+msgstr "サーバー準備完了"
+
+msgid "service not available"
+msgstr "サービスが利用できません"
+
+msgid "session expired"
+msgstr "セッションが失効しました"
+
+msgid "transfer successful"
+msgstr "転送成功"
+
+msgid "transient server problem"
+msgstr "一時的なサーバの問題"
+
+msgid "write"
+msgstr "書き込み"
+
+msgid "write(DNS) failed"
+msgstr "書き込み(DNS)失敗"
+
+# stuff.c
+
+msgid "%s (given value is %d, highest select()-able value is %d)"
+msgstr "%s (与えられた値は %d, 選択可能な最大値は %d)"
+
+msgid "(disabled)"
+msgstr "(無効)"
+
+msgid "(unknown)"
+msgstr "(未知)"
+
+msgid "; error #%d, %s\n"
+msgstr "; エラー #%d, %s\n"
+
+msgid "Directory"
+msgstr "ディレクトリ"
+
+msgid "F(this kind of) execution of external programs"
+msgstr "F(この種類の)外部プログラムの実行"
+
+msgid "File"
+msgstr "ファイル"
+
+msgid "Fjumps"
+msgstr "Fジャンプ"
+
+msgid "Fsessions"
+msgstr "Fセッション"
+
+msgid "I/O multiplexing failed"
+msgstr "I/Oマルチプレックスに失敗"
+
+msgid "Login failed"
+msgstr "ログインに失敗"
+
+msgid "bad value"
+msgstr "誤った値"
+
+msgid "button"
+msgstr "ボタン"
+
+msgid "byte"
+msgstr "バイト"
+
+msgid "bytes"
+msgstr "バイト"
+
+msgid "can't lookup file descriptor"
+msgstr "ファイルデスクリプタが見つかりません"
+
+msgid "can't open X Window System display"
+msgstr "X Window System のディスプレイを開けません"
+
+msgid "checkbox"
+msgstr "チェックボックス"
+
+msgid "feature \"%s\" was disabled at compile-time%s"
+msgstr "機能 \"%s\" はコンパイル時%sで無効化されています"
+
+msgid "graphics"
+msgstr "グラフィック"
+
+msgid "image"
+msgstr "イメージ"
+
+msgid "link"
+msgstr "リンク"
+
+msgid "no"
+msgstr "no"
+
+msgid "off"
+msgstr "オフ"
+
+msgid "out of memory"
+msgstr "メモリ不足"
+
+msgid "retawq: fatal error: "
+msgstr "retawq: 致命的なエラー: "
+
+msgid "retawq: terminated by a signal\n"
+msgstr "retawq: シグナルによって終了\n"
+
+msgid "text"
+msgstr "テキスト"
+
+msgid "too many objects"
+msgstr "オブジェクトが多すぎます"
+
+msgid "write() failed"
+msgstr "write() に失敗"
+
+msgid "yes"
+msgstr "yes"
+
+# wk.c
+
+msgid "Bookmark"
+msgstr "ブックマーク"
+
+msgid "Document Info"
+msgstr "文書情報"
+
+msgid "Finformation window"
+msgstr "F情報ウインドウ"
+
+msgid "Forms: "
+msgstr "フォーム: "
+
+msgid "Frames: "
+msgstr "フレーム: "
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "Images: "
+msgstr "イメージ: "
+
+msgid "Information about \"%s\""
+msgstr "\"%s\"の情報"
+
+msgid "Links: "
+msgstr "リンク: "
+
+msgid "Location: "
+msgstr "場所: "
+
+msgid "New Window"
+msgstr "新しいウインドウ"
+
+msgid "Open Local File..."
+msgstr "ローカルファイルを開く..."
+
+msgid "Open Relative URL..."
+msgstr "相対的な URL を開く..."
+
+msgid "Open URL..."
+msgstr "URL を開く..."
+
+msgid "Really repost form data?"
+msgstr "フォームデータを本当に再送信しますか?"
+
+msgid "Size: "
+msgstr "サイズ: "
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Title: "
+msgstr "タイトル: "
+
+msgid "View"
+msgstr "表示"
+
+msgid "Window"
+msgstr "ウインドウ"
