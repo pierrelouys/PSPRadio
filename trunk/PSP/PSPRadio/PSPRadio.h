@@ -27,7 +27,7 @@
 #include <UI_Interface.h>
 #include "Screen.h"
 
-#define PSPRADIO_VERSION	"0.38.074"
+#define PSPRADIO_VERSION	"0.38.075"
 
 #define CFG_FILENAME		"PSPRadio.cfg"
 

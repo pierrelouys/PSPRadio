@@ -285,9 +285,25 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	if (m_ScreenConfig.strBackground)
 	{
 		char strPath[MAXPATHLEN+1];
-		sprintf(strPath, "%s/%s", m_strCWD, m_ScreenConfig.strBackground);
-		TextUILog(LOG_LOWLEVEL, "Calling SetBackgroundImage '%s'", strPath);
-		m_Screen->SetBackgroundImage(strPath);
+		
+		/** If the background is a path, then look under PSPRadio's directory + path */
+		if ((m_ScreenConfig.strBackground) && (m_ScreenConfig.strBackground[0] != 0))
+		{
+			if (strncmp(m_ScreenConfig.strBackground, "ms0:", strlen("ms0:")) == 0)
+			{
+				strlcpy(strPath, m_ScreenConfig.strBackground, MAXPATHLEN);
+			}
+			if (strchr(m_ScreenConfig.strBackground, '/'))
+			{
+				sprintf(strPath, "%s/%s", m_strCWD, m_ScreenConfig.strBackground);
+			}
+			else /** It's just a filename, look under the textui config directory */
+			{
+				sprintf(strPath, "%s/%s/%s", m_strCWD, m_strConfigDir, m_ScreenConfig.strBackground);
+			}
+			TextUILog(LOG_LOWLEVEL, "Calling SetBackgroundImage '%s'", strPath);
+			m_Screen->SetBackgroundImage(strPath);
+		}
 	}
 	TextUILog(LOG_LOWLEVEL, "Calling m_Screen->Clear");
 	m_Screen->Clear(); 
@@ -348,12 +364,12 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 						  int iActiveState)
 {
 	int x1 = -100, x2 = -100;
-	GetConfigPair("SCREEN_SETTINGS:X_RANGE", &x1, &x2);
 	int color = 0xFFFFFF;
 	int iNameLen = strlen(strName);
 	int iOptionLen = 0;
 	int iArrowColor = 0xFFFFFF;
 
+	GetConfigPair("SCREEN_SETTINGS:X_RANGE", &x1, &x2);
 	if (x1 == -100)
 	{
 		x1 = 28;
@@ -364,6 +380,8 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 		x2 = 390;
 	}
 	int iTextPos = PIXEL_TO_COL(x1);
+
+	///ModuleLog(LOG_LOWLEVEL, "PrintOption: x1=%d x2=%d", x1, x2);
 
 	uiPrintf(COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
 	iTextPos += iNameLen;

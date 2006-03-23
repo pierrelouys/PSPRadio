@@ -19,6 +19,7 @@
 		char *PSPRadioExport_GetMyIP();
 		void PSPRadioExport_RequestExclusiveAccess();
 		void PSPRadioExport_GiveUpExclusiveAccess();
+		char *PSPRadioExport_GetVersion();
 
 
 #ifdef __cplusplus	

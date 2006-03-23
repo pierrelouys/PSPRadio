@@ -34,6 +34,7 @@
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "OptionsPluginMenuScreen.h"
+#include "PSPRadio.h"
 #include <FSS_Exports.h>
 #include <APP_Exports.h>
 
@@ -381,6 +382,12 @@ int OptionsPluginMenuScreen::LoadPlugin(char *strPlugin, plugin_type type)
 			int iRet = m_ModuleLoader[type]->Start();
 			
 			Log(LOG_INFO, "Module start returned: 0x%x", iRet);
+
+/*			if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
+			{
+				Log(LOG_ERROR, "WARNING: Plugin '%' was compiled against PSPRadio '%s' (this is '%s')",
+					getPSPRadioVersionForPlugin(), PSPRADIO_VERSION);
+			}*/
 			
 			switch(type)
 			{

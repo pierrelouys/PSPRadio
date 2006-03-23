@@ -7,9 +7,7 @@
 	#endif
 	
 		int main(int argc, char **argv);
-		
 		void* getModuleInfo(void);
-		
 		int module_stop(int args, void *argp);
 	
 	#ifdef __cplusplus

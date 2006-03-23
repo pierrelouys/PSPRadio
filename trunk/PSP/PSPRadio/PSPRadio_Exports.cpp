@@ -78,3 +78,8 @@ void PSPRadioExport_GiveUpExclusiveAccess()
 	}
 	gPSPRadio->SetPluginExclisiveAccess(false);
 }
+
+char *PSPRadioExport_GetVersion()
+{
+	return PSPRADIO_VERSION;
+}

@@ -24,7 +24,7 @@
 #include <Common.h>
 
 PSP_MODULE_INFO("APP_NetScan", 0, 1, 1);
-//PSP_HEAP_SIZE_KB(64);
+PSP_HEAP_SIZE_KB(64);
 
 #define printf pspDebugScreenPrintf
 
@@ -42,7 +42,7 @@ int ModuleStartAPP()
 
 	int thid = 0;
 
-	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 0x50, 0xFA0, PSP_THREAD_ATTR_USER, 0);
+	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 0x50, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
 		sceKernelStartThread(thid, 0, 0);
@@ -76,9 +76,9 @@ void app_plugin_main()
 
 	PSPRadioExport_RequestExclusiveAccess();
 
-	pspDebugScreenInit();
 	while (run == 1)
 	{
+		pspDebugScreenInit();
 		printf(" NetScan Plugin for PSPRadio\n");
 		printf("-----------------------------\n");
 		printf("* CIRCLE: Perform WiFi Scan\n");
@@ -99,12 +99,14 @@ void app_plugin_main()
 				pspDebugScreenInit();
 				wlanscan();
 				wait_for_triangle();
+				break;
 			}
 			else if (pad.Buttons & PSP_CTRL_SQUARE)
 			{
 				pspDebugScreenInit();
 				do_resolver();
 				wait_for_triangle();
+				break;
 			}
 		}
 	}
@@ -341,35 +343,39 @@ void do_resolver(void)
 
 	printf(" Resolver Test (based on pspsdk sample by James F)\n");
 	printf("---------------------------------------------------\n");
+	printf("\n* PSPRadio IP: '%s'\n", PSPRadioExport_GetMyIP());
 
 	do
 	{
 		/* Create a resolver */
-		if(sceNetResolverCreate(&rid, buf, sizeof(buf)) < 0)
+		memset(buf, 0, sizeof(buf));
+		if(sceNetResolverCreate(&rid, buf, 1024) < 0)
 		{
-			printf("Error creating resolver\n");
+			printf(">> Error creating resolver <<\n");
 			break;
 		}
 
-		printf("Created resolver %08x\n", rid);
+		printf("* Created resolver 0x%08x\n", rid);
 
 		/* Resolve a name to an ip address */
+		memset(&addr, 0, sizeof(addr));
 		if(sceNetResolverStartNtoA(rid, RESOLVE_NAME, &addr, 2, 3) < 0)
 		{
-			printf("Error resolving %s\n", RESOLVE_NAME);
+			printf(">> Error resolving %s <<\n", RESOLVE_NAME);
 			break;
 		}
 
-		printf("Resolved %s to %s\n", RESOLVE_NAME, inet_ntoa(addr));
+		printf("* Resolved '%s' to '%s'\n", RESOLVE_NAME, inet_ntoa(addr));
 
 		/* Resolve the ip address to a name */
-		if(sceNetResolverStartAtoN(rid, &addr, name, sizeof(name), 2, 3) < 0)
+		memset(name, 0, 1024);
+		if(sceNetResolverStartAtoN(rid, &addr, name, 1024, 2, 3) < 0)
 		{
 			printf("Error resolving ip to name\n");
 			break;
 		}
 
-		printf("Resolved ip to %s\n", name);
+		printf("* Resolved ip to '%s'\n", name);
 	}
 	while(0);
 
@@ -377,4 +383,5 @@ void do_resolver(void)
 	{
 		sceNetResolverDelete(rid);
 	}
+	printf("\n");
 }
