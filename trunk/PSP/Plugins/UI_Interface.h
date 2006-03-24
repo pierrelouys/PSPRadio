@@ -1,9 +1,9 @@
 #ifndef _UI_I_
 	#define _UI_I_
 
-	#include "ScreenHandler.h"
-	#include "PlayListScreen.h"
-	#include "OptionsScreen.h"
+	#include "../PSPRadio/ScreenHandler/ScreenHandler.h"
+	#include "../PSPRadio/ScreenHandler/PlayListScreen.h"
+	#include "../PSPRadio/ScreenHandler/OptionsScreen.h"
 	#include "PSPSound.h"
 	#include "MetaDataContainer.h"
 	#include <psprtc.h>
