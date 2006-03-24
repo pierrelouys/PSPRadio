@@ -376,8 +376,8 @@ int OptionsPluginMenuScreen::LoadPlugin(char *strPlugin, plugin_type type)
 			memset(&modinfo, 0, sizeof(modinfo));
 			modinfo.size = sizeof(modinfo);
 			sceKernelQueryModuleInfo(id, &modinfo);
-			Log(LOG_INFO, "'%s' Loaded at text_addr=0x%x",
-				strModulePath, modinfo.text_addr);
+			Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
+				strPlugin, modinfo.text_addr);
 		
 			int iRet = m_ModuleLoader[type]->Start();
 			
