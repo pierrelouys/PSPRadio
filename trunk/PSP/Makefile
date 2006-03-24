@@ -53,6 +53,9 @@ extra_plugins:
 	cd $(PLUGINS_DIR)/APP_NetScan   && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
 	cd $(PLUGINS_DIR)/APP_NetScan   && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+	cd $(PLUGINS_DIR)/APP_Retawq    && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+	cd $(PLUGINS_DIR)/APP_Retawq    && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
 	
 clean:
 	make clean_objects
@@ -62,11 +65,13 @@ clean_objects:
 	cd $(SHAREDLIB_DIR) && make clean
 	cd $(BOOTSTRAP_DIR) && make clean
 	cd $(PSPRADIO_DIR)  && make clean
-	cd $(PLUGINS_DIR)/UI_Text && make clean
+	cd $(PLUGINS_DIR)/UI_Text   && make clean
 	cd $(PLUGINS_DIR)/UI_Text3D && make clean
 	make clean_extra_plugins
 	
 clean_extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make clean
+	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
+	cd $(PLUGINS_DIR)/APP_Retawq    && make clean
 
 

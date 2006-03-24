@@ -35,12 +35,20 @@ Dirs=Graphics
 Files=jsaTextureCache.cpp/jsaTextureCache.h/jsaVRAMManager.cpp/jsaVRAMManager.h/TextUI3D.cfg/TextUI3D.cpp/TextUI3D.h/TextUI3D_Panel.cpp/TextUI3D_Panel.h/TextUI3D_WindowManager_HSM.cpp/TextUI3D_WindowManager_HSM.h
 
 [Dir Plugins]
-Dirs=FSServer_FTPD/UI_Graphics/UI_Text/UI_Text3D/APP_NetScan
+Dirs=FSServer_FTPD/UI_Graphics/UI_Text/UI_Text3D/APP_NetScan/APP_JView/APP_Retawq
 Files=UI_Exports.exp/FSS_Exports.exp/FSS_Exports.h/Common.cpp/Common.h/UI_Interface.cpp/UI_Interface.h/APP_Exports.exp/APP_Exports.h
+
+[Dir Plugins/APP_JView]
+Dirs=
+Files=Makefile/APP_JView.S
 
 [Dir Plugins/APP_NetScan]
 Dirs=
 Files=main.c/Makefile
+
+[Dir Plugins/APP_Retawq]
+Dirs=docu/i18n/tool
+Files=.config/configure/configure.act/configure.base/cookie.c/COPYING/cursesbi.c/cursesbi.h/cursesx.c/cursesx.h/init.c/init.h/init.o/INSTALL/main.c/Makefile/Makefile-classical/ncurses.h/parser.c/parser.h/README/renderer.c/resource.c/resource.h/stuff.c/stuff.h/tgmode.inc/wk.c/psp_curses.c/psp_curses.h/resource.cpp/plugin_main.c
 
 [Dir Plugins/FSServer_FTPD]
 Dirs=
