@@ -21,9 +21,9 @@
 
 #include <PSPApp.h>
 #include <PSPSound.h>
-#include "ScreenHandler.h"
-#include "PlayListScreen.h"
-#include "SHOUTcastScreen.h"
+#include "ScreenHandler/ScreenHandler.h"
+#include "ScreenHandler/PlayListScreen.h"
+#include "ScreenHandler/SHOUTcastScreen.h"
 #include <UI_Interface.h>
 #include "Screen.h"
 
