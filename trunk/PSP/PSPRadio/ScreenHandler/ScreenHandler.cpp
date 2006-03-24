@@ -305,6 +305,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			 (iButtonMask & PSP_CTRL_START) )
 		{
 			PSPRadioExport_GiveUpExclusiveAccess();
+			m_CurrentScreen->Activate(m_UI);
 		}
 	}
 	else /** Normal */
