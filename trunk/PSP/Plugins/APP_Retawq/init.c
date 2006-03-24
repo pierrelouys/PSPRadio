@@ -399,7 +399,8 @@ tBoolean __init env_termsize(int* _x, int* _y)
 #endif /* bicurses/xcurses */
 
 static one_caller void __init initialize_curses(void)
-{ if (initscr() == NULL) fatal_error(0, _("can't initialize terminal"));
+{
+ if (initscr() == 0	) fatal_error(0, _("can't initialize terminal"));
     /* (Some old curses libraries, e.g. on Minix 2.0, might return NULL instead
         of exiting with an error message.) */
   need_tglib_cleanup = truE;
@@ -413,8 +414,8 @@ static one_caller void __init initialize_curses(void)
 #endif
 
   (void) cbreak(); (void) noecho(); (void) nonl();
-  (void) intrflush(stdscr, FALSE); (void) keypad(stdscr, TRUE);
-  (void) nodelay(stdscr, TRUE);
+  ///(void) intrflush(stdscr, FALSE); (void) keypad(stdscr, TRUE);
+  ///(void) nodelay(stdscr, TRUE);
 
 #if (CONFIG_DO_TEXTMODEMOUSE) && (!OFWAX)
   (void) mousemask(TEXTMODEMOUSE_MASK, NULL);

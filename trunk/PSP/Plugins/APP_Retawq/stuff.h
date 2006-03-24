@@ -530,6 +530,10 @@ my_enum1 enum
 } my_enum2(short) tColorPairNumber;
 #define cpnMax (5)
 
+#ifndef chtype
+	#define chtype int
+#endif
+
 typedef chtype tColorBitmask;
 extern tColorBitmask color_bitmask[cpnMax + 1];
 
@@ -1316,7 +1320,7 @@ extern const char* get_homepath(void);
 extern void check_localdirsort(char*);
 #endif
 
-#define MIGHT_NEED_TIMEOUTS ( (CONFIG_TG == TG_BICURSES) || ( (CONFIG_TG == TG_XCURSES) && (MIGHT_USE_SCROLL_BARS) ) || (OPTION_EXECINT & EXECINT_RELIAWFUL) || (USE_LWIP) )
+#define MIGHT_NEED_TIMEOUTS ( (CONFIG_TG == TG_BICURSES) || (PSP == 1) || ( (CONFIG_TG == TG_XCURSES) && (MIGHT_USE_SCROLL_BARS) ) || (OPTION_EXECINT & EXECINT_RELIAWFUL) || (USE_LWIP) )
 
 #if MIGHT_NEED_TIMEOUTS
 typedef tBoolean (*tTimeoutHandler)(int*);
@@ -1324,29 +1328,33 @@ extern void timeout_register(tTimeoutHandler);
 extern void timeout_unregister(tTimeoutHandler);
 #endif
 
-#if NEED_FD_REGISTER
-my_enum1 enum
-{ fdkNone = 0, fdkFile = 0x01, fdkPipe = 0x02, fdkSocket = 0x04,
-  fdkOther = 0x08 /* ..., fdkStdin, fdkStdout, fdkStderr, fdkTerminal, ...? */
-} my_enum2(unsigned char) tFdKind;
-extern void fd_register_init(void);
-extern void fd_register(int*, tFdKind);
-extern tFdKind fd_register_lookup(int*);
-#if CONFIG_TG == TG_XCURSES
-extern tBoolean fd_register_rlookup(int*, tFdKind);
-#endif
-extern int my_pipe(/*@out@*/ int*);
-extern int my_isatty(int);
-#define my_write_str_unregistried(fd, str) write(fd, str, strlen(str))/*FIXME*/
-#define my_close_unregistried close /* FIXME! */
-#define my_fstat_unregistried fstat /* FIXME! */
+#if NEED_FD_REGISTER 
+	my_enum1 enum
+	{ fdkNone = 0, fdkFile = 0x01, fdkPipe = 0x02, fdkSocket = 0x04,
+	fdkOther = 0x08 /* ..., fdkStdin, fdkStdout, fdkStderr, fdkTerminal, ...? */
+	} my_enum2(unsigned char) tFdKind;
+	extern void fd_register_init(void);
+	extern void fd_register(int*, tFdKind);
+	extern tFdKind fd_register_lookup(int*);
+	#if CONFIG_TG == TG_XCURSES
+	extern tBoolean fd_register_rlookup(int*, tFdKind);
+	#endif
+	extern int my_pipe(/*@out@*/ int*);
+	extern int my_isatty(int);
+	#define my_write_str_unregistried(fd, str) write(fd, str, strlen(str))/*FIXME*/
+	#define my_close_unregistried close /* FIXME! */
+	#define my_fstat_unregistried fstat /* FIXME! */
 #else
-#define fd_register(fdptr, kind) do { } while (0)
-#define my_write_str_unregistried my_write_str
-#define my_close_unregistried my_close
-#define my_fstat_unregistried my_fstat
-#define my_pipe(f) pipe(f)
-#define my_isatty(x) isatty(x)
+	#define fd_register(fdptr, kind) do { } while (0)
+	#define my_write_str_unregistried my_write_str
+	#define my_close_unregistried my_close
+	#define my_fstat_unregistried my_fstat
+	#ifdef PSP
+		#define my_pipe(f) pipe_open(f)
+	#else
+		#define my_pipe(f) pipe(f)
+	#endif
+	#define my_isatty(x) isatty(x)
 #endif
 
 my_enum1 enum
@@ -1388,9 +1396,9 @@ extern int my_fstat(int, /*@out@*/ struct stat*);
 #define my_close_sock my_close
 
 /* clarification for pipes */
-#define my_read_pipe my_read
-#define my_write_pipe my_write
-#define my_close_pipe my_close
+#define my_read_pipe pipe_read
+#define my_write_pipe pipe_write
+#define my_close_pipe pipe_close
 
 /* clarification for sockets/pipes */
 #define my_read_sopi my_read

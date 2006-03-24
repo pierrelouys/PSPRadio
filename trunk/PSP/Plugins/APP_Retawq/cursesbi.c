@@ -5,10 +5,15 @@
    Read the file COPYING for license details, README for program information.
    Copyright (C) 2004-2006 Arne Thomassen <arne@arne-thomassen.de>
 */
-
 #include "stuff.h"
 
 #include <time.h>
+#include <pspsdk.h>
+#include <pspdebug.h>
+#include <pspdisplay.h>
+
+#define printf pspDebugScreenPrintf
+
 
 declare_local_i18n_buffer
 
@@ -27,12 +32,15 @@ static attr_t currattr = 0, currtermattr = 0, igntermattr = 0;
 /* Helper functions */
 
 static int refresh_statvar[26], refresh_dynvar[26];
-static char refreshbuf[STRBUF_SIZE]; /* to reduce the number of write()s */
+static char refreshbuf[STRBUF_SIZE+1]; /* to reduce the number of write()s */
 static size_t refreshbuf_used = 0;
 
 static void refreshbuf_flush(void)
-{ /* if (lfdmbs(1)) */ my_write(fd_stdout, refreshbuf, refreshbuf_used);
-  refreshbuf_used = 0;
+{ 
+	/* if (lfdmbs(1)) */ ///my_write(fd_stdout, refreshbuf, refreshbuf_used);
+	refreshbuf[refreshbuf_used] = 0;
+	printf(refreshbuf);
+  	refreshbuf_used = 0;
 }
 
 static my_inline void refreshbuf_append_ch(const char ch)
@@ -162,7 +170,7 @@ static tBoolean strv_try(tStringValue v)
 static tBoolean bicurses_timeout_handler(/*@out@*/ int*); /* prototype */
 
 WINDOW* __init initscr(void)
-{ const char *termname = getenv("TERM"), *termpath, *strEA;
+{ const char *termname = "vt100", *termpath, *strEA;
   const unsigned char* siptr; /* "strings index pointer" */
   char ch, *filename;
   void* filebuf;

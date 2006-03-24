@@ -244,8 +244,11 @@ static void does_not_return do_quit_msg(int exitcode, const char* msg)
     /* if (lfdmbs(....)) */ my_write_str(fd, msg);
     debugmsg(msg);
   }
+
+	pspDebugScreenPrintf("do_quit_msg = '%s'", msg);
+
   resource_quit();
-  exit(exitcode);
+//  exit(exitcode);
 }
 
 void do_quit(void)
@@ -525,7 +528,10 @@ static one_caller int get_unique_fd(void)
 }
 
 void fd_register(int* _lib_fd, tFdKind kind)
-{ tFdData **head, *data;
+{
+	pspDebugScreenPrintf("fd_register fd=%d (kind=%d)\n", *_lib_fd, kind);
+	
+ tFdData **head, *data;
   int lib_fd = *_lib_fd, unique_fd = *_lib_fd = get_unique_fd();
   head = &(fd_data[fd_register_hash(unique_fd)]);
   data = (tFdData*) __memory_allocate(sizeof(tFdData), mapOther);
@@ -539,7 +545,11 @@ void fd_register(int* _lib_fd, tFdKind kind)
 }
 
 static tFdData* __fd_register_lookup(int unique_fd)
-{ tFdData* data;
+{
+
+	pspDebugScreenPrintf("looking up fd=%d\n", unique_fd);
+
+	 tFdData* data;
   if (unique_fd < 0) return(NULL); /* may happen, e.g. if no stdin fd exists */
   data = fd_data[fd_register_hash(unique_fd)];
   while (data != NULL)
@@ -618,6 +628,9 @@ static int highest_select_fd = 0;
 
 tBoolean fd_is_observable(int fd)
 { tBoolean retval;
+	
+	if (fd & 0x1000) return truE;
+
 #if NEED_FD_REGISTER
   tFdKind kind = fd_register_lookup(&fd);
 #endif
@@ -970,21 +983,32 @@ ssize_t my_read(int fd, void* buf, size_t count)
 ssize_t __my_write(int fd, const void* buf, size_t count)
 /* may write less than <count> bytes */
 { ssize_t retval;
-#if NEED_FD_REGISTER
-  tFdKind kind = fd_register_lookup(&fd);
-#endif
-#if USE_LWIP
-  if (kind & fdkSocket)
-  { errno = 0; /* silly old lwIP versions didn't set errno on error */
-    retval = lwip_write(fd, buf, count);
-  }
-  else
-#endif
-  { unsigned char loopcount = 0;
-    do
-    { retval = write(fd, buf, count);
-    } while ( (retval == -1) && (errno == EINTR) && (++loopcount < 100) );
-  }
+
+	if (fd == fd_stdout || fd == fd_stderr)
+	{
+		char *b = (char *)buf;
+		b[count] = 0;
+		pspDebugScreenPrintf(buf);
+		retval = count;
+	}
+	else
+	{
+		#if NEED_FD_REGISTER
+		tFdKind kind = fd_register_lookup(&fd);
+		#endif
+		#if USE_LWIP
+		if (kind & fdkSocket)
+		{ errno = 0; /* silly old lwIP versions didn't set errno on error */
+			retval = lwip_write(fd, buf, count);
+		}
+		else
+		#endif
+		{ unsigned char loopcount = 0;
+			do
+			{ retval = write(fd, buf, count);
+			} while ( (retval == -1) && (errno == EINTR) && (++loopcount < 100) );
+		}
+	}
   return(retval);
 }
 
@@ -1056,7 +1080,7 @@ int my_fstat(int fd, struct stat* sb)
 #if NEED_FD_REGISTER
 
 int my_pipe(int* fdpair)
-{ int retval = pipe(fdpair);
+{ int retval = pipe_open(fdpair);
   if (retval == 0)
   { fd_register(&(fdpair[0]), fdkPipe); fd_register(&(fdpair[1]), fdkPipe); }
   return(retval);

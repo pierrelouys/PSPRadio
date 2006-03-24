@@ -229,7 +229,7 @@ static const_after_init int fd_dns2resource_read, fd_dns2resource_write,
 const_after_init int fd_xcurses2main_read, fd_xcurses2main_write;
 #endif
 
-#if OPTION_THREADING == 2
+#if OPTION_THREADING == 2 || OPTION_THREADING == 3
 static pid_t pid_main = 0, pid_dns = 0; /* PIDs of our threads */
 #endif
 
@@ -301,8 +301,9 @@ static tSockaddrEntry** sockaddr2listhead(const tSockaddr* _s, size_t addrlen)
 static void sockaddr2uistr(const tSockaddrEntry* entry, /*@out@*/ char* buf,
   size_t size)
 /* converts a network address to a UI string and puts that into <buf> */
-{ const tSockaddr* addr = &(entry->addr);
-  int address_family = entry->address_family;
+{ 
+//const tSockaddr* addr = &(entry->addr);
+//  int address_family = entry->address_family;
   *buf = '\0';
   /* Try the library function with the lower bug probability first... */
 #if HAVE_INET_NTOP
@@ -603,6 +604,14 @@ static one_caller void my_getaddrinfo(tDnsLookup* dns_lookup)
 #define THREADRETTYPE int
 #define THREADRETVAL 0
 
+#elif OPTION_THREADING == 3
+
+///thread:
+#include <pspkernel.h>
+#include <pspkerneltypes.h>
+#define THREADRETTYPE int
+#define THREADRETVAL 0
+
 #else /* #if OPTION_THREADING... */
 
 #error "Bad multi-threading configuration; check option OPTION_THREADING!"
@@ -616,7 +625,7 @@ typedef struct
 { int reader, writer; /* (from the handler's point of view) */
 } tDnsThreadData;
 
-static THREADRETTYPE dns_handler_thread(void* _data)
+static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
 /* This function is the DNS handler thread; it checks for DNS lookup demands
    from the resource handler forever. Apart from its local variables, it only
    accesses the tDnsLookup structure given by the resource handler (which won't
@@ -694,7 +703,7 @@ static THREADRETTYPE dns_handler_thread(void* _data)
 
     loopcount = 0;
     loop:
-    err = read/*_pipe*/(data->reader, ((char*)(&dns_lookup)) + count,
+    err = pipe_read(data->reader, ((char*)(&dns_lookup)) + count,
       sizeof(dns_lookup) - count); /* (can't use my_read() with FD register) */
     if ( (err == -1) && (errno == EINTR) && (++loopcount < 10000) ) goto loop;
     else if (err <= 0)
@@ -703,7 +712,7 @@ static THREADRETTYPE dns_handler_thread(void* _data)
     if (count >= sizeof(dns_lookup)) /* got a complete pointer */
     { my_getaddrinfo(dns_lookup); count = 0; writeloop0: loopcount = 0;
       writeloop:
-      err = write/*_pipe*/(data->writer, ((char*)(&dns_lookup)) + count,
+      err = pipe_write(data->writer, ((char*)(&dns_lookup)) + count,
         sizeof(dns_lookup) - count);
       if ( (err == -1) && (errno == EINTR) && (++loopcount < 10000) )
         goto writeloop;
@@ -3986,6 +3995,8 @@ static one_caller void calc_dirperms(mode_t mode)
 
 static /*@observer@*/ const char strParentDirectory[] = N_("Parent directory");
 
+#include <dirent.h>
+
 static one_caller tBoolean fetch_local_directory(tResourceRequest* request)
 /* returns whether it worked */
 { const char *path = request->uri_data->path, *htmlpath, *spfbuf2;
@@ -3993,7 +4004,8 @@ static one_caller tBoolean fetch_local_directory(tResourceRequest* request)
   const char* format;
 #endif
   char *spfbuf, *temp;
-  const struct dirent* entry;
+  //dirent* entry;
+	struct dirent *dirent_entry;
   unsigned int element_count, element_maxcount, i;
   /*@relnull@*/ tDirSorterElement* sorter_base;
   tResource* resource;
@@ -4007,8 +4019,10 @@ static one_caller tBoolean fetch_local_directory(tResourceRequest* request)
 #endif
   sorter_base = NULL;
   element_count = element_maxcount = 0;
-  while ( (entry = readdir(dir)) != NULL )
-  { const char *name = entry->d_name, *key, *htmlkey;
+  while ( (dirent_entry = (struct dirent *)readdir(dir)) != NULL )
+  { 
+	const char *name = dirent_entry->d_name;
+	const char *key, *htmlkey;
     if (name == NULL) continue; /* "should not happen", library bug */
     if (*name == '.')
     { char c = name[1];
@@ -4331,6 +4345,7 @@ static one_caller tBoolean start_local_cgi(tResourceRequest* request)
   { tmofd: my_close_pipe(fd_pair[0]); my_close_pipe(fd_pair[1]);
     error = reTmofd; goto failed;
   }
+	
   is_post = cond2boolean(request->flags & rrfPost);
   if (is_post)
   { if (my_pipe(fd_post) != 0)
@@ -4990,7 +5005,7 @@ static const char* http_build_basic_authorization(const char* prefix,
   const char* enc;
   my_spf(strbuf, STRBUF_SIZE, &spfbuf_enc, strPercsColonPercs, username,
     password);
-  enc = base64_encode(spfbuf_enc); my_spf_cleanup(strbuf, spfbuf_enc);
+  enc = base64_encode((unsigned char*)spfbuf_enc); my_spf_cleanup(strbuf, spfbuf_enc);
   my_spf(NULL, 0, &spfbuf, "%sAuthorization: Basic %s\r\n", prefix, enc);
   memory_deallocate(enc);
   return(my_spf_use(spfbuf));
@@ -7427,7 +7442,7 @@ void resource_custom_conn_start(tResource* resource, unsigned char what,
 static tPortnumber __init __calculate_portnumber(const char* name,
   tPortnumber defaultport)
 {
-#if CONFIG_PLATFORM != 1
+#if CONFIG_PLATFORM != 1  && PSP != 1
   const struct servent* ent = getservbyname(name, strTcp);
   if (ent != NULL) return((tPortnumber) ent->s_port);
   else
@@ -7445,7 +7460,7 @@ static void __init setup_pipe(/*@out@*/ int* reader, /*@out@*/ int* writer)
   for (count = 0; count <= 1; count++)
   { int fd = fd_pair[count];
     if (!fd_is_observable(fd)) fatal_tmofd(fd);
-    make_fd_cloexec(fd);
+    //make_fd_cloexec(fd);
   }
   *reader = fd_pair[0]; *writer = fd_pair[1];
 }
@@ -7485,6 +7500,30 @@ static int __init create_thread(int (*fn)(void* dummy), void* data)
   return(err);
 }
 
+#elif OPTION_THREADING == 3
+
+static int __init create_thread(int (*fn)(void* dummy), void* data)
+{
+	int thid = 0;
+	static int iThCnt = 0;
+	char name[10];
+
+	iThCnt++;
+
+	sprintf(name, "th%d", iThCnt);
+
+	thid = sceKernelCreateThread(name, (void*)fn, 0x50, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
+	if(thid >= 0)
+	{
+		sceKernelStartThread(thid, sizeof(void *), data);
+	}
+	else
+	{
+		fatal_threading(thid);
+	}
+	return thid;
+}
+
 #endif /* #if OPTION_THREADING... */
 
 #if USE_LWIP
@@ -7495,20 +7534,21 @@ static tBoolean lwip_timeout_handler(/*@out@*/ int* _msec)
 one_caller void __init resource_initialize(void)
 /* initializes the resource handling; note that this is executed in the main
    thread - it _creates_ the other thread(s) at the end. */
-{ const struct protoent* proto;
+{ 
 #if OPTION_THREADING
   static tDnsThreadData dns_thread_data;
 #endif
 
   /* Get protocol and port numbers */
 
-#if CONFIG_PLATFORM != 1
+#if CONFIG_PLATFORM != 1   && PSP != 1
+const struct protoent* proto;
   proto = getprotobyname(strTcp);
   if (proto != NULL) ipprotocolnumber_tcp = proto->p_proto;
   /* "else": use the standard value IPPROTO_TCP */
 #endif
 
-#if CONFIG_PLATFORM != 1
+#if CONFIG_PLATFORM != 1  && PSP != 1
   setservent(1);
 #endif
   portnumber_http = calculate_portnumber(rpHttp, IPPORT_HTTP);
@@ -7519,7 +7559,7 @@ one_caller void __init resource_initialize(void)
   portnumber_nntp = __calculate_portnumber(strNntp, IPPORT_NNTP);
   portnumber_pop3 = __calculate_portnumber(strPop3, IPPORT_POP3);
   portnumber_https = calculate_portnumber(__rpHttps, IPPORT_HTTPS);
-#if CONFIG_PLATFORM != 1
+#if CONFIG_PLATFORM != 1  && PSP != 1
   endservent();
 #endif
 
@@ -7568,7 +7608,7 @@ one_caller void __init resource_initialize(void)
 
 #if OPTION_THREADING == 1
   create_thread(dns_handler_thread, &dns_thread_data);
-#elif OPTION_THREADING == 2
+#elif OPTION_THREADING == 2 || OPTION_THREADING == 3
   { int err;
     pid_main = getpid();
     err = create_thread(dns_handler_thread, &dns_thread_data);

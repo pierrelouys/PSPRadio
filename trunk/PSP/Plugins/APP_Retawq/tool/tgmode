@@ -48,6 +48,9 @@ case "A$option_tg" in
   Abicurses)
     headinc='"cursesbi.h"'; objs='cursesbi.o';
     config_tg=6 ;; # TG_BICURSES
+  Apsp)
+    headinc='"psp_curses.h"'; objs='psp_curses.o';
+    config_tg=7 ;; # PSP
   Acurses:*:*)
     what=`expr "$option_tg" : 'curses\:\(.*\)'`
     h=`expr "$what" : '\([^\:]*\)\:'`

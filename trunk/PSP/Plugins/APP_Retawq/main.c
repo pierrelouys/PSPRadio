@@ -2542,7 +2542,7 @@ static tBoolean search_in_line(const tRendererElement* element,
   while (element != NULL)
   { const char* text;
     size_t textcount = element->textcount;
-    if ( (!(element->is_spacer)) && ( (text = element->text) != NULL ) &&
+    if ( (!(element->is_spacer)) && ( (text = (char*)element->text) != NULL )  &&
          ( (textcount = element->textcount) >= searchlen ) &&
          (my_strncasestr(text, search_string, textcount)) )
     { retval = truE; break; }
@@ -7120,7 +7120,7 @@ static one_caller void __init main_initialize(void)
     sizeof(tKeymapLineinputEntry), keymap_lineinput_sorter);
 }
 
-int main(int argc, const char** argv)
+int main_loop(int argc, const char** argv)
 { /* getting start(l)ed... */
   initialize(argc, argv);
   main_initialize();
