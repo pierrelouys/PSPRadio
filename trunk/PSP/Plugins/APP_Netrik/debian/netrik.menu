@@ -1,4 +1,0 @@
-?package(netrik):needs="text" section="Apps/Net" title="netrik" \
-	longtitle="netrik - the Antrik Internet browser" \
-	description="A text mode browser" \
-	command="/usr/bin/netrik http://netrik.sourceforge.net/"
