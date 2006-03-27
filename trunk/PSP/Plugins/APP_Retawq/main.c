@@ -7159,7 +7159,7 @@ int main_loop(int argc, const char** argv)
   else if (program_mode == pmDump) content_dump_auto(config.pm_uri);
 #endif
 #if CONFIG_CONSOLE
-  else if (program_mode == pmConsole)
+  else if (program_mode == pmConsole || (PSP))
   { cc_output_str(strCopyright); cc_output_str(strProgramLegalese);
     if (initial_console_msgs != NULL)
     { cc_output_str(strNewline); cc_output_str(initial_console_msgs); }

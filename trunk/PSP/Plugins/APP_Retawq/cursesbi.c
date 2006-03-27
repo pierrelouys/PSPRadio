@@ -159,7 +159,7 @@ static const_after_init struct
 static const_after_init unsigned short num_key_strings = 0;
 
 static tBoolean strv_try(tStringValue v)
-{ const char* str = string_value[v];
+{ const char* str = "*";//string_value[v];
   const tBoolean is_available = cond2boolean(str != NULL);
   if (is_available) refreshbuf_append_str(str);
   return(is_available);
@@ -170,7 +170,7 @@ static tBoolean strv_try(tStringValue v)
 static tBoolean bicurses_timeout_handler(/*@out@*/ int*); /* prototype */
 
 WINDOW* __init initscr(void)
-{ const char *termname = "vt100", *termpath, *strEA;
+{ const char *termname = "vt100", *termpath, *strEA = NULL;
   const unsigned char* siptr; /* "strings index pointer" */
   char ch, *filename;
   void* filebuf;
@@ -184,12 +184,14 @@ WINDOW* __init initscr(void)
   debugmsg("termname=*"); debugmsg(termname); debugmsg("*\n");
   termpath = getenv("TERMINFO");
   if ( (termpath == NULL) || (*termpath == '\0') )
-  { termpath = "/usr/share/terminfo/"; need_slash = falsE; }
+  { termpath = "./"; need_slash = falsE; }
   else need_slash = cond2boolean(termpath[strlen(termpath) - 1] != chDirsep);
   debugmsg("termpath=*"); debugmsg(termpath); debugmsg("*\n");
   my_spf(strbuf, STRBUF_SIZE, &filename, "%s%s%c/%s", termpath,
     (need_slash ? strSlash : strEmpty), ch, termname);
   debugmsg("filename=*"); debugmsg(filename); debugmsg("*\n");
+  printf("temfile = '%s'\n", filename);
+#if 0
   if (my_mmap_file_readonly(filename, &filebuf, &filesize) != 2)
   { bad: fatal_error(0, _("bad terminfo file")); }
   my_spf_cleanup(strbuf, filename);
@@ -290,6 +292,7 @@ WINDOW* __init initscr(void)
   }
 
   my_munmap(filebuf, filesize);
+
   strEA = string_value[strvExitAttrs];
 
   /* check some terminal capabilities */
@@ -301,6 +304,7 @@ WINDOW* __init initscr(void)
          (string_value[strvExitUnderline] == NULL ) )
       igntermattr |= A_UNDERLINE;
   }
+#endif //#if 0
 
   /* try to find out the terminal size */
   { int x, y;
@@ -387,7 +391,8 @@ int attroff(attr_t a)
 }
 
 int clear(void)
-{ (void) strv_try(strvClearScreen);
+{ //(void) strv_try(strvClearScreen);
+ pspDebugScreenClear();
   return(OK);
 }
 
@@ -883,7 +888,8 @@ static void refresh_tparm2(const char* format, int val1, int val2)
 }
 
 static __my_inline void refresh_move(int x, int y)
-{ refresh_tparm2(string_value[strvMove], y, x);
+{ //refresh_tparm2(string_value[strvMove], y, x);
+	pspDebugScreenSetXY(x, y);
 }
 
 int refresh(void)
@@ -901,19 +907,38 @@ int refresh(void)
       if ( ( (currtermattr & A_REVERSE) && (!(desta & A_REVERSE)) ) ||
            ( (currtermattr & A_BOLD) && (!(desta & A_BOLD)) ) )
       { /* why-oh-why is there no strvExitReverse/strvExitBold... */
-        refreshbuf_append_str(string_value[strvExitAttrs]);
+        //refreshbuf_append_str(string_value[strvExitAttrs]);
+		pspDebugScreenSetTextColor(0xFFFFFF);
+		pspDebugScreenSetBackColor(0x0);
         currtermattr = 0;
       }
       if ( (desta & A_REVERSE) && (!(currtermattr & A_REVERSE)) )
-        refreshbuf_append_str(string_value[strvEnterReverse]);
+	  {
+		pspDebugScreenSetTextColor(0x0);
+		pspDebugScreenSetBackColor(0xFFFFFF);
+        //refreshbuf_append_str(string_value[strvEnterReverse]);
+	  }
       if ( (desta & A_BOLD) && (!(currtermattr & A_BOLD)) )
-        refreshbuf_append_str(string_value[strvEnterBold]);
+	  {
+		pspDebugScreenSetTextColor(0x33FF33);
+		pspDebugScreenSetBackColor(0x0);
+        //refreshbuf_append_str(string_value[strvEnterBold]);
+      }
       if (currtermattr & A_UNDERLINE)
       { if (!(desta & A_UNDERLINE))
-          refreshbuf_append_str(string_value[strvExitUnderline]);
+		{
+         // refreshbuf_append_str(string_value[strvExitUnderline]);
+			pspDebugScreenSetTextColor(0xFFFFFF);
+			pspDebugScreenSetBackColor(0x0);
+		}
       }
       else if (desta & A_UNDERLINE)
-        refreshbuf_append_str(string_value[strvEnterUnderline]);
+	  {
+       // refreshbuf_append_str(string_value[strvEnterUnderline]);
+		 pspDebugScreenSetTextColor(0xFF00FF);
+		 pspDebugScreenSetBackColor(0x0);
+
+	  }
       currtermattr = desta;
       app_ch: refreshbuf_append_ch(text[idx]);
     }

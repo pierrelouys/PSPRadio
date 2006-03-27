@@ -248,7 +248,7 @@ static void does_not_return do_quit_msg(int exitcode, const char* msg)
 	pspDebugScreenPrintf("do_quit_msg = '%s'", msg);
 
   resource_quit();
-//  exit(exitcode);
+  exit(exitcode);
 }
 
 void do_quit(void)
@@ -851,7 +851,7 @@ void fd_multiplex(void)
 #if MIGHT_NEED_TIMEOUTS
     else if ( (count == 0) && (do_timeout) ) return; /* timed out */
 #endif
-    else fatal_error(((count == -1) ? errno : 0),_("I/O multiplexing failed"));
+    //else fatal_error(((count == -1) ? errno : 0),_("I/O multiplexing failed"));
   }
 
   resource_preplex();
@@ -1042,10 +1042,11 @@ unsigned char my_mmap_file_readonly(const char* filename, void** _b,
   void* filebuf;
   if (fd < 0) goto out;
   if (my_fstat(fd, &statbuf) != 0) goto cleanup;
+/*
   if (!S_ISREG(statbuf.st_mode))
   { if (S_ISDIR(statbuf.st_mode)) errno = EISDIR;
     goto cleanup;
-  }
+  }*/
   size = statbuf.st_size;
   if (size <= 0) { retval = 1; goto cleanup; }
   filebuf = my_mmap(size, fd);

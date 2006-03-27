@@ -73,7 +73,7 @@ extern int COLS, LINES;
 
 extern WINDOW* initscr(void);
 
-extern int addch(chtype);
+int addch(chtype c);
 extern int addstr(const char*);
 extern int addnstr(const char*, int);
 extern int attron(attr_t);

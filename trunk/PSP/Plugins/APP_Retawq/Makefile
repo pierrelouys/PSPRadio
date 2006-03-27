@@ -31,7 +31,7 @@ LIBS =   -lpspsdk -lpspwlan -lpspnet
 #-lstdc++ -lPSPApp
 # -lTools
 
-all: $(TARGET).prx
+all: cursesbi.o $(TARGET).prx
 
 install:
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)

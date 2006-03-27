@@ -530,9 +530,10 @@ my_enum1 enum
 } my_enum2(short) tColorPairNumber;
 #define cpnMax (5)
 
-#ifndef chtype
-	#define chtype int
-#endif
+//#ifndef chtype
+//	#define chtype int
+//#endif
+#include "cursesbi.h"
 
 typedef chtype tColorBitmask;
 extern tColorBitmask color_bitmask[cpnMax + 1];
