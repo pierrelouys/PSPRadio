@@ -27,6 +27,9 @@ LIBS =  -lstdc++ -liniparser -lTools  \
 		-lpspgum -lpspgu -lpng -lz -lm
 
 all: $(TARGET).prx
+	rm $(COMMON_OBJS)
+
+install:
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
 	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)

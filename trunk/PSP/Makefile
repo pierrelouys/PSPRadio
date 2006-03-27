@@ -43,8 +43,8 @@ exports:
 	cd $(PLUGINS_DIR) && psp-build-exports -s APP_Exports.exp
 	
 plugins:
-	cd $(PLUGINS_DIR)/UI_Text && make
-	cd $(PLUGINS_DIR)/UI_Text3D && make
+	cd $(PLUGINS_DIR)/UI_Text && make && make install
+	cd $(PLUGINS_DIR)/UI_Text3D && make && make install
 
 extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
