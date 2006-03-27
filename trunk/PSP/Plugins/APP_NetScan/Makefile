@@ -30,6 +30,7 @@ LIBS =  -lpspwlan -lpspnet
 # -lTools
 
 all: $(TARGET).prx
+	rm $(COMMON_OBJS)
 
 install:
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
