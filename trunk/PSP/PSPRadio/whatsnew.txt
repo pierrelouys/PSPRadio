@@ -5,8 +5,9 @@ NEW FEATURES
 (raf) Dyn/UI Plugins: Implemented albadross idea to use the plugin name to load configuration files. This allows to select different skins via the plugin menu. (Implemented for Text and Text3D plugins). (r930)
 (raf) TextUI: OptionsScreen and Plugins Menu can now display more options than what fits on the line. This was implemented using a new config element in the OptionsScreen.cfg (X_RANGE) so skins will need to be revised. (r934)
 	  If X_RANGE is not set, then defaults are used (r944)
-(raf) Dynamic: Added Application plugins. Sample plugin added too: netscan. (If plugin stops responding, L+R+START can be used to return control to pspradio.).
+(raf) Dynamic: Added Application plugins. Sample plugin added too: netscan. (If plugin stops responding, L+R+TRIANGLE can be used to return control to pspradio.).
 (raf) TextUI: If the background specified in the config file is just a filename, then we look under the text ui config directory. Also, if the filename starts with "ms0:", then we asume it's a absolute path.
+(raf) Dynamic: New plugin: Retawq (text based web browser).
 BUG FIXES
 (raf) Core: Corrected problem when reading directories, where a good read could be interpreted as bad, ended up in nothing being read at all. (r936)
 (raf) Core: When changing UIs, the sound is now stopped to prevent event queue fill-ups.
