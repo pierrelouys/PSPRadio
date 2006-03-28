@@ -3613,6 +3613,11 @@ static one_caller void fetch_about(tResourceRequest* request)
 
 #endif
 
+#if PSP == 1
+
+    my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p>PSP Port by Raf. This port is a plugin for PSPRadio. <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n"));
+
+#endif
     if (spfbuf != NULL)
     { resource_collect_str(resource, spfbuf);
       my_spf_cleanup(strbuf, spfbuf);

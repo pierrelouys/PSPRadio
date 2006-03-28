@@ -48,7 +48,7 @@ Files=main.c/Makefile
 
 [Dir Plugins/APP_Retawq]
 Dirs=docu/i18n/tool
-Files=.config/configure/configure.act/configure.base/cookie.c/COPYING/cursesbi.c/cursesbi.h/cursesx.c/cursesx.h/init.c/init.h/init.o/INSTALL/main.c/Makefile/Makefile-classical/ncurses.h/parser.c/parser.h/README/renderer.c/resource.c/resource.h/stuff.c/stuff.h/tgmode.inc/wk.c/psp_curses.c/psp_curses.h/resource.cpp/plugin_main.c
+Files=.config/configure/configure.act/configure.base/cookie.c/COPYING/cursesbi.c/cursesbi.h/cursesx.c/cursesx.h/init.c/init.h/init.o/INSTALL/main.c/Makefile/Makefile-classical/ncurses.h/parser.c/parser.h/README/renderer.c/resource.c/resource.h/stuff.c/stuff.h/tgmode.inc/wk.c/psp_curses.c/psp_curses.h/plugin_main.c
 
 [Dir Plugins/FSServer_FTPD]
 Dirs=

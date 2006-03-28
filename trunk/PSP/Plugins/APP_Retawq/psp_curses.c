@@ -18,7 +18,7 @@ int env_termsize(int *x, int *y)
 	*x = PSP_SCREEN_WIDTH / 7;
 	*y = PSP_SCREEN_HEIGHT / 8;
 
-	return 0;
+	return 1;
 }
 
 int pipe_open(int *fdpair)

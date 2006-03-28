@@ -977,53 +977,74 @@ ssize_t my_read(int fd, void* buf, size_t count)
 	if (fd == fd_keyboard_input)
 	{
 		char *key = (char*)buf;
-		SceCtrlData pad;
+		static int oldButtonMask = 0;
 		sceDisplayWaitVblankStart();
-		sceCtrlReadBufferPositive(&pad, 1);
-		if (pad.Buttons & PSP_CTRL_TRIANGLE)
+		//sceKernelDelayThread(10);
+		SceCtrlLatch latch; 
+		
+		//sceCtrlSetSamplingCycle(10); 
+		sceCtrlReadLatch(&latch);
+		
+		if (latch.uiMake)
 		{
-			*key = 'T';
+			/** Button Pressed */
+			oldButtonMask = latch.uiPress;
+			*key = 0;
 			retval = 1;
 		}
-		else if (pad.Buttons & PSP_CTRL_DOWN)
+		else if (latch.uiBreak)
 		{
-			*key = 'd';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_UP)
-		{
-			*key = 'u';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_LEFT)
-		{
-			*key = 'l';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_RIGHT)
-		{
-			*key = 'r';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_LTRIGGER)
-		{
-			*key = 'L';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_RTRIGGER)
-		{
-			*key = 'R';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_CROSS)
-		{
-			*key = 'X';
-			retval = 1;
-		}
-		else if (pad.Buttons & PSP_CTRL_SQUARE)
-		{
-			*key = 'S';
-			retval = 1;
+			/** Button Released */
+			if (oldButtonMask & PSP_CTRL_TRIANGLE)
+			{
+				*key = 'T';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_DOWN)
+			{
+				*key = 'd';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_UP)
+			{
+				*key = 'u';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_LEFT)
+			{
+				*key = 'l';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_RIGHT)
+			{
+				*key = 'r';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+			{
+				*key = 'L';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_RTRIGGER)
+			{
+				*key = 'R';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_CROSS)
+			{
+				*key = 'X';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_SQUARE)
+			{
+				*key = 'S';
+				retval = 1;
+			}
+			else
+			{
+				*key = 0;
+				retval = 1;
+			}
 		}
 		else
 		{

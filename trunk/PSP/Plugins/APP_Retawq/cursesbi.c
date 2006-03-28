@@ -930,19 +930,19 @@ int refresh(void)
            ( (currtermattr & A_BOLD) && (!(desta & A_BOLD)) ) )
       { /* why-oh-why is there no strvExitReverse/strvExitBold... */
         //refreshbuf_append_str(string_value[strvExitAttrs]);
-		pspDebugScreenSetTextColor(0xFFFFFF);
+		pspDebugScreenSetTextColor(0x999999);
 		pspDebugScreenSetBackColor(0x0);
         currtermattr = 0;
       }
       if ( (desta & A_REVERSE) && (!(currtermattr & A_REVERSE)) )
 	  {
 		pspDebugScreenSetTextColor(0x0);
-		pspDebugScreenSetBackColor(0xFFFFFF);
+		pspDebugScreenSetBackColor(0x999999);
         //refreshbuf_append_str(string_value[strvEnterReverse]);
 	  }
       if ( (desta & A_BOLD) && (!(currtermattr & A_BOLD)) )
 	  {
-		pspDebugScreenSetTextColor(0x33FF33);
+		pspDebugScreenSetTextColor(0xFFFFFF);
 		pspDebugScreenSetBackColor(0x0);
         //refreshbuf_append_str(string_value[strvEnterBold]);
       }
@@ -950,17 +950,16 @@ int refresh(void)
       { if (!(desta & A_UNDERLINE))
 		{
          // refreshbuf_append_str(string_value[strvExitUnderline]);
-			pspDebugScreenSetTextColor(0xFFFFFF);
+			pspDebugScreenSetTextColor(0x999999);
 			pspDebugScreenSetBackColor(0x0);
 		}
       }
       else if (desta & A_UNDERLINE)
 	  {
        // refreshbuf_append_str(string_value[strvEnterUnderline]);
-		 printf("ENTER UNDERLINE!");
-		 pspDebugScreenSetTextColor(0xFF00FF);
-		 pspDebugScreenSetBackColor(0x0);
-
+		// printf("ENTER UNDERLINE!");
+		  pspDebugScreenSetTextColor(0x992299);
+		  pspDebugScreenSetBackColor(0x111111);
 	  }
       currtermattr = desta;
       app_ch: refreshbuf_append_ch(text[idx]);
