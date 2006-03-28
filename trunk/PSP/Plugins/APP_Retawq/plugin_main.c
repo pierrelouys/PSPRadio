@@ -24,7 +24,7 @@
 #include <Common.h>
 
 PSP_MODULE_INFO("APP_Retawq", 0, 1, 1);
-PSP_HEAP_SIZE_KB(8192);
+PSP_HEAP_SIZE_KB(4096);
 
 #define printf pspDebugScreenPrintf
 void app_plugin_main();

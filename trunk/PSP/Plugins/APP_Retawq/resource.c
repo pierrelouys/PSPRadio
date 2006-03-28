@@ -9,6 +9,7 @@
 #include "stuff.h"
 #include "resource.h"
 #include "parser.h"
+#include <PSPRadio_Exports.h>
 
 #if CAN_HANDLE_SIGNALS
 #include <signal.h>
@@ -633,6 +634,7 @@ static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
    race conditions possible. */
 { const tDnsThreadData* data = (const tDnsThreadData*) _data;
 
+	ModuleLog(LOG_LOWLEVEL, "dns_handler_thread starts. data->reader=%d data->writer=%d\n", data->reader, data->writer);
 #if HAVE_SIGFILLSET && (HAVE_SIGPROCMASK || (OPTION_THREADING == 1))
 
   { /* CHECKME: blocking the signals isn't "really" the right thing. It would
@@ -648,6 +650,7 @@ static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
        resp. process because it might be left in an undefined state otherwise,
        says SUSv3. Add to this the buggy signal implementations of many
        operating systems and wonder how this program can work at all... */
+
 
     sigset_t set;
     if (sigfillset(&set) == 0)
@@ -1454,7 +1457,7 @@ static tHostAddressLookupResult lookup_hostaddress(tResourceRequest* request,
 #if OPTION_THREADING
   hostinfo->flags |= chifAddressLookupRunning;
   dhm_init(hostinfo, NULL, "hostinfo");
-  my_write_crucial/*_pipe*/(fd_resource2dns_write, &dns_lookup,
+  my_write_crucial_pipe(fd_resource2dns_write, &dns_lookup,
     sizeof(dns_lookup));
   return(halrLookupRunning);
 #else
@@ -7459,10 +7462,12 @@ static void __init setup_pipe(/*@out@*/ int* reader, /*@out@*/ int* writer)
   if (my_pipe(fd_pair) != 0) fatal_error(errno, _(strResourceError[rePipe]));
   for (count = 0; count <= 1; count++)
   { int fd = fd_pair[count];
+#ifndef PSP
     if (!fd_is_observable(fd)) fatal_tmofd(fd);
+#endif
     //make_fd_cloexec(fd);
   }
-  *reader = fd_pair[0]; *writer = fd_pair[1];
+ 	*reader = fd_pair[0]; *writer = fd_pair[1];
 }
 
 #if OPTION_THREADING
@@ -7502,7 +7507,7 @@ static int __init create_thread(int (*fn)(void* dummy), void* data)
 
 #elif OPTION_THREADING == 3
 
-static int __init create_thread(int (*fn)(void* dummy), void* data)
+static int __init create_thread(int (*fn)(void* dummy), size_t data_size, void* data)
 {
 	int thid = 0;
 	static int iThCnt = 0;
@@ -7515,7 +7520,7 @@ static int __init create_thread(int (*fn)(void* dummy), void* data)
 	thid = sceKernelCreateThread(name, (void*)fn, 0x50, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
-		sceKernelStartThread(thid, sizeof(void *), data);
+		sceKernelStartThread(thid, data_size, data);
 	}
 	else
 	{
@@ -7583,15 +7588,22 @@ const struct protoent* proto;
   /* Setup some file descriptors */
 
 #if OPTION_THREADING
-  setup_pipe(&fd_dns2resource_read, &fd_dns2resource_write);
-  setup_pipe(&fd_resource2dns_read, &fd_resource2dns_write);
-  fd_observe(fd_dns2resource_read, resource_dns_handler, NULL, fdofRead);
-  dns_thread_data.reader = fd_resource2dns_read;
-  dns_thread_data.writer = fd_dns2resource_write;
+	ModuleLog(LOG_LOWLEVEL, "Setting up pipes:\n");
+	setup_pipe(&fd_dns2resource_read, &fd_dns2resource_write);
+	ModuleLog(LOG_LOWLEVEL, "fd_dns2resource_read=%d fd_dns2resource_write=%d", fd_dns2resource_read, fd_dns2resource_write);
+	setup_pipe(&fd_resource2dns_read, &fd_resource2dns_write);
+	ModuleLog(LOG_LOWLEVEL, "fd_resource2dns_read=%d fd_resource2dns_write=%d", fd_resource2dns_read, fd_resource2dns_write);
+	fd_observe(fd_dns2resource_read, resource_dns_handler, NULL, fdofRead);
+	dns_thread_data.reader = fd_resource2dns_read;
+	dns_thread_data.writer = fd_dns2resource_write;
 #if NEED_FD_REGISTER
+
+#ifndef PSP
   /* the register isn't thread-safe, so we do the lookup here... */
   (void) fd_register_lookup(&(dns_thread_data.reader));
   (void) fd_register_lookup(&(dns_thread_data.writer));
+#endif
+
 #endif
 #endif
 
@@ -7611,7 +7623,8 @@ const struct protoent* proto;
 #elif OPTION_THREADING == 2 || OPTION_THREADING == 3
   { int err;
     pid_main = getpid();
-    err = create_thread(dns_handler_thread, &dns_thread_data);
+	ModuleLog(LOG_LOWLEVEL, "Calling create_thread() with dns_thread_data->reader=%d dns_thread_data->writer=%d", dns_thread_data.reader, dns_thread_data.writer);
+    err = create_thread(dns_handler_thread, sizeof(dns_thread_data), &dns_thread_data);
     if (err > 0) pid_dns = err;
   }
 #endif

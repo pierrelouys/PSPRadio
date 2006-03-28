@@ -29,6 +29,7 @@ LIBS =  -lstdc++  -lPSPApp -liniparser
 # -lTools
 
 all: $(TARGET).prx
+	rm $(COMMON_OBJS)
 
 install:
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)

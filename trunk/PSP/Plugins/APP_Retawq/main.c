@@ -6948,7 +6948,7 @@ static void console_keyboard_handler(__sunused void* data __cunused,
 static void curses_keyboard_handler(__sunused void* data __cunused,
   __sunused tFdObservationFlags flags __cunused)
 { tKey key = getch();
-#if CONFIG_PLATFORM == 1
+#if CONFIG_PLATFORM == 1 || PSP == 1
   if (key != 0)
 #endif
   { if (key != ERR) handle_key(key); }
@@ -7188,7 +7188,13 @@ int main_loop(int argc, const char** argv)
     }
     i18n_cleanup
     fd_multiplex(); /* try to get some sleep :-) */
-    /* Now disturb all the nice abstraction for very special cases... */
+
+   /* Now disturb all the nice abstraction for very special cases... */
+// #if PSP
+//       tKey key = my_builtin_getch(truE);
+//       if (key != ERR) handle_key(key);
+// #endif
+
 #if CONFIG_PLATFORM == 1
     if ( (is_promptable) && (io_pend(chStdin, 0) == 0) )
     {

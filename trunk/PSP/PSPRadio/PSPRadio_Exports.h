@@ -2,7 +2,12 @@
 	#define _PSPRADIO_EXPORTS_H_
 
 	#include <Logging.h>
+
+#ifdef STAND_ALONE_APP
+	#define ModuleLog(level, format, args...) pspDebugScreenPrintf("%s@%d(%d): %s", __FILE__, __LINE__, level, format, ## args)
+#else
 	#define ModuleLog(level, format, args...) PSPRadioExport_Log(__FILE__, __LINE__, level, format, ## args)
+#endif
 
 #ifdef __cplusplus	
 	extern "C" 

@@ -2,6 +2,7 @@
 #include <pspdebug.h>
 #include <pspdisplay.h>
 #include "psp_curses.h"
+#include <PSPRadio_Exports.h>
 
 #define printf pspDebugScreenPrintf
 
@@ -43,8 +44,10 @@ int pipe_open(int *fdpair)
 
 	if (uid >= 0)
 	{
-		fdpair[0] = uid | 0x1000;
-		fdpair[1] = uid | 0x1100;
+		fdpair[0] = uid;// | 0x1000;
+		fdpair[1] = uid;// | 0x1100;
+
+		ModuleLog(LOG_LOWLEVEL, "pipe_open() success. fd=%d, returning fd0=%d fd1=%d\n", uid, fdpair[0], fdpair[1]);
 		return 0;
 	}
 	else
@@ -63,10 +66,10 @@ int pipe_close(int *fdpair)
 	*
 	* @return 0 on success, < 0 on error
 	*/
-	int fd1 = fdpair[0] & (~0x1000);
-	int fd2 = fdpair[1] & (~0x1100);
-	sceKernelDeleteMsgPipe(fd1);
-	sceKernelDeleteMsgPipe(fd2);
+	int fd = fdpair[0];// & (~0x1000);
+	sceKernelDeleteMsgPipe(fd);
+
+	ModuleLog(LOG_LOWLEVEL, "pipe_close(). Closed fd=%d", fd);
 
 	return 0;
 }
@@ -85,8 +88,21 @@ int pipe_read(int fd, void *buf, size_t len)
 	*
 	* @return 0 on success, < 0 on error
 	*/
-	int fd1 = fd & (~0x1000);
-	return sceKernelReceiveMsgPipe(fd1, buf, len, 0, NULL, NULL);
+	int fd1 = fd;// & (~0x1000);
+	int ret = 0;
+
+    ret = sceKernelReceiveMsgPipe(fd1, buf, len, 0, NULL, NULL);
+	
+	if (ret == 0)
+	{
+		ModuleLog(LOG_LOWLEVEL, "pipe_read() fd=%d returned success", fd1);
+		return len;
+	}
+	else
+	{
+		ModuleLog(LOG_ERROR, "pipe_read(): ReceiveMsgPipe(fd = %d) returned 0x%x (%d)", fd1, ret, ret);
+		return -1;
+	}
 }
 
 int pipe_write(int fd, void *buf, size_t len)
@@ -103,64 +119,18 @@ int pipe_write(int fd, void *buf, size_t len)
 	*
 	* @return 0 on success, < 0 on error
 	*/
-	int fd2 = fd & (~0x1100);
-	return sceKernelSendMsgPipe(fd2, buf, len, 0, NULL, NULL);
+	int fd2 = fd;// & (~0x1100);
+	int ret = 0;
+	ret = sceKernelSendMsgPipe(fd2, buf, len, 0, NULL, NULL);
+
+	if (ret == 0)
+	{
+		ModuleLog(LOG_LOWLEVEL, "pipe_write() fd=%d returned success", fd2);
+		return len;
+	}
+	else
+	{
+		ModuleLog(LOG_ERROR, "pipe_write(): SendMsgPipe(fd = %d) returned 0x%x (%d)", fd2, ret, ret);
+		return -1;
+	}
 }
-
-#if 0
-
-
-std_scr *stdscr;
-std_scr g_stdsrc;
-int initscr()
-{
-
-	stdscr = &g_stdsrc;
-
-	pspDebugScreenInit();
-
-	return 1;
-}
-
-int move(int a, int b)
-{
-	return a = b;
-}
-
-int getch()
-{
-	sleep(1);
-	return 'a';
-}
-
-int addch(char a)
-{
-	printf("%c", a);
-}
-
-int clrtoeol()
-{
-	return 0;
-}
-
-int refresh()
-{
-	return 0;
-}
-
-int addnstr(const char* _str, int len)
-{
-	printf(_str);
-}
-
-int attron(int a)
-{
-	return a;
-}
-
-int attroff(int a)
-{
-	return a;
-}
-
-#endif

@@ -8,6 +8,7 @@
 
 #include "stuff.h"
 #include "resource.h"
+#include <PSPRadio_Exports.h>
 
 #include <time.h>
 
@@ -529,7 +530,7 @@ static one_caller int get_unique_fd(void)
 
 void fd_register(int* _lib_fd, tFdKind kind)
 {
-	pspDebugScreenPrintf("fd_register fd=%d (kind=%d)\n", *_lib_fd, kind);
+	LogModule(LOG_LOWLEVEL, "fd_register fd=%d (kind=%d)\n", *_lib_fd, kind);
 	
  tFdData **head, *data;
   int lib_fd = *_lib_fd, unique_fd = *_lib_fd = get_unique_fd();
@@ -547,7 +548,7 @@ void fd_register(int* _lib_fd, tFdKind kind)
 static tFdData* __fd_register_lookup(int unique_fd)
 {
 
-	pspDebugScreenPrintf("looking up fd=%d\n", unique_fd);
+	LogModule(LOG_LOWLEVEL, "__fd_register_lookup(): looking up fd=%d\n", unique_fd);
 
 	 tFdData* data;
   if (unique_fd < 0) return(NULL); /* may happen, e.g. if no stdin fd exists */
@@ -975,58 +976,59 @@ ssize_t my_read(int fd, void* buf, size_t count)
   { unsigned char loopcount = 0;
 	if (fd == fd_keyboard_input)
 	{
+		char *key = (char*)buf;
 		SceCtrlData pad;
 		sceDisplayWaitVblankStart();
 		sceCtrlReadBufferPositive(&pad, 1);
 		if (pad.Buttons & PSP_CTRL_TRIANGLE)
 		{
-			buf = PSP_CTRL_TRIANGLE;
-			retval = count;
+			*key = 'T';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_DOWN)
 		{
-			buf = PSP_CTRL_DOWN;
-			retval = count;
+			*key = 'd';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_UP)
 		{
-			buf = PSP_CTRL_UP;
-			retval = count;
+			*key = 'u';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_LEFT)
 		{
-			buf = PSP_CTRL_LEFT;
-			retval = count;
+			*key = 'l';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_RIGHT)
 		{
-			buf = PSP_CTRL_RIGHT;
-			retval = count;
+			*key = 'r';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_LTRIGGER)
 		{
-			buf = PSP_CTRL_LTRIGGER;
-			retval = count;
+			*key = 'L';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_RTRIGGER)
 		{
-			buf = PSP_CTRL_RTRIGGER;
-			retval = count;
+			*key = 'R';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_CROSS)
 		{
-			buf = PSP_CTRL_CROSS;
-			retval = count;
+			*key = 'X';
+			retval = 1;
 		}
 		else if (pad.Buttons & PSP_CTRL_SQUARE)
 		{
-			buf = PSP_CTRL_SQUARE;
-			retval = count;
+			*key = 'S';
+			retval = 1;
 		}
 		else
 		{
-			buf = 0;
-			retval = count;
+			*key = 0;
+			retval = 1;
 		}
 	}
 	else
@@ -1085,10 +1087,24 @@ ssize_t my_write(int fd, const void* buf, size_t count)
 }
 
 void my_write_crucial(int fd, const void* buf, size_t count)
-{ ssize_t err = my_write(fd, buf, count);
-  if (err != (ssize_t) count)
-    fatal_error(((err == -1) ? errno : 0), _("write() failed"));
+{ 
+	ssize_t err = my_write(fd, buf, count);
+	if (err != (ssize_t) count)
+	{
+		fatal_error(((err == -1) ? errno : 0), _("my_write_crucial() failed"));
+	}
 }
+
+void my_write_crucial_pipe(int fd, const void* buf, size_t count)
+{ 
+	ModuleLog(LOG_LOWLEVEL, "my_write_crucial_pipe() fd=%d", fd);
+	ssize_t err = pipe_write(fd, buf, count);
+	if (err != (ssize_t) count)
+	{
+		fatal_error(((err == -1) ? errno : 0), _("my_write_crucial_pipe() failed"));
+	}
+}
+
 
 unsigned char my_mmap_file_readonly(const char* filename, void** _b,
   size_t* _s)
