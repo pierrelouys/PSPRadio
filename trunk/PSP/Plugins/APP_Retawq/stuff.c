@@ -509,8 +509,26 @@ typedef struct tFdData
   tFdKind kind;
 } tFdData;
 
-#define FD_REGISTER_LEN (1 << 4)
-#define fd_register_hash(fd) ((fd) & (FD_REGISTER_LEN - 1))
+#define FD_REGISTER_LEN (1 << 5)
+//#define fd_register_hash(fd) ((fd) & (FD_REGISTER_LEN - 1))
+int fd_register_hash(int fd)
+{
+
+	int ret = 0;
+	if (fd & 0x7f000000) /** PSP socket */
+	{
+		ret = (((fd & ~0x7f000000) + 16) ) % FD_REGISTER_LEN;
+		ModuleLog(LOG_LOWLEVEL, "fd_register_hash(%d SOCKET)=%d", fd, ret);
+	}
+	else
+	{
+		ret = (fd % (16));
+		ModuleLog(LOG_LOWLEVEL, "fd_register_hash(%d)=%d", fd, ret);
+	}
+	
+	return ret;
+}
+
 typedef unsigned char tFdRegisterIndex;
 static tFdData* fd_data[FD_REGISTER_LEN];
 
@@ -630,7 +648,8 @@ static int highest_select_fd = 0;
 tBoolean fd_is_observable(int fd)
 { tBoolean retval;
 	
-	if (fd & 0x1000) return truE;
+	/** PSP Sockets have this mask */
+	if (fd & 0x7f000000) return truE;
 
 #if NEED_FD_REGISTER
   tFdKind kind = fd_register_lookup(&fd);

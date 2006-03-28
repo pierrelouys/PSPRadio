@@ -1343,7 +1343,10 @@ typedef unsigned char tHostAddressLookupFlags;
 static one_caller void postprocess_dns_lookup(tDnsLookup* dns_lookup)
 /* always executed in the main thread - that's the crucial point of this
    separate function */
-{ tCachedHostInformation* hostinfo = dns_lookup->hostinfo;
+{ 
+
+	ModuleLog(LOG_LOWLEVEL, "postprocess_dns_lookup()");
+	tCachedHostInformation* hostinfo = dns_lookup->hostinfo;
   tSockaddrIndex num = dns_lookup->num, idx;
   if (num <= 0) { /* hostinfo->lookupfailuretime = my_time(); */ }
   else
@@ -1586,12 +1589,17 @@ static tBoolean make_fd_nonblocking(int fd)
 static int create_socket(int address_family)
 /* creates a new TCP socket and sets it to non-blocking mode; returns -2 if the
    fd wouldn't be observable, -1 for OS errors or a valid fd if it worked */
-{ int retval;
+{ 
+
+	ModuleLog(LOG_LOWLEVEL, "create_socket() start");
+
+  int retval;
 #if USE_LWIP
   errno = 0; /* silly old lwIP versions didn't set errno on error */
   retval = lwip_socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
 #else
   retval = socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
+	ModuleLog(LOG_LOWLEVEL, "create_socket(): socket returns 0x%x (%d).", retval, retval);
 #endif
   if (retval >= 0)
   { fd_register(&retval, fdkSocket);
