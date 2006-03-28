@@ -713,7 +713,11 @@ static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
       fatal_error((err == -1) ? errno : 0, _("read(DNS) failed"));
     count += err;
     if (count >= sizeof(dns_lookup)) /* got a complete pointer */
-    { my_getaddrinfo(dns_lookup); count = 0; writeloop0: loopcount = 0;
+    { 
+		ModuleLog(LOG_LOWLEVEL, "dns lookup thread: Got a request for '%s'", dns_lookup->hostname);
+	 	my_getaddrinfo(dns_lookup); count = 0; writeloop0: loopcount = 0;
+		ModuleLog(LOG_LOWLEVEL, "dns lookup thread: Resolved... Sending response.");
+
       writeloop:
       err = pipe_write(data->writer, ((char*)(&dns_lookup)) + count,
         sizeof(dns_lookup) - count);
@@ -7297,15 +7301,16 @@ static void request_dns_callback(void* _request, tDhmNotificationFlags flags)
   }
 }
 
-static void resource_dns_handler(__sunused void* data __cunused,
+void resource_dns_handler(__sunused void* data __cunused,
   __sunused tFdObservationFlags flags __cunused)
 /* The DNS thread finished a lookup. */
 { static tDnsLookup* dns_lookup;
   static unsigned char count = 0;
   tCachedHostInformation* hostinfo;
-  int err = my_read_pipe(fd_dns2resource_read, ((char*)(&dns_lookup)) + count,
+  int err = pipe_nonblocking_read(fd_dns2resource_read, ((char*)(&dns_lookup)) + count,
     sizeof(dns_lookup) - count);
   if (err <= 0) return;
+	ModuleLog(LOG_LOWLEVEL, "resource_dns_handler: successfully read from pipe");
   count += err;
   if (count < sizeof(dns_lookup)) return; /* not yet a whole pointer */
   count = 0; /* for the next round */

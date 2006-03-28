@@ -6948,7 +6948,7 @@ static void console_keyboard_handler(__sunused void* data __cunused,
 static void curses_keyboard_handler(__sunused void* data __cunused,
   __sunused tFdObservationFlags flags __cunused)
 { tKey key = getch();
-#if CONFIG_PLATFORM == 1 || PSP == 1
+#if CONFIG_PLATFORM == 1
   if (key != 0)
 #endif
   { if (key != ERR) handle_key(key); }
@@ -7189,6 +7189,20 @@ int main_loop(int argc, const char** argv)
     i18n_cleanup
     fd_multiplex(); /* try to get some sleep :-) */
 
+	resource_dns_handler(NULL,NULL);
+// 	SceKernelMppInfo mp_info;
+// 	mp_info.size = sizeof(mp_info);
+// 	if (sceKernelReferMsgPipeStatus(fd_dns2resource_read, &mp_info) == 0)
+// 	{
+// 
+// 		if (mp_info.bufSize != mp_info.freeSize)
+// 		{
+// 			resource_dns_handler(NULL,NULL);
+// 		}
+// 
+// 
+// 	}
+
    /* Now disturb all the nice abstraction for very special cases... */
 // #if PSP
 //       tKey key = my_builtin_getch(truE);
@@ -7203,7 +7217,11 @@ int main_loop(int argc, const char** argv)
       { /* console_keyboard_handler(NULL, 0); -- CHECKME: what instead? */ }
       else
 #endif
-      { curses_keyboard_handler(NULL, 0); }
+      { 
+			curses_keyboard_handler(NULL, 0); 
+		
+			
+		}
     }
 #elif CONFIG_TG == TG_BICURSES
     { /* This is necessary e.g. if the user just presses the Escape key and

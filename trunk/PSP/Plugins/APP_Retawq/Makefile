@@ -22,7 +22,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DI
 #MY_CFLAGS = -G0 -mno-explicit-relocs  -DDYNAMIC_BUILD -DSTAND_ALONE_APP
 MY_CFLAGS = -G0 -mno-explicit-relocs  -DDYNAMIC_BUILD 
 
-CFLAGS = $(MY_CFLAGS) -g -Wall 	$(INCLUDES)
+CFLAGS = $(MY_CFLAGS) $(EXTRA_FLAGS) -g -Wall 	$(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
@@ -34,6 +34,10 @@ LIBS =   -lpspsdk -lpspwlan -lpspnet
 # -lTools
 
 all: cursesbi.o $(TARGET).prx 
+
+stand_alone: 
+	make clean	
+	make EXTRA_FLAGS="-DSTAND_ALONE_APP"
 
 install:
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)

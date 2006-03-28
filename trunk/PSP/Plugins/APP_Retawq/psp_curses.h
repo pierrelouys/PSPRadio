@@ -13,10 +13,9 @@
 	int pipe_open(int *fdpair);
 	int pipe_close(int *fdpair);
 	int pipe_read(int fd, void *buf, size_t len);
+	int pipe_nonblocking_read(int fd, void *buf, size_t len);
 	int pipe_write(int fd, void *buf, size_t len);
 	int env_termsize(int *x, int *y);
-
-
 
 	///thread:
 	#include <pspkernel.h>

@@ -42,7 +42,7 @@ int pipe_open(int *fdpair)
 	*/
 	SceUID uid = sceKernelCreateMsgPipe(name, PSP_MEMORY_PARTITION_USER, 0, NULL, NULL);
 
-	if (uid >= 0)
+		if (uid >= 0)
 	{
 		fdpair[0] = uid;// | 0x1000;
 		fdpair[1] = uid;// | 0x1100;
@@ -72,6 +72,41 @@ int pipe_close(int *fdpair)
 	ModuleLog(LOG_LOWLEVEL, "pipe_close(). Closed fd=%d", fd);
 
 	return 0;
+}
+
+int pipe_nonblocking_read(int fd, void *buf, size_t len)
+{
+	/**
+	* Receive a message from a pipe
+	*
+	* @param uid - The UID of the pipe
+	* @param message - Pointer to the message
+	* @param size - Size of the message
+	* @param unk1 - Unknown
+	* @param unk2 - Unknown
+	* @param timeout - Timeout for receive
+	*
+	* @return 0 on success, < 0 on error
+	*/
+	int fd1 = fd;// & (~0x1000);
+	int ret = 0;
+
+    ret = sceKernelTryReceiveMsgPipe(fd1, buf, len, 0, 0);//NULL, NULL);
+	
+	if (ret == 0)
+	{
+		ModuleLog(LOG_LOWLEVEL, "pipe_nonblocking_read() fd=%d returned success", fd1);
+		return len;
+	}
+	else if (ret == SCE_KERNEL_ERROR_MPP_EMPTY)
+	{
+		return 0;
+	}
+	else
+	{
+		ModuleLog(LOG_ERROR, "pipe_nonblocking_read(): ReceiveMsgPipe(fd = %d) returned 0x%x (%d)", fd1, ret, ret);
+		return -1;
+	}
 }
 
 int pipe_read(int fd, void *buf, size_t len)
