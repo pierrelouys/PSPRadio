@@ -9,6 +9,7 @@
 #ifndef __retawq_cursesbi_h__
 #define __retawq_cursesbi_h__
 
+#include <pspctrl.h>
 #ifndef FALSE
 #define FALSE (0)
 #endif
@@ -53,20 +54,20 @@ typedef struct
 extern WINDOW* stdscr;
 extern int COLS, LINES;
 
-#define KEY_DOWN 0402
-#define KEY_UP 0403
-#define KEY_LEFT 0404
-#define KEY_RIGHT 0405
+#define KEY_DOWN 	PSP_CTRL_DOWN
+#define KEY_UP 		PSP_CTRL_UP
+#define KEY_LEFT	PSP_CTRL_LEFT
+#define KEY_RIGHT	PSP_CTRL_RIGHT
 #define KEY_HOME 0406
 #define KEY_BACKSPACE 0407
 /* #define KEY_F0 0410 */
 /* #define KEY_F(x) (KEY_F0 + (x)) */
 #define KEY_DC 0512
 #define KEY_IC 0513
-#define KEY_NPAGE 0522
-#define KEY_PPAGE 0523
-#define KEY_ENTER 0527
-#define KEY_CANCEL 0543
+#define KEY_NPAGE 	PSP_CTRL_LTRIGGER
+#define KEY_PPAGE 	PSP_CTRL_RTRIGGER
+#define KEY_ENTER 	PSP_CTRL_CROSS
+#define KEY_CANCEL 	PSP_CTRL_SQUARE
 #define KEY_END 0550
 #define KEY_MOUSE 0631 /* CHECKME! */
 #define KEY_RESIZE 0632 /* CHECKME! */

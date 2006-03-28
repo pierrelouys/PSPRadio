@@ -39,13 +39,18 @@ static void refreshbuf_flush(void)
 { 
 	/* if (lfdmbs(1)) */ ///my_write(fd_stdout, refreshbuf, refreshbuf_used);
 	refreshbuf[refreshbuf_used] = 0;
-	printf(refreshbuf);
+	//printf(refreshbuf);
   	refreshbuf_used = 0;
 }
 
 static my_inline void refreshbuf_append_ch(const char ch)
-{ if (refreshbuf_used >= STRBUF_SIZE) refreshbuf_flush();
-  refreshbuf[refreshbuf_used++] = ch;
+{ 
+	if (refreshbuf_used >= STRBUF_SIZE) 
+	{
+		refreshbuf_flush();
+	}
+  	refreshbuf[refreshbuf_used++] = ch;
+	printf("%c", ch);
 }
 
 static void refreshbuf_append_str(const char* str)
@@ -304,8 +309,13 @@ WINDOW* __init initscr(void)
          (string_value[strvExitUnderline] == NULL ) )
       igntermattr |= A_UNDERLINE;
   }
-#endif //#if 0
-
+#else //#if 0
+	{
+		int i = 0;
+    	for (i = 0; i < NUM_STRING_VALUES; i++)
+          string_value[i] = "*";
+	}
+#endif
   /* try to find out the terminal size */
   { int x, y;
     if ( (env_termsize(&x, &y)) || (calc_termsize(&x, &y)) )
@@ -314,6 +324,8 @@ WINDOW* __init initscr(void)
               ( (y = short_value[shvLines]) >= CURSES_MINLINES ) )
     { COLS = x; LINES = y; }
     else { COLS = 80; LINES = 24; }
+
+	printf("COLS=%d LINES=%d", COLS, LINES);
   }
 
   /* look which of the possibly useful key strings are actually available */
@@ -392,7 +404,8 @@ int attroff(attr_t a)
 
 int clear(void)
 { //(void) strv_try(strvClearScreen);
- pspDebugScreenClear();
+ ///pspDebugScreenClear();
+	printf("CLEAR!");
   return(OK);
 }
 
@@ -614,7 +627,9 @@ static one_caller void handle_input(const char ch)
 }
 
 int my_builtin_getch(tBoolean may_read)
-{ tKey key;
+{ 
+tKey key;
+
   if (inputbuf_count > 0)
   { tInputbufIndex count;
     return_key_from_buffer:
@@ -629,7 +644,10 @@ int my_builtin_getch(tBoolean may_read)
   { char ch;
     if (my_read(fd_keyboard_input, &ch, 1) != 1) /* IMPROVEME? */
       fatal_error(0, "bicurses getch() failed");
-    handle_input(ch);
+	if (ch != 0)
+	{
+    	handle_input(ch);
+	}
     if (inputbuf_count > 0) goto return_key_from_buffer;
     else key = ERR; /* nothing there yet, need more input */
   }
@@ -638,7 +656,8 @@ int my_builtin_getch(tBoolean may_read)
 }
 
 int getch(void)
-{ return(my_builtin_getch(truE));
+{ 
+	return(my_builtin_getch(truE));
 }
 
 
@@ -749,6 +768,8 @@ static void refresh_tparm(const char* format, int num_params)
   { val--;
     if (!refresh_push(refresh_param[val])) break; /* "can't happen" */
   }
+
+	//printf("tparm: format='%s' parm1='%d parm2='%d'\n", format, refresh_param[0], refresh_param[1]);
 
   /* backgam^Wgo */
   loop:
@@ -883,8 +904,9 @@ static void refresh_tparm(const char* format, int num_params)
 }
 
 static void refresh_tparm2(const char* format, int val1, int val2)
-{ refresh_param[0] = val1; refresh_param[1] = val2;
-  refresh_tparm(format, 2);
+{ 
+	refresh_param[0] = val1; refresh_param[1] = val2;
+	refresh_tparm(format, 2);
 }
 
 static __my_inline void refresh_move(int x, int y)
@@ -935,6 +957,7 @@ int refresh(void)
       else if (desta & A_UNDERLINE)
 	  {
        // refreshbuf_append_str(string_value[strvEnterUnderline]);
+		 printf("ENTER UNDERLINE!");
 		 pspDebugScreenSetTextColor(0xFF00FF);
 		 pspDebugScreenSetBackColor(0x0);
 

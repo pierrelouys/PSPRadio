@@ -1351,6 +1351,8 @@ static one_caller void __init rtconfig_handle(void)
          case if new users didn't yet setup a config file, and we don't wanna
          annoy users with such an (in this case pointless) error message. */
     }
+
+#ifndef PSP
     else
     { my_spf(strbuf, STRBUF_SIZE, &spfbuf,
         _("%scan't open \"%s\" (error #%d, %s)"), _(strRtc), spfbuf_path,
@@ -1358,6 +1360,7 @@ static one_caller void __init rtconfig_handle(void)
       store_initmsg(spfbuf);
       my_spf_cleanup(strbuf, spfbuf);
     }
+#endif
     goto finish;
   }
   if (my_fstat(fd, &statbuf) != 0)

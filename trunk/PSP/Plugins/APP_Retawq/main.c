@@ -121,9 +121,9 @@ FAIL!
 #define COLS (80)
 #define LINES (25)
 #define A_NORMAL (0)
-#define A_BOLD (0)
-#define A_UNDERLINE (0)
-#define A_REVERSE (0)
+#define A_BOLD (1<<9)
+#define A_UNDERLINE (1<<10)
+#define A_REVERSE (1<<8)
 #define OK (0)
 #define ERR (-1)
 typedef unsigned long chtype;

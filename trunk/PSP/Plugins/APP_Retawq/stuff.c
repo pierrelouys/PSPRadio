@@ -973,9 +973,68 @@ ssize_t my_read(int fd, void* buf, size_t count)
   else
 #endif
   { unsigned char loopcount = 0;
-    do
-    { retval = read(fd, buf, count);
-    } while ( (retval == -1) && (errno == EINTR) && (++loopcount < 100) );
+	if (fd == fd_keyboard_input)
+	{
+		SceCtrlData pad;
+		sceDisplayWaitVblankStart();
+		sceCtrlReadBufferPositive(&pad, 1);
+		if (pad.Buttons & PSP_CTRL_TRIANGLE)
+		{
+			buf = PSP_CTRL_TRIANGLE;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_DOWN)
+		{
+			buf = PSP_CTRL_DOWN;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_UP)
+		{
+			buf = PSP_CTRL_UP;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_LEFT)
+		{
+			buf = PSP_CTRL_LEFT;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_RIGHT)
+		{
+			buf = PSP_CTRL_RIGHT;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_LTRIGGER)
+		{
+			buf = PSP_CTRL_LTRIGGER;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_RTRIGGER)
+		{
+			buf = PSP_CTRL_RTRIGGER;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_CROSS)
+		{
+			buf = PSP_CTRL_CROSS;
+			retval = count;
+		}
+		else if (pad.Buttons & PSP_CTRL_SQUARE)
+		{
+			buf = PSP_CTRL_SQUARE;
+			retval = count;
+		}
+		else
+		{
+			buf = 0;
+			retval = count;
+		}
+	}
+	else
+	{
+		do
+		{ retval = read(fd, buf, count);
+		} while ( (retval == -1) && (errno == EINTR) && (++loopcount < 100) );
+	}
   }
   return(retval);
 }
