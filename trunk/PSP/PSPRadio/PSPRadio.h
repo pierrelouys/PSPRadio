@@ -64,6 +64,7 @@ public:
 	void SetPluginExclisiveAccess(bool set) { bPluginExclusiveAccessSet = set; }
 	bool GetPluginExclisiveAccess() { return bPluginExclusiveAccessSet; }
 	IPSPRadio_UI *GetUI() { return m_UI; }
+	CScreenHandler *GetScreenHandler() { return m_ScreenHandler; }
 
 private:
 	/** Setup */

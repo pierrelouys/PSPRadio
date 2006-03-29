@@ -61,7 +61,8 @@
 #define MENUS_WLIST (4)
 #define MENUS_HTML (8)
 #define MENUS_BAR (16)
-#define MENUS_ALL (31) /* (sum of all the above) */
+#define MENUS_PSP (32)
+#define MENUS_ALL (63) /* (sum of all the above) */
 
 /* flags in CONFIG_EXTRA */
 #define EXTRA_DOWNLOAD (1)
@@ -221,6 +222,8 @@ extern const char strCantOpenXws[];
 #if OPTION_LOCAL_CGI || OPTION_TRAP || (OPTION_EXECEXT & EXECEXT_SHELL)
 extern const char strSoftwareId[];
 #endif
+
+
 
 /* ugly :-) */
 #define strHelp    (strOptHelp + 2)
@@ -402,6 +405,9 @@ my_enum1 enum { falsE = 0, truE = 1 } my_enum2(unsigned char) tBoolean;
 extern tBoolean do_restore_termios;
 extern struct termios saved_termios;
 #endif
+
+extern  volatile tBoolean g_fQuit;
+
 
 #if TGC_IS_GRAPHICS
 

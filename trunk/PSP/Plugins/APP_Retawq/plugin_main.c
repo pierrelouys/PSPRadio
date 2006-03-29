@@ -38,7 +38,7 @@ int ModuleStartAPP()
 
 	int thid = 0;
 
-	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 0x50, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
+	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 0x25, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
 		sceKernelStartThread(thid, 0, 0);
@@ -93,10 +93,6 @@ void app_plugin_main()
 			else if (pad.Buttons & PSP_CTRL_CIRCLE)
 			{
 				pspDebugScreenInit();
-				//char args[2][MAXPATHLEN+1];
-				//getcwd(args[0], MAXPATHLEN);
-				//strcpy(args[1], "http://google.com");
-				//main_loop(2, args);
 				main_loop(0, NULL);
 				wait_for_triangle();
 				break;

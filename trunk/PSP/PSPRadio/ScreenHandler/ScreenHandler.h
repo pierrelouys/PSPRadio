@@ -131,6 +131,7 @@
 #else
 		UIs GetCurrentUI(){return m_CurrentUI;}
 #endif
+		IPSPRadio_UI *GetCurrentUIPtr(){ return m_UI; }
 		char *GetCWD(){return m_strCWD;}
 		CPSPSound *GetSound(){return m_Sound;}
 		IScreen *GetScreen(int Id){return Screens[Id];}

@@ -1650,36 +1650,58 @@ static void set_portnumber(tSockaddr* addr, int address_family,
 }
 
 static int my_do_connect(int fd, const tSockaddr* addr, size_t addrlen)
-{ int err;
-#if NEED_FD_REGISTER
-  tFdKind kind = fd_register_lookup(&fd);
-#endif
-#if USE_LWIP
-  if (kind & fdkSocket)
-  { errno = 0; /* silly old lwIP versions didn't set errno on error */
-    err = lwip_connect(fd, (const struct sockaddr*) addr,
-      (socklen_t) addrlen);
-  }
-  else
-#endif
-  { unsigned char loopcount = 0;
-    loop:
-    err = connect(fd, (const struct sockaddr*) addr, (socklen_t) addrlen);
-    if (err != 0)
-    { if ( (errno == EINTR) && (++loopcount < 100) ) goto loop;
-      else if ( (errno == EALREADY) && (loopcount > 0) ) errno = EINPROGRESS;
-      else if (errno != EINPROGRESS)
-      { int e = errno; my_close_sock(fd); errno = e; }
-    }
-  }
-  return(err);
+{ 
+	int err;
+	#if NEED_FD_REGISTER
+		tFdKind kind = fd_register_lookup(&fd);
+	#endif
+	
+	#if USE_LWIP
+		if (kind & fdkSocket)
+		{ errno = 0; /* silly old lwIP versions didn't set errno on error */
+			err = lwip_connect(fd, (const struct sockaddr*) addr,
+			(socklen_t) addrlen);
+		}
+		else
+	#endif
+	{ 
+		unsigned char loopcount = 0;
+	loop:
+		err = connect(fd, (const struct sockaddr*) addr, (socklen_t) addrlen);
+		if (err == 0)
+		{
+			ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connection successful", fd);
+		}
+		else
+		{ 
+			if ( (errno == EINTR) && (++loopcount < 100) ) 
+			{
+				ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connect error -- interrupted.. re-trying", fd);
+				goto loop;
+			}
+			else if ( (errno == EALREADY) && (loopcount > 0) ) 
+			{
+				ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connection -- in progress..", fd);
+				errno = EINPROGRESS;
+			}
+			else if (errno != EINPROGRESS)
+			{ 
+				ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connection -- Error", fd);
+				int e = errno; 
+				my_close_sock(fd); 
+				errno = e; 
+			}
+		}
+	}
+	return(err);
 }
 
 static int my_connect(int fd, const tSockaddrEntry* entry,
   tPortnumber portnumber)
-{ tSockaddr addr = entry->addr; /* (yes, we copy a structure here) */
-  set_portnumber(&addr, entry->address_family, portnumber);
-  return(my_do_connect(fd, &addr, entry->addrlen));
+{ 
+	tSockaddr addr = entry->addr; /* (yes, we copy a structure here) */
+	set_portnumber(&addr, entry->address_family, portnumber);
+	return(my_do_connect(fd, &addr, entry->addrlen));
 }
 
 #define connect_err2error conn_err2error /* (currently the same) */
@@ -1712,62 +1734,75 @@ static tResourceError conn_get_failre(tConnection* conn)
 }
 
 static __my_inline void conn_set_prelire(tConnection* conn, tResourceError re)
-{ conn->prelire = re;
-#if CONFIG_DEBUG
-  sprint_safe(debugstrbuf, "prelire: %p, %d\n", conn, re);
-  debugmsg(debugstrbuf);
-#endif
+{ 
+	conn->prelire = re;
+	#if CONFIG_DEBUG
+		sprint_safe(debugstrbuf, "prelire: %p, %d\n", conn, re);
+		debugmsg(debugstrbuf);
+	#endif
+	ModuleLog(LOG_LOWLEVEL, "conn_set_prelire(): conn=%p, res_err=%d", conn, re);
 }
 
 static tBoolean conn_connect(tConnection* conn)
 /* tries to connect to one of the IP addresses which are "allowed" for <conn>;
    returns whether it worked */
-{ tConnectAttemptData* cad = &(conn->cad);
-  tSockaddrEntry **list = cad->sockaddrs, *entry;
-  tSockaddrIndex idx, best;
-  tSockaddrRating rating, best_rating;
-  int fd;
+{ 
+	tConnectAttemptData* cad = &(conn->cad);
+	tSockaddrEntry **list = cad->sockaddrs, *entry;
+	tSockaddrIndex idx, best;
+	tSockaddrRating rating, best_rating;
+	int fd;
+	
+	ModuleLog(LOG_LOWLEVEL, "conn_connect()");
 
-  conn->flags &= ~cnfConnected; conn->fd = -1;
-  cad->current = SOCKADDR_INDEX_INVALID;
-  if (list == NULL) /* no choice (e.g. FTP data connections) */
-  { failed: return(falsE); }
-
-  /* try to find the "best" sockaddr */
-  bestloop:
-  best = SOCKADDR_INDEX_INVALID; best_rating = SOCKADDR_RATING_NONE;
-  for (idx = 0; idx < cad->num; idx++)
-  { const tSockaddrPortProtInfo* sppi;
-    if (my_bit_test(&(cad->tried), idx)) continue; /* already tried this one */
-    entry = list[idx];
-    sppi = sockaddr2sppi(entry, cad->portnumber, conn->protocol, falsE);
-    rating = ( (sppi != NULL) ? sppi->rating : SOCKADDR_RATING_NEW );
-    if (best_rating < rating) { best_rating = rating; best = idx; }
-  }
-  if (best == SOCKADDR_INDEX_INVALID) goto failed;
-
-  /* try to connect to that sockaddr */
-  idx = best;
-  my_bit_set(&(cad->tried), idx); cad->current = idx; entry = list[idx];
-#if CONFIG_DEBUG
-  sockaddr2uistr(entry, strbuf, STRBUF_SIZE / 2);
-  sprint_safe(debugstrbuf, "conn_connect(%p): af=%d, *%s*\n", conn,
-    entry->address_family, strbuf);
-  debugmsg(debugstrbuf);
-#endif
-  fd = create_socket(entry->address_family);
-  if (fd == -2) /* no amount of further looping could help */
-  { conn_set_prelire(conn, reTmofd); goto failed; }
-  else if (fd == -1) conn_set_prelire(conn, reSocket);
-  else if (fd >= 0)
-  { int err = my_connect(fd, entry, cad->portnumber);
-    if ( (err == 0) || ( (err == -1) && (errno == EINPROGRESS) ) )
-    { if (err == 0) conn->flags |= cnfConnected; /*unlikely when non-blocking*/
-      conn->fd = fd; return(truE);
-    }
-    else conn_set_prelire(conn, connect_err2error(errno));
-  }
-  goto bestloop;
+	conn->flags &= ~cnfConnected; conn->fd = -1;
+	cad->current = SOCKADDR_INDEX_INVALID;
+	if (list == NULL) /* no choice (e.g. FTP data connections) */
+	{ failed: return(falsE); }
+	
+	/* try to find the "best" sockaddr */
+	bestloop:
+	best = SOCKADDR_INDEX_INVALID; best_rating = SOCKADDR_RATING_NONE;
+	for (idx = 0; idx < cad->num; idx++)
+	{ const tSockaddrPortProtInfo* sppi;
+		if (my_bit_test(&(cad->tried), idx)) continue; /* already tried this one */
+		entry = list[idx];
+		sppi = sockaddr2sppi(entry, cad->portnumber, conn->protocol, falsE);
+		rating = ( (sppi != NULL) ? sppi->rating : SOCKADDR_RATING_NEW );
+		if (best_rating < rating) { best_rating = rating; best = idx; }
+	}
+	if (best == SOCKADDR_INDEX_INVALID) goto failed;
+	
+	/* try to connect to that sockaddr */
+	idx = best;
+	my_bit_set(&(cad->tried), idx); cad->current = idx; entry = list[idx];
+	#if CONFIG_DEBUG
+	sockaddr2uistr(entry, strbuf, STRBUF_SIZE / 2);
+	sprint_safe(debugstrbuf, "conn_connect(%p): af=%d, *%s*\n", conn,
+		entry->address_family, strbuf);
+	debugmsg(debugstrbuf);
+	#endif
+	fd = create_socket(entry->address_family);
+	if (fd == -2) /* no amount of further looping could help */
+	{ conn_set_prelire(conn, reTmofd); goto failed; }
+	else if (fd == -1) conn_set_prelire(conn, reSocket);
+	else if (fd >= 0)
+	{ int err = my_connect(fd, entry, cad->portnumber);
+		if ( (err == 0) || ( (err == -1) && (errno == EINPROGRESS) ) )
+		{ 
+			if (err == 0)
+			{ 
+				conn->flags |= cnfConnected; /*unlikely when non-blocking*/
+			}
+			conn->fd = fd; 
+			return(truE);
+		}
+		else
+		{ 
+			conn_set_prelire(conn, connect_err2error(errno));
+		}
+	}
+	goto bestloop;
 }
 
 #if CONFIG_DEBUG
@@ -1860,9 +1895,13 @@ static my_inline void conn_change_callback(tConnection* conn,
 }
 
 static void conn_cleanup_fd(tConnection* conn)
-{ int fd = conn->fd;
-  if (fd >= 0) { my_close_sopi(fd); conn->fd = -1; }
-  conn->flags &= ~(cnfConnected | cnfReading | cnfWriting | cnfSuspended);
+{ 
+	int fd = conn->fd;
+	if (fd >= 0) 
+	{ 
+		my_close_sopi(fd); conn->fd = -1; 
+	}
+	conn->flags &= ~(cnfConnected | cnfReading | cnfWriting | cnfSuspended);
 }
 
 static void conn_remove(tConnection** _conn)
@@ -1934,50 +1973,86 @@ static my_inline void conn_do_dissolve(tConnection* conn)
 
 static one_caller void check_connect(tConnection* conn)
 /* checks whether a connect() attempt for a socket worked */
-{ int fd = conn->fd, sockerr = 0;
-  socklen_t dummy = (socklen_t) sizeof(sockerr);
-  tSockaddrPortProtInfo* sppi = conn2sppi(conn, truE);
-#if NEED_FD_REGISTER
-  (void) fd_register_lookup(&fd);
-#endif
-#if USE_LWIP
-  errno = 0; /* silly old lwIP versions didn't set errno on error */
-  if (lwip_getsockopt(fd, SOL_SOCKET, SO_ERROR, &sockerr, &dummy) != 0)
-#else
-  if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &sockerr, &dummy) != 0)
-#endif
-  { conn_err = errno;
-    failed:
-#if CONFIG_DEBUG
-    sprint_safe(debugstrbuf, "check_connect(): failed for fd #%d; %d,%d\n",
-      fd, conn_err, sockerr);
-    debugmsg(debugstrbuf);
-#endif
-#if CONFIG_CUSTOM_CONN
-    { tResource* resource = conn2resource(conn);
-      if ( (resource != NULL) && (doing_custom_conn(resource)) )
-        custom_conn_tell_error(resource, connect_err2error(conn_err));
-    }
-#endif
-    if (sppi != NULL) sppi->rating >>= 1;
-    conn_cleanup_fd(conn);
-    if (conn_connect(conn)) conn_callback(conn, ccekConnectSetup);
-    else conn_callback(conn, ccekConnectFailed);
-    return;
-  }
-  if (sockerr != 0) { conn_err = sockerr; goto failed; }
-  if (sppi != NULL) sppi->rating = MIN(sppi->rating + 2, SOCKADDR_RATING_MAX);
-  conn_set_prelire(conn, reFine); conn->flags |= cnfConnected;
-  conn_callback(conn, ccekConnectWorked);
+{ 
+	int fd = conn->fd, sockerr = 0;
+	socklen_t dummy = (socklen_t) sizeof(sockerr);
+	tSockaddrPortProtInfo* sppi = conn2sppi(conn, truE);
+
+	ModuleLog(LOG_LOWLEVEL, "check_connect(): (checking if connection was established) socket=%d", fd);
+
+	#if NEED_FD_REGISTER
+		(void) fd_register_lookup(&fd);
+	#endif
+	#if USE_LWIP
+		errno = 0; /* silly old lwIP versions didn't set errno on error */
+		if (lwip_getsockopt(fd, SOL_SOCKET, SO_ERROR, &sockerr, &dummy) != 0)
+	#else
+		if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &sockerr, &dummy) != 0)
+	#endif
+	{ 
+		conn_err = errno;
+		
+		ModuleLog(LOG_LOWLEVEL, "check_connect(): getsockopt returned error. socket=%d errno=%d sockerr=%d", fd, errno, sockerr);
+
+	failed:
+		#if CONFIG_DEBUG
+			sprint_safe(debugstrbuf, "check_connect(): failed for fd #%d; %d,%d\n",
+			fd, conn_err, sockerr);
+			debugmsg(debugstrbuf);
+		#endif
+		#if CONFIG_CUSTOM_CONN
+			{ tResource* resource = conn2resource(conn);
+			if ( (resource != NULL) && (doing_custom_conn(resource)) )
+				custom_conn_tell_error(resource, connect_err2error(conn_err));
+			}
+		#endif
+		if (sppi != NULL)
+		{ 
+			sppi->rating >>= 1;
+		}
+		conn_cleanup_fd(conn);
+		if (conn_connect(conn)) 
+		{
+			conn_callback(conn, ccekConnectSetup);
+		}
+		else 
+		{
+			conn_callback(conn, ccekConnectFailed);
+		}
+		return;
+	}
+	if (sockerr != 0) 
+	{ 
+		conn_err = sockerr; goto failed; 
+	}
+	if (sppi != NULL) 
+	{
+		sppi->rating = MIN(sppi->rating + 2, SOCKADDR_RATING_MAX);
+	}
+	conn_set_prelire(conn, reFine); 
+	conn->flags |= cnfConnected;
+	conn_callback(conn, ccekConnectWorked);
+	ModuleLog(LOG_LOWLEVEL, "check_connect(): Connected successfully. socket=%d", fd);
 }
 
 static void conn_io_handler(void* data, tFdObservationFlags flags)
-{ tConnection* conn = (tConnection*) data;
-  if (flags & fdofRead) conn_callback(conn, ccekRead);
-  else if (flags & fdofWrite)
-  { if (conn->flags & cnfConnected) conn_callback(conn, ccekWrite);
-    else check_connect(conn);
-  }
+{ 
+	tConnection* conn = (tConnection*) data;
+	if (flags & fdofRead) 
+	{
+		conn_callback(conn, ccekRead);
+	}
+	else if (flags & fdofWrite)
+	{ 
+		if (conn->flags & cnfConnected)
+		{
+			conn_callback(conn, ccekWrite);
+		}
+		else 
+		{
+			check_connect(conn);
+		}
+	}
 }
 
 #define __conn_set_readwrite(c, f) \
@@ -7634,7 +7709,9 @@ const struct protoent* proto;
 	ModuleLog(LOG_LOWLEVEL, "fd_dns2resource_read=%d fd_dns2resource_write=%d", fd_dns2resource_read, fd_dns2resource_write);
 	setup_pipe(&fd_resource2dns_read, &fd_resource2dns_write);
 	ModuleLog(LOG_LOWLEVEL, "fd_resource2dns_read=%d fd_resource2dns_write=%d", fd_resource2dns_read, fd_resource2dns_write);
+#ifndef PSP
 	fd_observe(fd_dns2resource_read, resource_dns_handler, NULL, fdofRead);
+#endif
 	dns_thread_data.reader = fd_resource2dns_read;
 	dns_thread_data.writer = fd_dns2resource_write;
 #if NEED_FD_REGISTER

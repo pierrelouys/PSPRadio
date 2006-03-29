@@ -405,7 +405,7 @@ int attroff(attr_t a)
 int clear(void)
 { //(void) strv_try(strvClearScreen);
  ///pspDebugScreenClear();
-	printf("CLEAR!");
+	//printf("CLEAR!");
   return(OK);
 }
 

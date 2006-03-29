@@ -10,6 +10,7 @@
 #include "init.h"
 #include "resource.h"
 #include "parser.h"
+#include <PSPRadio_Exports.h>
 
 #if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
@@ -236,14 +237,15 @@ my_enum1 enum
   pccExecextShellFlip = 23, pccFormReset = 24, pccFormSubmit = 25,
   pccGoBookmarks = 26, pccGoHome = 27, pccGoSearch = 28, pccGoUri = 29,
   pccGoUriPreset = 30, pccJump = 31, pccJumpPreset = 32, pccLineDown = 33,
-  pccLineUp = 34, pccLocalFileDirOpen = 35, pccMenuContextual = 36,
-  pccMenuUriHistory = 37, pccMenuWindowlist = 38, pccMouseFlip = 39,
-  pccMouseOff = 40, pccMouseOn = 41, pccPageDown = 42, pccPageUp = 43,
-  pccQuit = 44, pccScreenSplit = 45, pccScreenSwitch = 46,
-  pccScreenUnsplit = 47, pccScrollBarsFlip = 48, pccSessionResume = 49,
-  pccSessionSave = 50, pccStop = 51, pccViewBack = 52, pccViewForward = 53,
-  pccWindowClose = 54, pccWindowNew = 55, pccWindowNewFromDocument = 56,
-  pccWindowNewFromElement = 57, pccWindowNext = 58, pccWindowPrevious = 59
+  pccLineUp = 34, pccLocalFileDirOpen = 35, pccMenuContextual = 36, pccMenuPSP = 37,
+  pccMenuUriHistory = 38, pccMenuWindowlist = 39, pccMouseFlip = 40,
+  pccMouseOff = 41, pccMouseOn = 42, pccPageDown = 43, pccPageUp = 44,
+  pccQuit = 45, pccScreenSplit = 46, pccScreenSwitch = 47,
+  pccScreenUnsplit = 48, pccScrollBarsFlip = 49, pccSessionResume = 50,
+  pccSessionSave = 51, pccStop = 52, pccViewBack = 53, pccViewForward = 54,
+  pccWindowClose = 55, pccWindowNew = 56, pccWindowNewFromDocument = 57,
+  pccWindowNewFromElement = 58, pccWindowNext = 59, pccWindowPrevious = 60
+  
 } my_enum2(unsigned char) tProgramCommandCode;
 
 typedef struct
@@ -272,7 +274,7 @@ static const tKeymapCommandEntry keymap_command_defaultkeys[] =
   { 'O', pccWindowNewFromElement },
   { 'Q', pccQuit },
   { 'R', pccDocumentReloadEnforced },
-  { 'S', pccSessionSave },
+  { '6', pccSessionSave },
   { 'W', pccWindowPrevious },
   { 'Y', pccMouseFlip },
   { '\\', pccDocumentEnforceSource },
@@ -289,24 +291,25 @@ static const tKeymapCommandEntry keymap_command_defaultkeys[] =
   { 'e', pccGoSearch },
   { KEY_END, pccDocumentBottom },
   { KEY_ENTER, pccElementOpen },
-  { 'g', pccGoUri },
+  { 'e', pccGoUri },
   { 'h', pccGoHome },
   { KEY_HOME, pccDocumentTop },
   { 'i', pccElementInfo },
   { KEY_IC, pccLineUp },
   { 'j', pccJump },
   { 'l', pccLineDown },
-  { 'm', pccMenuContextual },
+  { 's', pccMenuContextual },
   { 'n', pccWindowNew },
   { 'o', pccElementOpen },
   { KEY_NPAGE, pccPageDown },
   { KEY_PPAGE, pccPageUp },
-  { 'r', pccDocumentReload },
+  { 'T', pccDocumentReload },
   { 's', pccDocumentSave },
   { ' ', pccPageDown },
   { KEY_TAB, pccScreenSwitch },
   { 'u', pccMenuUriHistory },
-  { 'w', pccWindowNext }
+  { 'w', pccWindowNext },
+  { 'e', pccMenuPSP }
 };
 
 #if CONFIG_KEYMAPS
@@ -351,6 +354,7 @@ static const struct
   { "line-up", pccLineUp },
   { "local-file-dir-open", pccLocalFileDirOpen },
   { "menu-contextual", pccMenuContextual },
+  { "menu-psp", pccMenuPSP },
   { "menu-url-history", pccMenuUriHistory },
   { "menu-windowlist", pccMenuWindowlist },
   { strMouseFlip, pccMouseFlip },
@@ -3414,6 +3418,26 @@ static void cm_setup_window_list(void)
 
 #endif /* #if CONFIG_MENUS & MENUS_WLIST */
 
+#if CONFIG_MENUS & MENUS_PSP
+
+static void cm_setup_menu_psp(void)
+{
+	int x, y, _ae;
+  tWindow* window = current_window_x; /* FIXME! */
+  void (*func)(tWindow*, short*, short*, tActiveElementNumber) =
+    window->spec->setup_cm;
+  cm_init();
+  if (func != NULL) (func)(window, &x, &y, _ae);
+  cm_add("Bookmarks", cm_handle_command_code, pccGoBookmarks);
+  cm_add_separator();
+  cm_add(strUcClose, cm_handle_command_code, pccWindowClose);
+  cm_add(strUcQuit, cm_handle_command_code, pccQuit);
+  cm_start(x, y, _(strContext), NULL);
+}
+
+
+#endif /* #if CONFIG_MENUS & MENUS_PSP */
+
 static void cm_remove(void)
 /* This is only for "internal" use by cm_....() functions; external users
    should call cm_cancel() instead. */
@@ -4760,6 +4784,14 @@ static tBoolean generic_handle_command(tProgramCommandCode code)
      menus_were_disabled();
 #endif
     break;
+   case pccMenuPSP:
+#if CONFIG_MENUS & MENUS_PSP
+	cm_setup_menu_psp();
+#else
+     menus_were_disabled();
+#endif
+    break;
+
    case pccMenuUriHistory:
 #if CONFIG_MENUS & MENUS_UHIST
     cm_setup_uri_history();
@@ -5362,6 +5394,7 @@ static void handle_key(tKey key)
       if (idx >= 0)
       { if (handle_command_code(keymap_command_keys[idx].pcc)) return; }
       else if ( (might_try_key) && ((func)(window, key)) ) return; /* done */
+		ModuleLog(LOG_LOWLEVEL, "Key not handled: '%c' (%d)", key, key);
       show_message( ( (idx >= 0) ? _("Keyboard command not handled") :
         _("Key not handled") ), truE);
     }
@@ -7086,7 +7119,9 @@ static const_after_init long chStdin;
 static one_caller void __init main_initialize(void)
 { size_t count;
 #if CAN_HANDLE_SIGNALS
+#ifndef PSP
   fd_observe(fd_any2main_read, any2main_input_handler, NULL, fdofRead);
+#endif
 #endif
   sinking_data_reset(); *sfconv = '%'; sfconv[3] = '\0';
 #if CONFIG_MENUS & MENUS_UHIST
@@ -7172,15 +7207,20 @@ int main_loop(int argc, const char** argv)
 #if TGC_IS_CURSES
 
 #if CONFIG_PLATFORM != 1
+#ifndef PSP
   if (is_environed)
     fd_observe(fd_keyboard_input, curses_keyboard_handler, NULL, fdofRead);
+#endif
 #if CONFIG_CONSOLE
+#ifndef PSP
   else if (program_mode == pmConsole)
     fd_observe(fd_keyboard_input, console_keyboard_handler, NULL, fdofRead);
 #endif
 #endif
+#endif
 
-  while (1)
+  g_fQuit = falsE;
+  while (g_fQuit == falsE)
   { remaining_work_do();
     if (is_environed)
     { if (__must_reset_cursor) cursor_reset_position();
@@ -7190,56 +7230,42 @@ int main_loop(int argc, const char** argv)
     fd_multiplex(); /* try to get some sleep :-) */
 
 	resource_dns_handler(NULL,NULL);
-// 	SceKernelMppInfo mp_info;
-// 	mp_info.size = sizeof(mp_info);
-// 	if (sceKernelReferMsgPipeStatus(fd_dns2resource_read, &mp_info) == 0)
-// 	{
-// 
-// 		if (mp_info.bufSize != mp_info.freeSize)
-// 		{
-// 			resource_dns_handler(NULL,NULL);
-// 		}
-// 
-// 
-// 	}
 
    /* Now disturb all the nice abstraction for very special cases... */
-// #if PSP
-//       tKey key = my_builtin_getch(truE);
-//       if (key != ERR) handle_key(key);
-// #endif
-
-#if CONFIG_PLATFORM == 1
-    if ( (is_promptable) && (io_pend(chStdin, 0) == 0) )
-    {
-#if CONFIG_CONSOLE
+	#if CONFIG_PLATFORM == 1
+		if ( (is_promptable) && (io_pend(chStdin, 0) == 0) )
+		{
+	#if CONFIG_CONSOLE
       if (program_mode == pmConsole)
       { /* console_keyboard_handler(NULL, 0); -- CHECKME: what instead? */ }
       else
-#endif
+	#endif
       { 
 			curses_keyboard_handler(NULL, 0); 
 		
 			
 		}
     }
-#elif CONFIG_TG == TG_BICURSES
-    { /* This is necessary e.g. if the user just presses the Escape key and
-         nothing further - the fd callback isn't executed further, so the
-         timeout couldn't be detected. */
-      tKey key = my_builtin_getch(falsE);
-      if (key != ERR) handle_key(key);
-    }
-#endif
+	#elif CONFIG_TG == TG_BICURSES
+		{ /* This is necessary e.g. if the user just presses the Escape key and
+			nothing further - the fd callback isn't executed further, so the
+			timeout couldn't be detected. */
+		tKey key = my_builtin_getch(falsE);
+		if (key != ERR) handle_key(key);
+		}
+	#endif
   }
 
-#elif CONFIG_TG == TG_GTK
+	#elif CONFIG_TG == TG_GTK
+	
+	if (is_environed) { need_tglib_cleanup = truE; gtk_main(); }
+	else { while (1) { i18n_cleanup fd_multiplex(); } }
+	
+	#endif /* tg */
 
-  if (is_environed) { need_tglib_cleanup = truE; gtk_main(); }
-  else { while (1) { i18n_cleanup fd_multiplex(); } }
+	#ifndef PSP
+	/*@notreached@*/ do_quit(); /*@notreached@*/
+	#endif
 
-#endif /* tg */
-
-  /*@notreached@*/ do_quit(); /*@notreached@*/
-  return(0); /* avoid compiler warning... */
+	return(0); /* avoid compiler warning... */
 }

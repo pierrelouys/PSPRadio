@@ -75,6 +75,8 @@ void PSPRadioExport_GiveUpExclusiveAccess()
 	if (gPSPRadio->GetUI())
 	{
 		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
+		/** Re-draw the current screen */
+		gPSPRadio->GetScreenHandler()->GetCurrentScreen()->Activate(gPSPRadio->GetScreenHandler()->GetCurrentUIPtr());
 	}
 	gPSPRadio->SetPluginExclisiveAccess(false);
 }

@@ -12,6 +12,8 @@
 
 #include <time.h>
 
+volatile tBoolean g_fQuit = falsE;
+
 declare_local_i18n_buffer
 
 const_after_init int fd_stdin = -1, fd_stdout = -1, fd_stderr = -1,
@@ -246,10 +248,11 @@ static void does_not_return do_quit_msg(int exitcode, const char* msg)
     debugmsg(msg);
   }
 
-	pspDebugScreenPrintf("do_quit_msg = '%s'", msg);
+	ModuleLog(LOG_INFO, "Retawq do_quit_msg() = '%s'", msg);
 
   resource_quit();
-  exit(exitcode);
+  //exit(exitcode);
+	g_fQuit = truE;
 }
 
 void do_quit(void)
@@ -849,6 +852,11 @@ void fd_multiplex(void)
 #if USE_LWIP
     count = lwip_select(highest_select_fd + 1, &fds_r, &fds_w, &fds_e, tovp);
 #else
+#ifdef PSP
+	my_memclr_var(tov);
+	tov.tv_usec = 50 * 1000; /* 50ms */
+	tovp = &tov;
+#endif
     count = select(highest_select_fd + 1, &fds_r, &fds_w, &fds_e, tovp);
 #endif
 #if CONFIG_DEBUG
@@ -871,7 +879,15 @@ void fd_multiplex(void)
 #if MIGHT_NEED_TIMEOUTS
     else if ( (count == 0) && (do_timeout) ) return; /* timed out */
 #endif
-    //else fatal_error(((count == -1) ? errno : 0),_("I/O multiplexing failed"));
+    else if ( (count == 0) && (errno == ENOSYS))
+	{
+		//ModuleLog(LOG_ERROR, "I/O Multiplexing. ENOSYS!. select returned=%d errno=%d", count, errno);
+	}
+	else
+	{
+		ModuleLog(LOG_ERROR, "I/O Multiplexing failed. select returned=%d errno=%d", count, errno);
+		fatal_error(((count == -1) ? errno : 0),_("I/O multiplexing failed"));
+	}
   }
 
   resource_preplex();
@@ -1014,12 +1030,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 		else if (latch.uiBreak)
 		{
 			/** Button Released */
-			if (oldButtonMask & PSP_CTRL_TRIANGLE)
-			{
-				*key = 'T';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_DOWN)
+			if (oldButtonMask & PSP_CTRL_DOWN)
 			{
 				*key = 'd';
 				retval = 1;
@@ -1057,6 +1068,26 @@ ssize_t my_read(int fd, void* buf, size_t count)
 			else if (oldButtonMask & PSP_CTRL_SQUARE)
 			{
 				*key = 'S';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+			{
+				*key = 'T';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_CIRCLE)
+			{
+				*key = 'O';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_START)
+			{
+				*key = 's';
+				retval = 1;
+			}
+			else if (oldButtonMask & PSP_CTRL_SELECT)
+			{
+				*key = 'e';
 				retval = 1;
 			}
 			else
