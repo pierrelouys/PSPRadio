@@ -1577,8 +1577,19 @@ static tBoolean make_fd_nonblocking(int fd)
     retval = cond2boolean(lwip_ioctl(fd, FIONBIO, &constant_one) == 0);
   }
   else
+#elif PSP == 1
+	if (fd & 0x7f000000)
+	{
+		#define      SO_NONBLOCK     0x1009          /* non-blocking I/O */
+		int one = 1;
+		setsockopt(fd, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
+		retval = truE; 
+	}
+	else
 #endif
-  { const int flags = fcntl(fd, F_GETFL, 0);
+  { 
+  
+  	const int flags = fcntl(fd, F_GETFL, 0);
     if ( (flags == -1) || (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) )
       retval = falsE;
     else retval = truE;
@@ -1593,26 +1604,38 @@ static int create_socket(int address_family)
 
 	ModuleLog(LOG_LOWLEVEL, "create_socket() start");
 
-  int retval;
+  	int retval;
 #if USE_LWIP
-  errno = 0; /* silly old lwIP versions didn't set errno on error */
-  retval = lwip_socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
+	errno = 0; /* silly old lwIP versions didn't set errno on error */
+	retval = lwip_socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
 #else
-  retval = socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
+	retval = socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
 	ModuleLog(LOG_LOWLEVEL, "create_socket(): socket returns 0x%x (%d).", retval, retval);
 #endif
-  if (retval >= 0)
-  { fd_register(&retval, fdkSocket);
-    if (!fd_is_observable(retval)) { my_close_sock(retval); retval = -2; }
-    else if (!make_fd_nonblocking(retval))
-    { my_close_sock(retval); retval = -1; }
-    else make_fd_cloexec(retval);
-  }
+	if (retval >= 0)
+	{ 
+		fd_register(&retval, fdkSocket);
+		if (!fd_is_observable(retval)) 
+		{ 
+			my_close_sock(retval); 
+			retval = -2; 
+		}
+		else if (!make_fd_nonblocking(retval))
+		{ 
+			my_close_sock(retval); 
+			retval = -1; 
+		}
+		else 
+		{
+			make_fd_cloexec(retval);
+		}
+	}
 #if CONFIG_DEBUG
-  sprint_safe(debugstrbuf, "create_socket(%d): %d\n", address_family, retval);
-  debugmsg(debugstrbuf);
+	sprint_safe(debugstrbuf, "create_socket(%d): %d\n", address_family, retval);
+	debugmsg(debugstrbuf);
 #endif
-  return(retval);
+	ModuleLog(LOG_LOWLEVEL, "Create socket returns %d", retval);
+  	return(retval);
 }
 
 static void set_portnumber(tSockaddr* addr, int address_family,
