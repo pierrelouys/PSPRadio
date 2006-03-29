@@ -323,8 +323,8 @@ void memory_deallocate_ll(const void* ptr)
 }
 
 #if NEED_SPECIAL_GETTEXT
-#define is_special_char(ch) ( (ch == 'ä') || (ch == 'ö') || (ch == 'ü') || \
-  (ch == 'Ä') || (ch == 'Ö') || (ch == 'Ü') || (ch == 'ß') )
+#define is_special_char(ch) ( (ch == 'ï¿½) || (ch == 'ï¿½) || (ch == '') || \
+  (ch == 'ï¿½) || (ch == 'ï¿½) || (ch == 'ï¿½) || (ch == 'ï¿½) )
 char* my_do_gettext(char** buffer, const char* str)
 { if (str == NULL) /* deallocate old strings */
   { char* ptr = *buffer;
@@ -350,7 +350,7 @@ char* my_do_gettext(char** buffer, const char* str)
     while ( (ch = *src++) != '\0' )
     { *dest++ = charmap[(unsigned short) ((unsigned char) ch)];
       if (is_special_char(ch))
-      { if (ch == 'ß') *dest++ = 's';
+      { if (ch == 'ï¿½) *dest++ = 's';
         else *dest++ = 'e';
       }
     }
@@ -879,10 +879,13 @@ void fd_multiplex(void)
 #if MIGHT_NEED_TIMEOUTS
     else if ( (count == 0) && (do_timeout) ) return; /* timed out */
 #endif
-    else if ( (count == 0) && (errno == ENOSYS))
+#if (PSP == 1)
+	else if ( count == 0)
 	{
-		//ModuleLog(LOG_ERROR, "I/O Multiplexing. ENOSYS!. select returned=%d errno=%d", count, errno);
+		/** Timeout */
+		return;
 	}
+#endif
 	else
 	{
 		ModuleLog(LOG_ERROR, "I/O Multiplexing failed. select returned=%d errno=%d", count, errno);

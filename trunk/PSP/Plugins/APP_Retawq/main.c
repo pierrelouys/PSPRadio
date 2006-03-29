@@ -7230,7 +7230,9 @@ int main_loop(int argc, const char** argv)
     fd_multiplex(); /* try to get some sleep :-) */
 
 	resource_dns_handler(NULL,NULL);
-
+#if PSP == 1	
+	curses_keyboard_handler(NULL, 0); 
+#endif
    /* Now disturb all the nice abstraction for very special cases... */
 	#if CONFIG_PLATFORM == 1
 		if ( (is_promptable) && (io_pend(chStdin, 0) == 0) )

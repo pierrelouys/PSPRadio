@@ -30,7 +30,7 @@ PSP_HEAP_SIZE_KB(64);
 
 int wlanscan_main();
 int wlanscan();
-void do_resolver(void);
+void do_resolver();
 void app_plugin_main();
 
 int ModuleStartAPP()
@@ -334,7 +334,7 @@ error:
 #define RESOLVE_NAME "pspradio.berlios.de"
 #include <pspnet_resolver.h>
 
-void do_resolver(void)
+void do_resolver()
 {
 	int rid = -1;
 	char buf[1024];

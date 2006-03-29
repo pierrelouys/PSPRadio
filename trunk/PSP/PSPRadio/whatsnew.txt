@@ -12,10 +12,11 @@ BUG FIXES
 (raf) Core: Corrected problem when reading directories, where a good read could be interpreted as bad, ended up in nothing being read at all. (r936)
 (raf) Core: When changing UIs, the sound is now stopped to prevent event queue fill-ups.
 
-0.38.07 (r927) (2006-03-20)
+0.38.07 (r928) (2006-03-20)
 NEW FEATURES
 (raf) Dynamic/Core: Now UIs are selected from a new plugins menu. The menu is auto populated with available plugins. Currently supported: UIs and FSS (File system Servers.)
 (raf) Dynamic/FSS: New Plugin: FTPD; not working quite right yet.
+(raf) Core: Updated SHOUTcast database (2006-03-17)
 BUG FIXES
 (raf) png: The shutdown.png was a copy of init.png; corrected.
 (raf) Core: Now in Options screen, options that have no alternatives don't have a default "Yes" (like exit pspradio).
@@ -23,6 +24,7 @@ BUG FIXES
 (sandberg) 3DUI: The new plugin menu is now handled correct when switching UIs.(r909)
 (raf) Core: ID3v2 decoding could crash the system on invalid tags.
 (raf) Dyn/Core: Plugins now retain memory until they are removed.
+
 
 0.38.06 (r881) (2006-03-02)
 NEW FEATURES
