@@ -110,7 +110,8 @@
 		int  GetNumberOfNetworkProfiles();
 		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
 		int  ResolveHostname(char *strHostname, struct in_addr *addr);
-		int  StopKeyLatch(int key_combo_to_resume);
+		int  StopKeyLatch(unsigned int key_combo_to_resume);
+		int  StartKeyLatch();
 
 		/** USB */
 		int  EnableUSB();
@@ -162,7 +163,7 @@
 		bool m_Polling;
 		CPSPThread *m_thCallbackSetup;
 		bool m_StopKeyLatch;
-		int  m_KeyComboToResumeKeyLatch;
+		unsigned int  m_KeyComboToResumeKeyLatch;
 		
 		/** Networking */
 		int WLANConnectionHandler(int profile);

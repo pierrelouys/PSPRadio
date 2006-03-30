@@ -36,11 +36,11 @@ extern CScreen *rootScreen;
 class CPSPRadio : public CPSPApp
 {
 private:
-	CIniParser *m_Config;
-	CPSPSound *m_Sound;
-	IPSPRadio_UI *m_UI;
-	CScreenHandler *m_ScreenHandler;
-	bool bPluginExclusiveAccessSet;
+	CIniParser		*m_Config;
+	CPSPSound		*m_Sound;
+	IPSPRadio_UI	*m_UI;
+	CScreenHandler	*m_ScreenHandler;
+	char 			*m_strCWD;
 
 public:
 #ifdef DYNAMIC_BUILD
@@ -54,17 +54,21 @@ public:
 		m_Sound = NULL;
 		m_UI = NULL;
 		m_ScreenHandler = NULL;
-		bPluginExclusiveAccessSet = false;
+		m_strCWD = NULL;
 	};
 	
 	int Setup(int argc, char **argv);
 	int ProcessEvents();
 	
 	CIniParser *GetConfig(){return m_Config;}
-	void SetPluginExclisiveAccess(bool set) { bPluginExclusiveAccessSet = set; }
-	bool GetPluginExclisiveAccess() { return bPluginExclusiveAccessSet; }
 	IPSPRadio_UI *GetUI() { return m_UI; }
 	CScreenHandler *GetScreenHandler() { return m_ScreenHandler; }
+
+	void TakeScreenShot();
+
+private:
+	char *ScreenshotName(char *path);
+	void  ScreenshotStore(char *filename);
 
 private:
 	/** Setup */
@@ -77,5 +81,7 @@ private:
 	void OnVBlank();
 	int OnPowerEvent(int pwrflags);
 };
+
+
 
 #endif

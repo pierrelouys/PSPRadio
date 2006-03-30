@@ -854,7 +854,7 @@ void fd_multiplex(void)
 #else
 #ifdef PSP
 	my_memclr_var(tov);
-	tov.tv_usec = 1 * 1000; /* 1ms */
+	tov.tv_usec = 50 * 1000; /* 1ms */
 	tovp = &tov;
 #endif
     count = select(highest_select_fd + 1, &fds_r, &fds_w, &fds_e, tovp);

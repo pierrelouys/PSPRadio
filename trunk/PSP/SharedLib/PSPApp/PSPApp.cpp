@@ -141,10 +141,17 @@ CPSPApp::~CPSPApp()
 	return;
 }
 
-int CPSPApp::StopKeyLatch(int key_combo_to_resume)
+int CPSPApp::StopKeyLatch(unsigned int key_combo_to_resume)
 {
 	m_StopKeyLatch = true;
 	m_KeyComboToResumeKeyLatch = key_combo_to_resume;
+	return 0;
+}
+
+int CPSPApp::StartKeyLatch()
+{
+	m_StopKeyLatch = false;
+	m_KeyComboToResumeKeyLatch = 0;
 	return 0;
 }
 
@@ -177,7 +184,8 @@ int CPSPApp::Run()
 		
 			sceCtrlReadBufferPositive(&pad, 1);
 			
-			if (pad.Buttons & (m_KeyComboToResumeKeyLatch))
+			/** Key combo done */
+			if ( (pad.Buttons & m_KeyComboToResumeKeyLatch) == m_KeyComboToResumeKeyLatch )
 			{
 				m_StopKeyLatch = false;
 				SendEvent(MID_KEY_LATCH_ENABLED, NULL);

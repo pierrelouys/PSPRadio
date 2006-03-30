@@ -63,7 +63,7 @@ char *PSPRadioExport_GetMyIP()
 
 void PSPRadioExport_RequestExclusiveAccess()
 {
-	gPSPRadio->SetPluginExclisiveAccess(true);
+//	gPSPRadio->SetPluginExclisiveAccess(true);
 	if (gPSPRadio->GetUI())
 	{
 		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
@@ -79,10 +79,16 @@ void PSPRadioExport_GiveUpExclusiveAccess()
 		/** Re-draw the current screen */
 		gPSPRadio->GetScreenHandler()->GetCurrentScreen()->Activate(gPSPRadio->GetScreenHandler()->GetCurrentUIPtr());
 	}
-	gPSPRadio->SetPluginExclisiveAccess(false);
+	gPSPRadio->StartKeyLatch();
+//	gPSPRadio->SetPluginExclisiveAccess(false);
 }
 
 char *PSPRadioExport_GetVersion()
 {
 	return PSPRADIO_VERSION;
+}
+
+void PSPRadioExport_TakeScreenShot()
+{
+	gPSPRadio->TakeScreenShot();
 }

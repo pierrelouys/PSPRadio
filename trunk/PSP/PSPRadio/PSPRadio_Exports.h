@@ -22,9 +22,10 @@
 		char *PSPRadioExport_GetProgramVersion();
 		bool  PSPRadioExport_IsUSBEnabled();
 		char *PSPRadioExport_GetMyIP();
-		void PSPRadioExport_RequestExclusiveAccess();
-		void PSPRadioExport_GiveUpExclusiveAccess();
+		void  PSPRadioExport_RequestExclusiveAccess();
+		void  PSPRadioExport_GiveUpExclusiveAccess();
 		char *PSPRadioExport_GetVersion();
+		void  PSPRadioExport_TakeScreenShot();
 
 
 #ifdef __cplusplus	

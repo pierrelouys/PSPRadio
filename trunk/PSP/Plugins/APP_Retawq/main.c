@@ -244,7 +244,8 @@ my_enum1 enum
   pccScreenUnsplit = 48, pccScrollBarsFlip = 49, pccSessionResume = 50,
   pccSessionSave = 51, pccStop = 52, pccViewBack = 53, pccViewForward = 54,
   pccWindowClose = 55, pccWindowNew = 56, pccWindowNewFromDocument = 57,
-  pccWindowNewFromElement = 58, pccWindowNext = 59, pccWindowPrevious = 60
+  pccWindowNewFromElement = 58, pccWindowNext = 59, pccWindowPrevious = 60,
+  pccPSPTakeScreenshot = 61
   
 } my_enum2(unsigned char) tProgramCommandCode;
 
@@ -3314,6 +3315,13 @@ static void cm_setup_contextual(short x, short y, tActiveElementNumber _ae)
     window->spec->setup_cm;
   cm_init();
   if (func != NULL) (func)(window, &x, &y, _ae);
+
+#if PSP == 1
+	cm_add("Bookmarks", cm_handle_command_code, pccGoBookmarks);
+	cm_add("Take Screenshot", cm_handle_command_code, pccPSPTakeScreenshot);
+	cm_add_separator();
+#endif  
+
   cm_add(strUcClose, cm_handle_command_code, pccWindowClose);
   cm_add(strUcQuit, cm_handle_command_code, pccQuit);
   cm_start(x, y, _(strContext), NULL);
@@ -4765,6 +4773,11 @@ static tBoolean generic_handle_command(tProgramCommandCode code)
       }
     }
     break;
+#if PSP == 1
+	case pccPSPTakeScreenshot:
+		PSPRadioExport_TakeScreenShot();
+		break;
+#endif
    case pccMenuWindowlist:
 #if CONFIG_MENUS & MENUS_WLIST
      cm_setup_window_list();

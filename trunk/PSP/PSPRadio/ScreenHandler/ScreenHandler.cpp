@@ -30,8 +30,6 @@
 #include <Logging.h>
 #include <pspwlan.h>
 #include <psphprm.h>
-#include <pspdisplay.h>
-#include <png.h>
 #include "ScreenHandler.h"
 #include "PlayListScreen.h"
 #include "OptionsScreen.h"
@@ -298,86 +296,85 @@ void CScreenHandler::OnVBlank()
 
 void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
 {
-	if (gPSPRadio->GetPluginExclisiveAccess() == true)
+	/** Only do UP and DOWN repeats */
+	if (MID_ONBUTTON_REPEAT == iEventType)
 	{
-		if ( (iButtonMask & PSP_CTRL_LTRIGGER) &&
-			 (iButtonMask & PSP_CTRL_RTRIGGER) &&
-			 (iButtonMask & PSP_CTRL_TRIANGLE) )
+		if (((iButtonMask & PSP_CTRL_UP) || (iButtonMask & PSP_CTRL_DOWN)) == false)
 		{
-			PSPRadioExport_GiveUpExclusiveAccess();
+			return;
 		}
 	}
-	else /** Normal */
+	else if (MID_ONBUTTON_LONG_PRESS == iEventType)
 	{
-	
-		/** Only do UP and DOWN repeats */
-		if (MID_ONBUTTON_REPEAT == iEventType)
+		if (iButtonMask & PSP_CTRL_SELECT)
 		{
-			if (((iButtonMask & PSP_CTRL_UP) || (iButtonMask & PSP_CTRL_DOWN)) == false)
+			GetSound()->Stop(); /** Stop stream if playing, else the event queue can back-up */
+
+			// Generic screenshot method, which works for all UI classes
+
+			if (m_UI)
 			{
-				return;
+				m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_ACTIVE);
+			}
+
+			gPSPRadio->TakeScreenShot();
+
+			if (m_UI)
+			{
+				m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_NOT_ACTIVE);
 			}
 		}
-		else if (MID_ONBUTTON_LONG_PRESS == iEventType)
-		{
-			if (iButtonMask & PSP_CTRL_SELECT)
+	}
+
+	switch (m_CurrentScreen->GetId())
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+			if (iButtonMask & PSP_CTRL_HOME)
 			{
-				GetSound()->Stop(); /** Stop stream if playing, else the event queue can back-up */
-				// Generic screenshot method, which works for all UI classes
-				Screenshot();
+				//pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
+				Log(LOG_VERYLOW, "HOME BUTTON RECEIVED");
 			}
-		}
-	
-		switch (m_CurrentScreen->GetId())
-		{
-			case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
-			case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-				if (iButtonMask & PSP_CTRL_HOME)
+			else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
+			{
+				// Enter option menu and store the current screen
+				m_PreviousScreen = m_CurrentScreen;
+				m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
+				m_CurrentScreen->Activate(m_UI);
+			}
+			else if (iButtonMask & PSP_CTRL_TRIANGLE) /** Cycle through screens (except options) */
+			{
+				m_CurrentScreen = Screens[m_CurrentScreen->GetId()+1];
+				/** Don't go to options screen with triangle;
+					Also, as options screen is the last one in the list
+					we cycle back to the first one */
+				if (m_CurrentScreen->GetId() == PSPRADIO_SCREEN_OPTIONS)
 				{
-					//pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
-					Log(LOG_VERYLOW, "HOME BUTTON RECEIVED");
+					m_CurrentScreen = Screens[PSPRADIO_SCREEN_LIST_BEGIN];
 				}
-				else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
-				{
-					// Enter option menu and store the current screen
-					m_PreviousScreen = m_CurrentScreen;
-					m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
-					m_CurrentScreen->Activate(m_UI);
-				}
-				else if (iButtonMask & PSP_CTRL_TRIANGLE) /** Cycle through screens (except options) */
-				{
-					m_CurrentScreen = Screens[m_CurrentScreen->GetId()+1];
-					/** Don't go to options screen with triangle;
-						Also, as options screen is the last one in the list
-						we cycle back to the first one */
-					if (m_CurrentScreen->GetId() == PSPRADIO_SCREEN_OPTIONS)
-					{
-						m_CurrentScreen = Screens[PSPRADIO_SCREEN_LIST_BEGIN];
-					}
-					m_CurrentScreen->Activate(m_UI);
-				}
-				else
-				{
-					m_CurrentScreen->InputHandler(iButtonMask);
-				}
-				break;
-			case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
-	#ifdef DYNAMIC_BUILD
-			case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
-	#endif
-				if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
-				{
-					// Go back to where we were before entering the options menu
-					m_CurrentScreen = m_PreviousScreen;
-					m_CurrentScreen->Activate(m_UI);
-				}
-				else
-				{
-					m_CurrentScreen->InputHandler(iButtonMask);
-				}
-				break;
-		}
+				m_CurrentScreen->Activate(m_UI);
+			}
+			else
+			{
+				m_CurrentScreen->InputHandler(iButtonMask);
+			}
+			break;
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+#ifdef DYNAMIC_BUILD
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
+#endif
+			if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
+			{
+				// Go back to where we were before entering the options menu
+				m_CurrentScreen = m_PreviousScreen;
+				m_CurrentScreen->Activate(m_UI);
+			}
+			else
+			{
+				m_CurrentScreen->InputHandler(iButtonMask);
+			}
+			break;
 	}
 }
 
@@ -386,135 +383,6 @@ void CScreenHandler::OnHPRMReleased(u32 iHPRMMask)
 	if (GetCurrentScreen())
 		((PlayListScreen*)GetCurrentScreen())->OnHPRMReleased(iHPRMMask);
 };
-
-void CScreenHandler::Screenshot()
-{
-	char	path[MAXPATHLEN];
-	char	*filename;
-
-	sprintf(path, "%s/Screenshots/", m_strCWD);
-
-	filename = ScreenshotName(path);
-
-	if (m_UI)
-	{
-		m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_ACTIVE);
-	}
-
-	if  (filename)
-	{
-		ScreenshotStore(filename);
-		Log(LOG_INFO, "Screenshot stored as : %s", filename);
-		free(filename);
-	}
-	else
-	{
-		Log(LOG_INFO, "No screenshot taken..");
-	}
-
-	if (m_UI)
-	{
-		m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_NOT_ACTIVE);
-	}
-}
-
-char *CScreenHandler::ScreenshotName(char *path)
-{
-	char	*filename;
-	int		image_number;
-	FILE	*temp_handle;
-
-	filename = (char *) malloc(MAXPATHLEN);
-	if (filename)
-	{
-		for (image_number = 0 ; image_number < 1000 ; image_number++)
-		{
-			sprintf(filename, "%sPSPRadio_Screen%03d.png", path, image_number);
-			temp_handle = fopen(filename, "r");
-			// If the file didn't exist we can use this current filename for the screenshot
-			if (!temp_handle)
-			{
-				break;
-			}
-			fclose(temp_handle);
-		}
-	}
-	return filename;
-}
-
-//The code below is take from an example for libpng.
-void CScreenHandler::ScreenshotStore(char *filename)
-{
-	u32* vram32;
-	u16* vram16;
-	int bufferwidth;
-	int pixelformat;
-	int unknown;
-	int i, x, y;
-	png_structp png_ptr;
-	png_infop info_ptr;
-	FILE* fp;
-	u8* line;
-	fp = fopen(filename, "wb");
-	if (!fp) return;
-	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr) return;
-	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr) {
-		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		fclose(fp);
-		return;
-	}
-	png_init_io(png_ptr, fp);
-	png_set_IHDR(png_ptr, info_ptr, SCREEN_WIDTH, SCREEN_HEIGHT,
-		8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-	png_write_info(png_ptr, info_ptr);
-	line = (u8*) malloc(SCREEN_WIDTH * 3);
-	sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
-	sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, &unknown);
-	vram16 = (u16*) vram32;
-	for (y = 0; y < SCREEN_HEIGHT; y++) {
-		for (i = 0, x = 0; x < SCREEN_WIDTH; x++) {
-			u32 color = 0;
-			u8 r = 0, g = 0, b = 0;
-			switch (pixelformat) {
-				case PSP_DISPLAY_PIXEL_FORMAT_565:
-					color = vram16[x + y * bufferwidth];
-					r = (color & 0x1f) << 3;
-					g = ((color >> 5) & 0x3f) << 2 ;
-					b = ((color >> 11) & 0x1f) << 3 ;
-					break;
-				case PSP_DISPLAY_PIXEL_FORMAT_5551:
-					color = vram16[x + y * bufferwidth];
-					r = (color & 0x1f) << 3;
-					g = ((color >> 5) & 0x1f) << 3 ;
-					b = ((color >> 10) & 0x1f) << 3 ;
-					break;
-				case PSP_DISPLAY_PIXEL_FORMAT_4444:
-					color = vram16[x + y * bufferwidth];
-					r = (color & 0xf) << 4;
-					g = ((color >> 4) & 0xf) << 4 ;
-					b = ((color >> 8) & 0xf) << 4 ;
-					break;
-				case PSP_DISPLAY_PIXEL_FORMAT_8888:
-					color = vram32[x + y * bufferwidth];
-					r = color & 0xff;
-					g = (color >> 8) & 0xff;
-					b = (color >> 16) & 0xff;
-					break;
-			}
-			line[i++] = r;
-			line[i++] = g;
-			line[i++] = b;
-		}
-		png_write_row(png_ptr, line);
-	}
-	free(line);
-	png_write_end(png_ptr, info_ptr);
-	png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-	fclose(fp);
-}
 
 /*----------------------------------*/
 void IScreen::Activate(IPSPRadio_UI *UI)
