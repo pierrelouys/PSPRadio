@@ -96,7 +96,7 @@ Files=Logging.cpp/Logging.h/Makefile
 
 [Dir SharedLib/PSPApp]
 Dirs=
-Files=bstdfile.cpp/bstdfile.h/httpget.cpp/Makefile/PSPApp.cpp/PSPApp.h/PSPSound.cpp/PSPSound.h/PSPSoundDecoder_MAD.cpp/PSPSoundDecoder_MAD.h/PSPEventQ.cpp/PSPEventQ.h/PSPSema.h/PSPSoundDecoder_OGG.cpp/PSPSoundDecoder_OGG.h/PSPSoundDecoder.cpp/PSPSoundDecoder.h/PSPApp_Network.cpp/PSPStream.cpp/PSPStream.h/PSPKeyHandler.cpp/PSPKeyHandler.h/PSPSoundBuffer.cpp/PSPSoundBuffer.h/ID3Parser.cpp/ID3Parser.h/PSPInit.cpp/PRXLoader.cpp/PRXLoader.h/PSPAppExports.exp/PSPThread.cpp/PSPThread.h
+Files=bstdfile.cpp/bstdfile.h/httpget.cpp/Makefile/PSPApp.cpp/PSPApp.h/PSPSound.cpp/PSPSound.h/PSPSoundDecoder_MAD.cpp/PSPSoundDecoder_MAD.h/PSPEventQ.cpp/PSPEventQ.h/PSPSema.h/PSPSoundDecoder_OGG.cpp/PSPSoundDecoder_OGG.h/PSPSoundDecoder.cpp/PSPSoundDecoder.h/PSPApp_Network.cpp/PSPStream.cpp/PSPStream.h/PSPKeyHandler.cpp/PSPKeyHandler.h/PSPSoundBuffer.cpp/PSPSoundBuffer.h/ID3Parser.cpp/ID3Parser.h/PSPInit.cpp/PRXLoader.cpp/PRXLoader.h/PSPThread.cpp/PSPThread.h
 
 [Dir SharedLib/Tools]
 Dirs=

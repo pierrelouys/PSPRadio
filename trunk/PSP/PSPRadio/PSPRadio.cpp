@@ -437,6 +437,11 @@ int CPSPRadio::ProcessEvents()
 					m_UI->OnVBlank();
 				break;
 
+			case MID_KEY_LATCH_ENABLED:
+				//if (m_UI)
+				//	m_UI->
+				break;
+				
 			default:
 				Log(LOG_VERYLOW, "ProcessEvents: Unhandled event: MID=0x%x SID=0x%x",
 					event.EventId, event.SenderId);

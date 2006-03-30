@@ -222,7 +222,7 @@ tBoolean my_pattern_matcher(const char* pattern, const char* str)
   }
 }
 
-static void does_not_return do_quit_msg(int exitcode, const char* msg)
+static void /*does_not_return*/ do_quit_msg(int exitcode, const char* msg)
 { if (need_tglib_cleanup)
   {
 #if CONFIG_TG == TG_X
@@ -250,7 +250,7 @@ static void does_not_return do_quit_msg(int exitcode, const char* msg)
 
 	ModuleLog(LOG_INFO, "Retawq do_quit_msg() = '%s'", msg);
 
-  resource_quit();
+  //resource_quit();
   //exit(exitcode);
 	g_fQuit = truE;
 }
@@ -1015,23 +1015,38 @@ ssize_t my_read(int fd, void* buf, size_t count)
 	if (fd == fd_keyboard_input)
 	{
 		char *key = (char*)buf;
-		static int oldButtonMask = 0;
+/*	SceCtrlData pad;
+	for(;;) 
+	{
 		sceDisplayWaitVblankStart();
+		sceCtrlReadBufferPositive(&pad, 1);*/
+				
+		static int oldButtonMask = 0;
+		SceCtrlData pad;
+		
+		sceDisplayWaitVblankStart();
+#if 0
+		sceCtrlReadBufferPositive(&pad, 1);
+		oldButtonMask = pad.Buttons;
+		if (1) {
+#else
 		//sceKernelDelayThread(10);
 		SceCtrlLatch latch; 
 		
 		//sceCtrlSetSamplingCycle(10); 
+		
 		sceCtrlReadLatch(&latch);
 		
 		if (latch.uiMake)
 		{
-			/** Button Pressed */
+			// Button Pressed 
 			oldButtonMask = latch.uiPress;
 			*key = 0;
 			retval = 1;
 		}
 		else if (latch.uiBreak)
 		{
+#endif			
 			/** Button Released */
 			if (oldButtonMask & PSP_CTRL_DOWN)
 			{

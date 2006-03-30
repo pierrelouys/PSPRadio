@@ -184,6 +184,8 @@ WINDOW* __init initscr(void)
   tSint16 header[6], names_size, flags_size, num_shorts, num_strings,
     strings_size;
 
+#if 0
+
   if ( (termname == NULL) || ( (ch = *termname) == '\0') )
     fatal_error(0, _("bad value of environment variable TERM"));
   debugmsg("termname=*"); debugmsg(termname); debugmsg("*\n");
@@ -196,7 +198,6 @@ WINDOW* __init initscr(void)
     (need_slash ? strSlash : strEmpty), ch, termname);
   debugmsg("filename=*"); debugmsg(filename); debugmsg("*\n");
   printf("temfile = '%s'\n", filename);
-#if 0
   if (my_mmap_file_readonly(filename, &filebuf, &filesize) != 2)
   { bad: fatal_error(0, _("bad terminfo file")); }
   my_spf_cleanup(strbuf, filename);
@@ -325,7 +326,7 @@ WINDOW* __init initscr(void)
     { COLS = x; LINES = y; }
     else { COLS = 80; LINES = 24; }
 
-	printf("COLS=%d LINES=%d", COLS, LINES);
+	//printf("COLS=%d LINES=%d", COLS, LINES);
   }
 
   /* look which of the possibly useful key strings are actually available */

@@ -68,6 +68,7 @@ void PSPRadioExport_RequestExclusiveAccess()
 	{
 		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
 	}
+	gPSPRadio->StopKeyLatch(PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER | PSP_CTRL_TRIANGLE);
 }
 
 void PSPRadioExport_GiveUpExclusiveAccess()

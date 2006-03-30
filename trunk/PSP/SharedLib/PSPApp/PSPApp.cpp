@@ -63,6 +63,9 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionS
 
 	m_Exit = false;
 
+	m_StopKeyLatch = false;
+	m_KeyComboToResumeKeyLatch = 0;
+		
 	m_EventToPSPApp = new CPSPEventQ("msg_to_pspapp_q");
 	
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 
@@ -138,6 +141,13 @@ CPSPApp::~CPSPApp()
 	return;
 }
 
+int CPSPApp::StopKeyLatch(int key_combo_to_resume)
+{
+	m_StopKeyLatch = true;
+	m_KeyComboToResumeKeyLatch = key_combo_to_resume;
+	return 0;
+}
+
 /** This is a thread */
 int CPSPApp::Run()
 {
@@ -161,15 +171,29 @@ int CPSPApp::Run()
 		OnVBlank();
 		//SendEvent(MID_ONVBLANK);
 
-		// If a key event was detected notify the application
-		if (m_KeyHandler && (m_KeyHandler->KeyHandler(event) != false))
+		if (m_StopKeyLatch == true)
 		{
-			/** Note that the state is sent "by value" in a pointer holder. 
-			(It has to be sent by-value, as event can become out of scope when the event (which is async) handles it)*/
-			SendEvent(event.event, (void *)(event.key_state)); 
+			SceCtrlData pad;
+		
+			sceCtrlReadBufferPositive(&pad, 1);
 			
+			if (pad.Buttons & (m_KeyComboToResumeKeyLatch))
+			{
+				m_StopKeyLatch = false;
+				SendEvent(MID_KEY_LATCH_ENABLED, NULL);
+			}
 		}
-
+		else
+		{
+			// If a key event was detected notify the application
+			if (m_KeyHandler && (m_KeyHandler->KeyHandler(event) != false))
+			{
+				/** Note that the state is sent "by value" in a pointer holder. 
+				(It has to be sent by-value, as event can become out of scope when the event (which is async) handles it)*/
+				SendEvent(event.event, (void *)(event.key_state)); 
+				
+			}
+		}
 		// Only read from the RTC once a second
 		if (m_TimeUpdate++ == 60)
 		{

@@ -61,11 +61,12 @@
 	#define MID_ONBUTTON_LONG_PRESS			0x01000012
 	#define MID_ONBUTTON_RELEASED			0x01000013
 	#define MID_ONHPRM_RELEASED				0x01000014
+	#define MID_KEY_LATCH_ENABLED			0x01000015
 	#define MID_ONVBLANK					0x01000020
 	#define MID_ONBATTERY_CHANGE			0x01000040
 	#define MID_ONTIME_CHANGE				0x01000041
-	#define MID_USB_ENABLE					0x01000050
-	#define MID_USB_DISABLE					0x01000051
+	#define MID_USB_ENABLE					0x02000000
+	#define MID_USB_DISABLE					0x02000001
 
 	class CPSPThread;
 	class CPSPApp;
@@ -109,6 +110,7 @@
 		int  GetNumberOfNetworkProfiles();
 		void GetNetworkProfileName(int iProfile, char *buf, size_t size);
 		int  ResolveHostname(char *strHostname, struct in_addr *addr);
+		int  StopKeyLatch(int key_combo_to_resume);
 
 		/** USB */
 		int  EnableUSB();
@@ -159,6 +161,8 @@
 		char *m_strProgramName, *m_strVersionNumber;
 		bool m_Polling;
 		CPSPThread *m_thCallbackSetup;
+		bool m_StopKeyLatch;
+		int  m_KeyComboToResumeKeyLatch;
 		
 		/** Networking */
 		int WLANConnectionHandler(int profile);
