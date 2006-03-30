@@ -1037,87 +1037,96 @@ ssize_t my_read(int fd, void* buf, size_t count)
 		
 		sceCtrlReadLatch(&latch);
 		
+		retval = 1;
+
 		if (latch.uiMake)
 		{
 			// Button Pressed 
 			oldButtonMask = latch.uiPress;
 			*key = 0;
-			retval = 1;
 		}
 		else if (latch.uiBreak)
 		{
 #endif			
 			/** Button Released */
-			if (oldButtonMask & PSP_CTRL_DOWN)
+			if (g_InputMethod == truE)
 			{
-				*key = 'd';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_UP)
-			{
-				*key = 'u';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_LEFT)
-			{
-				*key = 'l';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_RIGHT)
-			{
-				*key = 'r';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_LTRIGGER)
-			{
-				*key = 'L';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_RTRIGGER)
-			{
-				*key = 'R';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_CROSS)
-			{
-				*key = 'X';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_SQUARE)
-			{
-				*key = 'S';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_TRIANGLE)
-			{
-				*key = 'T';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_CIRCLE)
-			{
-				*key = 'O';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_START)
-			{
-				*key = 's';
-				retval = 1;
-			}
-			else if (oldButtonMask & PSP_CTRL_SELECT)
-			{
-				*key = 'e';
-				retval = 1;
+				if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_RTRIGGER) )
+				{
+					/* Enter input */
+					g_InputMethod = falsE;
+				}
+				else
+				{
+					PSPInputHandler(oldButtonMask, key);
+				}
 			}
 			else
 			{
-				*key = 0;
-				retval = 1;
+				if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_LTRIGGER) )
+				{
+					/* Enter input */
+					g_InputMethod = truE;
+					PSPInputHandlerStart();
+					*key = 0;
+				}
+				else if (oldButtonMask & PSP_CTRL_DOWN)
+				{
+					*key = 'd';
+				}
+				else if (oldButtonMask & PSP_CTRL_UP)
+				{
+					*key = 'u';
+				}
+				else if (oldButtonMask & PSP_CTRL_LEFT)
+				{
+					*key = 'l';
+				}
+				else if (oldButtonMask & PSP_CTRL_RIGHT)
+				{
+					*key = 'r';
+				}
+				else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+				{
+					*key = 'L';
+				}
+				else if (oldButtonMask & PSP_CTRL_RTRIGGER)
+				{
+					*key = 'R';
+				}
+				else if (oldButtonMask & PSP_CTRL_CROSS)
+				{
+					*key = 'X';
+				}
+				else if (oldButtonMask & PSP_CTRL_SQUARE)
+				{
+					*key = 'S';
+				}
+				else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+				{
+					*key = 'T';
+				}
+				else if (oldButtonMask & PSP_CTRL_CIRCLE)
+				{
+					*key = 'O';
+				}
+				else if (oldButtonMask & PSP_CTRL_START)
+				{
+					*key = 's';
+				}
+				else if (oldButtonMask & PSP_CTRL_SELECT)
+				{
+					*key = 'e';
+				}
+				else
+				{
+					*key = 0;
+				}
 			}
 		}
 		else
 		{
 			*key = 0;
-			retval = 1;
 		}
 	}
 	else

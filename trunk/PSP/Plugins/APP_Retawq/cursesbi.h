@@ -59,7 +59,7 @@ extern int COLS, LINES;
 #define KEY_LEFT	'l'
 #define KEY_RIGHT	'r'
 #define KEY_HOME 0406
-#define KEY_BACKSPACE 0407
+#define KEY_BACKSPACE '<'
 /* #define KEY_F0 0410 */
 /* #define KEY_F(x) (KEY_F0 + (x)) */
 #define KEY_DC 0512

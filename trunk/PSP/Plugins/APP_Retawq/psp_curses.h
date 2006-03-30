@@ -17,6 +17,11 @@
 	int pipe_write(int fd, void *buf, size_t len);
 	int env_termsize(int *x, int *y);
 
+	void PSPInputHandlerStart();
+	int PSPInputHandler(int ButtonMask, char *key);
+
+	extern tBoolean g_InputMethod;
+
 	///thread:
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>
