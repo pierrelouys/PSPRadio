@@ -80,7 +80,7 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 #ifdef DYNAMIC_BUILD
 	Screens[PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU] =
 		new OptionsPluginMenuScreen(PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU, this);
-	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU])->SetConfigFilename("OptionsScreen.cfg");
+	((OptionsScreen*)Screens[PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU])->SetConfigFilename("OptionsPluginScreen.cfg");
 
 #endif	
 	m_CurrentScreen = Screens[InitialScreen];

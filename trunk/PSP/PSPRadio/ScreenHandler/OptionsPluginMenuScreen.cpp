@@ -35,10 +35,11 @@
 #include "LocalFilesScreen.h"
 #include "OptionsPluginMenuScreen.h"
 #include "PSPRadio.h"
-#include <FSS_Exports.h>
-#include <APP_Exports.h>
+#include "Main.h"
 
 #define ReportError pPSPApp->ReportError
+
+#include <APP_Exports.h>
 
 enum OptionIDs
 {
@@ -60,31 +61,11 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 OptionsPluginMenuScreen::OptionsPluginMenuScreen(int Id, CScreenHandler *ScreenHandler):OptionsScreen(Id, ScreenHandler)
 {
 	Log(LOG_LOWLEVEL, "OptionsPluginMenuScreen(): Id=%d", Id);
-	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
-	{
-		m_ModuleLoader[i] = NULL;
-		m_ModuleLoader[i] = new CPRXLoader();
-		if (m_ModuleLoader[i] == NULL)
-		{
-			Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader #%d.", i);
-		}
-		else
-		{
-			m_ModuleLoader[i]->SetName("Off");
-		}
-	}
 	//LoadFromConfig();
 }
 
 OptionsPluginMenuScreen::~OptionsPluginMenuScreen()
 {
-	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
-	{
-		if (m_ModuleLoader[i])
-		{
-			delete(m_ModuleLoader[i]), m_ModuleLoader[i] = NULL;
-		}
-	}
 }
 
 
@@ -150,15 +131,18 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 		switch(iOptNo)
 		{
 			case OPTION_ID_UI:
-				RetrievePlugins(/*option*/Option, /*prefix*/"UI_", m_ScreenHandler->GetCurrentUI());
+				RetrievePlugins(/*option*/Option, /*prefix*/"UI_", 
+								m_ScreenHandler->GetCurrentUI());
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_FSS:
-				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_", m_ModuleLoader[PLUGIN_FSS]->GetName(), /*insert off*/true);
+				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_", 
+								gPSPRadio->GetActivePluginName(PLUGIN_FSS), /*insert 'off'*/true);
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_APP:
-				RetrievePlugins(/*option*/Option, /*prefix*/"APP_", m_ModuleLoader[PLUGIN_APP]->GetName(), /*insert off*/true);
+				RetrievePlugins(/*option*/Option, /*prefix*/"APP_", 
+								gPSPRadio->GetActivePluginName(PLUGIN_APP), /*insert 'off'*/true);
 				Option.iSelectedState = Option.iActiveState;
 				break;
 		}
@@ -180,7 +164,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 	
 	if (bInsertOff == true)
 	{
-		Option.strStates[0] = strdup("Off");
+		Option.strStates[0] = strdup(PLUGIN_OFF_STRING);
 		iNumberOfPluginsFound++;
 	}
 
@@ -283,7 +267,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					m_UI->DisplayMessage("Starting Plugin . . .");
 					//sprintf(m_UI->buff, "original data");
 					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
-					int res = LoadPlugin(strPluginRealName, PLUGIN_FSS);
+					int res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_FSS);
 					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
 					if (res == 0)
 					{
@@ -298,7 +282,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				else
 				{
 					m_UI->DisplayMessage("Stopping Plugin. . .");
-					LoadPlugin("Off", PLUGIN_FSS);
+					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_FSS);
 					fOptionActivated = true;
 					m_UI->DisplayMessage("Plugin Stopped");
 				}
@@ -313,7 +297,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					m_UI->DisplayMessage("Starting Plugin . . .");
 					//sprintf(m_UI->buff, "original data");
 					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
-					int res = LoadPlugin(strPluginRealName, PLUGIN_APP);
+					int res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_APP);
 					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
 					if (res == 0)
 					{
@@ -328,10 +312,15 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				else
 				{
 					m_UI->DisplayMessage("Stopping Plugin. . .");
-					LoadPlugin("Off", PLUGIN_APP);
+					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_APP);
 					fOptionActivated = true;
 					m_UI->DisplayMessage("Plugin Stopped");
 				}
+			}
+			else
+			{
+				m_UI->DisplayMessage("Continuing Plugin. . .");
+				ModuleContinueApp();
 			}
 			break;
 	}
@@ -343,78 +332,3 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 	}
 }
 
-int OptionsPluginMenuScreen::LoadPlugin(char *strPlugin, plugin_type type)
-{
-	char strModulePath[MAXPATHLEN+1];
-	char cwd[MAXPATHLEN+1];
-	
-	if (type < NUMBER_OF_PLUGINS)
-	{
-	
-		if (m_ModuleLoader[type]->IsLoaded() == true)
-		{
-			Log(LOG_INFO, "Unloading currently running plugin");
-			m_ModuleLoader[type]->Unload();
-			m_ModuleLoader[type]->SetName("Off");
-		}
-	
-		/** Asked to just unload */
-		if (strcmp(strPlugin, "Off") == 0)
-		{
-			return 0;
-		}
-	
-		sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);
-	
-		int id = m_ModuleLoader[type]->Load(strModulePath);
-		
-		if (m_ModuleLoader[type]->IsLoaded() == true)
-		{
-			m_ModuleLoader[type]->SetName(strPlugin);
-			
-			SceKernelModuleInfo modinfo;
-			memset(&modinfo, 0, sizeof(modinfo));
-			modinfo.size = sizeof(modinfo);
-			sceKernelQueryModuleInfo(id, &modinfo);
-			Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
-				strPlugin, modinfo.text_addr);
-		
-			int iRet = m_ModuleLoader[type]->Start();
-			
-			Log(LOG_INFO, "Module start returned: 0x%x", iRet);
-
-/*			if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
-			{
-				Log(LOG_ERROR, "WARNING: Plugin '%' was compiled against PSPRadio '%s' (this is '%s')",
-					getPSPRadioVersionForPlugin(), PSPRADIO_VERSION);
-			}*/
-			
-			switch(type)
-			{
-				case PLUGIN_UI:
-					break;
-				case PLUGIN_FSS:
-					ModuleStartFSS();
-					break;
-				case PLUGIN_APP:
-					ModuleStartAPP();
-					break;
-				case NUMBER_OF_PLUGINS: /**Not a real case */
-					break;
-			}
-	
-			return 0;
-			
-		}
-		else
-		{
-			Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strModulePath, m_ModuleLoader[type]->GetError());
-			return -1;
-		}
-	}
-	else /* type >= NUMBER_OF_PLUGINS */
-	{
-		Log(LOG_ERROR, "Wrong type %d used to load plugin.", type);
-		return -1;
-	}
-}

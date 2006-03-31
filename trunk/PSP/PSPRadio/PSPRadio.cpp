@@ -41,6 +41,22 @@ int CPSPRadio::Setup(int argc, char **argv)
 
 	Setup_Logging(m_strCWD);
 
+#ifdef DYNAMIC_BUILD
+	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
+	{
+		m_ModuleLoader[i] = NULL;
+		m_ModuleLoader[i] = new CPRXLoader();
+		if (m_ModuleLoader[i] == NULL)
+		{
+			Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader #%d.", i);
+		}
+		else
+		{
+			m_ModuleLoader[i]->SetName(PLUGIN_OFF_STRING);
+		}
+	}
+#endif	
+
 	Setup_Sound();
 
 	if (-1 != m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"))
@@ -211,6 +227,17 @@ void CPSPRadio::OnExit()
 		Log(LOG_VERYLOW, "Exiting. Destroying m_ScreenHandler object");
 		delete(m_ScreenHandler), m_ScreenHandler = NULL;
 	}
+
+#ifdef DYNAMIC_BUILD
+	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
+	{
+		if (m_ModuleLoader[i])
+		{
+			Log(LOG_VERYLOW, "Exiting. Destroying m_ModuleLoader[%d] object", i);
+			delete(m_ModuleLoader[i]), m_ModuleLoader[i] = NULL;
+		}
+	}
+#endif
 
 	if (m_strCWD)
 	{
@@ -443,6 +470,7 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_KEY_LATCH_ENABLED:
+				//LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
 				PSPRadioExport_GiveUpExclusiveAccess();
 				//if (m_UI)
 				//	m_UI->
@@ -654,4 +682,93 @@ void CPSPRadio::ScreenshotStore(char *filename)
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 	fclose(fp);
+}
+
+#include <FSS_Exports.h>
+#include <APP_Exports.h>
+
+int CPSPRadio::LoadPlugin(char *strPlugin, plugin_type type)
+{
+	char strModulePath[MAXPATHLEN+1];
+	char cwd[MAXPATHLEN+1];
+	
+	if (type < NUMBER_OF_PLUGINS)
+	{
+	
+		if (m_ModuleLoader[type]->IsLoaded() == true)
+		{
+			Log(LOG_INFO, "Unloading currently running plugin");
+			m_ModuleLoader[type]->Unload();
+			m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
+		}
+	
+		/** Asked to just unload */
+		if (strcmp(strPlugin, PLUGIN_OFF_STRING) == 0)
+		{
+			return 0;
+		}
+	
+		sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);
+	
+		int id = m_ModuleLoader[type]->Load(strModulePath);
+		
+		if (m_ModuleLoader[type]->IsLoaded() == true)
+		{
+			m_ModuleLoader[type]->SetName(strPlugin);
+			
+			SceKernelModuleInfo modinfo;
+			memset(&modinfo, 0, sizeof(modinfo));
+			modinfo.size = sizeof(modinfo);
+			sceKernelQueryModuleInfo(id, &modinfo);
+			Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
+				strPlugin, modinfo.text_addr);
+		
+			int iRet = m_ModuleLoader[type]->Start();
+			
+			Log(LOG_INFO, "Module start returned: 0x%x", iRet);
+
+/*			if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
+			{
+				Log(LOG_ERROR, "WARNING: Plugin '%' was compiled against PSPRadio '%s' (this is '%s')",
+					getPSPRadioVersionForPlugin(), PSPRADIO_VERSION);
+			}*/
+			
+			switch(type)
+			{
+				case PLUGIN_UI:
+					break;
+				case PLUGIN_FSS:
+					ModuleStartFSS();
+					break;
+				case PLUGIN_APP:
+					ModuleStartAPP();
+					break;
+				case NUMBER_OF_PLUGINS: /**Not a real case */
+					break;
+			}
+	
+			return 0;
+			
+		}
+		else
+		{
+			Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strModulePath, m_ModuleLoader[type]->GetError());
+			return -1;
+		}
+	}
+	else if (type == (plugin_type)-1)
+	{
+		Log(LOG_ERROR, "Unable to Load/Unload plugin, as it was not set.");
+		return -1;
+	}
+	else /* type >= NUMBER_OF_PLUGINS */
+	{
+		Log(LOG_ERROR, "Wrong type %d used to load plugin.", type);
+		return -1;
+	}
+}
+
+char *CPSPRadio::GetActivePluginName(plugin_type type)
+{
+	return m_ModuleLoader[type]->GetName();
 }
