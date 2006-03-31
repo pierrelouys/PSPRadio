@@ -276,7 +276,7 @@ static const tKeymapCommandEntry keymap_command_defaultkeys[] =
   { 'Q', pccQuit },
   { 0, pccDocumentReloadEnforced },
   { '6', pccSessionSave },
-  { 'W', pccWindowPrevious },
+  { KEY_PSP_LTRIGGER, pccWindowPrevious },
   { 'Y', pccMouseFlip },
   { '\\', pccDocumentEnforceSource },
   { 'b', pccGoBookmarks },
@@ -309,7 +309,7 @@ static const tKeymapCommandEntry keymap_command_defaultkeys[] =
   { ' ', pccPageDown },
   { KEY_TAB, pccScreenSwitch },
   { 'u', pccMenuUriHistory },
-  { 'w', pccWindowNext },
+  { KEY_PSP_RTRIGGER, pccWindowNext },
   { 'e', pccMenuPSP }
 };
 

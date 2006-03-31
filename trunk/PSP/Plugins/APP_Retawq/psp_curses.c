@@ -192,13 +192,13 @@ void PSPInputHandler_DisplayButtons();
 void PSPInputHandlerStart()
 {
 	char string[17];
-	sprintf(string, "QWERT. ,YUIOP@%cN", KEY_BACKSPACE);
+	sprintf(string, "QWERT. ,YUIOP@%c_", KEY_BACKSPACE);
 	memcpy(InputTable[PSPIHM_NORMAL_1][0], string, 16);
 	
 	sprintf(string, "ASDFG*(-HJKL;+)-");
 	memcpy(InputTable[PSPIHM_NORMAL_2][0], string, 16);
 	
-	sprintf(string, "ZXCVB=:;NM\"'?<>/");
+	sprintf(string, "ZXCVB=:;NM\"'?</>");
 	memcpy(InputTable[PSPIHM_NORMAL_3][0], string, 16);
 	
 	sprintf(string, "01234!#$56789%%^&");
@@ -206,12 +206,24 @@ void PSPInputHandlerStart()
 
 	g_Mode = PSPIHM_NORMAL_1;
 	PSPInputHandler_DisplayButtons();
-	pspDebugScreenSetXY(10,10);
-	pspDebugScreenPrintf("             ");
-	pspDebugScreenSetXY(10,11);
-	pspDebugScreenPrintf("  INPUT MODE ");
-	pspDebugScreenSetXY(10,12);
-	pspDebugScreenPrintf("             ");
+	pspDebugScreenSetXY(25,10);
+						/*12345678901234567890*/
+	pspDebugScreenPrintf("           ");
+	pspDebugScreenSetXY(25,11);
+	pspDebugScreenPrintf("INPUT MODE ");
+	pspDebugScreenSetXY(25,12);
+	pspDebugScreenPrintf("           ");
+
+}
+
+void PSPInputHandlerEnd()
+{
+	int i;
+	for (i = 10; i <= 20; i++)
+	{
+		pspDebugScreenSetXY(15,i);
+		pspDebugScreenPrintf("                                                     ");
+	}
 
 }
 
@@ -221,32 +233,63 @@ void PSPInputHandler_DisplayButtons()
 {
 	pspDebugScreenSetXY(0,13);
 	pspDebugScreenPrintf("                                                     ");
-	pspDebugScreenSetXY(0,14);
 
-	PrintAxis(10,16, InputTable[g_Mode][0]);
-	PrintAxis(20,16, InputTable[g_Mode][0]+8);
+	PrintAxis(15,16, InputTable[g_Mode][0]);
+	PrintAxis(35,16, InputTable[g_Mode][0]+8);
+}
+
+char *key2str(char key, char *str)
+{
+	if (key == ' ')
+	{
+		strcpy(str, "Space");
+	}
+	else if (key == KEY_BACKSPACE)
+	{
+		strcpy(str, "BackSp");
+	}
+	else
+	{
+		str[0] = key;
+		str[1] = 0;
+	}
+
+	return str;
 }
 
 void PrintAxis(int x, int y, char *str)
 {
-	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf("   %c   ", str[2]);
+	char str1[16], str2[16];
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf(" %c | %c ", str[1], str[3]);
+	pspDebugScreenPrintf("   %s   ", key2str(str[2], str1));
+	y++;
+	pspDebugScreenSetXY(x, y++);
+	pspDebugScreenPrintf(" %s   %s ", key2str(str[1], str1), key2str(str[3], str2));
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf("%c -+- %c", str[0], str[4]);
+	pspDebugScreenPrintf("   |   ");
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf(" %c | %c ", str[5], str[7]);
+	pspDebugScreenPrintf("%s -+- %s", key2str(str[0], str1), key2str(str[4], str2));
 
+	pspDebugScreenSetXY(x, y++);
+	pspDebugScreenPrintf("   |   ");
+
+	pspDebugScreenSetXY(x, y++);
+	pspDebugScreenPrintf(" %s   %s ", key2str(str[5], str1), key2str(str[7], str2));
+
+	y++;
 	pspDebugScreenSetXY(x, y);
-	pspDebugScreenPrintf("   %c   ", str[6]);
+						/*1234567*/
+	pspDebugScreenPrintf("       ");
+	key2str(str[6], str1);
+	pspDebugScreenSetXY(x+(3-strlen(str1)/2), y);
+	pspDebugScreenPrintf(str1);
 }
 
 /** Button combination to key index map (BKM) */
-static int BKM[16/*indexes*/][8/*buttons*/] = 
+const static int BKM[16/*indexes*/][8/*buttons*/] = 
 {
 /*      L   R   U   D   SQ  CI  TR  CR   */
 	{	1,	0,	0,	0,	0,	0,	0,	0 }, // 0  (left)
@@ -270,58 +313,66 @@ static int BKM[16/*indexes*/][8/*buttons*/] =
 
 };
 
-int PSPInputHandler(int bm, char *key)
+int PSPInputHandler(SceCtrlData pad, char *key)
 {
 	int retval = 0;
 	int index = 0;
 	static int old_g_mode = PSPIHM_NORMAL_1;
+	int nl_b = pad.Buttons;
+	static int bm = 0;
+	SceCtrlLatch latch; 
 
+	*key = 0; 
+	retval = 1;
 
- 	if ( (bm & PSP_CTRL_RTRIGGER) )
- 	{
- 		g_Mode++;
-		g_Mode = (g_Mode % PSPIHM_MAX);
- 	}
-// 	if ( !(bm & PSP_CTRL_LTRIGGER) && !(bm & PSP_CTRL_RTRIGGER) )
-// 	{
-// 		g_Mode = PSPIHM_NORMAL_1;
-// 	}
-// 	else if ( (bm & PSP_CTRL_LTRIGGER) && !(bm & PSP_CTRL_RTRIGGER) )
-// 	{
-// 		g_Mode = PSPIHM_NORMAL_2;
-// 	}
-// 	else if ( !(bm & PSP_CTRL_LTRIGGER) && (bm & PSP_CTRL_RTRIGGER) )
-// 	{
-// 		g_Mode = PSPIHM_NORMAL_3;
-// 	}
-// 	else if ( (bm & PSP_CTRL_LTRIGGER) && (bm & PSP_CTRL_RTRIGGER) )
-// 	{
-// 		g_Mode = PSPIHM_NORMAL_4;
-// 	}
-// 	
+ 	if ( !(nl_b & PSP_CTRL_LTRIGGER) && !(nl_b & PSP_CTRL_RTRIGGER) )
+	{
+		g_Mode = PSPIHM_NORMAL_1;
+	}
+	else if ( (nl_b & PSP_CTRL_LTRIGGER) && !(nl_b & PSP_CTRL_RTRIGGER) )
+	{
+		g_Mode = PSPIHM_NORMAL_2;
+	}
+	else if ( !(nl_b & PSP_CTRL_LTRIGGER) && (nl_b & PSP_CTRL_RTRIGGER) )
+	{
+		g_Mode = PSPIHM_NORMAL_3;
+	}
+	else if ( (nl_b & PSP_CTRL_LTRIGGER) && (nl_b & PSP_CTRL_RTRIGGER) )
+	{
+		g_Mode = PSPIHM_NORMAL_4;
+	}
+
 	if (g_Mode != old_g_mode)
 	{
 		PSPInputHandler_DisplayButtons();
 		old_g_mode = g_Mode;
 	}
 
-	*key = 0; 
-
-	for (index = 0; index < 16 ; index++)
-
+	sceCtrlReadLatch(&latch);
+	if (latch.uiMake)
 	{
-		//ModuleLog(LOG_LOWLEVEL, "index=%d: bm=0x%x A=0x%x B=%d C=%d", 
-		//	index, bm, (bm & PSP_CTRL_LEFT), (bm & PSP_CTRL_LEFT)?1:0, BKM[index][0]);
-		if ( (((bm & PSP_CTRL_LEFT)?1:0)	== BKM[index][0]) &&
-			 (((bm & PSP_CTRL_RIGHT)?1:0)	== BKM[index][1]) &&
-			 (((bm & PSP_CTRL_UP)?1:0)		== BKM[index][2]) &&
-			 (((bm & PSP_CTRL_DOWN)?1:0)	== BKM[index][3]) &&
-			 (((bm & PSP_CTRL_SQUARE)?1:0)	== BKM[index][4]) &&
-			 (((bm & PSP_CTRL_CIRCLE)?1:0)	== BKM[index][5]) &&
-			 (((bm & PSP_CTRL_TRIANGLE)?1:0)== BKM[index][6]) &&
-			 (((bm & PSP_CTRL_CROSS)?1:0)	== BKM[index][7]) 	)
+		// Button Pressed 
+		bm = latch.uiPress;
+	}
+	else if (latch.uiBreak)
+	{
+		//printf("break! ");
+		for (index = 0; index < 16 ; index++)
 		{
-			*key = InputTable[g_Mode][g_Modif][index]; 
+			//ModuleLog(LOG_LOWLEVEL, "index=%d: bm=0x%x A=0x%x B=%d C=%d", 
+			//	index, bm, (bm & PSP_CTRL_LEFT), (bm & PSP_CTRL_LEFT)?1:0, BKM[index][0]);
+			if ( (((bm & PSP_CTRL_LEFT)?1:0)	== BKM[index][0]) &&
+				(((bm & PSP_CTRL_RIGHT)?1:0)	== BKM[index][1]) &&
+				(((bm & PSP_CTRL_UP)?1:0)		== BKM[index][2]) &&
+				(((bm & PSP_CTRL_DOWN)?1:0)		== BKM[index][3]) &&
+				(((bm & PSP_CTRL_SQUARE)?1:0)	== BKM[index][4]) &&
+				(((bm & PSP_CTRL_CIRCLE)?1:0)	== BKM[index][5]) &&
+				(((bm & PSP_CTRL_TRIANGLE)?1:0)	== BKM[index][6]) &&
+				(((bm & PSP_CTRL_CROSS)?1:0)	== BKM[index][7]) 	)
+			{
+				*key = InputTable[g_Mode][g_Modif][index]; 
+				//printf("key = %c ", *key);
+			}
 		}
 	}
 

@@ -1015,61 +1015,51 @@ ssize_t my_read(int fd, void* buf, size_t count)
 	if (fd == fd_keyboard_input)
 	{
 		char *key = (char*)buf;
-/*	SceCtrlData pad;
-	for(;;) 
-	{
-		sceDisplayWaitVblankStart();
-		sceCtrlReadBufferPositive(&pad, 1);*/
-				
-		static int oldButtonMask = 0;
-		SceCtrlData pad;
+		*key = 0;
+		retval = 1;
 		
 		sceDisplayWaitVblankStart();
+
 #if 0
+		SceCtrlData pad;
 		sceCtrlReadBufferPositive(&pad, 1);
 		oldButtonMask = pad.Buttons;
 		if (1) {
 #else
-		//sceKernelDelayThread(10);
-		SceCtrlLatch latch; 
-		
-		//sceCtrlSetSamplingCycle(10); 
-		
-		sceCtrlReadLatch(&latch);
-		
-		retval = 1;
-
-		if (latch.uiMake)
+		if (g_InputMethod == truE)
 		{
-			// Button Pressed 
-			oldButtonMask = latch.uiPress;
-			*key = 0;
-		}
-		else if (latch.uiBreak)
-		{
-#endif			
-			/** Button Released */
-			if (g_InputMethod == truE)
+			SceCtrlData pad;
+			sceCtrlReadBufferPositive(&pad, 1);
+			if ( (pad.Buttons & PSP_CTRL_START) && (pad.Buttons & PSP_CTRL_RTRIGGER) )
 			{
-				if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_RTRIGGER) )
-				{
-					/* Enter input */
-					g_InputMethod = falsE;
-					*key = 0;
-				}
-				else
-				{
-					PSPInputHandler(oldButtonMask, key);
-				}
+				/* Enter input */
+				g_InputMethod = falsE;
+				PSPInputHandlerEnd();
 			}
 			else
 			{
+				PSPInputHandler(pad, key);
+			}
+		}
+		else
+		{
+			static int oldButtonMask = 0;
+			SceCtrlLatch latch; 
+			sceCtrlReadLatch(&latch);
+			
+			if (latch.uiMake)
+			{
+				// Button Pressed 
+				oldButtonMask = latch.uiPress;
+			}
+			else if (latch.uiBreak) /** Button Released */
+			{
+#endif			
 				if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_LTRIGGER) )
 				{
 					/* Enter input */
 					g_InputMethod = truE;
 					PSPInputHandlerStart();
-					*key = 0;
 				}
 				else if (oldButtonMask & PSP_CTRL_DOWN)
 				{
@@ -1119,15 +1109,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 				{
 					*key = KEY_PSP_SELECT;
 				}
-				else
-				{
-					*key = 0;
-				}
 			}
-		}
-		else
-		{
-			*key = 0;
 		}
 	}
 	else

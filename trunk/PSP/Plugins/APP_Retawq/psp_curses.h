@@ -18,7 +18,8 @@
 	int env_termsize(int *x, int *y);
 
 	void PSPInputHandlerStart();
-	int PSPInputHandler(int ButtonMask, char *key);
+	void PSPInputHandlerEnd();
+	int PSPInputHandler(SceCtrlData pad, char *key);
 
 	extern tBoolean g_InputMethod;
 
