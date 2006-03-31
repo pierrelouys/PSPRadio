@@ -219,7 +219,7 @@ void PSPInputHandlerStart()
 void PSPInputHandlerEnd()
 {
 	int i;
-	for (i = 10; i <= 20; i++)
+	for (i = 10; i <= 23; i++)
 	{
 		pspDebugScreenSetXY(15,i);
 		pspDebugScreenPrintf("                                                     ");
@@ -262,29 +262,29 @@ void PrintAxis(int x, int y, char *str)
 	char str1[16], str2[16];
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf("   %s   ", key2str(str[2], str1));
+	pspDebugScreenPrintf("    %s    ", key2str(str[2], str1));
 	y++;
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf(" %s   %s ", key2str(str[1], str1), key2str(str[3], str2));
+	pspDebugScreenPrintf(" %s     %s ", key2str(str[1], str1), key2str(str[3], str2));
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf("   |   ");
+	pspDebugScreenPrintf("    |    ");
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf("%s -+- %s", key2str(str[0], str1), key2str(str[4], str2));
+	pspDebugScreenPrintf("%s  -+-  %s", key2str(str[0], str1), key2str(str[4], str2));
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf("   |   ");
+	pspDebugScreenPrintf("    |    ");
 
 	pspDebugScreenSetXY(x, y++);
-	pspDebugScreenPrintf(" %s   %s ", key2str(str[5], str1), key2str(str[7], str2));
+	pspDebugScreenPrintf(" %s     %s ", key2str(str[5], str1), key2str(str[7], str2));
 
 	y++;
 	pspDebugScreenSetXY(x, y);
 						/*1234567*/
-	pspDebugScreenPrintf("       ");
+	pspDebugScreenPrintf("         ");
 	key2str(str[6], str1);
-	pspDebugScreenSetXY(x+(3-strlen(str1)/2), y);
+	pspDebugScreenSetXY(x+(4-strlen(str1)/2), y);
 	pspDebugScreenPrintf(str1);
 }
 
