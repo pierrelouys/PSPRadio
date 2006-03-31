@@ -12,6 +12,7 @@
 #define PSP_SCREEN_WIDTH 480
 #define PSP_SCREEN_HEIGHT 272
 
+volatile tBoolean g_PSPDisableInput = falsE;
 
 int env_termsize(int *x, int *y)
 {

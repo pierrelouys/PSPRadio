@@ -49,56 +49,21 @@ int ModuleStartAPP()
 	return 0;
 }
 
-
-// void wait_for_triangle()
-// {
-// 	printf("** Press TRIANGLE **");
-// 	SceCtrlData pad;
-// 	for(;;) 
-// 	{
-// 		sceDisplayWaitVblankStart();
-// 		sceCtrlReadBufferPositive(&pad, 1);
-// 		if (pad.Buttons & PSP_CTRL_TRIANGLE)
-// 		{
-// 			break;
-// 		}
-// 	}
-// }
+#include "psp_curses.h"
+int ModuleContinueApp()
+{
+	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
+	pspDebugScreenInit();
+	printf("Press SQUARE");
+	g_PSPDisableInput = falsE;
+	return 0;
+}
 
 int main_loop(int argc, const char** argv);
 
 void app_plugin_main()
 {
-//	int run = 1;
-
-	PSPRadioExport_RequestExclusiveAccess();
-
-// 	while (run == 1)
-// 	{
-// 		pspDebugScreenInit();
-// 		printf(" Retawq Plugin for PSPRadio\n");
-// 		printf("-----------------------------\n");
-// 		printf("* CIRCLE: Start\n");
-// 		printf("* CROSS:  Exit *\n");
-// 		SceCtrlData pad;
-// 		for(;;) 
-// 		{
-// 			sceDisplayWaitVblankStart();
-// 			sceCtrlReadBufferPositive(&pad, 1);
-// 			if (pad.Buttons & PSP_CTRL_CROSS)
-// 			{
-// 				run = 0;
-// 				break;
-// 			}
-// 			else if (pad.Buttons & PSP_CTRL_CIRCLE)
-// 			{
-// 				pspDebugScreenInit();
-// 				main_loop(0, NULL);
-// 				wait_for_triangle();
-// 				break;
-// 			}
-// 		}
-// 	}
+	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 
 	pspDebugScreenInit();
 

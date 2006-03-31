@@ -22,7 +22,7 @@
 	int PSPInputHandler(SceCtrlData pad, char *key);
 
 	extern tBoolean g_InputMethod;
-
+	extern volatile tBoolean g_PSPDisableInput;
 	///thread:
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>

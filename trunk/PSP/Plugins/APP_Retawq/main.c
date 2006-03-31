@@ -245,7 +245,7 @@ my_enum1 enum
   pccSessionSave = 51, pccStop = 52, pccViewBack = 53, pccViewForward = 54,
   pccWindowClose = 55, pccWindowNew = 56, pccWindowNewFromDocument = 57,
   pccWindowNewFromElement = 58, pccWindowNext = 59, pccWindowPrevious = 60,
-  pccPSPTakeScreenshot = 61
+  pccPSPTakeScreenshot = 61, pccPSPSwitchToPSPRadio = 62
   
 } my_enum2(unsigned char) tProgramCommandCode;
 
@@ -3319,6 +3319,7 @@ static void cm_setup_contextual(short x, short y, tActiveElementNumber _ae)
 #if PSP == 1
 	cm_add("Bookmarks", cm_handle_command_code, pccGoBookmarks);
 	cm_add("Take Screenshot", cm_handle_command_code, pccPSPTakeScreenshot);
+	cm_add("Switch to PSPRadio", cm_handle_command_code, pccPSPSwitchToPSPRadio);
 	cm_add_separator();
 #endif  
 
@@ -4776,6 +4777,10 @@ static tBoolean generic_handle_command(tProgramCommandCode code)
 #if PSP == 1
 	case pccPSPTakeScreenshot:
 		PSPRadioExport_TakeScreenShot();
+		break;
+	case pccPSPSwitchToPSPRadio:
+		g_PSPDisableInput = truE;
+		//PSPRadioExport_GiveUpExclusiveAccess(); /** Doesn't work?! */
 		break;
 #endif
    case pccMenuWindowlist:

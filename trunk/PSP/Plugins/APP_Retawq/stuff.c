@@ -1012,7 +1012,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
   else
 #endif
   { unsigned char loopcount = 0;
-	if (fd == fd_keyboard_input)
+	if ((fd == fd_keyboard_input))
 	{
 		char *key = (char*)buf;
 		*key = 0;
@@ -1020,94 +1020,97 @@ ssize_t my_read(int fd, void* buf, size_t count)
 		
 		sceDisplayWaitVblankStart();
 
-#if 0
-		SceCtrlData pad;
-		sceCtrlReadBufferPositive(&pad, 1);
-		oldButtonMask = pad.Buttons;
-		if (1) {
-#else
-		if (g_InputMethod == truE)
+		if ( g_PSPDisableInput == falsE )
 		{
+	#if 0
 			SceCtrlData pad;
 			sceCtrlReadBufferPositive(&pad, 1);
-			if ( (pad.Buttons & PSP_CTRL_START) && (pad.Buttons & PSP_CTRL_RTRIGGER) )
+			oldButtonMask = pad.Buttons;
+			if (1) {
+	#else
+			if (g_InputMethod == truE)
 			{
-				/* Enter input */
-				g_InputMethod = falsE;
-				PSPInputHandlerEnd();
+				SceCtrlData pad;
+				sceCtrlReadBufferPositive(&pad, 1);
+				if ( (pad.Buttons & PSP_CTRL_START) && (pad.Buttons & PSP_CTRL_RTRIGGER) )
+				{
+					/* Enter input */
+					g_InputMethod = falsE;
+					PSPInputHandlerEnd();
+				}
+				else
+				{
+					PSPInputHandler(pad, key);
+				}
 			}
 			else
 			{
-				PSPInputHandler(pad, key);
-			}
-		}
-		else
-		{
-			static int oldButtonMask = 0;
-			SceCtrlLatch latch; 
-			sceCtrlReadLatch(&latch);
-			
-			if (latch.uiMake)
-			{
-				// Button Pressed 
-				oldButtonMask = latch.uiPress;
-			}
-			else if (latch.uiBreak) /** Button Released */
-			{
-#endif			
-				if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_LTRIGGER) )
+				static int oldButtonMask = 0;
+				SceCtrlLatch latch; 
+				sceCtrlReadLatch(&latch);
+				
+				if (latch.uiMake)
 				{
-					/* Enter input */
-					g_InputMethod = truE;
-					PSPInputHandlerStart();
+					// Button Pressed 
+					oldButtonMask = latch.uiPress;
 				}
-				else if (oldButtonMask & PSP_CTRL_DOWN)
+				else if (latch.uiBreak) /** Button Released */
 				{
-					*key = KEY_DOWN;
-				}
-				else if (oldButtonMask & PSP_CTRL_UP)
-				{
-					*key = KEY_UP;
-				}
-				else if (oldButtonMask & PSP_CTRL_LEFT)
-				{
-					*key = KEY_LEFT;
-				}
-				else if (oldButtonMask & PSP_CTRL_RIGHT)
-				{
-					*key = KEY_RIGHT;
-				}
-				else if (oldButtonMask & PSP_CTRL_LTRIGGER)
-				{
-					*key = KEY_PSP_LTRIGGER;
-				}
-				else if (oldButtonMask & PSP_CTRL_RTRIGGER)
-				{
-					*key = KEY_PSP_RTRIGGER;
-				}
-				else if (oldButtonMask & PSP_CTRL_CROSS)
-				{
-					*key = KEY_PSP_CROSS;
-				}
-				else if (oldButtonMask & PSP_CTRL_SQUARE)
-				{
-					*key = KEY_PSP_SQUARE;
-				}
-				else if (oldButtonMask & PSP_CTRL_TRIANGLE)
-				{
-					*key = KEY_PSP_TRIANGLE;
-				}
-				else if (oldButtonMask & PSP_CTRL_CIRCLE)
-				{
-					*key = KEY_PSP_CIRCLE;
-				}
-				else if (oldButtonMask & PSP_CTRL_START)
-				{
-					*key = KEY_PSP_START;
-				}
-				else if (oldButtonMask & PSP_CTRL_SELECT)
-				{
-					*key = KEY_PSP_SELECT;
+	#endif			
+					if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_LTRIGGER) )
+					{
+						/* Enter input */
+						g_InputMethod = truE;
+						PSPInputHandlerStart();
+					}
+					else if (oldButtonMask & PSP_CTRL_DOWN)
+					{
+						*key = KEY_DOWN;
+					}
+					else if (oldButtonMask & PSP_CTRL_UP)
+					{
+						*key = KEY_UP;
+					}
+					else if (oldButtonMask & PSP_CTRL_LEFT)
+					{
+						*key = KEY_LEFT;
+					}
+					else if (oldButtonMask & PSP_CTRL_RIGHT)
+					{
+						*key = KEY_RIGHT;
+					}
+					else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+					{
+						*key = KEY_PSP_LTRIGGER;
+					}
+					else if (oldButtonMask & PSP_CTRL_RTRIGGER)
+					{
+						*key = KEY_PSP_RTRIGGER;
+					}
+					else if (oldButtonMask & PSP_CTRL_CROSS)
+					{
+						*key = KEY_PSP_CROSS;
+					}
+					else if (oldButtonMask & PSP_CTRL_SQUARE)
+					{
+						*key = KEY_PSP_SQUARE;
+					}
+					else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					{
+						*key = KEY_PSP_TRIANGLE;
+					}
+					else if (oldButtonMask & PSP_CTRL_CIRCLE)
+					{
+						*key = KEY_PSP_CIRCLE;
+					}
+					else if (oldButtonMask & PSP_CTRL_START)
+					{
+						*key = KEY_PSP_START;
+					}
+					else if (oldButtonMask & PSP_CTRL_SELECT)
+					{
+						*key = KEY_PSP_SELECT;
+					}
 				}
 			}
 		}
