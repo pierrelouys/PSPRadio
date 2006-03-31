@@ -1055,6 +1055,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 				{
 					/* Enter input */
 					g_InputMethod = falsE;
+					*key = 0;
 				}
 				else
 				{
