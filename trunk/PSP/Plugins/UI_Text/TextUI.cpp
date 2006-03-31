@@ -471,16 +471,19 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 		taking place */
 	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		if (iRowEnd == -1)
-			iRowEnd = iRowStart;
-			
-		m_lockclear->Lock();
-		for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+		if ( (iRowStart != -2) && (iRowEnd != -2) )
 		{
-			//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
-			m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, PSP_SCREEN_WIDTH);
+			if (iRowEnd == -1)
+				iRowEnd = iRowStart;
+				
+			m_lockclear->Lock();
+			for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+			{
+				//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
+				m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, PSP_SCREEN_WIDTH);
+			}
+			m_lockclear->Unlock();
 		}
-		m_lockclear->Unlock();
 	}
 }
 
@@ -490,15 +493,18 @@ void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowE
 		taking place */
 	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		if (iRowEnd == -1)
-			iRowEnd = iRowStart;
-			
-		m_lockclear->Lock();
-		for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+		if ( (iRowStart != -2) && (iRowEnd != -2) )
 		{
-			m_Screen->ClearCharsAtYFromX1ToX2(iRow, iColStart, iColEnd);
+			if (iRowEnd == -1)
+				iRowEnd = iRowStart;
+				
+			m_lockclear->Lock();
+			for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+			{
+				m_Screen->ClearCharsAtYFromX1ToX2(iRow, iColStart, iColEnd);
+			}
+			m_lockclear->Unlock();
 		}
-		m_lockclear->Unlock();
 	}
 }
 	
@@ -633,20 +639,6 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 	y = m_ScreenConfig.ErrorMessageY;
 	c = m_ScreenConfig.ErrorMessageColor;
 	
-	#if 0
-	switch (m_CurrentScreen)
-	{
-		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			GetConfigPair("TEXT_POS:ERROR_MESSAGE", &x, &y);
-			ClearErrorMessage();
-			break;
-		case CScreenHandler::PSPRADIO_SCREEN_SETTINGS:
-			GetConfigPair("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
-			ClearRows(y);
-			break;
-	}
-	#endif
 	ClearErrorMessage();
 	/** If message is longer than 1 lines, then truncate;
 	The -10 is to accomodate for the "Error: " plus a bit.
@@ -667,20 +659,7 @@ int CTextUI::DisplayMessage(char *strMsg)
 	x = m_ScreenConfig.ErrorMessageX;
 	y = m_ScreenConfig.ErrorMessageY;
 	c = m_ScreenConfig.ErrorMessageColor;
-	#if 0
-	switch (m_CurrentScreen)
-	{
-		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
-			GetConfigPair("TEXT_POS:ERROR_MESSAGE", &x, &y);
-			ClearErrorMessage();
-			break;
-		case CScreenHandler::PSPRADIO_SCREEN_SETTINGS:
-			GetConfigPair("TEXT_POS:ERROR_MESSAGE_IN_OPTIONS", &x, &y);
-			ClearRows(y);
-			break;
-	}
-	#endif
+
 	ClearErrorMessage();
 	/** If message is longer than 1 lines, then truncate;
 	 *  The -3 is just in case.
@@ -805,42 +784,46 @@ int CTextUI::OnNewSongData(MetaData *pData)
 		int c = m_ScreenConfig.MetadataColor;
 		int iLen = m_ScreenConfig.MetadataLength;
 		ClearRows(y, m_ScreenConfig.MetadataRangeY2);
-		
-		if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
-			pData->strTitle[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
+
+		if (m_ScreenConfig.MetadataX1 != -2)
+		{
 			
-		if (strlen(pData->strURL) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
-			pData->strURL[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
-		
-		if (0 != pData->iSampleRate)
-		{
-			uiPrintf(x, y, cTitle, "%lukbps %dHz (%d channels) stream",
-					pData->iBitRate/1000, 
-					pData->iSampleRate,
-					pData->iNumberOfChannels);
-					//pData->strMPEGLayer);
+			if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
+				pData->strTitle[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
+				
+			if (strlen(pData->strURL) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
+				pData->strURL[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
+			
+			if (0 != pData->iSampleRate)
+			{
+				uiPrintf(x, y, cTitle, "%lukbps %dHz (%d channels) stream",
+						pData->iBitRate/1000, 
+						pData->iSampleRate,
+						pData->iNumberOfChannels);
+						//pData->strMPEGLayer);
+				y+=m_Screen->GetFontHeight();
+			}
+			if (pData->strURL && strlen(pData->strURL))
+			{
+				uiPrintf(x, y, cTitle,	"URL   : ");
+				uiPrintf(x+COL_TO_PIXEL(8), y, c,	"%-*.*s ", iLen, iLen, pData->strURL);
+			}
+			else
+			{
+				uiPrintf(x , y,	cTitle,	"Stream: ");
+				uiPrintf(x+COL_TO_PIXEL(8), y,	c,		"%-*.*s ", iLen, iLen, pData->strURI);
+			}
 			y+=m_Screen->GetFontHeight();
-		}
-		if (pData->strURL && strlen(pData->strURL))
-		{
-			uiPrintf(x, y, cTitle,	"URL   : ");
-			uiPrintf(x+COL_TO_PIXEL(8), y, c,	"%-*.*s ", iLen, iLen, pData->strURL);
-		}
-		else
-		{
-			uiPrintf(x , y,	cTitle,	"Stream: ");
-			uiPrintf(x+COL_TO_PIXEL(8), y,	c,		"%-*.*s ", iLen, iLen, pData->strURI);
-		}
-		y+=m_Screen->GetFontHeight();
-		
-		uiPrintf(x , y,	cTitle,	"Title : ");
-		uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strTitle);
-		y+=m_Screen->GetFontHeight();
-		
-		if (pData->strArtist && strlen(pData->strArtist))
-		{
-			uiPrintf(x , y,	cTitle,	"Artist: ");
-			uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strArtist);
+			
+			uiPrintf(x , y,	cTitle,	"Title : ");
+			uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strTitle);
+			y+=m_Screen->GetFontHeight();
+			
+			if (pData->strArtist && strlen(pData->strArtist))
+			{
+				uiPrintf(x , y,	cTitle,	"Artist: ");
+				uiPrintf(x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strArtist);
+			}
 		}
 	}
 	return 0;
