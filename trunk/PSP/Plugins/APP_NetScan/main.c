@@ -54,6 +54,10 @@ int ModuleStartAPP()
 	return 0;
 }
 
+int ModuleContinueApp()
+{
+	return 0;
+}
 
 void wait_for_triangle()
 {
@@ -74,7 +78,7 @@ void app_plugin_main()
 {
 	int run = 1;
 
-	PSPRadioExport_RequestExclusiveAccess();
+	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 
 	while (run == 1)
 	{
