@@ -54,21 +54,29 @@ typedef struct
 extern WINDOW* stdscr;
 extern int COLS, LINES;
 
-#define KEY_DOWN 	'd'
-#define KEY_UP 		'u'
-#define KEY_LEFT	'l'
-#define KEY_RIGHT	'r'
-#define KEY_HOME 0406
-#define KEY_BACKSPACE '<'
+#define KEY_DOWN 	1
+#define KEY_UP 		2
+#define KEY_LEFT	3
+#define KEY_RIGHT	4
+#define KEY_HOME    5
+#define KEY_BACKSPACE 6
 /* #define KEY_F0 0410 */
 /* #define KEY_F(x) (KEY_F0 + (x)) */
-#define KEY_DC 0512
-#define KEY_IC 0513
-#define KEY_NPAGE 	'R'
-#define KEY_PPAGE 	'L'
-#define KEY_ENTER 	'X'
-#define KEY_CANCEL 	'S'
-#define KEY_END 0550
+#define KEY_DC 		7
+#define KEY_IC 		8
+#define KEY_NPAGE 	9
+#define KEY_PPAGE 	10
+#define KEY_ENTER 	11
+#define KEY_CANCEL 	12
+#define KEY_END 	13
+#define KEY_PSP_SELECT 14
+#define KEY_PSP_START 	15
+#define KEY_PSP_SQUARE  KEY_CANCEL
+#define KEY_PSP_CIRCLE  16
+#define KEY_PSP_CROSS   KEY_ENTER
+#define KEY_PSP_TRIANGLE 17
+#define KEY_PSP_LTRIGGER 18
+#define KEY_PSP_RTRIGGER 19
 #define KEY_MOUSE 0631 /* CHECKME! */
 #define KEY_RESIZE 0632 /* CHECKME! */
 

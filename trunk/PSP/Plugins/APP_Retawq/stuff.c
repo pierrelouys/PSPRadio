@@ -1072,51 +1072,51 @@ ssize_t my_read(int fd, void* buf, size_t count)
 				}
 				else if (oldButtonMask & PSP_CTRL_DOWN)
 				{
-					*key = 'd';
+					*key = KEY_DOWN;
 				}
 				else if (oldButtonMask & PSP_CTRL_UP)
 				{
-					*key = 'u';
+					*key = KEY_UP;
 				}
 				else if (oldButtonMask & PSP_CTRL_LEFT)
 				{
-					*key = 'l';
+					*key = KEY_LEFT;
 				}
 				else if (oldButtonMask & PSP_CTRL_RIGHT)
 				{
-					*key = 'r';
+					*key = KEY_RIGHT;
 				}
 				else if (oldButtonMask & PSP_CTRL_LTRIGGER)
 				{
-					*key = 'L';
+					*key = KEY_PSP_LTRIGGER;
 				}
 				else if (oldButtonMask & PSP_CTRL_RTRIGGER)
 				{
-					*key = 'R';
+					*key = KEY_PSP_RTRIGGER;
 				}
 				else if (oldButtonMask & PSP_CTRL_CROSS)
 				{
-					*key = 'X';
+					*key = KEY_PSP_CROSS;
 				}
 				else if (oldButtonMask & PSP_CTRL_SQUARE)
 				{
-					*key = 'S';
+					*key = KEY_PSP_SQUARE;
 				}
 				else if (oldButtonMask & PSP_CTRL_TRIANGLE)
 				{
-					*key = 'T';
+					*key = KEY_PSP_TRIANGLE;
 				}
 				else if (oldButtonMask & PSP_CTRL_CIRCLE)
 				{
-					*key = 'O';
+					*key = KEY_PSP_CIRCLE;
 				}
 				else if (oldButtonMask & PSP_CTRL_START)
 				{
-					*key = 's';
+					*key = KEY_PSP_START;
 				}
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
-					*key = 'e';
+					*key = KEY_PSP_SELECT;
 				}
 				else
 				{
