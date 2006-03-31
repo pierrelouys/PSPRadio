@@ -60,7 +60,9 @@
 			m_UI = NULL;
 			m_ScreenHandler = NULL;
 			m_strCWD = NULL;
-			m_ExclusiveAccessPluginType = (plugin_type)-1;
+			#ifdef DYNAMIC_BUILD
+				m_ExclusiveAccessPluginType = (plugin_type)-1;
+			#endif
 		};
 		
 		int Setup(int argc, char **argv);

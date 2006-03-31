@@ -61,6 +61,7 @@ char *PSPRadioExport_GetMyIP()
 	return gPSPRadio->GetMyIP();
 }
 
+#ifdef DYNAMIC_BUILD
 void PSPRadioExport_RequestExclusiveAccess(plugin_type type)
 {
 	if (gPSPRadio->GetUI())
@@ -70,6 +71,7 @@ void PSPRadioExport_RequestExclusiveAccess(plugin_type type)
 	gPSPRadio->StopKeyLatch(PSP_CTRL_START | PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER);
 	gPSPRadio->SetExclusiveAccessPluginType(type);
 }
+#endif
 
 void PSPRadioExport_GiveUpExclusiveAccess()
 {

@@ -3,7 +3,6 @@
 
 	#include <Logging.h>
 
-	#ifdef DYNAMIC_BUILD
 		typedef enum 
 		{
 			PLUGIN_UI,
@@ -12,7 +11,6 @@
 			/** This has to be the last */
 			NUMBER_OF_PLUGINS,
 		}plugin_type;
-	#endif
 
 
 	#ifdef STAND_ALONE_APP
