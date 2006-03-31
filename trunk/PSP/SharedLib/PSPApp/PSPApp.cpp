@@ -165,8 +165,6 @@ int CPSPApp::Run()
 
 	Log(LOG_INFO, "Run(): Going into main loop.");
 
-	
-	
 	sceCtrlSetSamplingCycle(0);
 	while (false == m_Exit)
 	{

@@ -162,7 +162,7 @@
 		char *m_strProgramName, *m_strVersionNumber;
 		bool m_Polling;
 		CPSPThread *m_thCallbackSetup;
-		bool m_StopKeyLatch;
+		volatile bool m_StopKeyLatch;
 		unsigned int  m_KeyComboToResumeKeyLatch;
 		
 		/** Networking */
