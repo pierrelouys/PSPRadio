@@ -72,7 +72,7 @@ Files=GraphicsUI.cpp/GraphicsUI.h/GraphicsUIDefines.h/GraphicsUITheme.cpp/Graphi
 
 [Dir Plugins/UI_Text]
 Dirs=
-Files=LocalFilesScreen.cfg/LocalFilesScreen.png/main.cpp/Makefile/OptionsScreen.cfg/OptionsScreen.png/PlaylistScreen.cfg/PlayListScreen.png/SHOUTcastScreen.cfg/SHOUTcastScreen.png/TextUI.cpp/TextUI.h
+Files=LocalFilesScreen.cfg/LocalFilesScreen.png/main.cpp/Makefile/OptionsScreen.cfg/OptionsScreen.png/PlaylistScreen.cfg/PlayListScreen.png/SHOUTcastScreen.cfg/SHOUTcastScreen.png/TextUI.cpp/TextUI.h/OptionsPluginScreen.cfg
 
 [Dir Plugins/UI_Text3D]
 Dirs=Graphics
