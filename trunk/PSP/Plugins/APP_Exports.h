@@ -8,6 +8,7 @@
 
 		int module_stop(int args, void *argp);
 		int ModuleStartAPP();
+		int ModuleContinueApp();
 
 	#ifdef __cplusplus
 	}
