@@ -344,18 +344,22 @@ void do_resolver()
 	char buf[1024];
 	struct in_addr addr;
 	char name[1024];
-
+	u32 err = 0;
+	
 	printf(" Resolver Test (based on pspsdk sample by James F)\n");
 	printf("---------------------------------------------------\n");
 	printf("\n* PSPRadio IP: '%s'\n", PSPRadioExport_GetMyIP());
+	ModuleLog(LOG_INFO, "NetScan Plugin: Resolver Test. PSP IP = %s", PSPRadioExport_GetMyIP());
 
 	do
 	{
 		/* Create a resolver */
 		memset(buf, 0, sizeof(buf));
-		if(sceNetResolverCreate(&rid, buf, 1024) < 0)
+		err = sceNetResolverCreate(&rid, buf, 1024);
+		if(err < 0)
 		{
 			printf(">> Error creating resolver <<\n");
+			ModuleLog(LOG_ERROR, "NetScan Plugin: Resolver Test. Error creating Resolver. PSPIP='%s' Err=0x%x", PSPRadioExport_GetMyIP(), err);
 			break;
 		}
 
@@ -363,9 +367,11 @@ void do_resolver()
 
 		/* Resolve a name to an ip address */
 		memset(&addr, 0, sizeof(addr));
-		if(sceNetResolverStartNtoA(rid, RESOLVE_NAME, &addr, 2, 3) < 0)
+		err = sceNetResolverStartNtoA(rid, RESOLVE_NAME, &addr, 2, 3);
+		if(err < 0)
 		{
 			printf(">> Error resolving %s <<\n", RESOLVE_NAME);
+			ModuleLog(LOG_ERROR, "NetScan Plugin: Resolver Test. Failure resolving hostname. PSPIP='%s' Err=0x%x", PSPRadioExport_GetMyIP(), err);
 			break;
 		}
 
@@ -373,12 +379,16 @@ void do_resolver()
 
 		/* Resolve the ip address to a name */
 		memset(name, 0, 1024);
-		if(sceNetResolverStartAtoN(rid, &addr, name, 1024, 2, 3) < 0)
+		err = sceNetResolverStartAtoN(rid, &addr, name, 1024, 2, 3);
+		if(err < 0)
 		{
 			printf("Error resolving ip to name\n");
+			ModuleLog(LOG_ERROR, "NetScan Plugin: Resolver Test. Failure resolving ip back to name. PSPIP='%s' Err=0x%x", PSPRadioExport_GetMyIP(), err);
 			break;
 		}
 
+		ModuleLog(LOG_INFO, "NetScan Plugin: Resolver Test. Success: Hostname='%s' resolved to IP='%s' resolved to '%s'",
+				RESOLVE_NAME, inet_ntoa(addr), name);
 		printf("* Resolved ip to '%s'\n", name);
 	}
 	while(0);
