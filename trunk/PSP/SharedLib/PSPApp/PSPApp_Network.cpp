@@ -187,11 +187,24 @@ void CPSPApp::DisableNetwork()
 
 int CPSPApp::GetNumberOfNetworkProfiles()
 {
-	int iNumProfiles = 0;
-	while (sceUtilityCheckNetParam(iNumProfiles++) == 0)
-	{};
+	int iNumProfiles = 0, blank_found = 0;
+	for( int i = 0; i < 100; i++)
+	{
+		/** Updated to not stop immediately when a non-zero value is found -- idea by danzel (forums.ps2dev.org/viewtopic.php?t=5349) */
+		if (sceUtilityCheckNetParam(i) == 0)
+		{
+			iNumProfiles++;
+		}
+		else
+		{
+			/** If we found 5 invalid ones in a row, we assume we're done, and stop enumeration */
+			blank_found++;
+			if (blank_found > 5)
+				break;
+		}
+	}
 
-	return iNumProfiles - 1;
+	return iNumProfiles;
 }
 
 void CPSPApp::GetNetworkProfileName(int iProfile, char *buf, size_t size)
