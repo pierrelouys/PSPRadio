@@ -1037,6 +1037,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 					/* Enter input */
 					g_InputMethod = falsE;
 					PSPInputHandlerEnd();
+					window_redraw_all();
 				}
 				else
 				{
@@ -1062,6 +1063,14 @@ ssize_t my_read(int fd, void* buf, size_t count)
 						/* Enter input */
 						g_InputMethod = truE;
 						PSPInputHandlerStart();
+					}
+					else if ( (oldButtonMask & PSP_CTRL_DOWN) && (oldButtonMask & PSP_CTRL_CIRCLE))
+					{
+						*key = KEY_PSP_CIRCLE_PLUS_DOWN;
+					}
+					else if ( (oldButtonMask & PSP_CTRL_UP) && (oldButtonMask & PSP_CTRL_CIRCLE))
+					{
+						*key = KEY_PSP_CIRCLE_PLUS_UP;
 					}
 					else if (oldButtonMask & PSP_CTRL_DOWN)
 					{
@@ -1111,6 +1120,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 					{
 						*key = KEY_PSP_SELECT;
 					}
+					oldButtonMask = 0;
 				}
 			}
 		}

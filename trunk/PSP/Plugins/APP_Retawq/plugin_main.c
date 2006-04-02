@@ -54,7 +54,8 @@ int ModuleContinueApp()
 {
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 	pspDebugScreenInit();
-	printf("Press SQUARE");
+	//printf("Press SQUARE");
+	window_redraw_all();
 	g_PSPDisableInput = falsE;
 	return 0;
 }

@@ -3725,7 +3725,28 @@ static one_caller void fetch_about(tResourceRequest* request)
 
 #if PSP == 1
 
-    my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p>PSP Port by Raf. This port is a plugin for PSPRadio. <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n"));
+    my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p>PSP Port by Raf. This port is a plugin for PSPRadio. Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n"));
+	
+    resource_collect_str(resource, spfbuf);
+    my_spf_cleanup(strbuf, spfbuf);
+
+	/** Google search Start */
+	my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<br><br><center><form method=\"get\" action=\"http://www.google.com/custom\" target=\"google_window\"><table bgcolor=\"#ffffff\"><tr><td nowrap=\"nowrap\" valign=\"top\" align=\"left\" height=\"32\"><input type=\"text\" name=\"q\" size=\"31\" maxlength=\"255\" value=\"\"></input></td></tr><tr><td valign=\"top\" align=\"left\"><input type=\"submit\" name=\"sa\" value=\"Google Search\"></input>"));
+    resource_collect_str(resource, spfbuf);
+    my_spf_cleanup(strbuf, spfbuf);
+	my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<input type=\"hidden\" name=\"client\" value=\"pub-3916941649621652\"></input><input type=\"hidden\" name=\"forid\" value=\"1\"></input><input type=\"hidden\" name=\"channel\" value=\"6751154370\"></input><input type=\"hidden\" name=\"ie\" value=\"ISO-8859-1\"></input><input type=\"hidden\" name=\"oe\" value=\"ISO-8859-1\"></input>"));
+    resource_collect_str(resource, spfbuf);
+    my_spf_cleanup(strbuf, spfbuf);
+	my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<input type=\"hidden\" name=\"cof\" value=\"GALT:#008000;GL:1;DIV:#336699;VLC:663399;AH:center;BGC:FFFFFF;LBGC:336699;ALC:0000FF;LC:0000FF;T:000000;GFNT:0000FF;GIMP:0000FF;FORID:1;\"></input>"));
+    resource_collect_str(resource, spfbuf);
+    my_spf_cleanup(strbuf, spfbuf);
+	my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<input type=\"hidden\" name=\"hl\" value=\"en\"> </input> </td> </tr> </table> </form> </center><br><br>"));
+    resource_collect_str(resource, spfbuf);
+    my_spf_cleanup(strbuf, spfbuf);
+	/** Google Search end */
+	
+	my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p><br><br>PSP Port Tips: <br>Input mode: <b>L+START</b> = Enter. <b>R+START</b> = Exit.<br><b>O+UP</b> = Page up <b>O+Down</b> = Page Down.<br><b>CROSS</b> = Yes / OK / Enter<br><b>SQUARE</b> = No / Cancel<br><b>START</b> = Context Menu. <b>SELECT</b> = Enter URL.<br><b>L</b> = Prev Window. <b>R</b> = Next Window.</p><br><br>\n"));
+
 
 #endif
     if (spfbuf != NULL)

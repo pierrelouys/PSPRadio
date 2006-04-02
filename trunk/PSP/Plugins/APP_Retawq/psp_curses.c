@@ -190,6 +190,34 @@ static char InputTable[PSPIHM_MAX][1][16];
 
 void PSPInputHandler_DisplayButtons();
 
+void ClearInputHandlerWindow()
+{
+	int i;
+	for (i = 10; i <= 26; i++)
+	{
+		pspDebugScreenSetXY(14,i);
+		pspDebugScreenPrintf("                                                     ");
+	}
+}
+
+void DrawInputHandlerWindow()
+{
+	int i;
+	ClearInputHandlerWindow();
+	pspDebugScreenSetXY(10,11);
+	pspDebugScreenPrintf    ("+--------------------------------------+");
+	for (i = 12; i <= 25; i++)
+	{
+		pspDebugScreenSetXY(10,i);
+		pspDebugScreenPrintf("|                                      |");
+	}
+	pspDebugScreenSetXY(10,26);
+	pspDebugScreenPrintf    ("+--------------------------------------+");
+	
+
+
+}
+
 void PSPInputHandlerStart()
 {
 	char string[17];
@@ -206,34 +234,28 @@ void PSPInputHandlerStart()
 	memcpy(InputTable[PSPIHM_NORMAL_4][0], string, 16);
 
 	g_Mode = PSPIHM_NORMAL_1;
+	
+	DrawInputHandlerWindow();
+	
 	PSPInputHandler_DisplayButtons();
-	pspDebugScreenSetXY(25,10);
 						/*12345678901234567890*/
-	pspDebugScreenPrintf("           ");
-	pspDebugScreenSetXY(25,11);
-	pspDebugScreenPrintf("INPUT MODE ");
-	pspDebugScreenSetXY(25,12);
-	pspDebugScreenPrintf("           ");
+	pspDebugScreenSetXY(16,12);
+	pspDebugScreenPrintf("INPUT MODE (R+START To Exit)");
 
 }
 
 void PSPInputHandlerEnd()
 {
-	int i;
-	for (i = 10; i <= 23; i++)
-	{
-		pspDebugScreenSetXY(15,i);
-		pspDebugScreenPrintf("                                                     ");
-	}
-
+	ClearInputHandlerWindow();
 }
+
 
 void PrintAxis(int x, int y, char *str);
 
 void PSPInputHandler_DisplayButtons()
 {
-	pspDebugScreenSetXY(0,13);
-	pspDebugScreenPrintf("                                                     ");
+//	pspDebugScreenSetXY(0,13);
+//	pspDebugScreenPrintf("                                                     ");
 
 	PrintAxis(15,16, InputTable[g_Mode][0]);
 	PrintAxis(35,16, InputTable[g_Mode][0]+8);

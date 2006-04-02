@@ -1643,7 +1643,7 @@ static __my_inline void window_redraw(tWindow* window)
 { window->spec->redraw(window);
 }
 
-static void window_redraw_all(void)
+void window_redraw_all(void)
 /* redraws all visible windows */
 {
 #if TGC_IS_CURSES
@@ -3317,7 +3317,7 @@ static void cm_setup_contextual(short x, short y, tActiveElementNumber _ae)
   if (func != NULL) (func)(window, &x, &y, _ae);
 
 #if PSP == 1
-	cm_add("Bookmarks", cm_handle_command_code, pccGoBookmarks);
+	//cm_add("Bookmarks", cm_handle_command_code, pccGoBookmarks);
 	cm_add("Take Screenshot", cm_handle_command_code, pccPSPTakeScreenshot);
 	cm_add("Switch to PSPRadio", cm_handle_command_code, pccPSPSwitchToPSPRadio);
 	cm_add_separator();
@@ -3831,7 +3831,12 @@ static void lid_prepare_text(const char* text, tLineInputAreaIndex idx)
 static void __line_input_start(/*@notnull@*/ const char* msg,
   const char* initstr, tLineInputCallback func, void* data,
   tLineInputAreaFlags liaf)
-{ tLineInputAreaIndex count = 0, curr;
+{  
+  tLineInputAreaIndex count = 0, curr;
+  
+  PSPInputHandlerStart();
+  g_InputMethod = truE;
+
   my_memclr_var(lid); lid.callback = func; lid.callback_data = data;
   lid_prepare_text(msg, count++);
   if (liaf & liafEditable)
@@ -4781,6 +4786,9 @@ static tBoolean generic_handle_command(tProgramCommandCode code)
 	case pccPSPSwitchToPSPRadio:
 		g_PSPDisableInput = truE;
 		//PSPRadioExport_GiveUpExclusiveAccess(); /** Doesn't work?! */
+		pspDebugScreenInit();
+		pspDebugScreenPrintf("* Press L+R+START *");
+		sleep(10);
 		break;
 #endif
    case pccMenuWindowlist:

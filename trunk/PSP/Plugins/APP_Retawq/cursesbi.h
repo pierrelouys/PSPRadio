@@ -54,31 +54,33 @@ typedef struct
 extern WINDOW* stdscr;
 extern int COLS, LINES;
 
-#define KEY_DOWN 	1
-#define KEY_UP 		2
-#define KEY_LEFT	3
-#define KEY_RIGHT	4
-#define KEY_HOME    5
-#define KEY_BACKSPACE 6
+#define KEY_DOWN 	129
+#define KEY_UP 		130
+#define KEY_LEFT	131
+#define KEY_RIGHT	132
+#define KEY_HOME    133
+#define KEY_BACKSPACE 134
 /* #define KEY_F0 0410 */
 /* #define KEY_F(x) (KEY_F0 + (x)) */
-#define KEY_DC 		7
-#define KEY_IC 		8
-#define KEY_NPAGE 	9
-#define KEY_PPAGE 	10
-#define KEY_ENTER 	11
-#define KEY_CANCEL 	12
-#define KEY_END 	13
-#define KEY_PSP_SELECT 14
-#define KEY_PSP_START 	15
+#define KEY_DC 		135
+#define KEY_IC 		136
+#define KEY_NPAGE 	137
+#define KEY_PPAGE 	138
+#define KEY_ENTER 	139
+#define KEY_CANCEL 	140
+#define KEY_END 	141
+#define KEY_PSP_SELECT 142
+#define KEY_PSP_START 	143
 #define KEY_PSP_SQUARE  KEY_CANCEL
-#define KEY_PSP_CIRCLE  16
+#define KEY_PSP_CIRCLE  145
 #define KEY_PSP_CROSS   KEY_ENTER
-#define KEY_PSP_TRIANGLE 17
-#define KEY_PSP_LTRIGGER 18
-#define KEY_PSP_RTRIGGER 19
-#define KEY_MOUSE 0631 /* CHECKME! */
-#define KEY_RESIZE 0632 /* CHECKME! */
+#define KEY_PSP_TRIANGLE 146
+#define KEY_PSP_LTRIGGER 147
+#define KEY_PSP_RTRIGGER 148
+#define KEY_PSP_CIRCLE_PLUS_DOWN KEY_NPAGE
+#define KEY_PSP_CIRCLE_PLUS_UP KEY_PPAGE
+#define KEY_MOUSE 149 /* CHECKME! */
+#define KEY_RESIZE 150 /* CHECKME! */
 
 extern WINDOW* initscr(void);
 
