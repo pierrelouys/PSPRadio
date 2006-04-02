@@ -3673,7 +3673,7 @@ static void filesel_handle(GtkFileSelection* widget __cunused, gpointer _data)
 
 #else /* #if TGC_IS_GRAPHICS */
 
-static void line_input_redraw(void)
+void line_input_redraw(void)
 { tLineInputAreaIndex count;
   for (count = 0; count < lid.num_areas; count++)
   { tLineInputArea* lia = &(lid.area[count]);

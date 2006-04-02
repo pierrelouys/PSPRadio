@@ -1039,6 +1039,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 					g_InputMethod = falsE;
 					PSPInputHandlerEnd();
 					window_redraw_all();
+					line_input_redraw();
 				}
 				else
 				{
