@@ -3834,14 +3834,16 @@ static void __line_input_start(/*@notnull@*/ const char* msg,
 {  
   tLineInputAreaIndex count = 0, curr;
   
-  PSPInputHandlerStart();
-  g_InputMethod = truE;
-
   my_memclr_var(lid); lid.callback = func; lid.callback_data = data;
   lid_prepare_text(msg, count++);
   if (liaf & liafEditable)
   { if (initstr != NULL) lid_prepare_text(initstr, count);
     count++;
+	
+	/** Only do this for editable text fields */
+	PSPInputHandlerStart();
+	g_InputMethod = truE;
+
   }
   curr = count - 1; lid.area[curr].flags = liaf; lid.curr = curr;
   lid.num_areas = count; key_handling_mode = khmLineInput;

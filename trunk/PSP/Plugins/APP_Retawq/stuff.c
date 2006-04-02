@@ -1017,6 +1017,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 		char *key = (char*)buf;
 		*key = 0;
 		retval = 1;
+		static int oldButtonMask = 0;
 		
 		sceDisplayWaitVblankStart();
 
@@ -1043,10 +1044,10 @@ ssize_t my_read(int fd, void* buf, size_t count)
 				{
 					PSPInputHandler(pad, key);
 				}
+				oldButtonMask = 0;
 			}
 			else
 			{
-				static int oldButtonMask = 0;
 				SceCtrlLatch latch; 
 				sceCtrlReadLatch(&latch);
 				

@@ -59,24 +59,24 @@ extern int COLS, LINES;
 #define KEY_LEFT	131
 #define KEY_RIGHT	132
 #define KEY_HOME    133
-#define KEY_BACKSPACE 134
+#define KEY_BACKSPACE 8
 /* #define KEY_F0 0410 */
 /* #define KEY_F(x) (KEY_F0 + (x)) */
 #define KEY_DC 		135
 #define KEY_IC 		136
 #define KEY_NPAGE 	137
 #define KEY_PPAGE 	138
-#define KEY_ENTER 	139
-#define KEY_CANCEL 	140
+#define KEY_ENTER 	10
+#define KEY_CANCEL 	27
 #define KEY_END 	141
-#define KEY_PSP_SELECT 142
-#define KEY_PSP_START 	143
+#define KEY_PSP_SELECT 6
+#define KEY_PSP_START 	5
 #define KEY_PSP_SQUARE  KEY_CANCEL
 #define KEY_PSP_CIRCLE  145
 #define KEY_PSP_CROSS   KEY_ENTER
 #define KEY_PSP_TRIANGLE 146
-#define KEY_PSP_LTRIGGER 147
-#define KEY_PSP_RTRIGGER 148
+#define KEY_PSP_LTRIGGER 28
+#define KEY_PSP_RTRIGGER 29
 #define KEY_PSP_CIRCLE_PLUS_DOWN KEY_NPAGE
 #define KEY_PSP_CIRCLE_PLUS_UP KEY_PPAGE
 #define KEY_MOUSE 149 /* CHECKME! */

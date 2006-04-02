@@ -397,6 +397,7 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 				//printf("key = %c ", *key);
 			}
 		}
+		bm = 0;
 	}
 
 	return retval;
