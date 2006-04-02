@@ -1,5 +1,11 @@
 What's New for PSPRadio 
 ========================
+
+0.38.09 (r) (2006-04-x)
+NEW FEATURES
+BUG FIXES
+(raf) Core: Networking. Network profile enumeration code modification. Based on idea from Danzel from ps2dev forums. This may help people who's profile wasn't showing up.
+
 0.38.08 (r990) (2006-03-31)
 NEW FEATURES
 (raf) Dyn/UI Plugins: Implemented albadross idea to use the plugin name to load configuration files. This allows to select different skins via the plugin menu. (Implemented for Text and Text3D plugins). (r930)
