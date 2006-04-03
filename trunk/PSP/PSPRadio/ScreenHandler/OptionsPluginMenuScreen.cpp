@@ -319,8 +319,11 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 			}
 			else
 			{
-				m_UI->DisplayMessage("Continuing Plugin. . .");
-				ModuleContinueApp();
+				if (iSelectionBase0 > 0)
+				{
+					m_UI->DisplayMessage("Continuing Plugin. . .");
+					ModuleContinueApp();
+				}
 			}
 			break;
 	}
