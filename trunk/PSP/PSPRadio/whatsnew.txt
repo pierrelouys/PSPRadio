@@ -5,6 +5,7 @@ What's New for PSPRadio
 NEW FEATURES
 BUG FIXES
 (raf) Core: Networking. Network profile enumeration code modification. Based on idea from Danzel from ps2dev forums. This may help people who's profile wasn't showing up.
+(raf) Dyn/Core: No longer tries to 'continue' a plugin if 'Off' is selected.
 
 0.38.08 (r990) (2006-03-31)
 NEW FEATURES
