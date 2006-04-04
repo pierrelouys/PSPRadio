@@ -29,7 +29,7 @@
 
 #include "PSPRadio_Exports.h"
 
-#define PSPRADIO_VERSION	"0.38.08"
+#define PSPRADIO_VERSION	"0.38.081"
 
 #define CFG_FILENAME		"PSPRadio.cfg"
 

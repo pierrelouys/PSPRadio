@@ -255,6 +255,7 @@ int CPSPRadio::ProcessEvents()
 	IScreen *CurrentScreen = NULL; //(PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
 	IScreen *StreamOwnerScreen = NULL;
 
+	Log(LOG_VERYLOW, "ProcessEvents() Called.");
 	for (;;)
 	{
 		//Log(LOG_VERYLOW, "ProcessMessages()::Calling Receive. %d Messages in Queue", m_EventToPSPApp->Size());

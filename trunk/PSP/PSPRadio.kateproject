@@ -87,7 +87,7 @@ Dirs=
 Files=main.cpp/Makefile/main.c
 
 [Dir SharedLib]
-Dirs=Logging/libiniparser/PSPApp/Tools
+Dirs=Logging/libiniparser/PSPApp/Tools/pthread
 Files=Makefile
 
 [Dir SharedLib/Logging]
@@ -117,6 +117,10 @@ Files=in.h/ip.h/tcp.h/tcpip.h/udp.h
 [Dir SharedLib/libpspnet/sys]
 Dirs=
 Files=socket.h
+
+[Dir SharedLib/pthread]
+Dirs=
+Files=Makefile/pthread.c/pthread.h
 
 [Dir prxtest]
 Dirs=prx_loader/testprx
