@@ -75,6 +75,8 @@ void PSPRadioExport_RequestExclusiveAccess(plugin_type type)
 
 void PSPRadioExport_GiveUpExclusiveAccess()
 {
+	gPSPRadio->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
+#if 0
 	if (gPSPRadio->GetUI())
 	{
 		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
@@ -82,6 +84,7 @@ void PSPRadioExport_GiveUpExclusiveAccess()
 		gPSPRadio->GetScreenHandler()->GetCurrentScreen()->Activate(gPSPRadio->GetScreenHandler()->GetCurrentUIPtr());
 	}
 	gPSPRadio->StartKeyLatch();
+#endif
 }
 
 char *PSPRadioExport_GetVersion()

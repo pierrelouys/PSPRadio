@@ -35,6 +35,13 @@
 
 #define PLUGIN_OFF_STRING	"Off"
 
+
+/** Sender IDs */
+#define SID_PSPRADIO			0x00000001
+#define SID_SCREENHANDLER		0x00000002
+
+#define MID_GIVEUPEXCLISIVEACCESS	0x00000001
+
 #ifdef __cplusplus
 	extern CScreen *rootScreen;
 	

@@ -280,7 +280,8 @@ int CPSPRadio::ProcessEvents()
 			/** Don't log buffer messages, or percent update messages, or we the queue backs up while playing */
 			Log(LOG_VERYLOW, "*ProcessMessages()*::Receive Ret=%d. eventid=0x%08x.", rret, event.EventId);
 		}
-		if (SID_PSPAPP == event.SenderId)
+
+		if (event.SenderId == SID_PSPAPP)
 		{
 			switch (event.EventId)
 			{
@@ -311,6 +312,23 @@ int CPSPRadio::ProcessEvents()
 		//	[
 		//	case ERROR
 		//case SID_PSPSOUND:
+		case SID_PSPRADIO:
+			{
+				switch (event.EventId)
+				{
+				case MID_GIVEUPEXCLISIVEACCESS:
+					if (GetUI())
+					{
+						GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
+						/** Re-draw the current screen */
+						GetScreenHandler()->GetCurrentScreen()->Activate(GetScreenHandler()->GetCurrentUIPtr());
+					}
+					StartKeyLatch();
+					break;
+				}
+			}
+			break;
+
 		case SID_SCREENHANDLER:
 			switch(event.EventId)
 			{

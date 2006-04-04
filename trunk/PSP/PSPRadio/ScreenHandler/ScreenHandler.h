@@ -21,9 +21,6 @@
 		EID_EXIT_SELECTED
 	}EventIDsFromScreenHandlerToPSPRadio;
 
-	/** Sender IDs */
-	#define SID_SCREENHANDLER		0x00000001
-
 	typedef enum 
 	{
 		PLAYSTATE_PLAY,

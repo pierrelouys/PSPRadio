@@ -30,6 +30,7 @@
 #include <pspwlan.h>
 #include <psppower.h>
 #include <UI_Interface.h>
+#include "PSPRadio.h"
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "OptionsScreen.h"
