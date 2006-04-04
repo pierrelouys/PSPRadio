@@ -10,6 +10,8 @@
 
 	#include "cursesbi.h"
 
+	void PSPPutch(char ch);
+
 	int pipe_open(int *fdpair);
 	int pipe_close(int *fdpair);
 	int pipe_read(int fd, void *buf, size_t len);
@@ -22,7 +24,10 @@
 	int PSPInputHandler(SceCtrlData pad, char *key);
 
 	extern tBoolean g_InputMethod;
-	extern volatile tBoolean g_PSPDisableInput;
+	extern volatile tBoolean g_PSPEnableRendering;
+	extern volatile tBoolean g_PSPEnableInput;
+
+
 	///thread:
 	#include <pspkernel.h>
 	#include <pspkerneltypes.h>

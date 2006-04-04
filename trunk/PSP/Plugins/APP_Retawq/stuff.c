@@ -1021,7 +1021,7 @@ ssize_t my_read(int fd, void* buf, size_t count)
 		
 		sceDisplayWaitVblankStart();
 
-		if ( g_PSPDisableInput == falsE )
+		if ( g_PSPEnableInput == truE )
 		{
 	#if 0
 			SceCtrlData pad;

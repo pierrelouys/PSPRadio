@@ -12,7 +12,7 @@
 #include <pspdebug.h>
 #include <pspdisplay.h>
 
-#define printf pspDebugScreenPrintf
+//#define printf pspDebugScreenPrintf
 
 
 declare_local_i18n_buffer
@@ -50,7 +50,7 @@ static my_inline void refreshbuf_append_ch(const char ch)
 		refreshbuf_flush();
 	}
   	refreshbuf[refreshbuf_used++] = ch;
-	printf("%c", ch);
+	PSPPutch(ch);
 }
 
 static void refreshbuf_append_str(const char* str)
@@ -197,7 +197,7 @@ WINDOW* __init initscr(void)
   my_spf(strbuf, STRBUF_SIZE, &filename, "%s%s%c/%s", termpath,
     (need_slash ? strSlash : strEmpty), ch, termname);
   debugmsg("filename=*"); debugmsg(filename); debugmsg("*\n");
-  printf("temfile = '%s'\n", filename);
+  //printf("temfile = '%s'\n", filename);
   if (my_mmap_file_readonly(filename, &filebuf, &filesize) != 2)
   { bad: fatal_error(0, _("bad terminfo file")); }
   my_spf_cleanup(strbuf, filename);

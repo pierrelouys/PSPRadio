@@ -4786,11 +4786,12 @@ static tBoolean generic_handle_command(tProgramCommandCode code)
 		PSPRadioExport_TakeScreenShot();
 		break;
 	case pccPSPSwitchToPSPRadio:
-		g_PSPDisableInput = truE;
-		//PSPRadioExport_GiveUpExclusiveAccess(); /** Doesn't work?! */
-		pspDebugScreenInit();
-		pspDebugScreenPrintf("* Press L+R+START *");
-		sleep(10);
+		g_PSPEnableInput = falsE;
+		g_PSPEnableRendering = falsE;
+		PSPRadioExport_GiveUpExclusiveAccess();
+		//pspDebugScreenInit();
+		//pspDebugScreenPrintf("* Press L+R+START *");
+		//sleep(10);
 		break;
 #endif
    case pccMenuWindowlist:

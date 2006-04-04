@@ -12,7 +12,17 @@
 #define PSP_SCREEN_WIDTH 480
 #define PSP_SCREEN_HEIGHT 272
 
-volatile tBoolean g_PSPDisableInput = falsE;
+volatile tBoolean g_PSPEnableRendering = truE;
+volatile tBoolean g_PSPEnableInput = truE;
+
+
+void PSPPutch(char ch)
+{
+	if (g_PSPEnableRendering == truE)
+	{
+		printf("%c", ch);
+	}
+}
 
 int env_termsize(int *x, int *y)
 {
