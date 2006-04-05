@@ -162,10 +162,24 @@ int CPSPApp::Run()
 	CPSPKeyHandler::KeyEvent event;
 	int newBatteryStatus;
 	u16 oldMinute;
+	bool bHPRMAvailable = true;
 
+	if (sceKernelDevkitVersion() == 0x02060010)
+	{
+		Log(LOG_INFO, "Run(): Firmware 2.6 detected, disabling HPRM polling.");
+		bHPRMAvailable = false;
+	}
+//	Log(LOG_VERYLOW, "Run(): Calling sceCtrlSetSamplingCycle(0)");
+//	sceCtrlSetSamplingCycle(0);
+//	Log(LOG_VERYLOW, "Run(): Testing sceHprmIsRemoteExist()");
+//	Log(LOG_VERYLOW, "Run(): Testing sceHprmIsRemoteExist() returns 0x%x", sceHprmIsRemoteExist());
+//	Log(LOG_VERYLOW, "Run(): Calling sceDisplayWaitVblankStart()");
+//	sceDisplayWaitVblankStart();
+//	Log(LOG_VERYLOW, "Run(): Testing sceRtcGetCurrentClockLocalTime(&m_LocalTime)");
+//	Log(LOG_VERYLOW, "Run(): Testing sceRtcGetCurrentClockLocalTime(&m_LocalTime) returns 0x%x",
+//	sceRtcGetCurrentClockLocalTime(&m_LocalTime));
+		
 	Log(LOG_INFO, "Run(): Going into main loop.");
-
-	sceCtrlSetSamplingCycle(0);
 	while (false == m_Exit)
 	{
 		sceDisplayWaitVblankStart();
@@ -233,15 +247,19 @@ int CPSPApp::Run()
 			OnAnalogueStickChange(m_pad.Lx, m_pad.Ly);
 		}
 */
-		if (sceHprmIsRemoteExist())
+		
+		if (bHPRMAvailable == true)
 		{
-			sceHprmReadLatch(&hprmlatch);
-			if (hprmlatch != 0x00)
+			if (sceHprmIsRemoteExist())
 			{
-				/**hprm latch needs to be sent by value, if sent by reference, then it can lose scope before it
-				can be handled -- this because events are asynchronous */
-				SendEvent(MID_ONHPRM_RELEASED, (void*)hprmlatch);
-				Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
+				sceHprmReadLatch(&hprmlatch);
+				if (hprmlatch != 0x00)
+				{
+					/**hprm latch needs to be sent by value, if sent by reference, then it can lose scope before it
+					can be handled -- this because events are asynchronous */
+					SendEvent(MID_ONHPRM_RELEASED, (void*)hprmlatch);
+					Log(LOG_VERYLOW, "HPRM latch = %04x\n", hprmlatch);
+				}
 			}
 		}
 	}
