@@ -9,7 +9,7 @@ BUG FIXES
 (raf) Dyn/Core: No longer tries to 'continue' a plugin if 'Off' is selected.
 (raf) Dyn/Core: Now plugin giveup access code is better handled. Retawq can switch to pspradio now seamlessly. (Select the running plugin again to return to the plugin.)
 (raf/ditlew) Core: If F/W 2.6 is detected, don't poll for HPRM. This allows PSPRadio to work on 2.6 via eLoader.
-(raf) Core: On exit, just call the game exit syscall. This may prevent the app from crashing on 2.6.
+(raf) Core: On exit, just call the game exit syscall. This may prevent the app from crashing when on eLoader. (It still hangs on 2.6)
 
 0.38.08 (r990) (2006-03-31)
 NEW FEATURES
