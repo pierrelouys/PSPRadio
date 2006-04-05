@@ -232,6 +232,10 @@ void CPSPRadio::OnExit()
 	rootScreen->SetBackgroundImage("Shutdown.png");
 	rootScreen->Clear();
 
+	Log(LOG_INFO, "Exiting. The end. -- Calling sceKernelExitGame");
+	sceKernelExitGame();
+
+#if 0 /** sceKernelExitGame() always works, so we call that, the OS will do the cleanup for us. */
 	if (m_Sound)
 	{
 		Log(LOG_VERYLOW, "Exiting. Destroying m_Sound object");
@@ -267,6 +271,7 @@ void CPSPRadio::OnExit()
 	}
 
 	Log(LOG_VERYLOW, "Exiting. The end.");
+#endif 
 }
 
 int CPSPRadio::ProcessEvents()
@@ -737,7 +742,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 		char strModulePath[MAXPATHLEN+1];
 		char cwd[MAXPATHLEN+1];
 		
-		if (type < NUMBER_OF_PLUGINS)
+		if (type < NUMBER_OF_PLUGIN_TYPES)
 		{
 		
 			if (m_ModuleLoader[type]->IsLoaded() == true)
@@ -788,7 +793,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 					case PLUGIN_APP:
 						ModuleStartAPP();
 						break;
-					case NUMBER_OF_PLUGINS: /**Not a real case */
+					case NUMBER_OF_PLUGIN_TYPES: /**Not a real case */
 						break;
 				}
 		

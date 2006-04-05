@@ -29,7 +29,7 @@
 
 #include "PSPRadio_Exports.h"
 
-#define PSPRADIO_VERSION	"0.38.081"
+#define PSPRADIO_VERSION	"0.38.082"
 
 #define CFG_FILENAME		"PSPRadio.cfg"
 
@@ -94,7 +94,7 @@
 		void SetExclusiveAccessPluginType(plugin_type type) { m_ExclusiveAccessPluginType = type; }
 
 	private:
-		CPRXLoader *m_ModuleLoader[NUMBER_OF_PLUGINS];
+		CPRXLoader *m_ModuleLoader[NUMBER_OF_PLUGIN_TYPES];
 		plugin_type m_ExclusiveAccessPluginType;
 	#endif
 	
