@@ -72,8 +72,7 @@
 			#endif
 		};
 		
-		int Setup(int argc, char **argv);
-		int ProcessEvents();
+		int Main(int argc, char **argv);
 		
 		CIniParser *GetConfig(){return m_Config;}
 		IPSPRadio_UI *GetUI() { return m_UI; }
@@ -82,6 +81,9 @@
 		void TakeScreenShot();
 	
 	private:
+		int Setup(int argc, char **argv);
+		int ProcessEvents();
+		
 		char *ScreenshotName(char *path);
 		void  ScreenshotStore(char *filename);
 	

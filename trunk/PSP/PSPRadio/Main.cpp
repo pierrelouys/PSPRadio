@@ -43,21 +43,7 @@ int main(int argc, char **argv)
 	gPSPRadio = new CPSPRadio();
 	if (gPSPRadio)
 	{
-		gPSPRadio->Setup(argc, argv);
-		Log(LOG_INFO, "PSPRadio() Main, Calling ProcessEvents()");
-		for (int i = 0; i < argc ; i++)
-		{
-			if (i == 3)
-			{
-				Log(LOG_ALWAYS, "TEXT_ADDR: PSPRadio.prx: Main(Arg %d)='%s'", i, argv[i]); /** Log text address for debugging */
-			}
-			else
-			{
-				Log(LOG_LOWLEVEL, "Main(Arg %d)='%s'", i, argv[i]);
-			}
-		}
-		
-		gPSPRadio->ProcessEvents();
+		gPSPRadio->Main(argc, argv);
 
 		delete(gPSPRadio); gPSPRadio = NULL;
 	}

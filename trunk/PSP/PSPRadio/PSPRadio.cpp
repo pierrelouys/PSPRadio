@@ -22,11 +22,21 @@
 
 CScreen *rootScreen;
 
+int CPSPRadio::Main(int argc, char **argv)
+{
+	Setup(argc, argv);
+	
+	Log(LOG_VERYLOW, "Main(): this=%p", this);
+	Log(LOG_INFO, "PSPRadio() Main, Calling ProcessEvents()");
+	ProcessEvents();
+	
+	return 0;
+}
+
 /** Setup */
 int CPSPRadio::Setup(int argc, char **argv)
 {
 	/** open config file */
-//	char *strDir = NULL;
 	char strAppTitle[140];
 
 	sprintf(strAppTitle, "%s", GetProgramVersion());
@@ -41,8 +51,22 @@ int CPSPRadio::Setup(int argc, char **argv)
 
 	Setup_Logging(m_strCWD);
 
+	Log(LOG_VERYLOW, "Main(): this=%p", this);
+
 #ifdef DYNAMIC_BUILD
-	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
+	for (int i = 0; i < argc ; i++)
+	{
+		if (i == 3)
+		{
+			Log(LOG_ALWAYS, "TEXT_ADDR: PSPRadio.prx: Main(Arg %d)='%s'", i, argv[i]); /** Log text address for debugging */
+		}
+		else
+		{
+			Log(LOG_LOWLEVEL, "Main(Arg %d)='%s'", i, argv[i]);
+		}
+	}
+	
+	for (int i = 0 ; i < NUMBER_OF_PLUGIN_TYPES; i++)
 	{
 		m_ModuleLoader[i] = NULL;
 		m_ModuleLoader[i] = new CPRXLoader();
@@ -79,9 +103,6 @@ int CPSPRadio::Setup(int argc, char **argv)
 	m_UI->SetTitle(strAppTitle);
 	m_UI->DisplayMainCommands();
 
-
-	Log(LOG_VERYLOW, "StartPolling()");
-	StartPolling();
 
 	Log(LOG_LOWLEVEL, "Exiting Setup()");
 
@@ -255,7 +276,11 @@ int CPSPRadio::ProcessEvents()
 	IScreen *CurrentScreen = NULL; //(PlayListScreen *)m_ScreenHandler->GetCurrentScreen();
 	IScreen *StreamOwnerScreen = NULL;
 
-	Log(LOG_VERYLOW, "ProcessEvents() Called.");
+	Log(LOG_VERYLOW, "ProcessEvents(): Starts.");
+	
+	Log(LOG_VERYLOW, "ProcessEvents(): StartPolling()");
+	StartPolling();
+
 	for (;;)
 	{
 		//Log(LOG_VERYLOW, "ProcessMessages()::Calling Receive. %d Messages in Queue", m_EventToPSPApp->Size());

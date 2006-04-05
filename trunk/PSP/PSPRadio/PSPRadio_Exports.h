@@ -9,7 +9,7 @@
 			PLUGIN_FSS,
 			PLUGIN_APP,
 			/** This has to be the last */
-			NUMBER_OF_PLUGINS,
+			NUMBER_OF_PLUGIN_TYPES,
 		}plugin_type;
 
 
