@@ -41,8 +41,8 @@ stand_alone:
 
 install:
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-#	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
-#	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf tips.html $(KXPLOIT_PRIMARY)/$(TARGET)
 #	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)

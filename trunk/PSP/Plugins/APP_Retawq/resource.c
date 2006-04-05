@@ -3720,6 +3720,8 @@ static one_caller void fetch_about(tResourceRequest* request)
 #endif
 
     my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p>Currently using <a href=\"http://directory.fsf.org/ncurses.html\">ncurses</a> library version \"%s\".</p>\n"), my_curses_version);
+    resource_collect_str(resource, spfbuf);
+    my_spf_cleanup(strbuf, spfbuf);
 
 #endif
 
@@ -3745,14 +3747,41 @@ static one_caller void fetch_about(tResourceRequest* request)
     my_spf_cleanup(strbuf, spfbuf);
 	/** Google Search end */
 	
-	my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p><br><br>PSP Port Tips: <br>Input mode: <b>L+START</b> = Enter. <b>R+START</b> = Exit.<br><b>O+UP</b> = Page up <b>O+Down</b> = Page Down.<br><b>CROSS</b> = Yes / OK / Enter<br><b>SQUARE</b> = No / Cancel<br><b>START</b> = Context Menu. <b>SELECT</b> = Enter URL.<br><b>L</b> = Prev Window. <b>R</b> = Next Window.</p><br><br>\n"));
+	/** Load tips from tips file */
+	{
+		FILE *fTips = NULL;
+		char strLine[STRBUF_SIZE];
+		fTips = fopen("APP_Retawq/tips.html", "r");
+		if (fTips)
+		{
+			while (!feof(fTips))
+			{
+				if (fgets(strLine, STRBUF_SIZE, fTips) != NULL)
+				{
+					my_spf(strbuf, STRBUF_SIZE, &spfbuf, strLine);
+					resource_collect_str(resource, spfbuf);
+					my_spf_cleanup(strbuf, spfbuf);
+				}
+				else
+				{
+					break;
+				}
+			}
+			fclose(fTips), fTips = NULL;
+		}
+		else
+		{
+			my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<p><br><br>PSP Port Tips: <br>Input mode: <b>L+START</b> = Enter. <b>R+START</b> = Exit.<br><b>O+UP</b> = Page up <b>O+Down</b> = Page Down.<br><b>CROSS</b> = Yes / OK / Enter<br><b>SQUARE</b> = No / Cancel<br><b>START</b> = Context Menu. <b>SELECT</b> = Enter URL.<br><b>L</b> = Prev Window. <b>R</b> = Next Window.</p><br><br>\n"));
+			if (spfbuf != NULL)
+			{ 
+				resource_collect_str(resource, spfbuf);
+				my_spf_cleanup(strbuf, spfbuf);
+			}
+		}
+	}
 
 
 #endif
-    if (spfbuf != NULL)
-    { resource_collect_str(resource, spfbuf);
-      my_spf_cleanup(strbuf, spfbuf);
-    }
 
     /* TLS/libgcrypt library text */
 
