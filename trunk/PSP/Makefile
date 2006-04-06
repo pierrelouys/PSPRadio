@@ -43,20 +43,28 @@ exports:
 	cd $(PLUGINS_DIR) && psp-build-exports -s APP_Exports.exp
 	
 plugins:
+	make clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/UI_Text && make && make install
+	make clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/UI_Text3D && make && make install
 
 extra_plugins:
+	make clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
-	cd $(PLUGINS_DIR)/FSServer_FTPD && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/FSServer_FTPD && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	make clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/APP_NetScan   && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
-	cd $(PLUGINS_DIR)/APP_NetScan   && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/APP_NetScan   && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	make clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/APP_Retawq    && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
-	cd $(PLUGINS_DIR)/APP_Retawq    && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) 
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/APP_Retawq    && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	
+clean_plugin_common_objects:
+	rm -fv $(PLUGINS_DIR)/*.o
+
 clean:
 	make clean_objects
 	rm -Rfv release
