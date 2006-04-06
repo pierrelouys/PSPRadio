@@ -22,35 +22,9 @@
 	#include "PSPThread.h"
 	#include "PSPEventQ.h"
 	#include "PSPSoundDecoder.h"
-	
-	/** Not configurable */
-	#define PSP_SAMPLERATE			44100
-	#define NUM_CHANNELS			2	/** L and R */
-	#define BYTES_PER_SAMPLE		2	/** 16bit sound */
-	/** Useful macros */
-	/** Convert number of frames/samples/bytes to eachother */
-	#define FRAMES_TO_SAMPLES(f)	(f*NUM_CHANNELS)
-	#define SAMPLES_TO_BYTES(s)		(s*BYTES_PER_SAMPLE)
-	#define BYTES_TO_FRAMES(b)		(b/(NUM_CHANNELS*BYTES_PER_SAMPLE))
-	#define BYTES_TO_SAMPLES(b)		(b/(BYTES_PER_SAMPLE))
-	#define FRAMES_TO_BYTES(f)		(f*(NUM_CHANNELS*BYTES_PER_SAMPLE))
-	typedef s16 Sample;
-	typedef u32 Frame;
-	struct PCMFrameInHalfSamples
-	{
-		u8 RHalfSampleA;
-		u8 RHalfSampleB;
-		u8 LHalfSampleA;
-		u8 LHalfSampleB;
-	};
-	struct PCMFrameInSamples
-	{
-		Sample RSample;
-		Sample LSample;
-	};
-	
-	#include <list>
+	#include "PSPSoundDeviceBuffer.h"
 	#include "PSPSoundBuffer.h"
+	#include <list>
 
 	/** Message IDs */
 	/** Messages from PSPSound to decode thread */

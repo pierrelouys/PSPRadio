@@ -21,6 +21,7 @@
 #include "PSPRadio.h"
 
 CScreen *rootScreen;
+DeviceBuffer *g_PCMBuffer = NULL;
 
 int CPSPRadio::Main(int argc, char **argv)
 {
@@ -447,6 +448,7 @@ int CPSPRadio::ProcessEvents()
 			case MID_THPLAY_PCMBUFFER:
 				if (m_UI)
 					m_UI->NewPCMBuffer((short *)event.pData);
+				g_PCMBuffer = (DeviceBuffer *)event.pData;
 				break;
 
 
@@ -518,8 +520,9 @@ int CPSPRadio::ProcessEvents()
 					m_UI->OnVBlank();
 				break;
 
-			case MID_KEY_LATCH_ENABLED:
-				//LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
+			case MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO: /* User used key combo to kill plugin */
+				/** Unload the bad plugin */
+				LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
 				PSPRadioExport_GiveUpExclusiveAccess();
 				//if (m_UI)
 				//	m_UI->

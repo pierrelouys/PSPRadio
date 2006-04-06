@@ -96,3 +96,9 @@ void PSPRadioExport_TakeScreenShot()
 {
 	gPSPRadio->TakeScreenShot();
 }
+
+extern DeviceBuffer *g_PCMBuffer;
+DeviceBuffer *PSPRadioExport_GetPCMBuffer()
+{
+	return g_PCMBuffer;
+}

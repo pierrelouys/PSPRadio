@@ -20,19 +20,7 @@
 	#define __PSPSOUNDBUFFER__
 
 	#include "PSPSound.h"
-
-	/** Configurable */
-	/* (frames are 2ch, 16bits, so 4096frames =16384bytes =8192samples-l-r-combined.)*/
-	#define PSP_BUFFER_SIZE_IN_FRAMES	PSP_AUDIO_SAMPLE_ALIGN(2048)
-	#define DEFAULT_NUM_BUFFERS		20		/** Default */
-
-	#define INPUT_BUFFER_SIZE		16302
-
-	/** Internal use */
-	struct DeviceBuffer
-	{
-		Frame data[PSP_BUFFER_SIZE_IN_FRAMES];
-	};
+	#include "PSPSoundDeviceBuffer.h"
 
 	class CPSPSoundBuffer
 	{

@@ -200,7 +200,7 @@ int CPSPApp::Run()
 			if ( (pad.Buttons & m_KeyComboToResumeKeyLatch) == m_KeyComboToResumeKeyLatch )
 			{
 				m_StopKeyLatch = false;
-				SendEvent(MID_KEY_LATCH_ENABLED, NULL);
+				SendEvent(MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO, NULL);
 			}
 		}
 		else

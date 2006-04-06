@@ -10,6 +10,7 @@ BUG FIXES
 (raf) Dyn/Core: Now plugin giveup access code is better handled. Retawq can switch to pspradio now seamlessly. (Select the running plugin again to return to the plugin.)
 (raf/ditlew) Core: If F/W 2.6 is detected, don't poll for HPRM. This allows PSPRadio to work on 2.6 via eLoader.
 (raf) Core: On exit, just call the game exit syscall. This may prevent the app from crashing when on eLoader. (It still hangs on 2.6)
+(raf) Dyn/Core: Corrected bug that would cause FSS plugins to report error when loading even if they loaded correctly.
 
 0.38.08 (r990) (2006-03-31)
 NEW FEATURES

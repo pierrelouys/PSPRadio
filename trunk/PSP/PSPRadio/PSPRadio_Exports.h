@@ -2,6 +2,7 @@
 	#define _PSPRADIO_EXPORTS_H_
 
 	#include <Logging.h>
+	#include "../SharedLib/PSPApp/PSPSoundDeviceBuffer.h"
 
 		typedef enum 
 		{
@@ -36,6 +37,7 @@
 			void  PSPRadioExport_GiveUpExclusiveAccess();
 			char *PSPRadioExport_GetVersion();
 			void  PSPRadioExport_TakeScreenShot();
+			DeviceBuffer *PSPRadioExport_GetPCMBuffer();
 	
 	
 	#ifdef __cplusplus	

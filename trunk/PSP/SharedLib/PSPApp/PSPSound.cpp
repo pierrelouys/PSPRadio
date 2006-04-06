@@ -244,7 +244,7 @@ int CPSPSound::Stop()
 /** Threads */
 int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
-static size_t m_LastBufferPercentage = 200;
+		static size_t s_LastBufferPercentage = 200;
 
 		DeviceBuffer *mybuf = NULL;
 		int ah = pPSPSound->GetAudioHandle();
@@ -282,9 +282,9 @@ static size_t m_LastBufferPercentage = 200;
 
 					if ((clock()*1000/CLOCKS_PER_SEC - timeLastPercentEvent) > 333) /** 3 times per sec */
 					{
-						if (m_LastBufferPercentage != pPSPSound->GetBufferFillPercentage())
+						if (s_LastBufferPercentage != pPSPSound->GetBufferFillPercentage())
 						{
-							m_LastBufferPercentage = pPSPSound->GetBufferFillPercentage();
+							s_LastBufferPercentage = pPSPSound->GetBufferFillPercentage();
 							pPSPSound->SendEvent(MID_BUFF_PERCENT_UPDATE);
 							timeLastPercentEvent = clock() * 1000 / CLOCKS_PER_SEC;
 						}
