@@ -12,9 +12,6 @@
 #include <pspdebug.h>
 #include <pspdisplay.h>
 
-//#define printf pspDebugScreenPrintf
-
-
 declare_local_i18n_buffer
 
 static char strbuf[STRBUF_SIZE];
@@ -184,7 +181,7 @@ WINDOW* __init initscr(void)
   tSint16 header[6], names_size, flags_size, num_shorts, num_strings,
     strings_size;
 
-#if 0
+#if PSP != 1
 
   if ( (termname == NULL) || ( (ch = *termname) == '\0') )
     fatal_error(0, _("bad value of environment variable TERM"));
@@ -310,11 +307,13 @@ WINDOW* __init initscr(void)
          (string_value[strvExitUnderline] == NULL ) )
       igntermattr |= A_UNDERLINE;
   }
-#else //#if 0
+#else //#if PSP != 0
 	{
 		int i = 0;
     	for (i = 0; i < NUM_STRING_VALUES; i++)
           string_value[i] = "*";
+		use_colors = truE;
+
 	}
 #endif
   /* try to find out the terminal size */
@@ -390,6 +389,13 @@ int attron(attr_t a)
 #if MIGHT_USE_COLORS
   if (a & __A_COLORMARK) currattr &= ~__A_COLORPAIRMASK;
 #endif
+#if PSP == 1
+  if (a & __A_COLORMARK) 
+  {
+   	currattr &= ~__A_COLORPAIRMASK;
+	pspDebugScreenSetTextColor(currattr);
+  }
+#endif
   currattr |= a;
   return(0);
 }
@@ -398,6 +404,12 @@ int attroff(attr_t a)
 {
 #if MIGHT_USE_COLORS
   if (a & __A_COLORMARK) a |= __A_COLORPAIRMASK; /* caller turns color off */
+#endif
+#if PSP == 1
+  if (a & __A_COLORMARK) 
+  {
+	pspDebugScreenSetTextColor(0xBBBBBB);
+  }
 #endif
   currattr &= ~a;
   return(0);
@@ -931,7 +943,7 @@ int refresh(void)
            ( (currtermattr & A_BOLD) && (!(desta & A_BOLD)) ) )
       { /* why-oh-why is there no strvExitReverse/strvExitBold... */
         //refreshbuf_append_str(string_value[strvExitAttrs]);
-		pspDebugScreenSetTextColor(0xCCCCCC);
+		pspDebugScreenSetTextColor(0xBBBBBB);
 		pspDebugScreenSetBackColor(0x0);
         currtermattr = 0;
       }
@@ -951,7 +963,7 @@ int refresh(void)
       { if (!(desta & A_UNDERLINE))
 		{
          // refreshbuf_append_str(string_value[strvExitUnderline]);
-			pspDebugScreenSetTextColor(0xCCCCCC);
+			pspDebugScreenSetTextColor(0xBBBBBB);
 			pspDebugScreenSetBackColor(0x0);
 		}
       }
