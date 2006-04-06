@@ -5,7 +5,7 @@ TARGET = APP_Retawq
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS = plugin_main.o init.o main.o parser.o resource.o stuff.o psp_curses.o\
+OBJS = plugin_main.o init.o main.o parser.o resource.o stuff.o pspcurses.o psp.o \
 		$(COMMON_OBJS) $(EXPORTED_OBJS)
 
 # Define to build this as a prx (instead of a static elf)
@@ -29,11 +29,8 @@ ASFLAGS = $(CFLAGS)
 LIBDIR =
 
 LIBS =   -lpspsdk -lpspwlan -lpspnet
-#-lstdc++  -lPSPApp -liniparser
-#-lstdc++ -lPSPApp
-# -lTools
 
-all: cursesbi.o $(TARGET).prx
+all: $(TARGET).prx
 
 stand_alone: 
 	make clean	

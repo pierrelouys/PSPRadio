@@ -22,6 +22,7 @@
 #include <PSPRadio_Exports.h>
 #include <APP_Exports.h>
 #include <Common.h>
+#include "psp.h"
 
 PSP_MODULE_INFO("APP_Retawq", 0, 1, 1);
 PSP_HEAP_SIZE_KB(4096);
@@ -49,7 +50,6 @@ int ModuleStartAPP()
 	return 0;
 }
 
-#include "psp_curses.h"
 int ModuleContinueApp()
 {
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);

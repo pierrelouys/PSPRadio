@@ -3660,7 +3660,7 @@ static one_caller void fetch_about(tResourceRequest* request)
 #define WHAT (strEmpty)
 #endif
 
-    my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<html><head><title>About retawq</title></head>\n<body>\n<h3 align=\"center\"><b>retawq %s (%s mode%s)</b></h3>\n<p>The web browser <b>retawq</b> is released <b>without any warranty</b>. The project home page is <a href=\"http://retawq.sourceforge.net/\">retawq.sourceforge.net</a>.</p>\n"), RETAWQ_VERSION, _(strTG), WHAT); /* what the h[ae]ck... :-) */
+    my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<html><head><title>About retawq</title></head>\n<body>\n<h3 align=\"center\"><b>retawq %s (%s mode%s) For PSPRadio %s</b></h3>\n<p>The web browser <b>retawq</b> is released <b>without any warranty</b>. The project home page is <a href=\"http://retawq.sourceforge.net/\">retawq.sourceforge.net</a>.</p>\n"), RETAWQ_VERSION, _(strTG), WHAT, PSPRadioExport_GetProgramVersion()); /* what the h[ae]ck... :-) */
     resource_collect_str(resource, spfbuf);
     my_spf_cleanup(strbuf, spfbuf);
 

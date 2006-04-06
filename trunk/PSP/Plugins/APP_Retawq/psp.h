@@ -1,14 +1,13 @@
-#ifndef psp_curses_h
-	#define psp_curses_h
+#ifndef psp_h
+	#define psp_h
 
 	#include <stdio.h>
 	#include <pspiofilemgr_dirent.h>
 	#include <dirent.h>
-	
 
 	#include "stuff.h"
 
-	#include "cursesbi.h"
+	#include "pspcurses.h"
 
 	void PSPPutch(char ch);
 

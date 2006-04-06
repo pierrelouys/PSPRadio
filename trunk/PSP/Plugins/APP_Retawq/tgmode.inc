@@ -1,1 +1,1 @@
-#include "psp_curses.h"
+#include "psp.h"
