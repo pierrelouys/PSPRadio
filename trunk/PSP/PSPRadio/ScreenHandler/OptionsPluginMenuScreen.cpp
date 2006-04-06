@@ -287,6 +287,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					m_UI->DisplayMessage("Plugin Stopped");
 				}
 			}
+			break;
 		case OPTION_ID_APP:
 			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
 			{
