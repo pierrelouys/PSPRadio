@@ -1,13 +1,14 @@
 What's New for PSPRadio 
 ========================
 
-0.38.09 (r1026) (2006-04-06)
+0.38.091 (r1028) (2006-04-06)
 NEW FEATURES
 (raf) Dyn/Retawq: tips can be overriden with your own html. Just replace APP_Retawq/tips.html!
 (raf) Dyn/Dev: New export to allow for plugins to access the sound device buffer (for visualization plugins).
 (raf) Dyn/Core: When the key combo for killing plugins is used, now the plugin will be unloaded as well (L+R+START). (A red -exception- screen may flash will unloading the plugin.. this is expected atm.)
 (raf) Core: Rename directories per HalfastII directions so that corrupted icons don't get displayed on f/w 1.5.
 (raf) Dyn/Core: Plugins are now automatically unloaded when they exit.
+(raf) Core: Updated default SHOUTcast.xml to the latest.
 BUG FIXES
 (raf) Core: Networking. Network profile enumeration code modification. Based on idea from Danzel from ps2dev forums. This may help people who's profile wasn't showing up.
 (raf) Dyn/Core: No longer tries to 'continue' a plugin if 'Off' is selected.
@@ -16,6 +17,7 @@ BUG FIXES
 (raf) Core: On exit, just call the game exit syscall. This may prevent the app from crashing when on eLoader. (It still hangs on 2.6)
 (raf) Dyn/Core: Corrected bug that would cause FSS plugins to report error when loading even if they loaded correctly.
 (raf) Dyn/Retawq: Reduced most of the drawing issues by decreasing the number of columns by 1.
+(raf) Static: Changed directories back to PSPRadio and PSPRadio%.
 
 0.38.08 (r990) (2006-03-31)
 NEW FEATURES
