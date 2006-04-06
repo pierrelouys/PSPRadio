@@ -1,7 +1,7 @@
 What's New for PSPRadio 
 ========================
 
-0.38.09 (r1025) (2006-04-06)
+0.38.09 (r1026) (2006-04-06)
 NEW FEATURES
 (raf) Dyn/Retawq: tips can be overriden with your own html. Just replace APP_Retawq/tips.html!
 (raf) Dyn/Dev: New export to allow for plugins to access the sound device buffer (for visualization plugins).
