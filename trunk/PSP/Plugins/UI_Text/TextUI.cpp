@@ -273,7 +273,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 
 void CTextUI::Initialize_Screen(IScreen *Screen)
 {
-	TextUILog(LOG_LOWLEVEL, "Inialize screen start");
+	TextUILog(LOG_LOWLEVEL, "Initialize screen start");
 	m_CurrentScreen = (CScreenHandler::Screen)Screen->GetId();
 
 	LoadConfigSettings(Screen);
