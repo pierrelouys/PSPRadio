@@ -359,10 +359,11 @@ int CPSPRadio::ProcessEvents()
 					StartKeyLatch();
 					break;
 				case MID_PLUGINEXITED:
-					//sleep(1); /* Give enough time for the plugin to complete module stop */
-					plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
-					Log(LOG_INFO, "Plugin Exited. Unloading. type = %d", type);
-					LoadPlugin(PLUGIN_OFF_STRING, type);
+					#ifdef DYNAMIC_BUILD
+						plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
+						Log(LOG_INFO, "Plugin Exited. Unloading. type = %d", type);
+						LoadPlugin(PLUGIN_OFF_STRING, type);
+					#endif
 					break;
 				}
 			}
@@ -528,11 +529,11 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO: /* User used key combo to kill plugin */
-				/** Unload the bad plugin */
-				LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
+				#ifdef DYNAMIC_BUILD
+					/** Unload the bad plugin */
+					LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
+				#endif
 				PSPRadioExport_GiveUpExclusiveAccess();
-				//if (m_UI)
-				//	m_UI->
 				break;
 				
 			default:
@@ -547,10 +548,7 @@ int CPSPRadio::ProcessEvents()
 
 void CPSPRadio::OnVBlank()
 {
-//	if (bPluginExclusiveAccessSet == false)
-	{
-		m_ScreenHandler->OnVBlank();
- 	}
+	m_ScreenHandler->OnVBlank();
 }
 
 int CPSPRadio::OnPowerEvent(int pwrflags)
