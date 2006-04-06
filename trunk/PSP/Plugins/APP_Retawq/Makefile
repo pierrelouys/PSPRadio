@@ -33,7 +33,7 @@ LIBS =   -lpspsdk -lpspwlan -lpspnet
 #-lstdc++ -lPSPApp
 # -lTools
 
-all: cursesbi.o $(TARGET).prx 
+all: cursesbi.o $(TARGET).prx
 
 stand_alone: 
 	make clean	
