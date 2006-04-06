@@ -116,7 +116,8 @@ void app_plugin_main()
 	}
 
 	pspDebugScreenInit();
-	PSPRadioExport_GiveUpExclusiveAccess();
+	///PSPRadioExport_GiveUpExclusiveAccess(); /** PluginExits gives up access too */
+	PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */
 }
 
 /*

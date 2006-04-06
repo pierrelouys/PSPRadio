@@ -37,10 +37,11 @@
 
 
 /** Sender IDs */
-#define SID_PSPRADIO			0x00000001
-#define SID_SCREENHANDLER		0x00000002
+#define SID_PSPRADIO				0x00000001
+#define SID_SCREENHANDLER			0x00000002
 
 #define MID_GIVEUPEXCLISIVEACCESS	0x00000001
+#define MID_PLUGINEXITED			0x00000002
 
 #ifdef __cplusplus
 	extern CScreen *rootScreen;

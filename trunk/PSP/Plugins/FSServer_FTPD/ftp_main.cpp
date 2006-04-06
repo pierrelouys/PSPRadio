@@ -17,6 +17,7 @@
 #include "ftp.h"
 #include <PSPThread.h>
 #include <iniparser.h>
+#include <Common.h>
 
 #define SOCKET int
 volatile MftpConnection *g_con = NULL; 
@@ -116,5 +117,7 @@ done:
 		ModuleLog(LOG_INFO, "ftpdLoop : sceNetInetClose returned '%d'.\n", err);
     }
 	
+	PSPRadioExport_PluginExits(PLUGIN_FSS); /** Notify PSPRadio, so it can unload the plugin */
+
 	return 0;
 }

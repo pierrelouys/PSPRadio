@@ -348,6 +348,7 @@ int CPSPRadio::ProcessEvents()
 			{
 				switch (event.EventId)
 				{
+				/* User: 1- killed a plugin or 2-selected to switch to pspradio from a plugin : */
 				case MID_GIVEUPEXCLISIVEACCESS:
 					if (GetUI())
 					{
@@ -356,6 +357,12 @@ int CPSPRadio::ProcessEvents()
 						GetScreenHandler()->GetCurrentScreen()->Activate(GetScreenHandler()->GetCurrentUIPtr());
 					}
 					StartKeyLatch();
+					break;
+				case MID_PLUGINEXITED:
+					//sleep(1); /* Give enough time for the plugin to complete module stop */
+					plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
+					Log(LOG_INFO, "Plugin Exited. Unloading. type = %d", type);
+					LoadPlugin(PLUGIN_OFF_STRING, type);
 					break;
 				}
 			}

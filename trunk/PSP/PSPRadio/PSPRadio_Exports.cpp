@@ -27,6 +27,14 @@ int module_stop(int args, void *argp)
 	return 0;
 }
 
+/* Notify PSPRadio when exiting, so pspradio can unload the plugin */
+void PSPRadioExport_PluginExits(plugin_type type)
+{
+	Log(LOG_LOWLEVEL, "PSPRadioExport_PluginExits(%d): Sending Event.", type);
+	gPSPRadio->SendEvent(MID_PLUGINEXITED, (void *)((int)type), SID_PSPRADIO);
+	PSPRadioExport_GiveUpExclusiveAccess();
+}
+
 int PSPRadioExport_Log(char *file, int line, loglevel_enum LogLevel, char *strFormat, ...)
 {
 	va_list args;
@@ -76,7 +84,7 @@ void PSPRadioExport_RequestExclusiveAccess(plugin_type type)
 void PSPRadioExport_GiveUpExclusiveAccess()
 {
 	gPSPRadio->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
-#if 0
+#if 0 /** We send a msg and do this in the msg handler, as it will be executed by the correct thread then. */
 	if (gPSPRadio->GetUI())
 	{
 		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
