@@ -168,7 +168,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 		iNumberOfPluginsFound++;
 	}
 
-	Log(LOG_LOWLEVEL, "RetrievePlugins: Reading '%s' Directory", strPath);
+	Log(LOG_LOWLEVEL, "RetrievePlugins: Reading '%s' Directory, looking for '%s' files...", strPath, strPrefix);
 	dfd = sceIoDopen(strPath);
 	
 	Option.iActiveState = 1; /* Initial value */
