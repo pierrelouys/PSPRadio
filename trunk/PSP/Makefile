@@ -82,4 +82,18 @@ clean_extra_plugins:
 	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
 	cd $(PLUGINS_DIR)/APP_Retawq    && make clean
 
+skin_packs: 
+	make KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) albadross_skin_pack
 
+albadross_skin_pack:
+	cp -R Resources/AlbaSkins/*					$(KXPLOIT_PRIMARY)
+	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(KXPLOIT_PRIMARY)/UI_PSPRadio.prx
+	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(KXPLOIT_PRIMARY)/UI_Metalle.prx
+	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(KXPLOIT_PRIMARY)/UI_Premiere.prx
+	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(KXPLOIT_PRIMARY)/UI_Selector.prx
+	cp $(PLUGINS_DIR)/UI_Text3D/UI_Text3D.prx 	$(KXPLOIT_PRIMARY)/UI_3D_Radio.prx
+	cp $(PLUGINS_DIR)/UI_Text3D/UI_Text3D.prx 	$(KXPLOIT_PRIMARY)/UI_3D_Blue.prx
+	cp $(PLUGINS_DIR)/UI_Text3D/UI_Text3D.prx 	$(KXPLOIT_PRIMARY)/UI_3D_Mario.prx
+	rm $(KXPLOIT_PRIMARY)/UI_Text.prx
+	rm $(KXPLOIT_PRIMARY)/UI_Text3D.prx
+	sed -e 's/UI=UI_Text/UI=UI_PSPRadio/g' PSPRadio/PSPRadio.cfg > $(KXPLOIT_PRIMARY)/PSPRadio.cfg
