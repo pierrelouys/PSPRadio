@@ -44,10 +44,13 @@ void writestring (int fd, char *string)
 		if ((result = send(fd, string, bytes, 0)) < 0 && sceNetInetGetErrno() != EINTR) 
 		{
 			ReportError("writestring(): write Error");
+			break;
 		}
-		else if (result == 0) {
+		else if (result == 0) 
+		{
 			ReportError ( "writestring(): write: %s\n",
 				"socket closed unexpectedly");
+			break;
 		}
 		string += result;
 		bytes -= result;
