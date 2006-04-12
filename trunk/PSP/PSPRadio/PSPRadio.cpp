@@ -233,6 +233,9 @@ void CPSPRadio::OnExit()
 	rootScreen->SetBackgroundImage("Shutdown.png");
 	rootScreen->Clear();
 
+	Log(LOG_INFO, "OnExit(): Stopping network drivers");
+	StopNetworkDrivers();
+
 	Log(LOG_INFO, "Exiting. The end. -- Calling sceKernelExitGame");
 	sceKernelExitGame();
 
