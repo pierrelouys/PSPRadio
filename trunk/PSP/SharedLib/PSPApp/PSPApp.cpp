@@ -105,6 +105,7 @@ CPSPApp::~CPSPApp()
 {
 	Log(LOG_VERYLOW, "~CPSPApp(): Destructor Called.");
 
+	
 	if (true == IsUSBEnabled())
 	{
 		Log(LOG_VERYLOW, "~CPSPApp(): Disabling USB.");
@@ -169,15 +170,6 @@ int CPSPApp::Run()
 		Log(LOG_INFO, "Run(): Firmware 2.6 detected, disabling HPRM polling.");
 		bHPRMAvailable = false;
 	}
-//	Log(LOG_VERYLOW, "Run(): Calling sceCtrlSetSamplingCycle(0)");
-//	sceCtrlSetSamplingCycle(0);
-//	Log(LOG_VERYLOW, "Run(): Testing sceHprmIsRemoteExist()");
-//	Log(LOG_VERYLOW, "Run(): Testing sceHprmIsRemoteExist() returns 0x%x", sceHprmIsRemoteExist());
-//	Log(LOG_VERYLOW, "Run(): Calling sceDisplayWaitVblankStart()");
-//	sceDisplayWaitVblankStart();
-//	Log(LOG_VERYLOW, "Run(): Testing sceRtcGetCurrentClockLocalTime(&m_LocalTime)");
-//	Log(LOG_VERYLOW, "Run(): Testing sceRtcGetCurrentClockLocalTime(&m_LocalTime) returns 0x%x",
-//	sceRtcGetCurrentClockLocalTime(&m_LocalTime));
 		
 	Log(LOG_INFO, "Run(): Going into main loop.");
 	while (false == m_Exit)
