@@ -129,6 +129,16 @@ int CPSPApp::InitializeNetworkDrivers()
 	return iRet;
 }
 
+/* Exit callback */
+int CPSPApp::StopNetworkDrivers()
+{
+	pspSdkInetTerm();
+	sceNetApctlDisconnect();
+	sceNetApctlTerm();
+	
+	return 0;
+}
+
 int CPSPApp::EnableNetwork(int profile)
 {
 	int iRet = 0;
