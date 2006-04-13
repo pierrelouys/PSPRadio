@@ -1,6 +1,12 @@
 What's New for PSPRadio 
 ========================
 
+0.38.10 (r)(2006-04-xx)
+NEW FEATURES
+BUG FIXES
+(raf) When a socket closed, writestring() would keep trying to send, and keep reporting errors, filling up the event queue, and causing pspradio to exit. Thanks PSP KEVIN for the report.
+(raf) Calling network termination functions before exit -- hope this helps exit when using eLoader.
+
 0.38.091 (r1029) (2006-04-06)
 NEW FEATURES
 (raf) Dyn/Retawq: tips can be overriden with your own html. Just replace APP_Retawq/tips.html!
