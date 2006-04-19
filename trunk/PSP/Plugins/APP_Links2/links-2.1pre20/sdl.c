@@ -1081,10 +1081,10 @@ void sdl_unregister_bitmap(struct bitmap *bmp)
 	s		= (SDL_Surface *)bmp->flags;
 	S_ASSERT(s != 0);
 #ifdef PSP
-	/** The PSP Implementation of SDL doesn't set the SDL_PREALLOC flag for HW surface, so FreeSurface will try to free vram! */
 	if ((s->flags & SDL_HWSURFACE) == SDL_HWSURFACE) 
 	{
-		s->flags |= SDL_PREALLOC;
+		s->hwdata = 1; /* This generates a call to FreeHWSurface -- to free s->pixels correctly */
+		s->flags |= SDL_PREALLOC; /* this prevents s->pixels from been freed (again), as FreeHWSurface doesn't set it to NULL */
 	}
 #endif
 	/* delete data */
