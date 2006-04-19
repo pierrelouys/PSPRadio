@@ -12,12 +12,14 @@
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include <pspdisplay.h>
+#include <pspctrl.h>
 #include <pspsdk.h>
 #include <string.h>
 #include <stdio.h>
 #include <PSPRadio_Exports.h>
 
 #define PSPRADIO_PRX "PSPRadio.prx"
+#define LINKS2_PRX   "APP_Links2.prx"
 
 int DriverLoadThread(SceSize args, void *argp);
 u32 LoadStartModule(char *path);
@@ -36,6 +38,7 @@ PSP_HEAP_SIZE_KB(64);
 
 char *g_argv[MAX_ARGS];
 int  g_argc = 0;
+static int s_module_text_addr = 0;
 
 /** -- Exception handler */
 void MyExceptionHandler(PspDebugRegBlock *regs)
@@ -60,7 +63,9 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 
 		bFirstTime = 0;
 	}
-	pspDebugScreenPrintf("******* PSPRadio Exception! epc=0x%x ra=0x%x\n", regs->epc, regs->r[31]);
+	pspDebugScreenPrintf("******* Important Registers: epc=0x%x ra=0x%x\n", regs->epc, regs->r[31]);
+	pspDebugScreenPrintf("******* Module text_addr=0x%x so o-epc=0x%x o-ra=0x%x\n",
+			s_module_text_addr, regs->epc - s_module_text_addr, regs->r[31] - s_module_text_addr);
 /// doesn't work :(	ModuleLog(LOG_ERROR, "******* Exception! epc=0x%x ra=0x%x", regs->epc, regs->r[31]);
 }
 
@@ -176,14 +181,28 @@ int main_thread(SceSize args, void *argp)
 	path = strrchr(g_argv[0], '/');
 	if(path != NULL)
 	{
+		SceCtrlData pad;
+		sceCtrlReadBufferPositive(&pad, 1);
+		
 		memcpy(prx_path, g_argv[0], path - g_argv[0] + 1);
 		prx_path[path - g_argv[0] + 1] = 0;
-		strcat(prx_path, PSPRADIO_PRX);
+		if (pad.Buttons & PSP_CTRL_TRIANGLE)
+		{
+			strcat(prx_path, LINKS2_PRX);
+			/* Start mymodule.prx and dump its information */
+			printf("PSPRadio Loader - TRIANGLE PRESSED\n\n");
+			
+			printf("- Loading Links2 . .\n");
+		}
+		else
+		{
+			strcat(prx_path, PSPRADIO_PRX);
+			/* Start mymodule.prx and dump its information */
+			printf("PSPRadio Loader.\n\n");
+			
+			printf("- Loading Main Module. . .\n");
+		}
 
-		/* Start mymodule.prx and dump its information */
-		printf("PSPRadio Loader.\n\n");
-		
-		printf("- Loading PRX. . .\n");
 		modid = load_module(prx_path, 0, PSP_MEMORY_PARTITION_USER/*0*/);
 		if(modid >= 0)
 		{
@@ -191,10 +210,11 @@ int main_thread(SceSize args, void *argp)
 				int size;
 				int status;
 				
-				int text_addr = GetModuleTextAddr(modid);
+				s_module_text_addr = GetModuleTextAddr(modid);
 
-				printf("- Starting PRX. . .\n");
-				size = build_args(prx_args, g_argv[0], sceKernelGetThreadId(), modid, text_addr, g_argv[1], g_argc-2, &g_argv[2]);
+				printf("- Starting Module. . .\n");
+				
+				size = build_args(prx_args, g_argv[0], sceKernelGetThreadId(), modid, s_module_text_addr, g_argv[1], g_argc-2, &g_argv[2]);
 
 				ret = sceKernelStartModule(modid, size, prx_args, &status, NULL);
 				printf("- Done.\n");
