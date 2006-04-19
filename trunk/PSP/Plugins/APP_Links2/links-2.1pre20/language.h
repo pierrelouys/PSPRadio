@@ -516,4 +516,11 @@
 #define T_HK_COPY_URL_LOCATION    512	
 #define T_HK_BLOCK_URL    513	
 #define T_HK_BLOCK_LIST    514	
-#define T__N_TEXTS    515	
+#ifdef PSP
+#define T_UTF_8_IO		515
+#define T__N_TEXTS    516
+#else
+#define T__N_TEXTS    515
+#endif
+
+

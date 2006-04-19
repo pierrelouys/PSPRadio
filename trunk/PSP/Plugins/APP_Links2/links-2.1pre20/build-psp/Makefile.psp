@@ -1,0 +1,64 @@
+BASE_DIR = ../../../..
+include $(BASE_DIR)/include.mak
+
+TARGET = APP_Links2
+
+EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
+COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
+PSP_OBJECTS = psp.o plugin_main.o $(COMMON_OBJS) $(EXPORTED_OBJS)
+OBJS = $(PSP_OBJECTS) $(links_OBJECTS)
+
+# Define to build this as a prx (instead of a static elf)
+BUILD_PRX=1
+USE_PSPSDK_LIBC = 0
+# Define the name of our custom exports (minus the .exp extension)
+PRX_EXPORTS=$(PLUGINS_DIR)/APP_Exports.exp
+
+INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DIR)/ScreenHandler \
+		 -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
+		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
+		 -I$(SHAREDLIB_DIR)/libpthread \
+		 -I/usr/local/pspdev/psp/sdk/include/  -I/usr/local/pspdev/psp/include/ \
+		 -I/usr/local/pspdev/psp/include/SDL/
+		 
+#-I/usr/local/pspdev/psp/include/machine/
+
+#CFLAGS = -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -DPSP
+CFLAGS = $(EXTRA_FLAGS) -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSP -g $(INCLUDES)
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+
+LIBDIR =
+
+#LIBS =   -lpspsdk -lpspwlan -lpspnet
+#LIBS = -ljpeg -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 
+LIBS = -lSDL -lpspgu -lpspge -lpspaudio -lpng -ljpeg -lz -lm -lpthread -lpsphprm
+
+#DEFS=
+	
+the_prx: $(OBJS) $(TARGET).prx 
+
+prx:
+	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make $(EXPORTED_OBJS) && mv PSPRadioExports.o $(EXPORTED_OBJS)
+	touch ../../../APP_Exports.o && rm ../../../APP_Exports.o && make  ../../../APP_Exports.o && mv APP_Exports.o ../../../APP_Exports.o
+	make the_prx
+
+stand_alone:
+	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make EXTRA_FLAGS="-DSTAND_ALONE_APP" $(EXPORTED_OBJS) && mv PSPRadioExports.o $(EXPORTED_OBJS)
+	touch ../../../APP_Exports.o && rm ../../../APP_Exports.o && make EXTRA_FLAGS="-DSTAND_ALONE_APP" ../../../APP_Exports.o && mv APP_Exports.o ../../../APP_Exports.o
+	make EXTRA_FLAGS="-DSTAND_ALONE_APP" the_prx 
+
+
+install_prx:
+	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+#	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+#	cp -vf tips.html $(KXPLOIT_PRIMARY)/$(TARGET)
+#	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
+
+#.SUFFIXES: .o
+#.SUFFIXES: .S .c .s
+
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak
+

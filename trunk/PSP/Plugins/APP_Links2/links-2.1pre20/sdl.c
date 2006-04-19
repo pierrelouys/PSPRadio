@@ -33,6 +33,10 @@
 
 #ifdef GRDRV_SDL
 
+#ifdef PSP
+	#define printf pspDebugScreenPrintf
+#endif
+
 #ifdef TEXT
 #undef TEXT
 #endif
@@ -47,7 +51,7 @@
 
 
 /* ------ some config options -------- */
-/*#define sdl_HAVE_DOUBLEBUF */
+/* #define sdl_HAVE_DOUBLEBUF */
 
 
 /* ---------- helper tools ----------- */
@@ -152,6 +156,7 @@ struct t_sdl_device_data {
 
 
 /* tha event handler */
+static int mouse_x = 480/2, mouse_y = 272/2;
 static void sdl_catch_event(void *data)
 {
     register int i	= 0;
@@ -165,12 +170,182 @@ static void sdl_catch_event(void *data)
 
     sdl_DATA.event_timer = -1;
 
-    SDL_PumpEvents();
-    ev_num	= SDL_PeepEvents(events, sdl_CATCH_EVENTS_NUM, SDL_GETEVENT, SDL_ALLEVENTS);
-
-    S_ASSERT(ev_num != -1);
     /* get dev data */
     dev		= (struct t_sdl_device_data *) data;
+
+#ifdef PSP
+	static int oldButtonMask = 0;
+	int newx = mouse_x, newy = mouse_y;
+	
+#if 0
+	sceDisplayWaitVblankStart();
+	if ( g_PSPEnableInput == truE )
+	{
+		if (g_InputMethod == truE)
+		{
+			SceCtrlData pad;
+			sceCtrlReadBufferPositive(&pad, 1);
+			if ( (pad.Buttons & PSP_CTRL_START) && (pad.Buttons & PSP_CTRL_RTRIGGER) )
+			{
+				/* Enter input */
+				g_InputMethod = falsE;
+				PSPInputHandlerEnd();
+				window_redraw_all();
+				line_input_redraw();
+			}
+			else
+			{
+				PSPInputHandler(pad, key);
+			}
+			oldButtonMask = 0;
+		}
+		else
+		{
+#endif
+			SceCtrlData pad;
+			SceCtrlLatch latch; 
+			
+			sceCtrlReadBufferPositive(&pad, 1);
+			
+			if  (pad.Lx < 128)
+			{
+				newx = mouse_x - (128 - pad.Lx)/30;
+			}
+			else
+			{
+				newx = mouse_x + (pad.Lx - 128)/30;
+			}
+		
+			if  (pad.Ly < 128)
+			{
+				newy = mouse_y - (128 - pad.Ly)/30;
+			}
+			else
+			{
+				newy = mouse_y + (pad.Ly - 128)/30;
+			}
+
+			
+			if (mouse_x != newx || mouse_y != newy)
+			{
+				if (newx >= 0 && newx < 480)
+					mouse_x = newx;
+				if (newy >=0 && newy < 272)
+					mouse_y = newy;
+
+				SDL_WarpMouse(mouse_x, mouse_y);
+			}
+			
+			sceCtrlReadLatch(&latch);
+			
+			if (latch.uiMake)
+			{
+				// Button Pressed 
+				oldButtonMask = latch.uiPress;
+				if (oldButtonMask & PSP_CTRL_CROSS)
+				{
+					fl	= B_DOWN;
+					sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
+				}
+			}
+			else if (latch.uiBreak) /** Button Released */
+			{
+				if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_LTRIGGER) )
+				{
+					/* Enter input */
+;//					g_InputMethod = truE;
+;//					PSPInputHandlerStart();
+				}
+				else if ( (oldButtonMask & PSP_CTRL_DOWN) && (oldButtonMask & PSP_CTRL_CIRCLE))
+				{
+;//					*key = KEY_PSP_CIRCLE_PLUS_DOWN;
+				}
+				else if ( (oldButtonMask & PSP_CTRL_UP) && (oldButtonMask & PSP_CTRL_CIRCLE))
+				{
+;//					*key = KEY_PSP_CIRCLE_PLUS_UP;
+				}
+				else if (oldButtonMask & PSP_CTRL_DOWN)
+				{
+					if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_PAGE_DOWN, fl);
+					}
+					else
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_DOWN, fl);
+					}
+;//					*key = KEY_DOWN;
+				}
+				else if (oldButtonMask & PSP_CTRL_UP)
+				{
+					if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_PAGE_UP, fl);
+					}
+					else
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_UP, fl);
+					}
+;//					*key = KEY_UP;
+				}
+				else if (oldButtonMask & PSP_CTRL_LEFT)
+				{
+					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_LEFT, fl);
+;//					*key = KEY_LEFT;
+				}
+				else if (oldButtonMask & PSP_CTRL_RIGHT)
+				{
+					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_RIGHT, fl);
+;//					*key = KEY_RIGHT;
+				}
+				else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+				{
+;//					*key = KEY_PSP_LTRIGGER;
+				}
+				else if (oldButtonMask & PSP_CTRL_RTRIGGER)
+				{
+;//					*key = KEY_PSP_RTRIGGER;
+				}
+				else if (oldButtonMask & PSP_CTRL_CROSS)
+				{
+					fl	= B_UP;
+					sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
+;//					*key = KEY_PSP_CROSS;
+				}
+				else if (oldButtonMask & PSP_CTRL_SQUARE)
+				{
+					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_ESC, fl);
+;//					*key = KEY_PSP_SQUARE;
+				}
+				else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+				{
+;//					*key = KEY_PSP_TRIANGLE;
+				}
+				else if (oldButtonMask & PSP_CTRL_CIRCLE)
+				{
+					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_ENTER, fl);
+;//					*key = KEY_PSP_CIRCLE;
+				}
+				else if (oldButtonMask & PSP_CTRL_START)
+				{
+;//					*key = KEY_PSP_START;
+				}
+				else if (oldButtonMask & PSP_CTRL_SELECT)
+				{
+;//					*key = KEY_PSP_SELECT;
+				}
+				oldButtonMask = 0;
+			}
+#if 0
+		}
+	}
+#endif
+#endif //PSP
+    
+	SDL_PumpEvents();
+    ev_num	= SDL_PeepEvents(events, sdl_CATCH_EVENTS_NUM, SDL_GETEVENT, SDL_ALLEVENTS);
+    
+	S_ASSERT(ev_num != -1);
     for(i = 0; i < ev_num; i++)
     {
 #define event events[i]
@@ -321,6 +496,17 @@ static void sdl_update_sc(void *data)
 		sdl_URECT(dev).h	= sdl_VIDEO_HEIGHT - sdl_URECT(dev).y;
 	/* perform screen update */
 	SDL_UpdateRect(sdl_SURFACE(dev), sdl_URECT(dev).x, sdl_URECT(dev).y, sdl_URECT(dev).w, sdl_URECT(dev).h);
+#ifdef PSP
+	SDL_Rect area;
+	SDL_MouseRect(&area);
+	//area.x = mouse_x; area.y = mouse_y;
+	if ( (sdl_URECT(dev).x  < mouse_x || sdl_URECT(dev).x < mouse_x + area.w) &&
+	     (sdl_URECT(dev).y < mouse_y || sdl_URECT(dev).y < mouse_y + area.h) )
+	//if(SDL_CollideBoundingBox(area, sdl_URECT(dev)))
+	{
+		SDL_SetCursor(NULL);
+	}
+#endif
 #else
 	SDL_Flip(sdl_SURFACE(dev));
 #endif
@@ -675,6 +861,15 @@ u_char_t *sdl_init_driver(u_char_t *param, u_char_t *display)
 		sdl_DATA.input_encoding	= get_cp_index(cp);
 	}
 #endif
+	
+	#ifdef PSP
+		SDL_ShowCursor(SDL_ENABLE);
+		SDL_WarpMouse(mouse_x,mouse_y);
+		/* Setup input */
+		sceCtrlSetSamplingCycle(0);
+		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
+	#endif
+	
 	return NULL;
 }
 
@@ -1031,8 +1226,21 @@ int sdl_hscroll(struct graphics_device *drv, struct rect_set **set, int sc)
 	rect2.h = drv->clip.y2 - rect1.y;
 #endif
 
+#ifdef PSP
+	sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+	{
+		struct rect r;
+		r.x1 = 0;
+		r.y1 = 0;
+		r.x2 = sdl_VIDEO_WIDTH;
+		r.y2 = sdl_VIDEO_HEIGHT;
+		sdl_set_clip_area(drv, &r);
+	}
+	return 0;
+#else	
 	SDL_BlitSurface(sdl_SURFACE(dev), &rect1, sdl_SURFACE(dev), &rect2);
 	sdl_register_update(dev, rect1.x, rect1.y, rect1.w, rect1.h, 0);
+#endif
 	/* S_ON_DEBUG_TRACE("out"); */
 	return 1;
 }
@@ -1090,6 +1298,14 @@ void sdl_set_clip_area(struct graphics_device *drv, struct rect *r)
 }
 
 /* return rgb color */
+#ifdef PSP
+#define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+long sdl_get_color(int rgb)
+{
+	return RGB2BGR(rgb);
+	//return rgb;
+}
+#else
 long sdl_get_color(int rgb)
 {
 	/* call depth specific function (going like this enables us to use multiple screens with various depths) [someday] */
@@ -1103,6 +1319,7 @@ long sdl_get_color(int rgb)
 	else
 		return (rgb);
 }
+#endif
 
 /* set window title (tittle utf-8 encoded !!!!) */
 void sdl_set_title(struct graphics_device *drv, u_char_t *title)

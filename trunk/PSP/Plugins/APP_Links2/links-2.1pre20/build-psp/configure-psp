@@ -1,0 +1,15 @@
+#!/bin/sh
+export SHAREDLIB_DIR="../../../../SharedLib"
+rm Makefile config.cache config.h config.log config.status  stamp-h 
+cp `find /usr/local/pspdev/ -name "pspiofilemgr_dirent.h"` .
+export psp=yes
+export INCL="-I$SHAREDLIB_DIR/Tools"
+export CC="psp-gcc -I$SHAREDLIB_DIR/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/" 
+export CFLAGS="-I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ $INCL" 
+export LDFLAGS="-L$(psp-config --pspsdk-path)/lib -L$(psp-config --pspsdk-path)/sdk/lib -L$SHAREDLIB_DIR/lib" 
+export LIBS="-lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel" 
+
+../configure --prefix=$(psp-config --psp-prefix) --srcdir=../ --host=psp --includedir=/usr/local/pspdev/psp/sdk/include/ --enable-javascript --enable-graphics --without-svgalib --without-x --without-fb --without-directfb --without-pmshell --without-atheos 
+
+echo "include Makefile.psp" >> Makefile
+

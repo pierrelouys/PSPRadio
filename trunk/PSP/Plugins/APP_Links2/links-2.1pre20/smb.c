@@ -120,10 +120,14 @@ void smb_func(struct connection *c)
 		unsigned char *uphp;
 		close_fork_tty();
 		close(1);
+#ifndef PSP
 		if (si->list) dup2(pe[1], 1);
 		else dup2(po[1], 1);
+#endif
 		close(2);
+#ifndef PSP
 		dup2(pe[1], 2);
+#endif
 		close(0);
 		open("/dev/null", O_RDONLY);
 		close(po[0]);
@@ -231,7 +235,9 @@ void smb_func(struct connection *c)
 			internal("unsuported smb client");
 		}
 		v[n++] = NULL;
+#ifndef PSP
 		execvp(v[0], (char **)v);
+#endif
 		fprintf(stderr, "client not found");
 		_exit(1);
 	}

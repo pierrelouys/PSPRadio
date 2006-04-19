@@ -281,9 +281,20 @@ int write_to_config_file(unsigned char *name, unsigned char *c)
 unsigned char *get_home(int *n)
 {
 	struct stat st;
-	unsigned char *home = stracpy(getenv("HOME"));
 	unsigned char *home_links;
+#ifdef PSP
+	char strCWD[MAXPATHLEN+1];
+	getcwd(strCWD, MAXPATHLEN);
+	if (strcmp(strCWD, "host0:/") == 0)
+	{
+		sprintf(strCWD, "ms0:/PSP/GAME/__SCE__PSPRadio/");
+	}
+	unsigned char *home = stracpy(strCWD);
+	unsigned char *config_dir = stracpy("APP_Links2");
+#else
+	unsigned char *home = stracpy(getenv("HOME"));
 	unsigned char *config_dir = stracpy(getenv("CONFIG_DIR"));
+#endif
 
 	if (n) *n = 1;
 	if (!home) {

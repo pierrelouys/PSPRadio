@@ -152,7 +152,11 @@ int ttcgetattr(int fd, struct termios *t)
 #ifdef SIGTTIN
 	interruptible_signal(SIGTTIN, 1);
 #endif
+#ifdef PSP
+	r = 0;
+#else
 	r = tcgetattr(fd, t);
+#endif
 #ifdef SIGTTOU
 	interruptible_signal(SIGTTOU, 0);
 #endif
@@ -171,7 +175,11 @@ int ttcsetattr(int fd, int a, struct termios *t)
 #ifdef SIGTTIN
 	interruptible_signal(SIGTTIN, 1);
 #endif
+#ifdef PSP
+	r = 0;
+#else
 	r = tcsetattr(fd, a, t);
+#endif
 #ifdef SIGTTOU
 	interruptible_signal(SIGTTOU, 0);
 #endif
@@ -183,6 +191,7 @@ int ttcsetattr(int fd, int a, struct termios *t)
 
 int setraw(int fd, struct termios *p)
 {
+#ifndef PSP
 	struct termios t;
 	memset(&t, 0, sizeof(struct termios));
 	if (ttcgetattr(fd, &t)) return -1;
@@ -194,6 +203,7 @@ int setraw(int fd, struct termios *p)
 #endif
 	t.c_oflag |= OPOST;
 	if (ttcsetattr(fd, TCSANOW, &t)) return -1;
+#endif
 	return 0;
 }
 

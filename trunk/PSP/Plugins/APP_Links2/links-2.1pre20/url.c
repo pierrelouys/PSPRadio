@@ -291,6 +291,9 @@ void insert_wd(unsigned char **up, unsigned char *cwd)
 #ifdef SPAD
 	if (_is_absolute(url + 7) != _ABS_NO) return;
 #endif
+#ifdef PSP
+	if (upcase(url[7]) == 'M' && upcase(url[8]) == 'S' && url[9] == '0' && url[10] == ':' && dir_sep(url[11])) return;
+#endif
 	url = mem_alloc(strlen(*up) + strlen(cwd) + 2);
 	memcpy(url, *up, 7);
 	strcpy(url + 7, cwd);
