@@ -82,7 +82,7 @@ int ModuleStartAPP()
 	}
 	#endif
 	
-	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0, PSP_THREAD_ATTR_USER, 0);
+	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
 		sceKernelStartThread(thid, 0, 0);
