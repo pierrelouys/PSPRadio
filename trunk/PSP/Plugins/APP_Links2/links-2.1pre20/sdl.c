@@ -234,6 +234,19 @@ static void sdl_catch_event(void *data)
 					mouse_y = newy;
 
 				SDL_WarpMouse(mouse_x, mouse_y);
+				
+				fl	= B_MOVE;
+				if (pad.Buttons & PSP_CTRL_CROSS)
+				{
+					fl = B_DRAG | B_LEFT;
+				}
+				else if (pad.Buttons & PSP_CTRL_TRIANGLE)
+				{
+					fl = B_DRAG | B_RIGHT;
+				}
+					
+				/* call handler */
+				sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
 			}
 			
 			sceCtrlReadLatch(&latch);
@@ -244,7 +257,12 @@ static void sdl_catch_event(void *data)
 				oldButtonMask = latch.uiPress;
 				if (oldButtonMask & PSP_CTRL_CROSS)
 				{
-					fl	= B_DOWN;
+					fl	= B_DOWN | B_LEFT;
+					sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
+				}
+				else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+				{
+					fl	= B_DOWN | B_RIGHT;
 					sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
 				}
 			}
@@ -266,7 +284,7 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_DOWN)
 				{
-					if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					if (oldButtonMask & PSP_CTRL_LTRIGGER)
 					{
 						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_PAGE_DOWN, fl);
 					}
@@ -278,7 +296,7 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_UP)
 				{
-					if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					if (oldButtonMask & PSP_CTRL_LTRIGGER)
 					{
 						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_PAGE_UP, fl);
 					}
@@ -308,7 +326,7 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_CROSS)
 				{
-					fl	= B_UP;
+					fl	= B_UP | B_LEFT;
 					sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
 ;//					*key = KEY_PSP_CROSS;
 				}
@@ -319,6 +337,8 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_TRIANGLE)
 				{
+					fl	= B_UP | B_RIGHT;
+					sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
 ;//					*key = KEY_PSP_TRIANGLE;
 				}
 				else if (oldButtonMask & PSP_CTRL_CIRCLE)
@@ -340,7 +360,7 @@ static void sdl_catch_event(void *data)
 		}
 	}
 #endif
-#endif //PSP
+#else //Not PSP
     
 	SDL_PumpEvents();
     ev_num	= SDL_PeepEvents(events, sdl_CATCH_EVENTS_NUM, SDL_GETEVENT, SDL_ALLEVENTS);
@@ -465,6 +485,7 @@ static void sdl_catch_event(void *data)
 	}
    }
 #undef event
+#endif // NOT PSP
    sdl_SETUP_TIMER((void *)dev);
    return;
 }
