@@ -119,7 +119,7 @@ int main_loop(int argc, const char** argv);
 
 int connect_to_apctl(int config);
 
-static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", "file://ms0:/psp/game/APP_Links2/mgp.html", NULL };	
+static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", "file://ms0:/psp/game/__SCE__PSPRadio/APP_Links2/pop.html", NULL };	
 void app_plugin_main()
 {
 	/* idea from scummvm psp port */
