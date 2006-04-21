@@ -25,7 +25,7 @@
 
 PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
 #ifdef STAND_ALONE_APP
-PSP_HEAP_SIZE_KB(1024*8); /*20MB*/
+PSP_HEAP_SIZE_KB(1024*16); /*20MB*/
 #else
 PSP_HEAP_SIZE_KB(8192*2);
 #endif
@@ -110,6 +110,11 @@ int ModuleContinueApp()
 	return 0;
 }
 
+int stderr_handler(char *data, int len)
+{
+	wait_for_triangle(data);
+}
+
 int main_loop(int argc, const char** argv);
 
 int connect_to_apctl(int config);
@@ -119,12 +124,23 @@ void app_plugin_main()
 {
 	/* idea from scummvm psp port */
 	static int argc = sizeof(argv)/sizeof(char *)-1;
+	char str[128];
+	int ret;
 		
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 	
 	pspDebugScreenInit();
 	
-	main_loop(argc, (char **)&argv);
+	//pspDebugInstallStdoutHandler(stderr_handler);
+	//pspDebugInstallStderrHandler(stderr_handler);
+	
+	//ret = sceKernelStdoutReopen("ms0:/links2.stdout", PSP_O_WRONLY, 0777);
+	//ret = sceKernelStderrReopen("ms0:/links2.stderr", PSP_O_WRONLY, 0777);
+	
+	ret = main_loop(argc, (char **)&argv);
+	
+	sprintf(str, "Application returns %d", ret);
+	wait_for_triangle(str);
 
 	#ifdef STAND_ALONE_APP
 		sceKernelExitGame();
