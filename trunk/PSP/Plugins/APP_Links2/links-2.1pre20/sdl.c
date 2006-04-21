@@ -180,15 +180,10 @@ static void sdl_catch_event(void *data)
 #ifdef PSP
 	static int oldButtonMask = 0;
 	int newx = mouse_x, newy = mouse_y;
-	static int danzeff_x = -1, danzeff_y = -1;
+	static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
 	SceCtrlData pad;
 	SceCtrlLatch latch; 
 			
-	if (danzeff_x == -1)
-	{
-		danzeff_x = sdl_VIDEO_WIDTH /2-(64*3/2);
-		danzeff_y = sdl_VIDEO_HEIGHT/2-(64*3/2);
-	}
 #if 0
 	sceDisplayWaitVblankStart();
 	if ( g_PSPEnableInput == truE )
@@ -200,11 +195,10 @@ static void sdl_catch_event(void *data)
 		{
 			if (danzeff_dirty())
 			{
-				//danzeff_render();
 				sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
 			}
 			
-			if ( (pad.Buttons & PSP_CTRL_START) )
+			if ( pad.Buttons & PSP_CTRL_START )
 			{
 				/* Enter input */
 				sf_danzeffOn = 0;
@@ -220,31 +214,20 @@ static void sdl_catch_event(void *data)
 				danzeff_x+=5;
 				cls_redraw_all_terminals();
 			}
-			else if (pad.Buttons & PSP_CTRL_UP)
-			{
-				danzeff_y-=5;
-				cls_redraw_all_terminals();
-			}
-			else if (pad.Buttons & PSP_CTRL_DOWN)
-			{
-				danzeff_y+=5;
-				cls_redraw_all_terminals();
-			}
 			else
 			{
 				int key = 0;
 				key = danzeff_readInput(pad);
 				if (key) 
 				{
-					if (key == 010)
+					if (key == '\n')
 					{
-						key = KBD_BS;
+						key = KBD_ENTER;
 					}
 					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), key, 0);
+					sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
 				}
 			}
-			danzeff_x%=sdl_VIDEO_WIDTH;
-			danzeff_y%=sdl_VIDEO_HEIGHT;
 			danzeff_moveTo(danzeff_x, danzeff_y);
 			
 			oldButtonMask = 0;
