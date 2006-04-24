@@ -220,12 +220,17 @@ static void sdl_catch_event(void *data)
 				key = danzeff_readInput(pad);
 				if (key) 
 				{
-					if (key == '\n')
+					switch (key)
 					{
-						key = KBD_ENTER;
+						case '\n':
+							key = KBD_ENTER;
+							break;
+						case 8:
+							key = KBD_BS;
+							break;
 					}
 					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), key, 0);
-					sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+					//sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
 				}
 			}
 			danzeff_moveTo(danzeff_x, danzeff_y);
@@ -367,9 +372,11 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_START)
 				{
+					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), 'g', fl);
 				}
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
+					connect_to_apctl(1);
 				}
 				oldButtonMask = 0;
 			}
