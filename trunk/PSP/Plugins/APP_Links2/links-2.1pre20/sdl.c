@@ -191,6 +191,8 @@ static void sdl_catch_event(void *data)
 		
 #endif
 		sceCtrlReadBufferPositive(&pad, 1);
+		sceCtrlReadLatch(&latch);
+			
 		if (sf_danzeffOn)
 		{
 			if (danzeff_dirty())
@@ -198,13 +200,23 @@ static void sdl_catch_event(void *data)
 				sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
 			}
 			
-			if ( pad.Buttons & PSP_CTRL_START )
+			if (latch.uiMake)
 			{
-				/* Enter input */
-				sf_danzeffOn = 0;
-				cls_redraw_all_terminals();
+				// Button Pressed 
+				oldButtonMask = latch.uiPress;
 			}
-			else if (pad.Buttons & PSP_CTRL_LEFT)
+			else if (latch.uiBreak) /** Button Released */
+			{
+				if (oldButtonMask & PSP_CTRL_START)
+				{
+					/* Enter input */
+					sf_danzeffOn = 0;
+					cls_redraw_all_terminals();
+				}
+				oldButtonMask = 0;
+			}
+			
+			if (pad.Buttons & PSP_CTRL_LEFT)
 			{
 				danzeff_x-=5;
 				cls_redraw_all_terminals();
@@ -235,7 +247,6 @@ static void sdl_catch_event(void *data)
 			}
 			danzeff_moveTo(danzeff_x, danzeff_y);
 			
-			oldButtonMask = 0;
 		}
 		else
 		{
@@ -280,8 +291,6 @@ static void sdl_catch_event(void *data)
 				/* call handler */
 				sdl_GD(dev)->mouse_handler(sdl_GD(dev), mouse_x, mouse_y, fl);
 			}
-			
-			sceCtrlReadLatch(&latch);
 			
 			if (latch.uiMake)
 			{
@@ -335,18 +344,6 @@ static void sdl_catch_event(void *data)
 					if (oldButtonMask & PSP_CTRL_RTRIGGER)
 					{
 						
-						if (danzeff_isinitialized())
-						{
-							danzef_set_screen(sdl_SURFACE(dev));
-							danzeff_moveTo(danzeff_x, danzeff_y);
-							danzeff_render();
-							sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
-							sf_danzeffOn = 1;
-						}
-						else
-						{
-							wait_for_triangle("Error loading danzeff OSK");
-						}
 					}
 				}
 				else if (oldButtonMask & PSP_CTRL_RTRIGGER)
@@ -372,7 +369,19 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_START)
 				{
-					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), 'g', fl);
+					//sdl_GD(dev)->keyboard_handler(sdl_GD(dev), 'g', fl);
+					if (danzeff_isinitialized())
+					{
+						danzef_set_screen(sdl_SURFACE(dev));
+						danzeff_moveTo(danzeff_x, danzeff_y);
+						danzeff_render();
+						sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+						sf_danzeffOn = 1;
+					}
+					else
+					{
+						wait_for_triangle("Error loading danzeff OSK");
+					}
 				}
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
