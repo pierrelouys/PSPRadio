@@ -213,6 +213,10 @@ static void sdl_catch_event(void *data)
 					sf_danzeffOn = 0;
 					cls_redraw_all_terminals();
 				}
+				else if (oldButtonMask & PSP_CTRL_SELECT)
+				{
+					TakeScreenShot();
+				}
 				oldButtonMask = 0;
 			}
 			
@@ -385,7 +389,11 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
-					connect_to_apctl(1);
+					TakeScreenShot();
+					if (oldButtonMask & PSP_CTRL_CROSS)
+					{
+					   connect_to_apctl(1);
+					}
 				}
 				oldButtonMask = 0;
 			}
@@ -1077,6 +1085,14 @@ int sdl_get_empty_bitmap(struct bitmap *bmp)
 					sdl_DATA.video_info->vfmt->Bmask, sdl_DATA.video_info->vfmt->Amask);
 	S_ASSERT(s != NULL);
 
+#ifdef PSP
+	if (s == NULL)
+	{
+		printf("sdl_get_empty_bitmap() Out of memory!\n");
+		return 0;	
+	}
+#endif
+	
 	/* copy data */
 	bmp->data	= (void *)s->pixels;
 	bmp->skip	= s->pitch;

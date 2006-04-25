@@ -1010,7 +1010,7 @@ void _load_tables()
 		
 		if (ret == 65536)
 		{
-			pspDebugScreenPrintf("dither tables loaded from disk.");
+			pspDebugScreenPrintf("Dither tables loaded from disk.\n");
 		}
 		else
 		{

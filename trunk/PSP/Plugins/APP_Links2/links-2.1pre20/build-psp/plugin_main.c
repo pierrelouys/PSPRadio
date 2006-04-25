@@ -32,6 +32,7 @@ PSP_HEAP_SIZE_KB(8192*2);
 
 #define printf pspDebugScreenPrintf
 void app_plugin_main();
+void wait_for_triangle(char *str);
 
 /* Exit callback */
 int exit_callback(int arg1, int arg2, void *common)
@@ -78,7 +79,6 @@ int ModuleStartAPP()
 		{
 			sceKernelStartThread(thid, 0, 0);
 		}
-		//sleep(10);
 	}
 	#endif
 	
@@ -88,22 +88,8 @@ int ModuleStartAPP()
 		sceKernelStartThread(thid, 0, 0);
 	}
 
-	//wait_for_button();
-	
 	return 0;
 }
-
-// #include "psp_curses.h"
-// int ModuleContinueApp()
-// {
-// 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
-// 	pspDebugScreenInit();
-// 
-// 	g_PSPEnableInput = truE;
-// 	g_PSPEnableRendering = truE;
-// 	window_redraw_all();
-// 	return 0;
-// }
 
 int ModuleContinueApp()
 {
@@ -115,27 +101,20 @@ int stderr_handler(char *data, int len)
 	wait_for_triangle(data);
 }
 
-int main_loop(int argc, const char** argv);
+int main_loop(int argc, char** argv);
 
 int connect_to_apctl(int config);
 
-static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", "file://ms0:/psp/game/__SCE__PSPRadio/APP_Links2/pop.html", NULL };	
+static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", "file://ms0:/psp/game/__SCE__PSPRadio/APP_Links2/pspupdates.html", NULL };	
 void app_plugin_main()
 {
-	/* idea from scummvm psp port */
-	static int argc = sizeof(argv)/sizeof(char *)-1;
+	static int argc = sizeof(argv)/sizeof(char *)-1; 	/* idea from scummvm psp port */
 	char str[128];
 	int ret;
 		
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 	
 	pspDebugScreenInit();
-	
-	//pspDebugInstallStdoutHandler(stderr_handler);
-	//pspDebugInstallStderrHandler(stderr_handler);
-	
-	//ret = sceKernelStdoutReopen("ms0:/links2.stdout", PSP_O_WRONLY, 0777);
-	//ret = sceKernelStderrReopen("ms0:/links2.stderr", PSP_O_WRONLY, 0777);
 	
 	ret = main_loop(argc, (char **)&argv);
 	
@@ -230,3 +209,135 @@ void app_init_progress(char *str)
 	
 	step++;
 }
+
+#ifdef STAND_ALONE_APP
+
+#include <png.h>
+#include <pspdisplay.h>
+#define SCREEN_WIDTH 480
+#define SCREEN_HEIGHT 272
+char *ScreenshotName(char *path);
+void ScreenshotStore(char *filename);
+
+void TakeScreenShot()
+{
+	char	path[MAXPATHLEN];
+	char	*filename;
+	char    m_strCWD[MAXPATHLEN+1];
+	
+	getcwd(m_strCWD, MAXPATHLEN);
+
+	sprintf(path, "%s/Screenshots/", m_strCWD);
+
+	filename = ScreenshotName(path);
+
+	if  (filename)
+	{
+		ScreenshotStore(filename);
+		ModuleLog(LOG_INFO, "Screenshot stored as : %s", filename);
+		free(filename);
+	}
+	else
+	{
+		ModuleLog(LOG_INFO, "No screenshot taken..");
+	}
+}
+
+char *ScreenshotName(char *path)
+{
+	char	*filename;
+	int		image_number;
+	FILE	*temp_handle;
+
+	filename = (char *) malloc(MAXPATHLEN);
+	if (filename)
+	{
+		for (image_number = 0 ; image_number < 1000 ; image_number++)
+		{
+			sprintf(filename, "%sPSPRadio_Screen%03d.png", path, image_number);
+			temp_handle = fopen(filename, "r");
+			// If the file didn't exist we can use this current filename for the screenshot
+			if (!temp_handle)
+			{
+				break;
+			}
+			fclose(temp_handle);
+		}
+	}
+	return filename;
+}
+
+//The code below is take from an example for libpng.
+void ScreenshotStore(char *filename)
+{
+	u32* vram32;
+	u16* vram16;
+	int bufferwidth;
+	int pixelformat;
+	int unknown;
+	int i, x, y;
+	png_structp png_ptr;
+	png_infop info_ptr;
+	FILE* fp;
+	u8* line;
+	fp = fopen(filename, "wb");
+	if (!fp) return;
+	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (!png_ptr) return;
+	info_ptr = png_create_info_struct(png_ptr);
+	if (!info_ptr) {
+		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+		fclose(fp);
+		return;
+	}
+	png_init_io(png_ptr, fp);
+	png_set_IHDR(png_ptr, info_ptr, SCREEN_WIDTH, SCREEN_HEIGHT,
+		8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	png_write_info(png_ptr, info_ptr);
+	line = (u8*) malloc(SCREEN_WIDTH * 3);
+	sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
+	sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, &unknown);
+	vram16 = (u16*) vram32;
+	for (y = 0; y < SCREEN_HEIGHT; y++) {
+		for (i = 0, x = 0; x < SCREEN_WIDTH; x++) {
+			u32 color = 0;
+			u8 r = 0, g = 0, b = 0;
+			switch (pixelformat) {
+				case PSP_DISPLAY_PIXEL_FORMAT_565:
+								color = vram16[x + y * bufferwidth];
+								r = (color & 0x1f) << 3;
+								g = ((color >> 5) & 0x3f) << 2 ;
+								b = ((color >> 11) & 0x1f) << 3 ;
+								break;
+				case PSP_DISPLAY_PIXEL_FORMAT_5551:
+								color = vram16[x + y * bufferwidth];
+								r = (color & 0x1f) << 3;
+								g = ((color >> 5) & 0x1f) << 3 ;
+								b = ((color >> 10) & 0x1f) << 3 ;
+								break;
+				case PSP_DISPLAY_PIXEL_FORMAT_4444:
+								color = vram16[x + y * bufferwidth];
+								r = (color & 0xf) << 4;
+								g = ((color >> 4) & 0xf) << 4 ;
+								b = ((color >> 8) & 0xf) << 4 ;
+								break;
+				case PSP_DISPLAY_PIXEL_FORMAT_8888:
+								color = vram32[x + y * bufferwidth];
+								r = color & 0xff;
+								g = (color >> 8) & 0xff;
+								b = (color >> 16) & 0xff;
+								break;
+			}
+			line[i++] = r;
+			line[i++] = g;
+			line[i++] = b;
+		}
+		png_write_row(png_ptr, line);
+	}
+	free(line);
+	png_write_end(png_ptr, info_ptr);
+	png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+	fclose(fp);
+}
+#endif
