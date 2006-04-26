@@ -1,11 +1,11 @@
-#ifndef psp_curses_h
-	#define psp_curses_h
+#ifndef psp_h
+	#define psp_h
 
-	#include <stdio.h>
+/*	#include <stdio.h>
 	#include <pspctrl.h>
 	#include <pspiofilemgr_dirent.h>
 	#include <dirent.h>
-
+*/
 	#ifndef tBoolean
 	#define tBoolean int
 	#define truE 1
@@ -14,7 +14,7 @@
 	#endif
 		
 
-	void PSPPutch(char ch);
+/*	void PSPPutch(char ch);
 
 	int env_termsize(int *x, int *y);
 
@@ -22,7 +22,7 @@
 	void PSPInputHandlerEnd();
 	int PSPInputHandler(SceCtrlData pad, char *key);
 
-	extern tBoolean g_InputMethod;
+	extern tBoolean g_InputMethod;*/
 	extern volatile tBoolean g_PSPEnableRendering;
 	extern volatile tBoolean g_PSPEnableInput;
 

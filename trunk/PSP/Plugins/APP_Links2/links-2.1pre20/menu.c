@@ -1512,9 +1512,15 @@ void cache_opt(struct terminal *term, void *xxx, void *yyy)
 
 void menu_shell(struct terminal *term, void *xxx, void *yyy)
 {
+#ifdef PSP /** Switch to PSPRadio */
+	g_PSPEnableInput = falsE;
+	g_PSPEnableRendering = falsE;
+	PSPRadioExport_GiveUpExclusiveAccess();
+#else
 	unsigned char *sh;
 	if (!(sh = GETSHELL)) sh = DEFAULT_SHELL;
 	exec_on_terminal(term, sh, "", 1);
+#endif
 }
 
 void menu_kill_background_connections(struct terminal *term, void *xxx, void *yyy)
@@ -2150,7 +2156,11 @@ void do_file_menu(struct terminal *term, void *xxx, struct session *ses)
 	TEXT(T_OS_SHELL), "", TEXT(T_HK_OS_SHELL), MENU_FUNC menu_shell, NULL, 0, 0,*/
 	x = 1;
 	if (!anonymous && can_open_os_shell(term->environment)) {
+/*		#ifdef PSP
+		e->text = TEXT(T_SWITCH_TO_PSPRADIO);
+		#else*/
 		e->text = TEXT(T_OS_SHELL);
+// 		#endif
 		e->rtext = "";
 		e->hotkey = TEXT(T_HK_OS_SHELL);
 		e->func = MENU_FUNC menu_shell;

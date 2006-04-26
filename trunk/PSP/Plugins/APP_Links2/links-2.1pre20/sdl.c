@@ -184,12 +184,9 @@ static void sdl_catch_event(void *data)
 	SceCtrlData pad;
 	SceCtrlLatch latch; 
 			
-#if 0
-	sceDisplayWaitVblankStart();
+///	sceDisplayWaitVblankStart();
 	if ( g_PSPEnableInput == truE )
 	{
-		
-#endif
 		sceCtrlReadBufferPositive(&pad, 1);
 		sceCtrlReadLatch(&latch);
 			
@@ -313,7 +310,11 @@ static void sdl_catch_event(void *data)
 			}
 			else if (latch.uiBreak) /** Button Released */
 			{
-				if (oldButtonMask & PSP_CTRL_DOWN)
+				if (oldButtonMask & PSP_CTRL_SELECT && oldButtonMask & PSP_CTRL_CROSS)
+				{
+					connect_to_apctl(1);
+				}
+				else if (oldButtonMask & PSP_CTRL_DOWN)
 				{
 					if (oldButtonMask & PSP_CTRL_LTRIGGER)
 					{
@@ -345,10 +346,6 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_LTRIGGER)
 				{
-					if (oldButtonMask & PSP_CTRL_RTRIGGER)
-					{
-						
-					}
 				}
 				else if (oldButtonMask & PSP_CTRL_RTRIGGER)
 				{
@@ -390,17 +387,11 @@ static void sdl_catch_event(void *data)
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
 					TakeScreenShot();
-					if (oldButtonMask & PSP_CTRL_CROSS)
-					{
-					   connect_to_apctl(1);
-					}
 				}
 				oldButtonMask = 0;
 			}
 		}
-#if 0	
 	}
-#endif
 #else //Not PSP
     
 	SDL_PumpEvents();
@@ -535,6 +526,9 @@ static void sdl_update_sc(void *data)
 {
 	register struct t_sdl_device_data	*dev;
 
+	if (g_PSPEnableRendering == falsE)
+		return;
+	
 	/* S_ON_DEBUG_TRACE("in"); */
 	/* assign struct */
 	if(data == NULL)

@@ -1,3 +1,4 @@
+#ifndef PSP
 #include "links.h"
 
 #define SMBCLIENT	0
@@ -620,3 +621,4 @@ void end_smb_connection(struct connection *c)
 	abort_connection(c);
 	return;
 }
+#endif
