@@ -105,6 +105,9 @@ CPSPApp::~CPSPApp()
 {
 	Log(LOG_VERYLOW, "~CPSPApp(): Destructor Called.");
 
+	Log(LOG_VERYLOW, "~CPSPApp(): Stopping Run Thread.");
+	m_Exit = true;
+	sceKernelDelayThread(50*1000); /* Wait 50ms */
 	
 	if (true == IsUSBEnabled())
 	{
@@ -117,6 +120,9 @@ CPSPApp::~CPSPApp()
 		Log(LOG_VERYLOW, "~CPSPApp(): Disabling Network.");
 		DisableNetwork();
 	}
+
+	Log(LOG_VERYLOW, "~CPSPApp(): Stopping network drivers");
+	StopNetworkDrivers();
 
 	if (m_EventToPSPApp)
 	{
@@ -186,7 +192,7 @@ int CPSPApp::Run()
 		{
 			SceCtrlData pad;
 		
-			sceCtrlReadBufferPositive(&pad, 1);
+			sceCtrlPeekBufferPositive(&pad, 1);
 			
 			/** Key combo done */
 			if ( (pad.Buttons & m_KeyComboToResumeKeyLatch) == m_KeyComboToResumeKeyLatch )
