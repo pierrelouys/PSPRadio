@@ -1,13 +1,10 @@
 /*
- * PSP Software Development Kit - http://www.pspdev.org
+ * Links2 Port for PSPRadio
  * -----------------------------------------------------------------------
- * Licensed under the BSD license, see LICENSE in PSPSDK root for details.
  *
- * main.c - Simple PRX example.
+ * plugin_main.c - Based on parts of: Simple PRX example by James Forshaw <tyranid@gmail.com>
+ * by: Raf 2006.
  *
- * Copyright (c) 2005 James Forshaw <tyranid@gmail.com>
- *
- * $Id: main.c 1531 2005-12-07 18:27:12Z tyranid $
  */
 #include <pspctrl.h>
 #include <pspkernel.h>
@@ -22,18 +19,20 @@
 #include <PSPRadio_Exports.h>
 #include <APP_Exports.h>
 #include <Common.h>
+#include <links.h>
 
 PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
 #ifdef STAND_ALONE_APP
-PSP_HEAP_SIZE_KB(1024*16); /*20MB*/
+PSP_HEAP_SIZE_KB(1024*16);
 #else
-PSP_HEAP_SIZE_KB(8192*2);
+PSP_HEAP_SIZE_KB(1024*8);
 #endif
 
 #define printf pspDebugScreenPrintf
 void app_plugin_main();
 void wait_for_triangle(char *str);
 
+#ifdef STAND_ALONE_APP
 /* Exit callback */
 int exit_callback(int arg1, int arg2, void *common)
 {
@@ -58,6 +57,7 @@ int CallbackThread(SceSize args, void *argp)
 
 	return 0;
 }
+#endif
 
 int ModuleStartAPP()
 {
@@ -93,6 +93,12 @@ int ModuleStartAPP()
 
 int ModuleContinueApp()
 {
+	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
+	pspDebugScreenInit();
+
+	g_PSPEnableInput = truE;
+	g_PSPEnableRendering = truE;
+	cls_redraw_all_terminals();
 	return 0;
 }
 
@@ -105,21 +111,122 @@ int main_loop(int argc, char** argv);
 
 int connect_to_apctl(int config);
 
-static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", "file://ms0:/psp/game/__SCE__PSPRadio/APP_Links2/pspupdates.html", NULL };	
+
+int CreateHomepage(char *file)
+{
+	FILE *fp = fopen(file, "w");
+	
+	if (fp)
+	{
+		fprintf(fp, "<html><head><title>Links2 On PSP</title></head><body bgcolor=\"white\"><h3 align=\"center\"><b>Links2 For PSPRadio</b></h3>\n");
+	
+		fprintf(fp, "<p>PSP Port by Raf. This port is a plugin for PSPRadio. Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
+		
+		/** Google search Start */
+		fprintf(fp, "<center>");
+		fprintf(fp, "<form method=\"get\" action=\"http://www.google.com/custom\" target=\"_top\">");
+		fprintf(fp, "<table bgcolor=\"#ffffff\">");
+		fprintf(fp, "<tr><td nowrap=\"nowrap\" valign=\"top\" align=\"left\" height=\"32\">");
+		fprintf(fp, "<a href=\"http://www.google.com/\">");
+		fprintf(fp, "<img src=\"http://www.google.com/logos/Logo_25wht.gif\" border=\"0\" alt=\"Google\" align=\"middle\"></img></a>");
+		fprintf(fp, "<br/>");
+		fprintf(fp, "<input type=\"text\" name=\"q\" size=\"31\" maxlength=\"255\" value=\"\"></input>");
+		fprintf(fp, "</td></tr>");
+		fprintf(fp, "<tr><td valign=\"top\" align=\"left\">");
+		fprintf(fp, "<input type=\"submit\" name=\"sa\" value=\"Search\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"client\" value=\"pub-3916941649621652\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"forid\" value=\"1\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"channel\" value=\"5433159913\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"ie\" value=\"ISO-8859-1\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"oe\" value=\"ISO-8859-1\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"cof\" value=\"GALT:#008000;GL:1;DIV:#336699;VLC:663399;AH:center;BGC:FFFFFF;LBGC:336699;ALC:0000FF;LC:0000FF;T:000000;GFNT:0000FF;GIMP:0000FF;FORID:1;\"></input>");
+		fprintf(fp, "<input type=\"hidden\" name=\"hl\" value=\"en\"></input>");
+		fprintf(fp, "</td></tr></table>");
+		fprintf(fp, "</form>");
+		fprintf(fp, "</center><br><br>");
+#if 0
+		fprintf(fp, "<br><br><center><form method=\"get\" action=\"http://www.google.com/custom\" target=\"google_window\"><table bgcolor=\"#ffffff\"><tr><td nowrap=\"nowrap\" valign=\"top\" align=\"left\" height=\"32\"><input type=\"text\" name=\"q\" size=\"31\" maxlength=\"255\" value=\"\"></input></td></tr><tr><td valign=\"top\" align=\"left\"><input type=\"submit\" name=\"sa\" value=\"Google Search\"></input>");
+		
+		fprintf(fp, "<input type=\"hidden\" name=\"client\" value=\"pub-3916941649621652\"></input><input type=\"hidden\" name=\"forid\" value=\"1\"></input><input type=\"hidden\" name=\"channel\" value=\"6751154370\"></input><input type=\"hidden\" name=\"ie\" value=\"ISO-8859-1\"></input><input type=\"hidden\" name=\"oe\" value=\"ISO-8859-1\"></input>");
+		
+		fprintf(fp, "<input type=\"hidden\" name=\"cof\" value=\"GALT:#008000;GL:1;DIV:#336699;VLC:663399;AH:center;BGC:FFFFFF;LBGC:336699;ALC:0000FF;LC:0000FF;T:000000;GFNT:0000FF;GIMP:0000FF;FORID:1;\"></input>");
+		
+		fprintf(fp, "<input type=\"hidden\" name=\"hl\" value=\"en\"> </input> </td> </tr> </table> </form> </center><br><br>");
+#endif
+		/** Google Search end */
+		
+		/** Load tips from tips file */
+		{
+			FILE *fTips = NULL;
+			char strLine[512];
+			fTips = fopen("APP_Links2/tips.html", "r");
+			if (fTips)
+			{
+				while (!feof(fTips))
+				{
+					if (fgets(strLine, 512, fTips) != NULL)
+					{
+						fprintf(fp, strLine);
+					}
+					else
+					{
+						break;
+					}
+				}
+				fclose(fTips), fTips = NULL;
+			}
+			else
+			{
+				fprintf(fp, "<p><br><br>PSP Port Tips: <br>Input mode: <b>START</b> = Enter. <b>START</b> = Exit.<br><b>L+UP</b> = Page up <b>L+Down</b> = Page Down.<br><b>CIRCLE</b> = Yes / OK / Enter<br><b>SQUARE</b> = No / Cancel<br><b>CROSS</b> = Right Mouse Click. <b>TRIANGLE</b> = Left Mouse Click.<br><b>SELECT</b> = Take Screenshot. <b>CROSS+SELECT</b> = Network Reconnect.</p><br><br>\n");
+			}
+		}
+		
+		fprintf(fp, "\n</body></html>\n");
+		
+		fclose(fp), fp = NULL;
+		return 0;
+	}
+	
+	return -1;
+}
+
+
+static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", \ 	
+						"homepage.html", NULL };	
 void app_plugin_main()
 {
 	static int argc = sizeof(argv)/sizeof(char *)-1; 	/* idea from scummvm psp port */
-	char str[128];
+	char str[128], strhp[128];
 	int ret;
 		
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 	
 	pspDebugScreenInit();
 	
+	getcwd(str, 100);
+	sprintf(strhp, "%s/%s/%s.html", str, argv[0], argv[0]);
+	
+	if (CreateHomepage(strhp) == 0)
+	{
+		sprintf(strhp, "file://%s/%s/%s.html", str, argv[0], argv[0]);
+		argv[6] = strhp;
+	}
+	else
+	{
+		argv[6] = NULL;
+		argc--;
+	}
+	
+	g_PSPEnableInput = truE;
+	g_PSPEnableRendering = truE;
+	
 	ret = main_loop(argc, (char **)&argv);
 	
-	sprintf(str, "Application returns %d", ret);
-	wait_for_triangle(str);
+	if (ret != 0) 
+	{
+		sprintf(str, "Application returns %d", ret);
+		wait_for_triangle(str);
+	}
 
 	#ifdef STAND_ALONE_APP
 		sceKernelExitGame();
@@ -339,5 +446,10 @@ void ScreenshotStore(char *filename)
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 	fclose(fp);
+}
+#else
+void TakeScreenShot()
+{
+	PSPRadioExport_TakeScreenShot();
 }
 #endif

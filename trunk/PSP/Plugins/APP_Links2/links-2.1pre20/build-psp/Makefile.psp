@@ -37,8 +37,11 @@ LIBS = -lSDL_image -lSDL -lpspgu -lpspge -lpspaudio -lpng -ljpeg -lz -lm -lpthre
 the_prx: $(OBJS) $(TARGET).prx 
 
 prx:
-	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make $(EXPORTED_OBJS) && mv PSPRadioExports.o $(EXPORTED_OBJS)
-	touch ../../../APP_Exports.o && rm ../../../APP_Exports.o && make  ../../../APP_Exports.o && mv APP_Exports.o ../../../APP_Exports.o
+	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make -f Makefile.psp $(EXPORTED_OBJS)
+	touch $(COMMON_OBJS) && rm $(COMMON_OBJS) && make -f Makefile.psp $(COMMON_OBJS)
+	touch ../../../APP_Exports.o && rm ../../../APP_Exports.o && make -f Makefile.psp  ../../../APP_Exports.o
+	make -f Makefile.psp $(DANZEFF_OBJECTS)
+	if test -f danzeff.o; then mv danzeff.o danzeff/; fi
 	make the_prx
 
 stand_alone:
