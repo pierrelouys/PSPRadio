@@ -187,6 +187,13 @@ static void sdl_catch_event(void *data)
 ///	sceDisplayWaitVblankStart();
 	if ( g_PSPEnableInput == truE )
 	{
+		
+		if (g_PSPEnableRendering == falsE)
+		{
+			g_PSPEnableRendering = truE;
+			cls_redraw_all_terminals();
+		}
+		
 		sceCtrlReadBufferPositive(&pad, 1);
 		sceCtrlReadLatch(&latch);
 			
@@ -526,9 +533,7 @@ static void sdl_update_sc(void *data)
 {
 	register struct t_sdl_device_data	*dev;
 
-	if (g_PSPEnableRendering == falsE)
-		return;
-	
+
 	/* S_ON_DEBUG_TRACE("in"); */
 	/* assign struct */
 	if(data == NULL)
@@ -555,18 +560,28 @@ static void sdl_update_sc(void *data)
 	{
 		danzeff_render();
 	}
-#endif
+	
+	if (g_PSPEnableRendering == truE)
+	{
+		SDL_UpdateRect(sdl_SURFACE(dev), sdl_URECT(dev).x, sdl_URECT(dev).y, sdl_URECT(dev).w, sdl_URECT(dev).h);
+	}
+#else
 	/* perform screen update */
 	SDL_UpdateRect(sdl_SURFACE(dev), sdl_URECT(dev).x, sdl_URECT(dev).y, sdl_URECT(dev).w, sdl_URECT(dev).h);
+#endif
+
 #ifdef PSP
-	SDL_Rect area;
-	SDL_MouseRect(&area);
-	//area.x = mouse_x; area.y = mouse_y;
-	if ( (sdl_URECT(dev).x  < mouse_x || sdl_URECT(dev).x < mouse_x + area.w) &&
-	     (sdl_URECT(dev).y < mouse_y || sdl_URECT(dev).y < mouse_y + area.h) )
-	//if(SDL_CollideBoundingBox(area, sdl_URECT(dev)))
+	if (g_PSPEnableRendering == truE)
 	{
-		SDL_SetCursor(NULL);
+		SDL_Rect area;
+		SDL_MouseRect(&area);
+		//area.x = mouse_x; area.y = mouse_y;
+		if ( (sdl_URECT(dev).x  < mouse_x || sdl_URECT(dev).x < mouse_x + area.w) &&
+			 (sdl_URECT(dev).y < mouse_y || sdl_URECT(dev).y < mouse_y + area.h) )
+		//if(SDL_CollideBoundingBox(area, sdl_URECT(dev)))
+		{
+			SDL_SetCursor(NULL);
+		}
 	}
 #endif
 #else
