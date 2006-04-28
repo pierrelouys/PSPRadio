@@ -513,24 +513,7 @@ typedef struct tFdData
 } tFdData;
 
 #define FD_REGISTER_LEN (1 << 5)
-//#define fd_register_hash(fd) ((fd) & (FD_REGISTER_LEN - 1))
-int fd_register_hash(int fd)
-{
-
-	int ret = 0;
-	if (fd & 0x7f000000) /** PSP socket */
-	{
-		ret = (((fd & ~0x7f000000) + 16) ) % FD_REGISTER_LEN;
-		ModuleLog(LOG_LOWLEVEL, "fd_register_hash(%d SOCKET)=%d", fd, ret);
-	}
-	else
-	{
-		ret = (fd % (16));
-		ModuleLog(LOG_LOWLEVEL, "fd_register_hash(%d)=%d", fd, ret);
-	}
-	
-	return ret;
-}
+#define fd_register_hash(fd) ((fd) & (FD_REGISTER_LEN - 1))
 
 typedef unsigned char tFdRegisterIndex;
 static tFdData* fd_data[FD_REGISTER_LEN];
@@ -651,9 +634,6 @@ static int highest_select_fd = 0;
 tBoolean fd_is_observable(int fd)
 { tBoolean retval;
 	
-	/** PSP Sockets have this mask */
-	if (fd & 0x7f000000) return truE;
-
 #if NEED_FD_REGISTER
   tFdKind kind = fd_register_lookup(&fd);
 #endif
@@ -731,7 +711,9 @@ static tFdObservationData* fd_observe_lookup(int fd)
 
 void fd_observe(int fd, tFdObservationHandler handler, void* handler_data,
   tFdObservationFlags flags)
-{ tFdObservationData* data = fd_observe_lookup(fd);
+{ 
+	ModuleLog(LOG_LOWLEVEL, "fd_observe(%d)", fd);
+tFdObservationData* data = fd_observe_lookup(fd);
 #if NEED_FD_REGISTER
   tFdKind kind;
 #endif
@@ -766,6 +748,10 @@ void fd_observe(int fd, tFdObservationHandler handler, void* handler_data,
     else { FD_CLR(fd, &fds_read); FD_CLR(fd, &fds_r); FD_CLR(fd, &fds_e); }
     if (flags & fdofWrite) FD_SET(fd, &fds_write);
     else { FD_CLR(fd, &fds_write); FD_CLR(fd, &fds_w); }
+	
+	//ModuleLog(LOG_LOWLEVEL, "fd_observe.fd=%d fds_read=%04x%04x%04x%04x%04x%04x%04x%04x",
+	//	fds_read[0],fds_read[1],fds_read[2],fds_read[3], 
+	//	fds_read[4],fds_read[5],fds_read[6],fds_read[7]);
 #endif
   }
 }
@@ -893,6 +879,7 @@ void fd_multiplex(void)
 	}
   }
 
+  ModuleLog(LOG_LOWLEVEL, "select returned %d FD_ISSET(3)=%d", count, FD_ISSET(3, &fds_r));
   resource_preplex();
   for (cnt = 0; cnt < FD_OBSERVATORY_LEN; cnt++)
   { const tFdObservationData* data = fd_observatory[cnt];
@@ -1023,12 +1010,6 @@ ssize_t my_read(int fd, void* buf, size_t count)
 
 		if ( g_PSPEnableInput == truE )
 		{
-	#if 0
-			SceCtrlData pad;
-			sceCtrlReadBufferPositive(&pad, 1);
-			oldButtonMask = pad.Buttons;
-			if (1) {
-	#else
 			if (g_InputMethod == truE)
 			{
 				SceCtrlData pad;
@@ -1059,7 +1040,6 @@ ssize_t my_read(int fd, void* buf, size_t count)
 				}
 				else if (latch.uiBreak) /** Button Released */
 				{
-	#endif			
 					if ( (oldButtonMask & PSP_CTRL_START) && (oldButtonMask & PSP_CTRL_LTRIGGER) )
 					{
 						/* Enter input */

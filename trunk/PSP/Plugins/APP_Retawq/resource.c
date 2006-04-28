@@ -1566,6 +1566,8 @@ typedef struct tConnection
 static tBoolean make_fd_nonblocking(int fd)
 /* tries to make <fd> non-blocking; returns whether it worked */
 { tBoolean retval;
+	ModuleLog(LOG_LOWLEVEL, "make_fd_nonblocking(fd=%d)", fd);
+	errno = 0;
 #if NEED_FD_REGISTER
   tFdKind kind = fd_register_lookup(&fd);
 #endif
@@ -1577,19 +1579,10 @@ static tBoolean make_fd_nonblocking(int fd)
     retval = cond2boolean(lwip_ioctl(fd, FIONBIO, &constant_one) == 0);
   }
   else
-#elif PSP == 1
-	if (fd & 0x7f000000)
-	{
-		#define      SO_NONBLOCK     0x1009          /* non-blocking I/O */
-		int one = 1;
-		setsockopt(fd, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
-		retval = truE; 
-	}
-	else
-#endif
+ #endif 
   { 
-  
   	const int flags = fcntl(fd, F_GETFL, 0);
+	ModuleLog(LOG_LOWLEVEL, "make_fd_nonblocking(%d). original flags=%x errno=%d", fd, flags, errno);
     if ( (flags == -1) || (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) )
       retval = falsE;
     else retval = truE;
@@ -1690,7 +1683,8 @@ static int my_do_connect(int fd, const tSockaddr* addr, size_t addrlen)
 				int e = errno; 
 				my_close_sock(fd); 
 				errno = e; 
-			}
+			} 
+
 		}
 	}
 	return(err);
@@ -1788,6 +1782,7 @@ static tBoolean conn_connect(tConnection* conn)
 	else if (fd == -1) conn_set_prelire(conn, reSocket);
 	else if (fd >= 0)
 	{ int err = my_connect(fd, entry, cad->portnumber);
+		ModuleLog(LOG_LOWLEVEL, "my_connect returns %d errno %d", err, errno);
 		if ( (err == 0) || ( (err == -1) && (errno == EINPROGRESS) ) )
 		{ 
 			if (err == 0)
