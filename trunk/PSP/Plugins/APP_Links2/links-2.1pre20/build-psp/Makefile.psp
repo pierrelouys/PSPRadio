@@ -5,7 +5,7 @@ TARGET = APP_Links2
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-DANZEFF_OBJECTS = danzeff/danzeff.o
+DANZEFF_OBJECTS = $(SHAREDLIB_DIR)/danzeff/danzeff.o
 DANZEFF_CFLAGS  = -DDANZEFF_USE_STD_PSPCTRL_H -DDANZEFF_SDL
 PSP_OBJECTS = psp.o plugin_main.o $(COMMON_OBJS) $(EXPORTED_OBJS) $(DANZEFF_OBJECTS)
 OBJS = $(PSP_OBJECTS) $(links_OBJECTS)
@@ -22,7 +22,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DI
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I$(SHAREDLIB_DIR)/libpthread \
 		 -I/usr/local/pspdev/psp/sdk/include/  -I/usr/local/pspdev/psp/include/ \
-		 -I/usr/local/pspdev/psp/include/SDL/ -I./danzeff
+		 -I/usr/local/pspdev/psp/include/SDL/ -I$(SHAREDLIB_DIR)/danzeff
 		 
 CFLAGS = $(EXTRA_FLAGS) $(DANZEFF_CFLAGS) -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSP -g $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
