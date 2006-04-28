@@ -26,7 +26,7 @@ DeviceBuffer *g_PCMBuffer = NULL;
 int CPSPRadio::Main(int argc, char **argv)
 {
 	Setup(argc, argv);
-	
+
 	Log(LOG_VERYLOW, "Main(): this=%p", this);
 	Log(LOG_INFO, "PSPRadio() Main, Calling ProcessEvents()");
 	ProcessEvents();
@@ -233,13 +233,13 @@ void CPSPRadio::OnExit()
 	rootScreen->SetBackgroundImage("Shutdown.png");
 	rootScreen->Clear();
 
-	Log(LOG_INFO, "OnExit(): Stopping network drivers");
-	StopNetworkDrivers();
+// 	Log(LOG_INFO, "OnExit(): Stopping network drivers");
+// 	StopNetworkDrivers();
 
-	Log(LOG_INFO, "Exiting. The end. -- Calling sceKernelExitGame");
-	sceKernelExitGame();
+	//Log(LOG_INFO, "Exiting. The end. -- Calling sceKernelExitGame");
+	//sceKernelExitGame();
 
-#if 0 /** sceKernelExitGame() always works, so we call that, the OS will do the cleanup for us. */
+#if 1 /** sceKernelExitGame() always works, so we call that, the OS will do the cleanup for us. */
 	if (m_Sound)
 	{
 		Log(LOG_VERYLOW, "Exiting. Destroying m_Sound object");
@@ -258,7 +258,7 @@ void CPSPRadio::OnExit()
 	}
 
 #ifdef DYNAMIC_BUILD
-	for (int i = 0 ; i < NUMBER_OF_PLUGINS; i++)
+	for (int i = 0 ; i < NUMBER_OF_PLUGIN_TYPES; i++)
 	{
 		if (m_ModuleLoader[i])
 		{
