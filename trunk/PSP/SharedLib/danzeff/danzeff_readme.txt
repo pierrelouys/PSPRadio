@@ -5,10 +5,14 @@ All included files are licensed under the BSD license, see LICENSE in PSPSDK roo
 danzeff is an OSK, as such it has alot of code dependant on what your current rendering system is.
 
 I have tryed my best to seperate the rendering code out from the thinking code, so that additionally rendering targets can be added.
-Currently there is only an implementation for SDL, but if you make an implementation for another renderer then please send it to me (danzelatlocalhostdotgeekdotnz) and I'll add it.
+Currently there is an implementation for SDL and for the native PSP GU using libpng, but if you make an implementation for another renderer then please send it to me (danzelatlocalhostdotgeekdotnz) and I'll add it.
 
 The pspctrl_emu files are for the SDL implementation.
 If you are using SDL to take input (SDL_Joystick) then you can use the function provided in pspctrl_emu to convert the SDL_Joystick to a SceCtrlData for use with the OSK functions (I have also used it for psprint and it worked fine).
+
+To render the OSK using the native PSP GU, you will need to call danzeff_render, while having an active display list, i.e. in between the sceGuStart and
+sceGuFinish function calls. The native GU version will need the libpng library for reading the images, so you must link with this library (use -lpng in your
+makefile). If you have questions about this version please ask, since it is a first version there is room for improvement.
 
 
 Code Usage:

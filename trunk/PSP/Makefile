@@ -61,7 +61,9 @@ extra_plugins:
 	cd $(PLUGINS_DIR)/APP_Retawq    && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	cd $(PLUGINS_DIR)/APP_Retawq    && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	
+	mkdir -p $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics
+	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics/.
+
 clean_plugin_common_objects:
 	rm -fv $(PLUGINS_DIR)/*.o
 

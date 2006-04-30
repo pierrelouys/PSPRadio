@@ -5,6 +5,7 @@ all:
 	cd Logging && make
 	cd PSPApp && make
 	cd libpthread && make
+	cd danzeff && make
 
 clean:
 	cd lib && rm -f *.a 
@@ -13,3 +14,4 @@ clean:
 	cd Logging && make clean
 	cd PSPApp && make clean 
 	cd libpthread && make clean
+	cd danzeff && make clean

@@ -4,16 +4,16 @@
 //danzeff is BSD licensed, if you do make a new renderer then please share it back and I can add it
 //to the original distribution.
 
-//Set which renderer target to build for (currently only SDL is available)
-#define DANZEFF_SDL
-//TODO #define DANZEFF_SCEGU etc etc ;)
+//Set which renderer target to build for
+/* #define DANZEFF_SDL */
+/* #define DANZEFF_SCEGU */
 
 
 //the SDL implementation needs the pspctrl_emu wrapper to convert
 //a SDL_Joystick into a SceCtrlData
 #if defined(DANZEFF_SDL) && !defined(DANZEFF_USE_STD_PSPCTRL_H)
 #include "pspctrl_emu.h"
-#else //not DANZEFF_SDL*/
+#else //not DANZEFF_SDL
 #include <pspctrl.h>
 #endif //DANZEFF_SDL
 
