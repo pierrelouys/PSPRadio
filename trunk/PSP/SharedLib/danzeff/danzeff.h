@@ -23,6 +23,8 @@ extern "C" {
 
 //Initialization and de-init of the keyboard, provided as the keyboard uses alot of images, so if you aren't going to use it for a while, I'd recommend unloading it.
 void danzeff_load();
+//Loads the danzeff keyboard without the transparent images (_t images)
+void danzeff_load_lite();
 void danzeff_free();
 
 //returns true if the keyboard is initialized
