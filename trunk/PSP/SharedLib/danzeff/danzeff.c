@@ -253,6 +253,37 @@ void danzeff_load()
 	initialized = true;
 }
 
+void danzeff_load_lite()
+{
+	if (initialized) return;
+	
+	int a;
+	for (a = 0; a < guiStringsSize; a++)
+	{
+		if (!((a-1)%3)) //skip loading the _t files
+		{
+			keyBits[a] = NULL;
+			continue;
+		}
+		keyBits[a] = IMG_Load(guiStrings[a]);
+		if (keyBits[a] == NULL)
+		{
+			//ERROR! out of memory.
+			//free all previously created surfaces and set initialized to false
+			int b;
+			for (b = 0; b < a; b++)
+			{
+				SDL_FreeSurface(keyBits[b]);
+				keyBits[b] = NULL;
+			}
+			initialized = false;
+			return;
+		}
+	}
+	initialized = true;
+}
+
+
 /* remove all the guibits from memory */
 void danzeff_free()
 {
@@ -275,8 +306,8 @@ void danzeff_render()
 
 	///Draw the background for the selected keyboard either transparent or opaque
 	///this is the whole background image, not including the special highlighted area
-	//if center is selected then draw the whole thing opaque
-	if (selected_x == 1 && selected_y == 1)
+	//if centered or loaded lite then draw the whole thing opaque
+	if ((selected_x == 1 && selected_y == 1) || keyBits[6*mode + shifted*3 + 1] == NULL)
 		surface_draw(keyBits[6*mode + shifted*3]);
 	else
 		surface_draw(keyBits[6*mode + shifted*3 + 1]);
