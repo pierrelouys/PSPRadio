@@ -141,7 +141,6 @@ struct t_sdl_device_data {
 		else	var_out	= (def);
 #endif
 
-#ifdef PSP
 #define printf pspDebugScreenPrintf
 #include <danzeff.h>
 static inline void sdl_register_update(struct t_sdl_device_data *dev, 
@@ -149,33 +148,24 @@ static inline void sdl_register_update(struct t_sdl_device_data *dev,
 static void sdl_update_sc(void *data);
 static int mouse_x = 0, mouse_y = 0;
 static int sf_danzeffOn = 0;
-#endif
 
 /* tha event handler */
 static void sdl_catch_event(void *data)
 {
-    register int i	= 0;
-    register int ev_num	= 0;
-    register u_short_t	fl	= 0;
-    register struct t_sdl_device_data *dev	= NULL;
-    SDL_Event events[sdl_CATCH_EVENTS_NUM];
-
-    /* speedup (BUGGY, not thread safe !?!) */
-    static u_short_t o_x = 0, o_y = 0, o_fl = 0;
+    u_short_t	fl	= 0;
+    struct t_sdl_device_data *dev	= NULL;
 
     sdl_DATA.event_timer = -1;
 
     /* get dev data */
     dev		= (struct t_sdl_device_data *) data;
 
-#ifdef PSP
 	static int oldButtonMask = 0;
 	int newx = mouse_x, newy = mouse_y;
 	static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
 	SceCtrlData pad;
 	SceCtrlLatch latch; 
 			
-///	sceDisplayWaitVblankStart();
 	if ( g_PSPEnableInput == truE )
 	{
 		
@@ -390,132 +380,7 @@ static void sdl_catch_event(void *data)
 			}
 		}
 	}
-#else //Not PSP
-    
-	SDL_PumpEvents();
-    ev_num	= SDL_PeepEvents(events, sdl_CATCH_EVENTS_NUM, SDL_GETEVENT, SDL_ALLEVENTS);
-    
-	S_ASSERT(ev_num != -1);
-    for(i = 0; i < ev_num; i++)
-    {
-#define event events[i]
-	switch (event.type)
-	{
-/*	    case SDL_ACTIVEEVENT:	*/
-	    /* mouse motion */
-            case SDL_MOUSEMOTION:
-		/* mose btn state */
-	        /* S_ON_DEBUG_TRACE("event: mouse motion"); */
-		fl	= B_DRAG;
-		sdl_MOUSE_STATE(event.motion.state, fl, B_MOVE);
-		/* save som calls (SDL generates many similar events)	*/
-		if(event.motion.x == o_x && event.motion.y == o_y && fl == o_fl)
-			break;
-		/* call handler */
-		sdl_GD(dev)->mouse_handler(sdl_GD(dev), event.motion.x, event.motion.y, fl);
-		o_x	= event.motion.x;
-		o_y	= event.motion.y;
-		o_fl	= fl;
-                break;
-	    /* mouse click */
-	    case SDL_MOUSEBUTTONUP:
-            case SDL_MOUSEBUTTONDOWN:
-#if defined(SDL_BUTTON_WHEELUP) && defined(SDL_BUTTON_WHEELDOWN)
-		if(event.button.button == SDL_BUTTON_WHEELUP)
-			fl	= B_WHEELUP | B_MOVE;
-		else if(event.button.button == SDL_BUTTON_WHEELDOWN)
-			fl	= B_WHEELDOWN | B_MOVE;
-		else
-#endif
-		{
-			if(event.type == SDL_MOUSEBUTTONDOWN)
-				fl	= B_DOWN;
-			else
-				fl	= B_UP;	
-		}
-
-	        /* S_ON_DEBUG_TRACE("event: mouse click"); */
-		/* sdl_MOUSE_STATE(event.button.state, fl, fl);	*/
-		sdl_GD(dev)->mouse_handler(sdl_GD(dev), event.button.x, event.button.y, fl);
-		break;
-
-	    /* keyboard */
-	    case SDL_KEYUP:
-	        /* S_ON_DEBUG_TRACE("event: key up"); */
-		break;
-            case SDL_KEYDOWN:
-	       {	/*translate */
-			int		k	= 0;
-			int		key	= 0;
-/*
-*			//////////////////////////
-*			//FIXME: needs rework !!!
-*			//	-- sdl works at low-level ignoring any system keymappings
-*			//	i've no idea how to do it (easily):(
-*			//////////////////////////
-*/
-			/* S_ON_DEBUG_TRACE("event: key down"); */
-			while(sdl_keysyms[k].sym != event.key.keysym.sym && sdl_keysyms[k].sym != SDLK_LAST)
-				k++;
-			S_ASSERT(sdl_keysyms[k].sym != SDLK_LAST);
-			/* FIXME: hope nobody changes enumeration values in SDL libs */
-			if(sdl_keysyms[k].sym >= SDLK_NUMLOCK && sdl_keysyms[k].sym <= SDLK_COMPOSE) 
-				break;	/* aka ignore modifiers */
-			/* find modifiers */
-			fl	= 0;
-			if(event.key.keysym.mod & KMOD_SHIFT)
-				fl	|=	KBD_SHIFT;
-			if(event.key.keysym.mod & KMOD_ALT)
-				fl	|=	KBD_ALT;
-			if(event.key.keysym.mod & KMOD_CTRL)
-				fl	|=	KBD_CTRL;
-			/* key re-map */
-			key	= sdl_keysyms[k].key;
-			/* upper letters fix (not handled directly by SDL) */
-			if(key >= 97 && key <= 122 && fl & KBD_SHIFT)
-			{	key	-= 32;
-				fl	&= ~KBD_SHIFT;	}
-			/* find modifiers */
-			fl	= 0;
-			if(event.key.keysym.mod & KMOD_SHIFT)
-				fl	|=	KBD_SHIFT;
-			if(event.key.keysym.mod & KMOD_ALT)
-				fl	|=	KBD_ALT;
-			if(event.key.keysym.mod & KMOD_CTRL)
-				fl	|=	KBD_CTRL;
-			/* send keyb */
-			/* S_ON_DEBUG(fprintf(stderr, "KEY(%d) = %c&%d\n", k, key, fl);); */
-			if(fl & KBD_CTRL && sdl_keysyms[k].sym == SDLK_c)
-				sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_CTRL_C, 0);
-			else
-				sdl_GD(dev)->keyboard_handler(sdl_GD(dev), key, fl);
-                }break;
-	    case SDL_VIDEORESIZE:
-		/* new dims */
-		sdl_GD(dev)->size.x2	= event.resize.w;
-		sdl_GD(dev)->size.y2	= event.resize.h;
-		pspsdl_driver.x		= event.resize.w;
-		pspsdl_driver.y		= event.resize.h;
-		/* resize */
-		/* 
-		S_ON_DEBUG(fprintf(stderr, "RESIZE(%dx%d)\n", event.resize.w, event.resize.h));
-		*/
-		/* info resize */
-		sdl_GD(dev)->resize_handler(sdl_GD(dev));
-		break;
-/*
-	    case SDL_VIDEOEXPOSE:
-*/
-            case SDL_QUIT:
-                sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_CLOSE, 0);
-                break;
-	    default:
-		/* printf("Unhandled event: %d !\n", event.type); */
-		break;
-	}
-   }
-#undef event
-#endif // NOT PSP
+   
    sdl_SETUP_TIMER((void *)dev);
    return;
 }
@@ -538,7 +403,6 @@ static void sdl_update_sc(void *data)
 		return;
 #endif
 
-#ifndef sdl_HAVE_DOUBLEBUF
 	/*update screen*/
 	S_ON_DEBUG(fprintf(stderr, "rel-update(%dx%dX%dx%d)\n", sdl_URECT(dev).x, sdl_URECT(dev).y, sdl_URECT(dev).w, sdl_URECT(dev).h));
 	/* bound check  */
@@ -546,7 +410,7 @@ static void sdl_update_sc(void *data)
 		sdl_URECT(dev).w	= sdl_VIDEO_WIDTH - sdl_URECT(dev).x;
 	if(sdl_URECT(dev).y + sdl_URECT(dev).h > sdl_VIDEO_HEIGHT)
 		sdl_URECT(dev).h	= sdl_VIDEO_HEIGHT - sdl_URECT(dev).y;
-#ifdef PSP
+	
 	if (sf_danzeffOn)
 	{
 		danzeff_render();
@@ -556,12 +420,7 @@ static void sdl_update_sc(void *data)
 	{
 		SDL_UpdateRect(sdl_SURFACE(dev), sdl_URECT(dev).x, sdl_URECT(dev).y, sdl_URECT(dev).w, sdl_URECT(dev).h);
 	}
-#else
-	/* perform screen update */
-	SDL_UpdateRect(sdl_SURFACE(dev), sdl_URECT(dev).x, sdl_URECT(dev).y, sdl_URECT(dev).w, sdl_URECT(dev).h);
-#endif
 
-#ifdef PSP
 	if (g_PSPEnableRendering == truE)
 	{
 		SDL_Rect area;
@@ -574,10 +433,7 @@ static void sdl_update_sc(void *data)
 			SDL_SetCursor(NULL);
 		}
 	}
-#endif
-#else
-	SDL_Flip(sdl_SURFACE(dev));
-#endif
+	
 	/* remove pending flag */
 	sdl_UPENDING(dev)	= 0;
 	/* S_ON_DEBUG_TRACE("out"); */
@@ -689,12 +545,8 @@ static u_char_t *sdl_list_videomodes()
 {
 	SDL_Rect **modes;
 
-#ifdef PSP
-
 	modes	=	SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_SWSURFACE);
-#else	
-	modes	=	SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
-#endif
+	
 	/* check if any mode avaible */
 	if(modes == (SDL_Rect **) 0)
 		return stracpy("No modes available!\n");
@@ -848,14 +700,8 @@ u_char_t *sdl_init_driver(u_char_t *param, u_char_t *display)
 	SDL_VideoDriverName((char *)sdl_DATA.video_drv, 11);
 
 	/* setup defaults */
-#ifdef PSP
 	sdl_VIDEO_FLAGS		|= SDL_SWSURFACE | SDL_RESIZABLE | SDL_ASYNCBLIT;
-#else	
-	sdl_VIDEO_FLAGS		|= SDL_HWSURFACE | SDL_HWPALETTE | SDL_RESIZABLE | SDL_RLEACCEL | SDL_ASYNCBLIT;
-#endif
-#ifdef sdl_HAVE_DOUBLEBUF
-	sdl_VIDEO_FLAGS		|= SDL_DOUBLEBUF;
-#endif
+	
 	if(sdl_VIDEO_WIDTH == 0)
 		sdl_VIDEO_WIDTH	= 800;
 	if(sdl_VIDEO_HEIGHT == 0)
@@ -939,14 +785,12 @@ u_char_t *sdl_init_driver(u_char_t *param, u_char_t *display)
 	}
 #endif
 	
-	#ifdef PSP
-		SDL_ShowCursor(SDL_ENABLE);
-		SDL_WarpMouse(mouse_x,mouse_y);
-		/* Setup input */
-		sceCtrlSetSamplingCycle(0);
-		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-		danzeff_load_lite(DANZEFF_RENDER_SDL);
-	#endif
+	SDL_ShowCursor(SDL_ENABLE);
+	SDL_WarpMouse(mouse_x,mouse_y);
+	/* Setup input */
+	sceCtrlSetSamplingCycle(0);
+	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
+	danzeff_load_lite(DANZEFF_RENDER_SDL);
 	
 	return NULL;
 }
@@ -1042,9 +886,7 @@ void sdl_shutdown_device(struct graphics_device *drv)
 	/* unregister bh */
 	unregister_bottom_half(sdl_update_sc, dev);
 
-#ifdef PSP
 	danzeff_free();
-#endif
 	
 	/* deinit video */
 	SDL_FreeSurface(sdl_SURFACE(dev));
@@ -1085,13 +927,11 @@ int sdl_get_empty_bitmap(struct bitmap *bmp)
 					sdl_DATA.video_info->vfmt->Bmask, sdl_DATA.video_info->vfmt->Amask);
 	S_ASSERT(s != NULL);
 
-#ifdef PSP
 	if (s == NULL)
 	{
 		printf("sdl_get_empty_bitmap() Out of memory!\n");
 		return 0;	
 	}
-#endif
 	
 	/* copy data */
 	bmp->data	= (void *)s->pixels;
@@ -1170,13 +1010,7 @@ void sdl_unregister_bitmap(struct bitmap *bmp)
 
 	s		= (SDL_Surface *)bmp->flags;
 	S_ASSERT(s != 0);
-#ifdef PSP
-	if ((s->flags & SDL_HWSURFACE) == SDL_HWSURFACE) 
-	{
-		s->hwdata = 1; /* This generates a call to FreeHWSurface -- to free s->pixels correctly */
-		s->flags |= SDL_PREALLOC; /* this prevents s->pixels from been freed (again), as FreeHWSurface doesn't set it to NULL */
-	}
-#endif
+	
 	/* delete data */
 	SDL_FreeSurface(s);
 	/* null data */
@@ -1382,28 +1216,11 @@ void sdl_set_clip_area(struct graphics_device *drv, struct rect *r)
 }
 
 /* return rgb color */
-#ifdef PSP
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 long sdl_get_color(int rgb)
 {
 	return RGB2BGR(rgb);
-	//return rgb;
 }
-#else
-long sdl_get_color(int rgb)
-{
-	/* call depth specific function (going like this enables us to use multiple screens with various depths) [someday] */
-	static	long (*gc)(int rgb)	= NULL;
-
-	if(gc == NULL)
-		gc	= get_color_fn(pspsdl_driver.depth);
-	/*return rgb specific*/
-	if(gc != NULL)
-		return gc(rgb);
-	else
-		return (rgb);
-}
-#endif
 
 /* set window title (tittle utf-8 encoded !!!!) */
 void sdl_set_title(struct graphics_device *drv, u_char_t *title)
