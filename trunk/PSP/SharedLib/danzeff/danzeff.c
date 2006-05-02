@@ -627,10 +627,16 @@ void danzeff_load(int render)
 {
 	switch	(render)
 		{
+#if defined (DANZEFF_SDL)
 		case	DANZEFF_RENDER_SDL:
 			danzeff_load_sdl();
+			break;
+#endif /* defined (DANZEFF_SDL) */
+#if defined (DANZEFF_SCEGU)
 		case	DANZEFF_RENDER_SCEGU:
 			danzeff_load_gu();
+			break;
+#endif /* defined (DANZEFF_SCE_GU) */
 		}
 	/* Store for reference in render and free */
 	render_used = render;
@@ -640,10 +646,16 @@ void danzeff_load_lite(int render)
 {
 	switch	(render)
 		{
+#if defined (DANZEFF_SDL)
 		case	DANZEFF_RENDER_SDL:
 			danzeff_load_lite_sdl();
+			break;
+#endif /* defined (DANZEFF_SDL) */
+#if defined (DANZEFF_SCEGU)
 		case	DANZEFF_RENDER_SCEGU:
 			danzeff_load_gu();
+			break;
+#endif /* defined (DANZEFF_SCE_GU) */
 		}
 	/* Store for reference in render and free */
 	render_used = render;
@@ -653,10 +665,16 @@ void danzeff_free()
 {
 	switch	(render_used)
 		{
+#if defined (DANZEFF_SDL)
 		case	DANZEFF_RENDER_SDL:
 			danzeff_free_sdl();
+			break;
+#endif /* defined (DANZEFF_SDL) */
+#if defined (DANZEFF_SCEGU)
 		case	DANZEFF_RENDER_SCEGU:
 			danzeff_free_gu();
+			break;
+#endif /* defined (DANZEFF_SCE_GU) */
 		}
 }
 
@@ -664,9 +682,15 @@ void danzeff_render()
 {
 	switch	(render_used)
 		{
+#if defined (DANZEFF_SDL)
 		case	DANZEFF_RENDER_SDL:
 			danzeff_render_sdl();
+			break;
+#endif /* defined (DANZEFF_SDL) */
+#if defined (DANZEFF_SCEGU)
 		case	DANZEFF_RENDER_SCEGU:
 			danzeff_render_gu();
+			break;
+#endif /* defined (DANZEFF_SCE_GU) */
 		}
 }
