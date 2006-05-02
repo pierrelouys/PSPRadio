@@ -21,44 +21,22 @@
 #include <Common.h>
 #include <links.h>
 
-PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
 #ifdef STAND_ALONE_APP
-PSP_HEAP_SIZE_KB(1024*16);
+	///PSP_MODULE_INFO("Links2", 0x1000, 0, 1);
+	PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
+	PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER);
+	//don't specify, so uses max avail: PSP_HEAP_SIZE_KB(1024*16);
+	int CallbackThread(SceSize args, void *argp);
 #else
-PSP_HEAP_SIZE_KB(1024*6);
+	PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
+	PSP_HEAP_SIZE_KB(1024*6);
 #endif
 
 #define printf pspDebugScreenPrintf
 void app_plugin_main();
 void wait_for_triangle(char *str);
 
-#ifdef STAND_ALONE_APP
-/* Exit callback */
-int exit_callback(int arg1, int arg2, void *common)
-{
-	sceKernelExitGame();
-	return 0;
-}
-
-/* Callback thread */
-int CallbackThread(SceSize args, void *argp)
-{
-	int cbid;
-	static int ResolverId;
-	static char resolver_buffer[1024];
-
-	pspSdkInetInit();
-	connect_to_apctl(1);
-	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
-
-	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-	sceKernelRegisterExitCallback(cbid);
-	sceKernelSleepThreadCB();
-
-	return 0;
-}
-#endif
-
+/** Plugin code */
 int ModuleStartAPP()
 {
 	sleep(1);
@@ -70,11 +48,7 @@ int ModuleStartAPP()
 
 	#ifdef STAND_ALONE_APP
 	{
-		
-		int thid = 0;
-
-		thid = sceKernelCreateThread("update_thread", CallbackThread,
-						 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
+		thid = sceKernelCreateThread("update_thread", CallbackThread, 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
 		if(thid >= 0)
 		{
 			sceKernelStartThread(thid, 0, 0);
@@ -111,7 +85,6 @@ int main_loop(int argc, char** argv);
 
 int connect_to_apctl(int config);
 
-
 int CreateHomepage(char *file)
 {
 	FILE *fp = fopen(file, "w");
@@ -120,7 +93,7 @@ int CreateHomepage(char *file)
 	{
 		fprintf(fp, "<html><head><title>Links2 On PSP</title></head><body bgcolor=\"white\"><h3 align=\"center\"><b>Links2 For PSPRadio</b></h3>\n");
 	
-		fprintf(fp, "<p>PSP Port by Raf. This port is a plugin for PSPRadio. Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
+		fprintf(fp, "<p>PSP Port by Raf. Thanks to Danzel for OSK!. This port is a plugin for PSPRadio. Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
 		
 		/** Google search Start */
 		fprintf(fp, "<center>");
@@ -144,15 +117,6 @@ int CreateHomepage(char *file)
 		fprintf(fp, "</td></tr></table>");
 		fprintf(fp, "</form>");
 		fprintf(fp, "</center><br><br>");
-#if 0
-		fprintf(fp, "<br><br><center><form method=\"get\" action=\"http://www.google.com/custom\" target=\"google_window\"><table bgcolor=\"#ffffff\"><tr><td nowrap=\"nowrap\" valign=\"top\" align=\"left\" height=\"32\"><input type=\"text\" name=\"q\" size=\"31\" maxlength=\"255\" value=\"\"></input></td></tr><tr><td valign=\"top\" align=\"left\"><input type=\"submit\" name=\"sa\" value=\"Google Search\"></input>");
-		
-		fprintf(fp, "<input type=\"hidden\" name=\"client\" value=\"pub-3916941649621652\"></input><input type=\"hidden\" name=\"forid\" value=\"1\"></input><input type=\"hidden\" name=\"channel\" value=\"6751154370\"></input><input type=\"hidden\" name=\"ie\" value=\"ISO-8859-1\"></input><input type=\"hidden\" name=\"oe\" value=\"ISO-8859-1\"></input>");
-		
-		fprintf(fp, "<input type=\"hidden\" name=\"cof\" value=\"GALT:#008000;GL:1;DIV:#336699;VLC:663399;AH:center;BGC:FFFFFF;LBGC:336699;ALC:0000FF;LC:0000FF;T:000000;GFNT:0000FF;GIMP:0000FF;FORID:1;\"></input>");
-		
-		fprintf(fp, "<input type=\"hidden\" name=\"hl\" value=\"en\"> </input> </td> </tr> </table> </form> </center><br><br>");
-#endif
 		/** Google Search end */
 		
 		/** Load tips from tips file */
@@ -190,47 +154,61 @@ int CreateHomepage(char *file)
 	return -1;
 }
 
-
-static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", \ 	
-						"homepage.html", NULL };	
+#ifdef STAND_ALONE_APP
+static char *argv[] = { "Links", "-g", "-driver", "pspsdl", "-mode", "480x272", "homepage.html", NULL };	
+#else
+static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", "homepage.html", NULL };	
+#endif
 void app_plugin_main()
 {
 	static int argc = sizeof(argv)/sizeof(char *)-1; 	/* idea from scummvm psp port */
 	char str[128], strhp[128];
 	int ret;
-		
+	
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
-	
+
 	pspDebugScreenInit();
-	
+
 	getcwd(str, 100);
+#ifdef STAND_ALONE_APP
+	sprintf(strhp, "%s/.%s/%s.html", str, argv[0], argv[0]);
+	printf("Creating '%s'\n", strhp);
+	wait_for_triangle(strhp);
+#else // plugin
 	sprintf(strhp, "%s/%s/%s.html", str, argv[0], argv[0]);
-	
+#endif
+
 	if (CreateHomepage(strhp) == 0)
 	{
+#ifdef STAND_ALONE_APP
+		sprintf(strhp, "file://%s/.%s/%s.html", str, argv[0], argv[0]);
+#else // plugin
 		sprintf(strhp, "file://%s/%s/%s.html", str, argv[0], argv[0]);
+#endif
 		argv[6] = strhp;
 	}
 	else
 	{
+		printf("Could not create '%s'\n", strhp);
+		wait_for_triangle(strhp);
 		argv[6] = NULL;
 		argc--;
 	}
-	
+
 	g_PSPEnableInput = truE;
 	g_PSPEnableRendering = truE;
-	
+
 	ret = main_loop(argc, (char **)&argv);
-	
+
 	if (ret != 0) 
 	{
 		sprintf(str, "Application returns %d", ret);
 		wait_for_triangle(str);
 	}
 
-	#ifdef STAND_ALONE_APP
-		sceKernelExitGame();
-	#endif
+#ifdef STAND_ALONE_APP
+	sceKernelExitGame();
+#endif
 	
 	pspDebugScreenInit();
 	PSPRadioExport_GiveUpExclusiveAccess();
@@ -268,7 +246,7 @@ int connect_to_apctl(int config)
 		if (state == 4)
 			break;  // connected with static IP
 
-		// wait a little before polling again
+	// wait a little before polling again
 		sceKernelDelayThread(50*1000); // 50ms
 	}
 	printf(": Connected!\n");
@@ -291,12 +269,12 @@ void wait_for_triangle(char *str)
 	for(;;) 
 	{
 		sceDisplayWaitVblankStart();
-		//sceCtrlReadBufferPositive(&pad, 1);
+	//sceCtrlReadBufferPositive(&pad, 1);
 		sceCtrlReadLatch(&latch);
-		
+	
 		if (latch.uiMake)
 		{
-			// Button Pressed 
+		// Button Pressed 
 			button = latch.uiPress;
 		}
 		else if (latch.uiBreak) {/** Button Released */
@@ -311,13 +289,87 @@ void wait_for_triangle(char *str)
 void app_init_progress(char *str)
 {
 	static int step = 0;
-	
+
 	printf("Init Step %d..%s\n", step, str);
-	
+
 	step++;
 }
 
+
+
+/** Stand alone code: */
 #ifdef STAND_ALONE_APP
+/** This thread runs in Kernel Mode. All it does
+ *  is load the network drivers 
+ */
+int DriverLoadThread(SceSize args, void *argp)
+{
+	pspDebugScreenInit();
+	sceDisplayWaitVblankStart();
+	
+	//pspDebugInstallErrorHandler(MyExceptionHandler);
+	
+	pspSdkInstallNoDeviceCheckPatch();
+	pspSdkInstallNoPlainModuleCheckPatch();
+	
+	if(pspSdkLoadInetModules() < 0)
+	{
+		printf("** Error, could not load inet modules\n");
+		sceKernelSleepThreadCB();
+	}
+	
+	sceKernelSleepThreadCB();
+
+	return 0;
+}
+
+/* Exit callback */
+int exit_callback(int arg1, int arg2, void *common)
+{
+	sceKernelExitGame();
+	return 0;
+}
+
+/* Callback thread */
+int CallbackThread(SceSize args, void *argp)
+{
+	int cbid;
+	static int ResolverId;
+	static char resolver_buffer[1024];
+
+	/** Wait a small while to allow the network drivers to successfully load */
+	sleep(3);
+	pspSdkInetInit();
+	
+	connect_to_apctl(1); /* Just connect to the first profile for now */
+	
+	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
+
+	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
+	sceKernelRegisterExitCallback(cbid);
+	sceKernelSleepThreadCB();
+
+	return 0;
+}
+
+/**
+ * Function that is called from _init in kernelmode before the
+ * main thread is started in usermode.
+ * We start a thread that will load the drivers here. As the main
+ * app runs in usermode.
+ */
+#if 0
+__attribute__ ((constructor)) void loaderInit()
+{
+	int handleDriverLoaderThread;
+	pspKernelSetKernelPC();
+	handleDriverLoaderThread = sceKernelCreateThread("driverloader_thread", DriverLoadThread, 0x11, 0xFA0, 0, 0);
+	if (handleDriverLoaderThread >= 0) 
+	{
+		sceKernelStartThread(handleDriverLoaderThread, 0, 0);
+	}
+}
+#endif
 
 #include <png.h>
 #include <pspdisplay.h>
