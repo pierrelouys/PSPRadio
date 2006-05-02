@@ -25,7 +25,7 @@ PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
 #ifdef STAND_ALONE_APP
 PSP_HEAP_SIZE_KB(1024*16);
 #else
-PSP_HEAP_SIZE_KB(1024*8);
+PSP_HEAP_SIZE_KB(1024*6);
 #endif
 
 #define printf pspDebugScreenPrintf
@@ -191,7 +191,7 @@ int CreateHomepage(char *file)
 }
 
 
-static char *argv[] = { "APP_Links2", "-g", "-driver", "sdl", "-mode", "480x272", \ 	
+static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", \ 	
 						"homepage.html", NULL };	
 void app_plugin_main()
 {
