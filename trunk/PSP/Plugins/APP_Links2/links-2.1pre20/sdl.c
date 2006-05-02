@@ -954,7 +954,7 @@ u_char_t *sdl_init_driver(u_char_t *param, u_char_t *display)
 		/* Setup input */
 		sceCtrlSetSamplingCycle(0);
 		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-		danzeff_load_lite();
+		danzeff_load_lite(DANZEFF_RENDER_SDL);
 	#endif
 	
 	return NULL;

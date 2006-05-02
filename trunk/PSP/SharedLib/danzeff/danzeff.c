@@ -41,6 +41,12 @@ int mode = 0;             //charset selected. (0 - letters or 1 - numbers)
 int selected_x = 1;
 int selected_y = 1;
 
+// location that we are moved to
+int moved_x = 0;
+int moved_y = 0;
+
+static int render_used = 0;
+
 //Variable describing where each of the images is
 #define guiStringsSize 12 /* size of guistrings array */
 #define PICS_BASEDIR "./graphics/"
@@ -187,7 +193,6 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl)
 
 SDL_Surface* keyBits[guiStringsSize];
 int keyBitsSize = 0;
-int moved_x = 0, moved_y = 0; // location that we are moved to
 
 ///variable needed for rendering in SDL, the screen surface to draw to, and a function to set it!
 SDL_Surface* danzeff_screen;
@@ -205,7 +210,7 @@ void danzef_set_screen(SDL_Surface* screen)
 ///Internal function to draw a surface internally offset
 //Render the given surface at the current screen position offset by screenX, screenY
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
-void surface_draw_offset(SDL_Surface* pixels, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
+void surface_draw_offset_sdl(SDL_Surface* pixels, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
 {
 	//move the draw position
 	danzeff_screen_rect.x = moved_x + screenX;
@@ -222,13 +227,13 @@ void surface_draw_offset(SDL_Surface* pixels, int screenX, int screenY, int offs
 }
 
 ///Draw a surface at the current moved_x, moved_y
-void surface_draw(SDL_Surface* pixels)
+void surface_draw_sdl(SDL_Surface* pixels)
 {
-	surface_draw_offset(pixels, 0, 0, 0, 0, pixels->w, pixels->h);
+	surface_draw_offset_sdl(pixels, 0, 0, 0, 0, pixels->w, pixels->h);
 }
 
 /* load all the guibits that make up the OSK */
-void danzeff_load()
+void danzeff_load_sdl()
 {
 	if (initialized) return;
 
@@ -253,10 +258,10 @@ void danzeff_load()
 	initialized = true;
 }
 
-void danzeff_load_lite()
+void danzeff_load_lite_sdl()
 {
 	if (initialized) return;
-	
+
 	int a;
 	for (a = 0; a < guiStringsSize; a++)
 	{
@@ -285,7 +290,7 @@ void danzeff_load_lite()
 
 
 /* remove all the guibits from memory */
-void danzeff_free()
+void danzeff_free_sdl()
 {
 	if (!initialized) return;
 
@@ -299,7 +304,7 @@ void danzeff_free()
 }
 
 /* draw the keyboard at the current position */
-void danzeff_render()
+void danzeff_render_sdl()
 {
 	printf("Drawing Keyboard at %i,%i\n", selected_x, selected_y);
 	dirty = false;
@@ -308,25 +313,18 @@ void danzeff_render()
 	///this is the whole background image, not including the special highlighted area
 	//if centered or loaded lite then draw the whole thing opaque
 	if ((selected_x == 1 && selected_y == 1) || keyBits[6*mode + shifted*3 + 1] == NULL)
-		surface_draw(keyBits[6*mode + shifted*3]);
+		surface_draw_sdl(keyBits[6*mode + shifted*3]);
 	else
-		surface_draw(keyBits[6*mode + shifted*3 + 1]);
+		surface_draw_sdl(keyBits[6*mode + shifted*3 + 1]);
 
 	///Draw the current Highlighted Selector (orange bit)
-	surface_draw_offset(keyBits[6*mode + shifted*3 + 2],
+	surface_draw_offset_sdl(keyBits[6*mode + shifted*3 + 2],
 	//Offset from the current draw position to render at
 	selected_x*43, selected_y*43,
 	//internal offset of the image
 	selected_x*64,selected_y*64,
 	//size to render (always the same)
 	64, 64);
-}
-
-/* move the position the keyboard is currently drawn at */
-void danzeff_moveTo(const int newX, const int newY)
-{
-	moved_x = newX;
-	moved_y = newY;
 }
 
 #endif //DANZEFF_SDL
@@ -338,13 +336,12 @@ void danzeff_moveTo(const int newX, const int newY)
 
 struct danzeff_gu_surface	keyTextures[guiStringsSize];
 
-int moved_x = 0, moved_y = 0; // location that we are moved to
 
 
 ///Internal function to draw a surface internally offset
 //Render the given surface at the current screen position offset by screenX, screenY
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
-void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
+void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
 {
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
 	sceGuEnable( GU_ALPHA_TEST );
@@ -519,7 +516,7 @@ u32 danzeff_convert_pow2(u32 size)
 }
 
 /* load all the guibits that make up the OSK */
-void danzeff_load()
+void danzeff_load_gu()
 {
 	u32 *temp_texture;
 
@@ -529,7 +526,7 @@ void danzeff_load()
 	for (a = 0; a < guiStringsSize; a++)
 	{
 		u32 height, width;
-	
+
 		if (danzeff_get_png_image_size(guiStrings[a], &width, &height) == 0)
 		{
 			// The png is always converted to PSM_8888 format when read
@@ -538,7 +535,7 @@ void danzeff_load()
 			{
 				// Error .. Couldn't get png info from one of the needed files
 				int b;
-	
+
 				for (b = 0; b < a; b++)
 				{
 					free(keyTextures[b].texture);
@@ -564,7 +561,7 @@ void danzeff_load()
 		{
 			// Error .. Couldn't get png info from one of the needed files
 			int b;
-	
+
 			for (b = 0; b < a; b++)
 			{
 				free(keyTextures[b].texture);
@@ -578,7 +575,7 @@ void danzeff_load()
 }
 
 /* remove all the guibits from memory */
-void danzeff_free()
+void danzeff_free_gu()
 {
 	if (!initialized) return;
 
@@ -592,7 +589,7 @@ void danzeff_free()
 }
 
 /* draw the keyboard at the current position */
-void danzeff_render()
+void danzeff_render_gu()
 {
 	dirty = false;
 
@@ -600,14 +597,14 @@ void danzeff_render()
 	///this is the whole background image, not including the special highlighted area
 	//if center is selected then draw the whole thing opaque
 	if (selected_x == 1 && selected_y == 1)
-		surface_draw_offset(&keyTextures[6*mode + shifted*3], 0, 0, 0, 0, keyTextures[6*mode + shifted*3].texture_width,
+		surface_draw_offset_gu(&keyTextures[6*mode + shifted*3], 0, 0, 0, 0, keyTextures[6*mode + shifted*3].texture_width,
 																		  keyTextures[6*mode + shifted*3].texture_height);
 	else
-		surface_draw_offset(&keyTextures[6*mode + shifted*3 + 1], 0, 0, 0, 0, keyTextures[6*mode + shifted*3 + 1].texture_width,
+		surface_draw_offset_gu(&keyTextures[6*mode + shifted*3 + 1], 0, 0, 0, 0, keyTextures[6*mode + shifted*3 + 1].texture_width,
 																			  keyTextures[6*mode + shifted*3 + 1].texture_height);
 
 	///Draw the current Highlighted Selector (orange bit)
-	surface_draw_offset(&keyTextures[6*mode + shifted*3 + 2],
+	surface_draw_offset_gu(&keyTextures[6*mode + shifted*3 + 2],
 	//Offset from the current draw position to render at
 	selected_x*43, selected_y*43,
 	//internal offset of the image
@@ -616,6 +613,8 @@ void danzeff_render()
 	64, 64);
 }
 
+#endif //DANZEFF_SCEGU
+
 /* move the position the keyboard is currently drawn at */
 void danzeff_moveTo(const int newX, const int newY)
 {
@@ -623,4 +622,51 @@ void danzeff_moveTo(const int newX, const int newY)
 	moved_y = newY;
 }
 
-#endif //DANZEFF_SCEGU
+/* Common interface */
+void danzeff_load(int render)
+{
+	switch	(render)
+		{
+		case	DANZEFF_RENDER_SDL:
+			danzeff_load_sdl();
+		case	DANZEFF_RENDER_SCEGU:
+			danzeff_load_gu();
+		}
+	/* Store for reference in render and free */
+	render_used = render;
+}
+
+void danzeff_load_lite(int render)
+{
+	switch	(render)
+		{
+		case	DANZEFF_RENDER_SDL:
+			danzeff_load_lite_sdl();
+		case	DANZEFF_RENDER_SCEGU:
+			danzeff_load_gu();
+		}
+	/* Store for reference in render and free */
+	render_used = render;
+}
+
+void danzeff_free()
+{
+	switch	(render_used)
+		{
+		case	DANZEFF_RENDER_SDL:
+			danzeff_free_sdl();
+		case	DANZEFF_RENDER_SCEGU:
+			danzeff_free_gu();
+		}
+}
+
+void danzeff_render()
+{
+	switch	(render_used)
+		{
+		case	DANZEFF_RENDER_SDL:
+			danzeff_render_sdl();
+		case	DANZEFF_RENDER_SCEGU:
+			danzeff_render_gu();
+		}
+}
