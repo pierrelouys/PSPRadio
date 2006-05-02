@@ -341,7 +341,7 @@ struct danzeff_gu_surface	keyTextures[guiStringsSize];
 ///Internal function to draw a surface internally offset
 //Render the given surface at the current screen position offset by screenX, screenY
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
-void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
+void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight, int transperant)
 {
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
 	sceGuEnable( GU_ALPHA_TEST );
@@ -360,14 +360,23 @@ void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int
 	c_vertices[0].x 		= moved_x + screenX;
 	c_vertices[0].y 		= moved_y + screenY;
 	c_vertices[0].z 		= 0;
-	c_vertices[0].color 	= 0xFFFFFFFF;
 
 	c_vertices[1].u 		= offsetX + intWidth;
 	c_vertices[1].v 		= offsetY + intHeight;
 	c_vertices[1].x 		= moved_x + screenX + intWidth;
 	c_vertices[1].y 		= moved_y + screenY + intHeight;
 	c_vertices[1].z 		= 0;
-	c_vertices[1].color 	= 0xFFFFFFFF;
+
+	if (transperant == true)
+		{
+		c_vertices[0].color 	= 0x80FFFFFF;
+		c_vertices[1].color 	= 0x80FFFFFF;
+		}
+	else
+		{
+		c_vertices[0].color 	= 0xFFFFFFFF;
+		c_vertices[1].color 	= 0xFFFFFFFF;
+		}
 
 	sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
 
@@ -527,6 +536,11 @@ void danzeff_load_gu()
 	{
 		u32 height, width;
 
+		if (!((a-1)%3)) //skip loading the _t files
+		{
+			keyTextures[a].texture = NULL;
+			continue;
+		}
 		if (danzeff_get_png_image_size(guiStrings[a], &width, &height) == 0)
 		{
 			// The png is always converted to PSM_8888 format when read
@@ -591,17 +605,24 @@ void danzeff_free_gu()
 /* draw the keyboard at the current position */
 void danzeff_render_gu()
 {
+	int	transperant;
 	dirty = false;
 
 	///Draw the background for the selected keyboard either transparent or opaque
 	///this is the whole background image, not including the special highlighted area
 	//if center is selected then draw the whole thing opaque
 	if (selected_x == 1 && selected_y == 1)
-		surface_draw_offset_gu(&keyTextures[6*mode + shifted*3], 0, 0, 0, 0, keyTextures[6*mode + shifted*3].texture_width,
-																		  keyTextures[6*mode + shifted*3].texture_height);
+		{
+		transperant = false;
+		}
 	else
-		surface_draw_offset_gu(&keyTextures[6*mode + shifted*3 + 1], 0, 0, 0, 0, keyTextures[6*mode + shifted*3 + 1].texture_width,
-																			  keyTextures[6*mode + shifted*3 + 1].texture_height);
+		{
+		transperant = true;
+		}
+
+	surface_draw_offset_gu(&keyTextures[6*mode + shifted*3], 0, 0, 0, 0, keyTextures[6*mode + shifted*3].texture_width,
+																	 	 keyTextures[6*mode + shifted*3].texture_height,
+																	 	 transperant);
 
 	///Draw the current Highlighted Selector (orange bit)
 	surface_draw_offset_gu(&keyTextures[6*mode + shifted*3 + 2],
@@ -610,7 +631,8 @@ void danzeff_render_gu()
 	//internal offset of the image
 	selected_x*64,selected_y*64,
 	//size to render (always the same)
-	64, 64);
+	64, 64,
+	false);
 }
 
 #endif //DANZEFF_SCEGU
