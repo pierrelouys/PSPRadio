@@ -14,18 +14,31 @@
 		}plugin_type;
 
 
-	#ifdef STAND_ALONE_APP
-		#define ModuleLog(level, format, args...) pspDebugScreenPrintf("%s@%d(%d): %s", __FILE__, __LINE__, level, format, ## args)
-	#else
-		#define ModuleLog(level, format, args...) PSPRadioExport_Log(__FILE__, __LINE__, level, format, ## args)
-	#endif
-
 	#ifdef __cplusplus	
 		extern "C" 
 		{
-	#else
-		#define bool int
 	#endif
+
+		#ifdef STAND_ALONE_APP
+			#define ModuleLog(level, format, args...) pspDebugScreenPrintf(format, ## args)
+			#define PSPRadioExport_PluginExits(type) -1
+			#define PSPRadioExport_GetProgramVersion() "N/A"
+			#define PSPRadioExport_IsUSBEnabled() -1
+			#define PSPRadioExport_GetMyIP() "N/A"
+			#define PSPRadioExport_RequestExclusiveAccess(type) -1
+			#define PSPRadioExport_GiveUpExclusiveAccess() -1
+			#define PSPRadioExport_GetVersion() "N/A"
+			#define PSPRadioExport_TakeScreenShot() -1
+			#define PSPRadioExport_GetPCMBuffer() -1
+		
+		#else
+
+			#define ModuleLog(level, format, args...) PSPRadioExport_Log(__FILE__, __LINE__, level, format, ## args)
+	
+			#ifndef __cplusplus	
+				#define bool int
+			#endif
+		
 			int main(int, char**);
 			int module_stop(int args, void *argp);
 	
@@ -39,10 +52,10 @@
 			char *PSPRadioExport_GetVersion();
 			void  PSPRadioExport_TakeScreenShot();
 			DeviceBuffer *PSPRadioExport_GetPCMBuffer();
-	
-	
+
+		#endif // #ifdef STAND_ALONE_APP
 	#ifdef __cplusplus	
-		}
+		};
 	#endif
 
 #endif
