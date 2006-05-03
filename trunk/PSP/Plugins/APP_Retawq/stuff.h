@@ -61,8 +61,12 @@
 #define MENUS_WLIST (4)
 #define MENUS_HTML (8)
 #define MENUS_BAR (16)
+#ifdef PSP
 #define MENUS_PSP (32)
 #define MENUS_ALL (63) /* (sum of all the above) */
+#else
+#define MENUS_ALL (31) /* (sum of all the above) */
+#endif
 
 /* flags in CONFIG_EXTRA */
 #define EXTRA_DOWNLOAD (1)
@@ -222,8 +226,6 @@ extern const char strCantOpenXws[];
 #if OPTION_LOCAL_CGI || OPTION_TRAP || (OPTION_EXECEXT & EXECEXT_SHELL)
 extern const char strSoftwareId[];
 #endif
-
-
 
 /* ugly :-) */
 #define strHelp    (strOptHelp + 2)
@@ -406,9 +408,9 @@ extern tBoolean do_restore_termios;
 extern struct termios saved_termios;
 #endif
 
+#ifdef PSP
 extern  volatile tBoolean g_fQuit;
-
-
+#endif
 #if TGC_IS_GRAPHICS
 
 /* We are Pixels of Borg - curses is irrelevant. */
@@ -536,10 +538,9 @@ my_enum1 enum
 } my_enum2(short) tColorPairNumber;
 #define cpnMax (5)
 
-//#ifndef chtype
-//	#define chtype int
-//#endif
+#ifdef PSP
 #include "cursesbi.h"
+#endif
 
 typedef chtype tColorBitmask;
 extern tColorBitmask color_bitmask[cpnMax + 1];
@@ -1356,11 +1357,7 @@ extern void timeout_unregister(tTimeoutHandler);
 	#define my_write_str_unregistried my_write_str
 	#define my_close_unregistried my_close
 	#define my_fstat_unregistried my_fstat
-	#ifdef PSP
-		#define my_pipe(f) pipe_open(f)
-	#else
-		#define my_pipe(f) pipe(f)
-	#endif
+	#define my_pipe(f) pipe(f)
 	#define my_isatty(x) isatty(x)
 #endif
 
@@ -1403,9 +1400,9 @@ extern int my_fstat(int, /*@out@*/ struct stat*);
 #define my_close_sock my_close
 
 /* clarification for pipes */
-#define my_read_pipe pipe_read
-#define my_write_pipe pipe_write
-#define my_close_pipe pipe_close
+#define my_read_pipe my_read
+#define my_write_pipe my_write
+#define my_close_pipe my_close
 
 /* clarification for sockets/pipes */
 #define my_read_sopi my_read

@@ -9,7 +9,9 @@
 #include "stuff.h"
 #include "resource.h"
 #include "parser.h"
+#ifdef PSP
 #include <PSPRadio_Exports.h>
+#endif
 
 #if CAN_HANDLE_SIGNALS
 #include <signal.h>
@@ -303,8 +305,10 @@ static void sockaddr2uistr(const tSockaddrEntry* entry, /*@out@*/ char* buf,
   size_t size)
 /* converts a network address to a UI string and puts that into <buf> */
 { 
-//const tSockaddr* addr = &(entry->addr);
-//  int address_family = entry->address_family;
+#ifndef PSP
+  const tSockaddr* addr = &(entry->addr);
+  int address_family = entry->address_family;
+#endif
   *buf = '\0';
   /* Try the library function with the lower bug probability first... */
 #if HAVE_INET_NTOP
@@ -626,15 +630,21 @@ typedef struct
 { int reader, writer; /* (from the handler's point of view) */
 } tDnsThreadData;
 
+#ifdef PSP
 static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
+#else
+static THREADRETTYPE dns_handler_thread(void* _data)
+#endif
 /* This function is the DNS handler thread; it checks for DNS lookup demands
    from the resource handler forever. Apart from its local variables, it only
    accesses the tDnsLookup structure given by the resource handler (which won't
    touch it while the lookup is running), so there aren't any multi-threading
    race conditions possible. */
 { const tDnsThreadData* data = (const tDnsThreadData*) _data;
-
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "dns_handler_thread starts. data->reader=%d data->writer=%d\n", data->reader, data->writer);
+#endif
+
 #if HAVE_SIGFILLSET && (HAVE_SIGPROCMASK || (OPTION_THREADING == 1))
 
   { /* CHECKME: blocking the signals isn't "really" the right thing. It would
@@ -650,7 +660,6 @@ static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
        resp. process because it might be left in an undefined state otherwise,
        says SUSv3. Add to this the buggy signal implementations of many
        operating systems and wonder how this program can work at all... */
-
 
     sigset_t set;
     if (sigfillset(&set) == 0)
@@ -706,20 +715,27 @@ static THREADRETTYPE dns_handler_thread(int nothing, void* _data)
 
     loopcount = 0;
     loop:
-    err = pipe_read(data->reader, ((char*)(&dns_lookup)) + count,
+    err = read/*_pipe*/(data->reader, ((char*)(&dns_lookup)) + count,
       sizeof(dns_lookup) - count); /* (can't use my_read() with FD register) */
     if ( (err == -1) && (errno == EINTR) && (++loopcount < 10000) ) goto loop;
     else if (err <= 0)
+	{
       fatal_error((err == -1) ? errno : 0, _("read(DNS) failed"));
-    count += err;
+	}
+	else
+    	count += err;
     if (count >= sizeof(dns_lookup)) /* got a complete pointer */
     { 
+#ifdef PSP
 		ModuleLog(LOG_LOWLEVEL, "dns lookup thread: Got a request for '%s'", dns_lookup->hostname);
+#endif
 	 	my_getaddrinfo(dns_lookup); count = 0; writeloop0: loopcount = 0;
+#ifdef PSP
 		ModuleLog(LOG_LOWLEVEL, "dns lookup thread: Resolved... Sending response.");
+#endif
 
       writeloop:
-      err = pipe_write(data->writer, ((char*)(&dns_lookup)) + count,
+      err = write/*_pipe*/(data->writer, ((char*)(&dns_lookup)) + count,
         sizeof(dns_lookup) - count);
       if ( (err == -1) && (errno == EINTR) && (++loopcount < 10000) )
         goto writeloop;
@@ -1344,8 +1360,9 @@ static one_caller void postprocess_dns_lookup(tDnsLookup* dns_lookup)
 /* always executed in the main thread - that's the crucial point of this
    separate function */
 { 
-
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "postprocess_dns_lookup()");
+#endif
 	tCachedHostInformation* hostinfo = dns_lookup->hostinfo;
   tSockaddrIndex num = dns_lookup->num, idx;
   if (num <= 0) { /* hostinfo->lookupfailuretime = my_time(); */ }
@@ -1464,7 +1481,7 @@ static tHostAddressLookupResult lookup_hostaddress(tResourceRequest* request,
 #if OPTION_THREADING
   hostinfo->flags |= chifAddressLookupRunning;
   dhm_init(hostinfo, NULL, "hostinfo");
-  my_write_crucial_pipe(fd_resource2dns_write, &dns_lookup,
+  my_write_crucial/*_pipe*/(fd_resource2dns_write, &dns_lookup,
     sizeof(dns_lookup));
   return(halrLookupRunning);
 #else
@@ -1566,8 +1583,10 @@ typedef struct tConnection
 static tBoolean make_fd_nonblocking(int fd)
 /* tries to make <fd> non-blocking; returns whether it worked */
 { tBoolean retval;
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "make_fd_nonblocking(fd=%d)", fd);
 	errno = 0;
+#endif
 #if NEED_FD_REGISTER
   tFdKind kind = fd_register_lookup(&fd);
 #endif
@@ -1580,9 +1599,10 @@ static tBoolean make_fd_nonblocking(int fd)
   }
   else
  #endif 
-  { 
-  	const int flags = fcntl(fd, F_GETFL, 0);
+  { 	const int flags = fcntl(fd, F_GETFL, 0);
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "make_fd_nonblocking(%d). original flags=%x errno=%d", fd, flags, errno);
+#endif
     if ( (flags == -1) || (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) )
       retval = falsE;
     else retval = truE;
@@ -1593,17 +1613,20 @@ static tBoolean make_fd_nonblocking(int fd)
 static int create_socket(int address_family)
 /* creates a new TCP socket and sets it to non-blocking mode; returns -2 if the
    fd wouldn't be observable, -1 for OS errors or a valid fd if it worked */
-{ 
-
+{  	int retval; 
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "create_socket() start");
+#endif
 
-  	int retval;
+
 #if USE_LWIP
 	errno = 0; /* silly old lwIP versions didn't set errno on error */
 	retval = lwip_socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
 #else
 	retval = socket(address_family, SOCK_STREAM, ipprotocolnumber_tcp);
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "create_socket(): socket returns 0x%x (%d).", retval, retval);
+#endif
 #endif
 	if (retval >= 0)
 	{ 
@@ -1627,7 +1650,9 @@ static int create_socket(int address_family)
 	sprint_safe(debugstrbuf, "create_socket(%d): %d\n", address_family, retval);
 	debugmsg(debugstrbuf);
 #endif
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "Create socket returns %d", retval);
+#endif
   	return(retval);
 }
 
@@ -1643,12 +1668,10 @@ static void set_portnumber(tSockaddr* addr, int address_family,
 }
 
 static int my_do_connect(int fd, const tSockaddr* addr, size_t addrlen)
-{ 
-	int err;
+{ int err;
 	#if NEED_FD_REGISTER
 		tFdKind kind = fd_register_lookup(&fd);
 	#endif
-	
 	#if USE_LWIP
 		if (kind & fdkSocket)
 		{ errno = 0; /* silly old lwIP versions didn't set errno on error */
@@ -1657,29 +1680,37 @@ static int my_do_connect(int fd, const tSockaddr* addr, size_t addrlen)
 		}
 		else
 	#endif
-	{ 
-		unsigned char loopcount = 0;
+	{ unsigned char loopcount = 0;
 	loop:
 		err = connect(fd, (const struct sockaddr*) addr, (socklen_t) addrlen);
 		if (err == 0)
 		{
+#ifdef PSP
 			ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connection successful", fd);
+#endif
+;
 		}
 		else
 		{ 
 			if ( (errno == EINTR) && (++loopcount < 100) ) 
 			{
+#ifdef PSP
 				ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connect error -- interrupted.. re-trying", fd);
+#endif
 				goto loop;
 			}
 			else if ( (errno == EALREADY) && (loopcount > 0) ) 
 			{
+#ifdef PSP
 				ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connection -- in progress..", fd);
+#endif
 				errno = EINPROGRESS;
 			}
 			else if (errno != EINPROGRESS)
 			{ 
+#ifdef PSP
 				ModuleLog(LOG_LOWLEVEL, "my_do_connect(): (socket=%d). Connection -- Error", fd);
+#endif
 				int e = errno; 
 				my_close_sock(fd); 
 				errno = e; 
@@ -1692,8 +1723,7 @@ static int my_do_connect(int fd, const tSockaddr* addr, size_t addrlen)
 
 static int my_connect(int fd, const tSockaddrEntry* entry,
   tPortnumber portnumber)
-{ 
-	tSockaddr addr = entry->addr; /* (yes, we copy a structure here) */
+{ tSockaddr addr = entry->addr; /* (yes, we copy a structure here) */
 	set_portnumber(&addr, entry->address_family, portnumber);
 	return(my_do_connect(fd, &addr, entry->addrlen));
 }
@@ -1728,26 +1758,27 @@ static tResourceError conn_get_failre(tConnection* conn)
 }
 
 static __my_inline void conn_set_prelire(tConnection* conn, tResourceError re)
-{ 
-	conn->prelire = re;
+{ conn->prelire = re;
 	#if CONFIG_DEBUG
 		sprint_safe(debugstrbuf, "prelire: %p, %d\n", conn, re);
 		debugmsg(debugstrbuf);
 	#endif
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "conn_set_prelire(): conn=%p, res_err=%d", conn, re);
+#endif
 }
 
 static tBoolean conn_connect(tConnection* conn)
 /* tries to connect to one of the IP addresses which are "allowed" for <conn>;
    returns whether it worked */
-{ 
-	tConnectAttemptData* cad = &(conn->cad);
+{ tConnectAttemptData* cad = &(conn->cad);
 	tSockaddrEntry **list = cad->sockaddrs, *entry;
 	tSockaddrIndex idx, best;
 	tSockaddrRating rating, best_rating;
 	int fd;
-	
+#ifdef PSP	
 	ModuleLog(LOG_LOWLEVEL, "conn_connect()");
+#endif
 
 	conn->flags &= ~cnfConnected; conn->fd = -1;
 	cad->current = SOCKADDR_INDEX_INVALID;
@@ -1782,7 +1813,9 @@ static tBoolean conn_connect(tConnection* conn)
 	else if (fd == -1) conn_set_prelire(conn, reSocket);
 	else if (fd >= 0)
 	{ int err = my_connect(fd, entry, cad->portnumber);
+#ifdef PSP
 		ModuleLog(LOG_LOWLEVEL, "my_connect returns %d errno %d", err, errno);
+#endif
 		if ( (err == 0) || ( (err == -1) && (errno == EINPROGRESS) ) )
 		{ 
 			if (err == 0)
@@ -1890,8 +1923,7 @@ static my_inline void conn_change_callback(tConnection* conn,
 }
 
 static void conn_cleanup_fd(tConnection* conn)
-{ 
-	int fd = conn->fd;
+{ int fd = conn->fd;
 	if (fd >= 0) 
 	{ 
 		my_close_sopi(fd); conn->fd = -1; 
@@ -1968,13 +2000,12 @@ static my_inline void conn_do_dissolve(tConnection* conn)
 
 static one_caller void check_connect(tConnection* conn)
 /* checks whether a connect() attempt for a socket worked */
-{ 
-	int fd = conn->fd, sockerr = 0;
+{ 	int fd = conn->fd, sockerr = 0;
 	socklen_t dummy = (socklen_t) sizeof(sockerr);
 	tSockaddrPortProtInfo* sppi = conn2sppi(conn, truE);
-
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "check_connect(): (checking if connection was established) socket=%d", fd);
-
+#endif
 	#if NEED_FD_REGISTER
 		(void) fd_register_lookup(&fd);
 	#endif
@@ -1984,10 +2015,10 @@ static one_caller void check_connect(tConnection* conn)
 	#else
 		if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &sockerr, &dummy) != 0)
 	#endif
-	{ 
-		conn_err = errno;
-		
+	{	conn_err = errno;
+#ifdef PSP 		
 		ModuleLog(LOG_LOWLEVEL, "check_connect(): getsockopt returned error. socket=%d errno=%d sockerr=%d", fd, errno, sockerr);
+#endif
 
 	failed:
 		#if CONFIG_DEBUG
@@ -2027,7 +2058,9 @@ static one_caller void check_connect(tConnection* conn)
 	conn_set_prelire(conn, reFine); 
 	conn->flags |= cnfConnected;
 	conn_callback(conn, ccekConnectWorked);
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "check_connect(): Connected successfully. socket=%d", fd);
+#endif
 }
 
 static void conn_io_handler(void* data, tFdObservationFlags flags)
@@ -3655,7 +3688,12 @@ static one_caller void fetch_about(tResourceRequest* request)
 #define WHAT (strEmpty)
 #endif
 
+#ifdef PSP
     my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<html><head><title>About retawq</title></head>\n<body>\n<h3 align=\"center\"><b>retawq %s (%s mode%s) For PSPRadio %s</b></h3>\n<p>The web browser <b>retawq</b> is released <b>without any warranty</b>. The project home page is <a href=\"http://retawq.sourceforge.net/\">retawq.sourceforge.net</a>.</p>\n"), RETAWQ_VERSION, _(strTG), WHAT, PSPRadioExport_GetProgramVersion()); /* what the h[ae]ck... :-) */
+#else
+    my_spf(strbuf, STRBUF_SIZE, &spfbuf, _("<html><head><title>About retawq</title></head>\n<body>\n<h3 align=\"center\"><b>retawq %s (%s mode%s)</b></h3>\n<p>The web browser <b>retawq</b> is released <b>without any warranty</b>. The project home page is <a href=\"http://retawq.sourceforge.net/\">retawq.sourceforge.net</a>.</p>\n"), RETAWQ_VERSION, _(strTG), WHAT); /* what the h[ae]ck... :-) */
+#endif
+
     resource_collect_str(resource, spfbuf);
     my_spf_cleanup(strbuf, spfbuf);
 
@@ -4158,8 +4196,9 @@ static one_caller void calc_dirperms(mode_t mode)
 
 static /*@observer@*/ const char strParentDirectory[] = N_("Parent directory");
 
+#ifdef PSP
 #include <dirent.h>
-
+#endif
 static one_caller tBoolean fetch_local_directory(tResourceRequest* request)
 /* returns whether it worked */
 { const char *path = request->uri_data->path, *htmlpath, *spfbuf2;
@@ -4167,8 +4206,11 @@ static one_caller tBoolean fetch_local_directory(tResourceRequest* request)
   const char* format;
 #endif
   char *spfbuf, *temp;
-  //dirent* entry;
-	struct dirent *dirent_entry;
+#ifdef PSP
+  struct dirent *dirent_entry;
+#else
+  const struct dirent* dirent_entry;
+#endif
   unsigned int element_count, element_maxcount, i;
   /*@relnull@*/ tDirSorterElement* sorter_base;
   tResource* resource;
@@ -4508,7 +4550,6 @@ static one_caller tBoolean start_local_cgi(tResourceRequest* request)
   { tmofd: my_close_pipe(fd_pair[0]); my_close_pipe(fd_pair[1]);
     error = reTmofd; goto failed;
   }
-	
   is_post = cond2boolean(request->flags & rrfPost);
   if (is_post)
   { if (my_pipe(fd_post) != 0)
@@ -7452,16 +7493,21 @@ static void request_dns_callback(void* _request, tDhmNotificationFlags flags)
   }
 }
 
+#ifndef PSP
+static
+#endif
 void resource_dns_handler(__sunused void* data __cunused,
   __sunused tFdObservationFlags flags __cunused)
 /* The DNS thread finished a lookup. */
 { static tDnsLookup* dns_lookup;
   static unsigned char count = 0;
   tCachedHostInformation* hostinfo;
-  int err = pipe_nonblocking_read(fd_dns2resource_read, ((char*)(&dns_lookup)) + count,
+  int err = my_read_pipe(fd_dns2resource_read, ((char*)(&dns_lookup)) + count,
     sizeof(dns_lookup) - count);
   if (err <= 0) return;
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "resource_dns_handler: successfully read from pipe");
+#endif
   count += err;
   if (count < sizeof(dns_lookup)) return; /* not yet a whole pointer */
   count = 0; /* for the next round */
@@ -7623,10 +7669,8 @@ static void __init setup_pipe(/*@out@*/ int* reader, /*@out@*/ int* writer)
   if (my_pipe(fd_pair) != 0) fatal_error(errno, _(strResourceError[rePipe]));
   for (count = 0; count <= 1; count++)
   { int fd = fd_pair[count];
-#ifndef PSP
     if (!fd_is_observable(fd)) fatal_tmofd(fd);
-#endif
-    //make_fd_cloexec(fd);
+    make_fd_cloexec(fd);
   }
  	*reader = fd_pair[0]; *writer = fd_pair[1];
 }
@@ -7749,24 +7793,24 @@ const struct protoent* proto;
   /* Setup some file descriptors */
 
 #if OPTION_THREADING
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "Setting up pipes:\n");
-	setup_pipe(&fd_dns2resource_read, &fd_dns2resource_write);
-	ModuleLog(LOG_LOWLEVEL, "fd_dns2resource_read=%d fd_dns2resource_write=%d", fd_dns2resource_read, fd_dns2resource_write);
-	setup_pipe(&fd_resource2dns_read, &fd_resource2dns_write);
-	ModuleLog(LOG_LOWLEVEL, "fd_resource2dns_read=%d fd_resource2dns_write=%d", fd_resource2dns_read, fd_resource2dns_write);
-#ifndef PSP
-	fd_observe(fd_dns2resource_read, resource_dns_handler, NULL, fdofRead);
 #endif
+	setup_pipe(&fd_dns2resource_read, &fd_dns2resource_write);
+#ifdef PSP
+	ModuleLog(LOG_LOWLEVEL, "fd_dns2resource_read=%d fd_dns2resource_write=%d", fd_dns2resource_read, fd_dns2resource_write);
+#endif
+	setup_pipe(&fd_resource2dns_read, &fd_resource2dns_write);
+#ifdef PSP
+	ModuleLog(LOG_LOWLEVEL, "fd_resource2dns_read=%d fd_resource2dns_write=%d", fd_resource2dns_read, fd_resource2dns_write);
+#endif
+	fd_observe(fd_dns2resource_read, resource_dns_handler, NULL, fdofRead);
 	dns_thread_data.reader = fd_resource2dns_read;
 	dns_thread_data.writer = fd_dns2resource_write;
 #if NEED_FD_REGISTER
-
-#ifndef PSP
   /* the register isn't thread-safe, so we do the lookup here... */
   (void) fd_register_lookup(&(dns_thread_data.reader));
   (void) fd_register_lookup(&(dns_thread_data.writer));
-#endif
-
 #endif
 #endif
 
@@ -7786,8 +7830,12 @@ const struct protoent* proto;
 #elif OPTION_THREADING == 2 || OPTION_THREADING == 3
   { int err;
     pid_main = getpid();
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "Calling create_thread() with dns_thread_data->reader=%d dns_thread_data->writer=%d", dns_thread_data.reader, dns_thread_data.writer);
     err = create_thread(dns_handler_thread, sizeof(dns_thread_data), &dns_thread_data);
+#else
+    err = create_thread(dns_handler_thread, &dns_thread_data);
+#endif
     if (err > 0) pid_dns = err;
   }
 #endif

@@ -3,6 +3,7 @@
 #include <pspdisplay.h>
 #include "psp.h"
 #include <PSPRadio_Exports.h>
+#include <danzeff.h>
 
 #define printf pspDebugScreenPrintf
 
@@ -13,7 +14,7 @@
 
 volatile tBoolean g_PSPEnableRendering = truE;
 volatile tBoolean g_PSPEnableInput = truE;
-
+tBoolean g_InputMethod = falsE;
 
 void PSPPutch(char ch)
 {
@@ -31,155 +32,74 @@ int env_termsize(int *x, int *y)
 	return 1;
 }
 
-int pipe_open(int *fdpair)
+#ifdef USE_DANZEFF
+void ClearInputHandlerWindow()
 {
-	static int iIndex = 0;
-	char name[10];
-	iIndex++;
 
-	sprintf(name, "pipe%d", iIndex);
+}
 
-	/**
-	* Create a message pipe
-	*
-	* @param name - Name of the pipe
-	* @param part - ID of the memory partition
-	* @param attr - Set to 0?
-	* @param unk1 - Unknown
-	* @param opt  - Message pipe options (set to NULL)
-	*
-	* @return The UID of the created pipe, < 0 on error
-	*/
-	SceUID uid = sceKernelCreateMsgPipe(name, PSP_MEMORY_PARTITION_USER, 0, NULL, NULL);
-
-		if (uid >= 0)
+void DrawInputHandlerWindow()
+{
+	if (danzeff_dirty())
 	{
-		fdpair[0] = uid;// | 0x1000;
-		fdpair[1] = uid;// | 0x1100;
-
-		ModuleLog(LOG_LOWLEVEL, "pipe_open() success. fd=%d, returning fd0=%d fd1=%d\n", uid, fdpair[0], fdpair[1]);
-		return 0;
-	}
-	else
-	{
-		pspDebugScreenPrintf("Error creating pipe 0x%x", uid);
-		return -1;
+		danzeff_render();
 	}
 }
 
-int pipe_close(int *fdpair)
+void PSPInputHandlerStart()
 {
-	/**
-	* Delete a message pipe
-	*
-	* @param uid - The UID of the pipe
-	*
-	* @return 0 on success, < 0 on error
-	*/
-	int fd = fdpair[0];// & (~0x1000);
-	sceKernelDeleteMsgPipe(fd);
+	danzeff_load_lite(DANZEFF_RENDER_SCEGU);
+	if (danzeff_isinitialized())
+	{
+		//danzef_set_screen(sdl_SURFACE(dev));
+		//danzeff_moveTo(danzeff_x, danzeff_y);
+		danzeff_render();
+	}
+	else
+	{
+		printf("Error loading danzeff OSK");
+	}
+}
 
-	ModuleLog(LOG_LOWLEVEL, "pipe_close(). Closed fd=%d", fd);
+void PSPInputHandlerEnd()
+{
+	danzeff_free();
+}
 
+
+void PSPInputHandler_DisplayButtons()
+{
+	if (danzeff_dirty())
+	{
+		danzeff_render();
+	}
+}
+
+int PSPInputHandler(SceCtrlData pad, char *key)
+{
+	static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
+	*key = danzeff_readInput(pad);
+	if (*key) 
+	{
+		switch (*key)
+		{
+			case '\n':
+				*key = KEY_ENTER;
+				break;
+			case 8:
+				*key = KEY_BACKSPACE;
+				break;
+		}
+		danzeff_moveTo(danzeff_x, danzeff_y);
+		danzeff_render();
+		return 1;
+	}
 	return 0;
+
 }
+#endif
 
-int pipe_nonblocking_read(int fd, void *buf, size_t len)
-{
-	/**
-	* Receive a message from a pipe
-	*
-	* @param uid - The UID of the pipe
-	* @param message - Pointer to the message
-	* @param size - Size of the message
-	* @param unk1 - Unknown
-	* @param unk2 - Unknown
-	* @param timeout - Timeout for receive
-	*
-	* @return 0 on success, < 0 on error
-	*/
-	int fd1 = fd;// & (~0x1000);
-	int ret = 0;
-
-    ret = sceKernelTryReceiveMsgPipe(fd1, buf, len, 0, 0);//NULL, NULL);
-	
-	if (ret == 0)
-	{
-		ModuleLog(LOG_LOWLEVEL, "pipe_nonblocking_read() fd=%d returned success", fd1);
-		return len;
-	}
-	else if (ret == SCE_KERNEL_ERROR_MPP_EMPTY)
-	{
-		return 0;
-	}
-	else
-	{
-		ModuleLog(LOG_ERROR, "pipe_nonblocking_read(): ReceiveMsgPipe(fd = %d) returned 0x%x (%d)", fd1, ret, ret);
-		return -1;
-	}
-}
-
-int pipe_read(int fd, void *buf, size_t len)
-{
-	/**
-	* Receive a message from a pipe
-	*
-	* @param uid - The UID of the pipe
-	* @param message - Pointer to the message
-	* @param size - Size of the message
-	* @param unk1 - Unknown
-	* @param unk2 - Unknown
-	* @param timeout - Timeout for receive
-	*
-	* @return 0 on success, < 0 on error
-	*/
-	int fd1 = fd;// & (~0x1000);
-	int ret = 0;
-
-    ret = sceKernelReceiveMsgPipe(fd1, buf, len, 0, NULL, NULL);
-	
-	if (ret == 0)
-	{
-		ModuleLog(LOG_LOWLEVEL, "pipe_read() fd=%d returned success", fd1);
-		return len;
-	}
-	else
-	{
-		ModuleLog(LOG_ERROR, "pipe_read(): ReceiveMsgPipe(fd = %d) returned 0x%x (%d)", fd1, ret, ret);
-		return -1;
-	}
-}
-
-int pipe_write(int fd, void *buf, size_t len)
-{
-	/**
-	* Send a message to a pipe
-	*
-	* @param uid - The UID of the pipe
-	* @param message - Pointer to the message
-	* @param size - Size of the message
-	* @param unk1 - Unknown
-	* @param unk2 - Unknown
-	* @param timeout - Timeout for send
-	*
-	* @return 0 on success, < 0 on error
-	*/
-	int fd2 = fd;// & (~0x1100);
-	int ret = 0;
-	ret = sceKernelSendMsgPipe(fd2, buf, len, 0, NULL, NULL);
-
-	if (ret == 0)
-	{
-		ModuleLog(LOG_LOWLEVEL, "pipe_write() fd=%d returned success", fd2);
-		return len;
-	}
-	else
-	{
-		ModuleLog(LOG_ERROR, "pipe_write(): SendMsgPipe(fd = %d) returned 0x%x (%d)", fd2, ret, ret);
-		return -1;
-	}
-}
-
+#ifdef USE_FORMER_INPUT_METHOD
 typedef enum 
 {
 	PSPIHM_NORMAL_1,
@@ -411,3 +331,4 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 
 	return retval;
 }
+#endif

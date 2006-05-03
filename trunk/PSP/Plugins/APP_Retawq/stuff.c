@@ -8,11 +8,13 @@
 
 #include "stuff.h"
 #include "resource.h"
-#include <PSPRadio_Exports.h>
 
 #include <time.h>
 
+#ifdef PSP
+#include <PSPRadio_Exports.h>
 volatile tBoolean g_fQuit = falsE;
+#endif
 
 declare_local_i18n_buffer
 
@@ -222,7 +224,11 @@ tBoolean my_pattern_matcher(const char* pattern, const char* str)
   }
 }
 
+#ifdef PSP
 static void /*does_not_return*/ do_quit_msg(int exitcode, const char* msg)
+#else
+static void does_not_return do_quit_msg(int exitcode, const char* msg)
+#endif
 { if (need_tglib_cleanup)
   {
 #if CONFIG_TG == TG_X
@@ -247,12 +253,13 @@ static void /*does_not_return*/ do_quit_msg(int exitcode, const char* msg)
     /* if (lfdmbs(....)) */ my_write_str(fd, msg);
     debugmsg(msg);
   }
-
+#ifdef PSP
 	ModuleLog(LOG_INFO, "Retawq do_quit_msg() = '%s'", msg);
-
-  //resource_quit();
-  //exit(exitcode);
 	g_fQuit = truE;
+#else
+  resource_quit();
+  exit(exitcode);
+#endif
 }
 
 void do_quit(void)
@@ -323,8 +330,8 @@ void memory_deallocate_ll(const void* ptr)
 }
 
 #if NEED_SPECIAL_GETTEXT
-#define is_special_char(ch) ( (ch == '�) || (ch == '�) || (ch == '') || \
-  (ch == '�) || (ch == '�) || (ch == '�) || (ch == '�) )
+#define is_special_char(ch) ( (ch == 'ä') || (ch == 'ö') || (ch == 'ü') || \
+  (ch == 'Ä') || (ch == 'Ö') || (ch == 'Ü') || (ch == 'ß') )
 char* my_do_gettext(char** buffer, const char* str)
 { if (str == NULL) /* deallocate old strings */
   { char* ptr = *buffer;
@@ -350,7 +357,7 @@ char* my_do_gettext(char** buffer, const char* str)
     while ( (ch = *src++) != '\0' )
     { *dest++ = charmap[(unsigned short) ((unsigned char) ch)];
       if (is_special_char(ch))
-      { if (ch == '�) *dest++ = 's';
+      { if (ch == 'ß') *dest++ = 's';
         else *dest++ = 'e';
       }
     }
@@ -512,9 +519,8 @@ typedef struct tFdData
   tFdKind kind;
 } tFdData;
 
-#define FD_REGISTER_LEN (1 << 5)
+#define FD_REGISTER_LEN (1 << 4)
 #define fd_register_hash(fd) ((fd) & (FD_REGISTER_LEN - 1))
-
 typedef unsigned char tFdRegisterIndex;
 static tFdData* fd_data[FD_REGISTER_LEN];
 
@@ -534,8 +540,9 @@ static one_caller int get_unique_fd(void)
 
 void fd_register(int* _lib_fd, tFdKind kind)
 {
+#ifdef PSP
 	LogModule(LOG_LOWLEVEL, "fd_register fd=%d (kind=%d)\n", *_lib_fd, kind);
-	
+#endif	
  tFdData **head, *data;
   int lib_fd = *_lib_fd, unique_fd = *_lib_fd = get_unique_fd();
   head = &(fd_data[fd_register_hash(unique_fd)]);
@@ -551,9 +558,10 @@ void fd_register(int* _lib_fd, tFdKind kind)
 
 static tFdData* __fd_register_lookup(int unique_fd)
 {
+#ifdef PSP
 
 	LogModule(LOG_LOWLEVEL, "__fd_register_lookup(): looking up fd=%d\n", unique_fd);
-
+#endif
 	 tFdData* data;
   if (unique_fd < 0) return(NULL); /* may happen, e.g. if no stdin fd exists */
   data = fd_data[fd_register_hash(unique_fd)];
@@ -633,7 +641,6 @@ static int highest_select_fd = 0;
 
 tBoolean fd_is_observable(int fd)
 { tBoolean retval;
-	
 #if NEED_FD_REGISTER
   tFdKind kind = fd_register_lookup(&fd);
 #endif
@@ -711,8 +718,10 @@ static tFdObservationData* fd_observe_lookup(int fd)
 
 void fd_observe(int fd, tFdObservationHandler handler, void* handler_data,
   tFdObservationFlags flags)
-{ 
+{
+#ifdef PSP
 	ModuleLog(LOG_LOWLEVEL, "fd_observe(%d)", fd);
+#endif
 tFdObservationData* data = fd_observe_lookup(fd);
 #if NEED_FD_REGISTER
   tFdKind kind;
@@ -748,10 +757,6 @@ tFdObservationData* data = fd_observe_lookup(fd);
     else { FD_CLR(fd, &fds_read); FD_CLR(fd, &fds_r); FD_CLR(fd, &fds_e); }
     if (flags & fdofWrite) FD_SET(fd, &fds_write);
     else { FD_CLR(fd, &fds_write); FD_CLR(fd, &fds_w); }
-	
-	//ModuleLog(LOG_LOWLEVEL, "fd_observe.fd=%d fds_read=%04x%04x%04x%04x%04x%04x%04x%04x",
-	//	fds_read[0],fds_read[1],fds_read[2],fds_read[3], 
-	//	fds_read[4],fds_read[5],fds_read[6],fds_read[7]);
 #endif
   }
 }
@@ -872,14 +877,17 @@ void fd_multiplex(void)
 		return;
 	}
 #endif
-	else
-	{
+    else
+    {
+#ifdef PSP
 		ModuleLog(LOG_ERROR, "I/O Multiplexing failed. select returned=%d errno=%d", count, errno);
+#endif
 		fatal_error(((count == -1) ? errno : 0),_("I/O multiplexing failed"));
-	}
+    }
   }
-
+#ifdef PSP
   ModuleLog(LOG_LOWLEVEL, "select returned %d FD_ISSET(3)=%d", count, FD_ISSET(3, &fds_r));
+#endif
   resource_preplex();
   for (cnt = 0; cnt < FD_OBSERVATORY_LEN; cnt++)
   { const tFdObservationData* data = fd_observatory[cnt];
@@ -1121,6 +1129,7 @@ ssize_t __my_write(int fd, const void* buf, size_t count)
 /* may write less than <count> bytes */
 { ssize_t retval;
 
+#ifdef PSP
 	if (fd == fd_stdout || fd == fd_stderr)
 	{
 		char *b = (char *)buf;
@@ -1130,6 +1139,7 @@ ssize_t __my_write(int fd, const void* buf, size_t count)
 	}
 	else
 	{
+#endif
 		#if NEED_FD_REGISTER
 		tFdKind kind = fd_register_lookup(&fd);
 		#endif
@@ -1144,7 +1154,9 @@ ssize_t __my_write(int fd, const void* buf, size_t count)
 			do
 			{ retval = write(fd, buf, count);
 			} while ( (retval == -1) && (errno == EINTR) && (++loopcount < 100) );
+#ifdef PSP
 		}
+#endif
 	}
   return(retval);
 }
@@ -1163,24 +1175,10 @@ ssize_t my_write(int fd, const void* buf, size_t count)
 }
 
 void my_write_crucial(int fd, const void* buf, size_t count)
-{ 
-	ssize_t err = my_write(fd, buf, count);
+{ ssize_t err = my_write(fd, buf, count);
 	if (err != (ssize_t) count)
-	{
-		fatal_error(((err == -1) ? errno : 0), _("my_write_crucial() failed"));
-	}
+    fatal_error(((err == -1) ? errno : 0), _("my_write_crucial() failed"));
 }
-
-void my_write_crucial_pipe(int fd, const void* buf, size_t count)
-{ 
-	ModuleLog(LOG_LOWLEVEL, "my_write_crucial_pipe() fd=%d", fd);
-	ssize_t err = pipe_write(fd, buf, count);
-	if (err != (ssize_t) count)
-	{
-		fatal_error(((err == -1) ? errno : 0), _("my_write_crucial_pipe() failed"));
-	}
-}
-
 
 unsigned char my_mmap_file_readonly(const char* filename, void** _b,
   size_t* _s)
@@ -1193,11 +1191,12 @@ unsigned char my_mmap_file_readonly(const char* filename, void** _b,
   void* filebuf;
   if (fd < 0) goto out;
   if (my_fstat(fd, &statbuf) != 0) goto cleanup;
-/*
+#ifndef PSP
   if (!S_ISREG(statbuf.st_mode))
   { if (S_ISDIR(statbuf.st_mode)) errno = EISDIR;
     goto cleanup;
-  }*/
+  }
+#endif
   size = statbuf.st_size;
   if (size <= 0) { retval = 1; goto cleanup; }
   filebuf = my_mmap(size, fd);
@@ -1232,7 +1231,7 @@ int my_fstat(int fd, struct stat* sb)
 #if NEED_FD_REGISTER
 
 int my_pipe(int* fdpair)
-{ int retval = pipe_open(fdpair);
+{ int retval = pipe(fdpair);
   if (retval == 0)
   { fd_register(&(fdpair[0]), fdkPipe); fd_register(&(fdpair[1]), fdkPipe); }
   return(retval);
