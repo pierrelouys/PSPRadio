@@ -22,10 +22,8 @@
 #include <links.h>
 
 #ifdef STAND_ALONE_APP
-	///PSP_MODULE_INFO("Links2", 0x1000, 0, 1);
-	PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
-	PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER);
-	//don't specify, so uses max avail: PSP_HEAP_SIZE_KB(1024*16);
+	PSP_MODULE_INFO("Links2", 0x1000, 1, 1);
+	PSP_MAIN_THREAD_ATTR(0);
 	int CallbackThread(SceSize args, void *argp);
 #else
 	PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
@@ -35,27 +33,20 @@
 #define printf pspDebugScreenPrintf
 void app_plugin_main();
 void wait_for_triangle(char *str);
+int main_loop(int argc, char** argv);
+int connect_to_apctl(int config);
 
 /** Plugin code */
 int ModuleStartAPP()
 {
+	int thid = 0;
 	sleep(1);
+	
+	pspDebugScreenInit();
 	
 	SceSize am = sceKernelTotalFreeMemSize();
 	ModuleLog(LOG_INFO, "ModuleStartApp(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
 
-	int thid = 0;
-
-	#ifdef STAND_ALONE_APP
-	{
-		thid = sceKernelCreateThread("update_thread", CallbackThread, 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
-		if(thid >= 0)
-		{
-			sceKernelStartThread(thid, 0, 0);
-		}
-	}
-	#endif
-	
 	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
@@ -76,14 +67,6 @@ int ModuleContinueApp()
 	return 0;
 }
 
-int stderr_handler(char *data, int len)
-{
-	wait_for_triangle(data);
-}
-
-int main_loop(int argc, char** argv);
-
-int connect_to_apctl(int config);
 
 int CreateHomepage(char *file)
 {
@@ -93,7 +76,13 @@ int CreateHomepage(char *file)
 	{
 		fprintf(fp, "<html><head><title>Links2 On PSP</title></head><body bgcolor=\"white\"><h3 align=\"center\"><b>Links2 For PSPRadio</b></h3>\n");
 	
-		fprintf(fp, "<p>PSP Port by Raf. Thanks to Danzel for OSK!. This port is a plugin for PSPRadio. Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
+		fprintf(fp, "<p>PSP Port by Raf. Thanks to Danzel for OSK!<br> Thanks to Sandberg for upcoming GU driver :)<br>");
+#ifdef STAND_ALONE_APP
+		fprintf(fp, "This port is a stand alone application.<br>", PSPRadioExport_GetVersion());
+#else
+		fprintf(fp, "This port is a plugin for PSPRadio Version %s.<br>", PSPRadioExport_GetVersion());
+#endif
+		fprintf(fp, "Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
 		
 		/** Google search Start */
 		fprintf(fp, "<center>");
@@ -123,7 +112,11 @@ int CreateHomepage(char *file)
 		{
 			FILE *fTips = NULL;
 			char strLine[512];
-			fTips = fopen("APP_Links2/tips.html", "r");
+			#ifdef STAND_ALONE_APP
+				fTips = fopen(".links/tips.html", "r");
+			#else
+				fTips = fopen("APP_Links2/tips.html", "r");
+			#endif
 			if (fTips)
 			{
 				while (!feof(fTips))
@@ -167,13 +160,11 @@ void app_plugin_main()
 	
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 
-	pspDebugScreenInit();
-
 	getcwd(str, 100);
 #ifdef STAND_ALONE_APP
 	sprintf(strhp, "%s/.%s/%s.html", str, argv[0], argv[0]);
 	printf("Creating '%s'\n", strhp);
-	wait_for_triangle(strhp);
+	//wait_for_triangle(strhp);
 #else // plugin
 	sprintf(strhp, "%s/%s/%s.html", str, argv[0], argv[0]);
 #endif
@@ -190,7 +181,7 @@ void app_plugin_main()
 	else
 	{
 		printf("Could not create '%s'\n", strhp);
-		wait_for_triangle(strhp);
+		sceKernelSleepThreadCB();
 		argv[6] = NULL;
 		argc--;
 	}
@@ -299,27 +290,39 @@ void app_init_progress(char *str)
 
 /** Stand alone code: */
 #ifdef STAND_ALONE_APP
-/** This thread runs in Kernel Mode. All it does
- *  is load the network drivers 
- */
-int DriverLoadThread(SceSize args, void *argp)
+int main(int argc, char **argv)
 {
+	int thid;
 	pspDebugScreenInit();
+	pspDebugScreenPrintf("Links2 For PSP\n\n");
+	pspDebugScreenPrintf("-Loading networking modules...\n");
+	
 	sceDisplayWaitVblankStart();
-	
-	//pspDebugInstallErrorHandler(MyExceptionHandler);
-	
+		
+		//pspDebugInstallErrorHandler(MyExceptionHandler);
+		
 	pspSdkInstallNoDeviceCheckPatch();
 	pspSdkInstallNoPlainModuleCheckPatch();
-	
+		
 	if(pspSdkLoadInetModules() < 0)
 	{
 		printf("** Error, could not load inet modules\n");
 		sceKernelSleepThreadCB();
 	}
 	
+	thid = sceKernelCreateThread("update_thread", CallbackThread, 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
+	if(thid >= 0)
+	{
+		sceKernelStartThread(thid, 0, 0);
+	}
+	
+	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
+	if(thid >= 0)
+	{
+		sceKernelStartThread(thid, 0, 0);
+	}
+	
 	sceKernelSleepThreadCB();
-
 	return 0;
 }
 
@@ -337,39 +340,19 @@ int CallbackThread(SceSize args, void *argp)
 	static int ResolverId;
 	static char resolver_buffer[1024];
 
-	/** Wait a small while to allow the network drivers to successfully load */
-	sleep(3);
+	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
+	sceKernelRegisterExitCallback(cbid);
+	
 	pspSdkInetInit();
 	
 	connect_to_apctl(1); /* Just connect to the first profile for now */
 	
 	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
 
-	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-	sceKernelRegisterExitCallback(cbid);
 	sceKernelSleepThreadCB();
 
 	return 0;
 }
-
-/**
- * Function that is called from _init in kernelmode before the
- * main thread is started in usermode.
- * We start a thread that will load the drivers here. As the main
- * app runs in usermode.
- */
-#if 0
-__attribute__ ((constructor)) void loaderInit()
-{
-	int handleDriverLoaderThread;
-	pspKernelSetKernelPC();
-	handleDriverLoaderThread = sceKernelCreateThread("driverloader_thread", DriverLoadThread, 0x11, 0xFA0, 0, 0);
-	if (handleDriverLoaderThread >= 0) 
-	{
-		sceKernelStartThread(handleDriverLoaderThread, 0, 0);
-	}
-}
-#endif
 
 #include <png.h>
 #include <pspdisplay.h>

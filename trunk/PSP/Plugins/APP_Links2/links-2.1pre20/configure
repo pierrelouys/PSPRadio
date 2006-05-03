@@ -6346,7 +6346,7 @@ echo "configure:6346: checking for SDL >= 1.2.0" >&5
 				sdl_version="`$SDL_CONFIG --version`"
 			if expr "$sdl_version" \>= 1.2.0 >/dev/null; then
 				echo "$ac_t""yes" 1>&6
-				PSPSDL_CFLAGS="-DPSP `$SDL_CONFIG --cflags`"
+				PSPSDL_CFLAGS="-DPSP -I/usr/local/pspdev/psp/include/ `$SDL_CONFIG --cflags`"
 				PSPSDL_LIBS="`$SDL_CONFIG --libs`"
 					cat >> confdefs.h <<\EOF
 #define GRDRV_PSPSDL 1

@@ -465,7 +465,7 @@ if test "$disable_pspsdl" != yes ; then
 				sdl_version="`$SDL_CONFIG --version`"
 			if expr "$sdl_version" \>= 1.2.0 >/dev/null; then
 				AC_MSG_RESULT(yes)
-				PSPSDL_CFLAGS="-DPSP `$SDL_CONFIG --cflags`"
+				PSPSDL_CFLAGS="-DPSP -I/usr/local/pspdev/psp/include/ `$SDL_CONFIG --cflags`"
 				PSPSDL_LIBS="`$SDL_CONFIG --libs`"
 					AC_DEFINE(GRDRV_PSPSDL)
 					drivers="$drivers PSPSDL"
