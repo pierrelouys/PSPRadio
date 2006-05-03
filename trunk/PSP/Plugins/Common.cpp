@@ -15,16 +15,6 @@ volatile int g_blocker = 0;
 #define BLOCKER_CREATE_AND_BLOCK(x,name) {x=sceKernelCreateSema(name,0,0,1,0);sceKernelWaitSema(x,1,NULL);}
 #define BLOCKER_UNBLOCK_AND_DESTROY(x)   {sceKernelDeleteSema(x);sleep(1);}
 
-#ifdef STAND_ALONE_APP
-	#ifdef __cplusplus
-		extern "C" {
-	#endif
-int ModuleStartAPP();
-	#ifdef __cplusplus
-		};
-	#endif
-#endif
-
 int main(int argc, char **argv)
 {
 	SceSize am = sceKernelTotalFreeMemSize();
@@ -32,16 +22,12 @@ int main(int argc, char **argv)
 	ModuleLog(LOG_INFO, "main: Plugin '%s' Compiled against version PSPRadio Version %s", module_info.modname, PSPRADIO_VERSION);
 
 	/** PSPRadio version is different than the version this plugin was compiled against: */
-#ifdef STAND_ALONE_APP
-	ModuleStartAPP();
-#else
 	if (strcmp(PSPRadioExport_GetVersion(), PSPRADIO_VERSION) != 0)
 	{
 		ModuleLog(LOG_ALWAYS, "**WARNING**: Plugin '%s' compiled against PSPRadio Version '%s', but this is PSPRadio Version '%s'", PSPRADIO_VERSION, PSPRadioExport_GetVersion());
 		
 
 	}
-#endif
 
 	BLOCKER_CREATE_AND_BLOCK(g_blocker, module_info.modname);
 
