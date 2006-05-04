@@ -298,7 +298,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					m_UI->DisplayMessage("Starting Plugin . . .");
 					//sprintf(m_UI->buff, "original data");
 					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
-					int res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_APP);
+					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_APP);
 					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
 					if (res == 0)
 					{
@@ -307,7 +307,14 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					}
 					else
 					{
-						m_UI->DisplayMessage("Error Starting Plugin . . .");
+						if (res == SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED)
+						{
+							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
+						}
+						else
+						{
+							m_UI->DisplayMessage("Error Starting Plugin . . .");
+						}
 					}
 				}
 				else
