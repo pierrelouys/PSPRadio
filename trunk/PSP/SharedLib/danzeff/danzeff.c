@@ -12,7 +12,7 @@
 #define true 1
 
 // structures used for drawing the keyboard
-#ifdef DANZEFF_SCEGU
+#if defined (DANZEFF_SCEGU)
 	struct danzeff_vertex
 	{
 		float u, v;
@@ -28,8 +28,12 @@
 		u32		texture_height;
 		u32		*texture;
 	};
-
 #endif //#ifdef DANZEFF_SCEGU
+
+#if defined (DANZEFF_GU_OWNDLIST)
+static unsigned int __attribute__((aligned(16))) gu_list[8192];
+#endif
+
 
 /*bool*/ int holding = false;     //user is holding a button
 /*bool*/ int dirty = true;        //keyboard needs redrawing
@@ -608,6 +612,10 @@ void danzeff_render_gu()
 	int	transperant;
 	dirty = false;
 
+#if defined (DANZEFF_GU_OWNDLIST)
+	sceGuStart(GU_DIRECT,gu_list);
+#endif /* defined (DANZEFF_GU_OWNDLIST) */
+
 	///Draw the background for the selected keyboard either transparent or opaque
 	///this is the whole background image, not including the special highlighted area
 	//if center is selected then draw the whole thing opaque
@@ -633,6 +641,11 @@ void danzeff_render_gu()
 	//size to render (always the same)
 	64, 64,
 	false);
+
+#if defined (DANZEFF_GU_OWNDLIST)
+	sceGuFinish();
+	sceGuSync(0,0);
+#endif /* defined (DANZEFF_GU_OWNDLIST) */
 }
 
 #endif //DANZEFF_SCEGU
