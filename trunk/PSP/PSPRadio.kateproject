@@ -52,7 +52,7 @@ Files=acconfig.h/aclocal.m4/af_unix.c/arrow.inc/atheos.cpp/auth.c/AUTHORS/beos.c
 
 [Dir Plugins/APP_Links2/links-2.1pre20/build-psp]
 Dirs=
-Files=configure-psp/Makefile.psp/plugin_main.c/Makefile
+Files=configure-psp/Makefile.psp/plugin_main.c/Makefile/html.cfg/links.cfg
 
 [Dir Plugins/APP_Links2/links-2.1pre20/build-psp/danzeff]
 Dirs=graphics
@@ -111,8 +111,16 @@ Dirs=
 Files=main.cpp/Makefile/main.c
 
 [Dir Resources]
-Dirs=Icons_Sem
+Dirs=Icons_Sem/AlbaSkins/Links2_Icons_Sem
 Files=
+
+[Dir Resources/Icons_Sem]
+Dirs=
+Files=fade-icon0.png/fade-pic1.png
+
+[Dir Resources/Links2_Icons_Sem]
+Dirs=
+Files=background_.png/icone01.png/icone02.png/icone03.png/icone04.png
 
 [Dir SharedLib]
 Dirs=Logging/libiniparser/PSPApp/Tools/libpthread/danzeff
