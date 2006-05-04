@@ -22,7 +22,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DI
 		 -I/usr/local/pspdev/psp/sdk/include/  -I/usr/local/pspdev/psp/include/ \
 		 -I/usr/local/pspdev/psp/include/SDL/ -I$(SHAREDLIB_DIR)/danzeff
 		 
-CFLAGS = $(EXTRA_FLAGS) -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSP -g $(INCLUDES)
+CFLAGS = $(EXTRA_FLAGS) -O2 -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSP -g $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
