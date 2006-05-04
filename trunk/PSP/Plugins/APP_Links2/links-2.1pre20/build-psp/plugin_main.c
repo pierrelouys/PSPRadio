@@ -147,19 +147,20 @@ int CreateHomepage(char *file)
 	return -1;
 }
 
-#ifdef STAND_ALONE_APP
-static char *argv[] = { "Links", "-g", "-driver", "pspsdl", "-mode", "480x272", "homepage.html", NULL };	
-#else
-static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", "homepage.html", NULL };	
-#endif
+static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", "http://pspradio.berlios.de/Links2/APP_Links2.html", NULL };	
+
 void app_plugin_main()
 {
 	static int argc = sizeof(argv)/sizeof(char *)-1; 	/* idea from scummvm psp port */
-	char str[128], strhp[128];
+#if 0	
+	char strhp[128];
+#endif
+	char str[128];
 	int ret;
 	
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 
+#if 0
 	getcwd(str, 100);
 #ifdef STAND_ALONE_APP
 	sprintf(strhp, "%s/.%s/%s.html", str, argv[0], argv[0]);
@@ -185,6 +186,7 @@ void app_plugin_main()
 		argv[6] = NULL;
 		argc--;
 	}
+#endif
 
 	g_PSPEnableInput = truE;
 	g_PSPEnableRendering = truE;
@@ -290,6 +292,7 @@ void app_init_progress(char *str)
 
 /** Stand alone code: */
 #ifdef STAND_ALONE_APP
+int StartNetworkThread(SceSize args, void *argp);
 int main(int argc, char **argv)
 {
 	int thid;
@@ -316,6 +319,12 @@ int main(int argc, char **argv)
 		sceKernelStartThread(thid, 0, 0);
 	}
 	
+	thid = sceKernelCreateThread("network_start_thread", StartNetworkThread, 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
+	if(thid >= 0)
+	{
+		sceKernelStartThread(thid, 0, 0);
+	}
+	
 	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
@@ -334,21 +343,30 @@ int exit_callback(int arg1, int arg2, void *common)
 }
 
 /* Callback thread */
-int CallbackThread(SceSize args, void *argp)
+int StartNetworkThread(SceSize args, void *argp)
 {
 	int cbid;
 	static int ResolverId;
 	static char resolver_buffer[1024];
 
-	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-	sceKernelRegisterExitCallback(cbid);
-	
 	pspSdkInetInit();
 	
 	connect_to_apctl(1); /* Just connect to the first profile for now */
 	
 	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
 
+	sceKernelSleepThreadCB();
+
+	return 0;
+}
+
+int CallbackThread(SceSize args, void *argp)
+{
+	int cbid;
+	
+	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
+	sceKernelRegisterExitCallback(cbid);
+	
 	sceKernelSleepThreadCB();
 
 	return 0;
