@@ -35,12 +35,16 @@
 #define LEAK_DEBUG
 #endif
 
-#define LINKS_MANUAL_URL		(!strcmp(language_name(current_language),"Czech") || !strcmp(language_name(current_language),"Slovak")?\
-					"http://links.twibright.com/user.html":\
-					"http://links.sourceforge.net/docs/manual-0.90-en/")
+#ifdef PSP
+#define LINKS_HOMEPAGE_URL	"http://pspradio.berlios.de/Links2/APP_Links2.html"
+#else
 #define LINKS_HOMEPAGE_URL		(!strcmp(language_name(current_language),"Czech") || !strcmp(language_name(current_language),"Slovak")?\
 					"http://links.twibright.com/index_cz.php":\
 					"http://links.twibright.com/")
+#endif
+#define LINKS_MANUAL_URL		(!strcmp(language_name(current_language),"Czech") || !strcmp(language_name(current_language),"Slovak")?\
+					"http://links.twibright.com/user.html":\
+					"http://links.sourceforge.net/docs/manual-0.90-en/")
 #define LINKS_CALIBRATION_URL		(!strcmp(language_name(current_language),"Czech") || !strcmp(language_name(current_language),"Slovak")?\
 					"http://links.twibright.com/kalibrace.html":\
 					"http://links.twibright.com/calibration.html")

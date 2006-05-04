@@ -147,7 +147,7 @@ int CreateHomepage(char *file)
 	return -1;
 }
 
-static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", "http://pspradio.berlios.de/Links2/APP_Links2.html", NULL };	
+static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", LINKS_HOMEPAGE_URL, NULL };	
 
 void app_plugin_main()
 {
@@ -204,7 +204,9 @@ void app_plugin_main()
 #endif
 	
 	pspDebugScreenInit();
-	PSPRadioExport_GiveUpExclusiveAccess();
+	
+	///PSPRadioExport_GiveUpExclusiveAccess(); /** PluginExits gives up access too */
+	PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */
 }
 
 /* Connect to an access point */
