@@ -1,11 +1,27 @@
 What's New for PSPRadio 
 ========================
 
-0.38.10 (r)(2006-04-xx)
+0.38.10 (r)(2006-05-xx)
 NEW FEATURES
+(raf) Dyn: If plugin load fails because of lack of memory, then the message displayed on the screen will say so.
+(raf) Dyn/Code: Now PSPRadio allocates 6MB instead of 8MB or RAM. This to give more RAM to plugins.
+(danzel) Core: Added lite version to danzeff library.
+(sandberg) Core: Added GU version to danzeff library.
+(raf) Dyn/Retawq: -Updated code to take advantage of changes to newlib (for pipes/file descriptors/sockets)
+(raf) Dyn/Retawq: -Cleaned up the code to make it easier to update when a new version of retawq is available.
+(raf) Dyn/Links2: -Browser ported to PSP. PSPRadio plugin created. Using version 2.1pre20 with utf8 patch. Using SDL SW Surfaces for graphics.
+(raf) Dyn/Links2: -dithertable is now saved to file, if file is found (now provided), the its loaded instead of generated. (This speeds up startup from over 1min to seconds)
+(raf) Dyn/Links2: -danzeff SDL library used for OSK. Thanks, Danzel.
+(raf) Dyn/Links2: -Screenshot can be taken pressing SELECT. Use File->Switch to PSPRadio to go back to PSPRadio. Then select the plugin again to get back to Links2.
+(raf) Dyn/Links2: -SMB support is completely removed to free more memory.
+(raf) Dyn/Links2: -Removed support for all languages except english to free more memory.
+(raf) Dyn/Links2: -Removed japanese font to free more memory.
+(danzel) Dyn/Links2: -Use lite danzeff OSK now (no transparencies) to free memory.
+(raf) Dyn/Links2: -Version reported includes the subversion revision now.
 BUG FIXES
 (raf) When a socket closed, writestring() would keep trying to send, and keep reporting errors, filling up the event queue, and causing pspradio to exit. Thanks PSP KEVIN for the report.
 (raf) Calling network termination functions before exit -- hope this helps exit when using eLoader.
+(raf) Dyn/Links2: -When exiting, the plugin is turned off correctly.
 
 0.38.091 (r1029) (2006-04-06)
 NEW FEATURES
