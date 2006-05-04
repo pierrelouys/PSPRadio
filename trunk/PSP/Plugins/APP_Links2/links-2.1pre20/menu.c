@@ -1512,6 +1512,7 @@ void cache_opt(struct terminal *term, void *xxx, void *yyy)
 
 void menu_shell(struct terminal *term, void *xxx, void *yyy)
 {
+#ifndef STAND_ALONE_APP
 #ifdef PSP /** Switch to PSPRadio */
 	g_PSPEnableInput = falsE;
 	g_PSPEnableRendering = falsE;
@@ -1520,6 +1521,7 @@ void menu_shell(struct terminal *term, void *xxx, void *yyy)
 	unsigned char *sh;
 	if (!(sh = GETSHELL)) sh = DEFAULT_SHELL;
 	exec_on_terminal(term, sh, "", 1);
+#endif
 #endif
 }
 

@@ -104,10 +104,10 @@ struct translation translation_english [] = {
   {T_KILL_ALL_CONNECTIONS, "Kill all connections" },
   {T_FLUSH_ALL_CACHES, "Flush all caches" },
   {T_RESOURCE_INFO, "Resource info" },
-#ifdef PSP
-  {T_OS_SHELL, "OS shell" },
+#if defined (PSP) && !defined (STAND_ALONE_APP)
+	{T_OS_SHELL, "Switch to PSPRadio" },
 #else
-  {T_OS_SHELL, "Switch to PSPRadio" },
+	{T_OS_SHELL, "OS shell" },
 #endif
   {T_EXIT, "Exit" },
   {T_SEARCH, "Search" },

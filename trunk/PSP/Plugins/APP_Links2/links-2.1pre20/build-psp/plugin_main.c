@@ -159,6 +159,7 @@ void app_plugin_main()
 	int ret;
 	
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
+	pspDebugScreenInit();
 
 #if 0
 	getcwd(str, 100);
