@@ -1516,6 +1516,13 @@ struct option links_options[] = {
 	{1, NULL, prog_rd, prog_wr, 0, 0, &mms_prog, "mms", NULL},
 	{1, NULL, block_rd, block_wr, 0, 0, NULL, "imageblock", NULL},
 	{1, NULL, dp_rd, dp_wr, 0, 0, NULL, "video_driver", NULL},
+#ifdef PSP
+	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.music,  "download_directory_music",  NULL},
+	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.mp4,    "download_directory_mp4",    NULL},
+	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.videos, "download_directory_videos", NULL},
+	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.images, "download_directory_images", NULL},
+	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.other,  "download_directory_other",  NULL},
+#endif
 	{0, NULL, NULL, NULL, 0, 0, NULL, NULL, NULL},
 };
 

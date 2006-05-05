@@ -14,6 +14,8 @@
 volatile tBoolean g_PSPEnableRendering = truE;
 volatile tBoolean g_PSPEnableInput = truE;
 
+extension_download_dirs ext_dl_dir;
+
 int env_termsize(int *x, int *y)
 {
 	*x = PSP_SCREEN_WIDTH / 7;

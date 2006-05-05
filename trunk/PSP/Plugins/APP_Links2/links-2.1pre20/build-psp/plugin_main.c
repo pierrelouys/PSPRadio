@@ -152,42 +152,11 @@ static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x2
 void app_plugin_main()
 {
 	static int argc = sizeof(argv)/sizeof(char *)-1; 	/* idea from scummvm psp port */
-#if 0	
-	char strhp[128];
-#endif
 	char str[128];
 	int ret;
 	
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
 	pspDebugScreenInit();
-
-#if 0
-	getcwd(str, 100);
-#ifdef STAND_ALONE_APP
-	sprintf(strhp, "%s/.%s/%s.html", str, argv[0], argv[0]);
-	printf("Creating '%s'\n", strhp);
-	//wait_for_triangle(strhp);
-#else // plugin
-	sprintf(strhp, "%s/%s/%s.html", str, argv[0], argv[0]);
-#endif
-
-	if (CreateHomepage(strhp) == 0)
-	{
-#ifdef STAND_ALONE_APP
-		sprintf(strhp, "file://%s/.%s/%s.html", str, argv[0], argv[0]);
-#else // plugin
-		sprintf(strhp, "file://%s/%s/%s.html", str, argv[0], argv[0]);
-#endif
-		argv[6] = strhp;
-	}
-	else
-	{
-		printf("Could not create '%s'\n", strhp);
-		sceKernelSleepThreadCB();
-		argv[6] = NULL;
-		argc--;
-	}
-#endif
 
 	g_PSPEnableInput = truE;
 	g_PSPEnableRendering = truE;
@@ -295,6 +264,36 @@ void app_init_progress(char *str)
 
 /** Stand alone code: */
 #ifdef STAND_ALONE_APP
+/** -- Exception handler */
+void MyExceptionHandler(PspDebugRegBlock *regs)
+{
+	static int bFirstTime = 1;
+
+	if (bFirstTime)
+	{
+		pspDebugScreenInit();
+		pspDebugScreenSetBackColor(0x000000FF);
+		pspDebugScreenSetTextColor(0xFFFFFFFF);
+		pspDebugScreenClear();
+
+		pspDebugScreenPrintf("Links2 -- Exception Caught:\n");
+		pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
+		pspDebugScreenPrintf("Exception Details:\n");
+		pspDebugDumpException(regs);
+		pspDebugScreenPrintf("\nHolding select to capture a shot of this screen for reference\n");
+		pspDebugScreenPrintf("may or may not work at this point.\n");
+		pspDebugScreenPrintf("\nPlease Use the Home Menu to return to the VSH.\n");
+		pspDebugScreenPrintf("-----------------------------------------------------------------\n");
+
+		bFirstTime = 0;
+	}
+	pspDebugScreenPrintf("******* Important Registers: epc=0x%x ra=0x%x\n", regs->epc, regs->r[31]);
+
+	wait_for_triangle("");
+	sceKernelExitGame();
+}
+
+
 int StartNetworkThread(SceSize args, void *argp);
 int main(int argc, char **argv)
 {
@@ -305,7 +304,7 @@ int main(int argc, char **argv)
 	
 	sceDisplayWaitVblankStart();
 		
-		//pspDebugInstallErrorHandler(MyExceptionHandler);
+	pspDebugInstallErrorHandler(MyExceptionHandler);
 		
 	pspSdkInstallNoDeviceCheckPatch();
 	pspSdkInstallNoPlainModuleCheckPatch();

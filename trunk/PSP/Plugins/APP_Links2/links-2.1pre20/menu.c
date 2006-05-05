@@ -2158,11 +2158,7 @@ void do_file_menu(struct terminal *term, void *xxx, struct session *ses)
 	TEXT(T_OS_SHELL), "", TEXT(T_HK_OS_SHELL), MENU_FUNC menu_shell, NULL, 0, 0,*/
 	x = 1;
 	if (!anonymous && can_open_os_shell(term->environment)) {
-/*		#ifdef PSP
-		e->text = TEXT(T_SWITCH_TO_PSPRADIO);
-		#else*/
 		e->text = TEXT(T_OS_SHELL);
-// 		#endif
 		e->rtext = "";
 		e->hotkey = TEXT(T_HK_OS_SHELL);
 		e->func = MENU_FUNC menu_shell;
@@ -2465,6 +2461,48 @@ void query_file(struct session *ses, unsigned char *url, void (*std)(struct sess
 
 	get_filename_from_url(url, &file, &l);
 	def = init_str();
+#ifdef PSP
+	/** Set download directories based on file extension */
+	if (strlen(file) > 3 && strrchr(file, '.') != NULL)
+	{
+		char *ext = strrchr(file, '.') + 1;
+		if (strlen(ext) >= 3)
+		{
+			if (0 == strncasecmp(ext, "mp4", 3))
+			{
+				strcpy(download_dir, ext_dl_dir.mp4);
+			}
+			else if (0 == strncasecmp(ext, "mp", 2))
+			{
+				strcpy(download_dir, ext_dl_dir.music);
+			}
+			else if (0 == strncasecmp(ext, "ogg", 3))
+			{
+				strcpy(download_dir, ext_dl_dir.music);
+			}
+			else if (0 == strncasecmp(ext, "jpg", 3))
+			{
+				strcpy(download_dir, ext_dl_dir.images);
+			}
+			else if (0 == strncasecmp(ext, "jpeg", 4))
+			{
+				strcpy(download_dir, ext_dl_dir.images);
+			}
+			else if (0 == strncasecmp(ext, "png", 3))
+			{
+				strcpy(download_dir, ext_dl_dir.images);
+			}
+			else if (0 == strncasecmp(ext, "mpg", 3))
+			{
+				strcpy(download_dir, ext_dl_dir.videos);
+			}
+			else if (0 == strncasecmp(ext, "avi", 3))
+			{
+				strcpy(download_dir, ext_dl_dir.videos);
+			}
+		}
+	}
+#endif
 	add_to_str(&def, &dfl, download_dir);
 	if (*def && !dir_sep(def[strlen(def) - 1])) add_chr_to_str(&def, &dfl, '/');
 	add_bytes_to_str(&def, &dfl, file, l);
