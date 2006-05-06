@@ -3,6 +3,7 @@ What's New for PSPRadio
 
 0.38.10 (r)(2006-05-xx)
 NEW FEATURES
+(sandberg) Dyn/Retawq: -Modified Retawq plugin to use danzeff for inputs.
 (raf) Dyn: If plugin load fails because of lack of memory, then the message displayed on the screen will say so.
 (raf) Dyn/Code: Now PSPRadio allocates 6MB instead of 8MB or RAM. This to give more RAM to plugins.
 (danzel) Core: Added lite version to danzeff library.

@@ -1,6 +1,9 @@
 #include <pspsdk.h>
 #include <pspdebug.h>
 #include <pspdisplay.h>
+#ifdef USE_DANZEFF
+#include <pspgu.h>
+#endif /* USE_DANZEFF */
 #include "psp.h"
 #include <PSPRadio_Exports.h>
 #include <danzeff.h>
@@ -15,6 +18,12 @@
 volatile tBoolean g_PSPEnableRendering = truE;
 volatile tBoolean g_PSPEnableInput = truE;
 tBoolean g_InputMethod = falsE;
+
+#ifdef USE_DANZEFF
+static unsigned int __attribute__((aligned(16))) gu_list[8192];
+static unsigned int __attribute__((aligned(16))) gu_backup[4*PSP_SCREEN_WIDTH*PSP_SCREEN_HEIGHT];
+static int first_time = 1;
+#endif /* USE_DANZEFF */
 
 void PSPPutch(char ch)
 {
@@ -33,27 +42,64 @@ int env_termsize(int *x, int *y)
 }
 
 #ifdef USE_DANZEFF
+void PSPInputRender(void)
+{
+	if (first_time)
+		{
+		sceGuInit();
+		sceGuDisplay(GU_TRUE);
+		}
+
+	sceGuStart(GU_DIRECT,gu_list);
+	sceGuDrawBuffer(GU_PSM_8888, (void*) 0, 512);
+	sceGuDispBuffer(PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT, (void*) 0, 512);
+
+	/* First time, init GU and copy the screen containing the text */
+	if (first_time)
+		{
+		/* Init GU */
+		sceGuOffset(2048 - (PSP_SCREEN_WIDTH/2),2048 - (PSP_SCREEN_HEIGHT/2));
+		sceGuViewport(2048,2048,PSP_SCREEN_WIDTH,PSP_SCREEN_HEIGHT);
+		sceGuScissor(0,0,PSP_SCREEN_WIDTH,PSP_SCREEN_HEIGHT);
+		sceGuEnable(GU_SCISSOR_TEST);
+		sceGuDisable(GU_DEPTH_TEST);
+		sceGuDisable(GU_CULL_FACE);
+
+		/* Make textscreen backup to use as texture */
+		sceGuCopyImage(GU_PSM_8888, 0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT, PSP_SCREEN_WIDTH, (void*) 0x4000000, 0, 0, PSP_SCREEN_WIDTH, (void*) gu_backup);
+		first_time = 0;
+		}
+
+	sceGuCopyImage(GU_PSM_8888, 0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT, PSP_SCREEN_WIDTH, (void*) gu_backup, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT, 512, (void*) 0x4000000);
+	sceGuTexSync();
+	danzeff_render();
+	sceGuFinish();
+	sceGuSync(0,0);
+}
+
 void ClearInputHandlerWindow()
 {
-
 }
 
 void DrawInputHandlerWindow()
 {
 	if (danzeff_dirty())
 	{
-		danzeff_render();
+		PSPInputRender();
 	}
 }
 
 void PSPInputHandlerStart()
 {
+	static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
+
 	danzeff_load_lite(DANZEFF_RENDER_SCEGU);
+	danzeff_moveTo(danzeff_x, danzeff_y);
 	if (danzeff_isinitialized())
 	{
 		//danzef_set_screen(sdl_SURFACE(dev));
 		//danzeff_moveTo(danzeff_x, danzeff_y);
-		danzeff_render();
+		PSPInputRender();
 	}
 	else
 	{
@@ -64,6 +110,7 @@ void PSPInputHandlerStart()
 void PSPInputHandlerEnd()
 {
 	danzeff_free();
+	first_time = 1;
 }
 
 
@@ -71,15 +118,14 @@ void PSPInputHandler_DisplayButtons()
 {
 	if (danzeff_dirty())
 	{
-		danzeff_render();
+		PSPInputRender();
 	}
 }
 
 int PSPInputHandler(SceCtrlData pad, char *key)
 {
-	static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
 	*key = danzeff_readInput(pad);
-	if (*key) 
+	if (*key)
 	{
 		switch (*key)
 		{
@@ -90,17 +136,18 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 				*key = KEY_BACKSPACE;
 				break;
 		}
-		danzeff_moveTo(danzeff_x, danzeff_y);
-		danzeff_render();
+		PSPInputRender();
 		return 1;
 	}
+	PSPInputRender();
 	return 0;
 
 }
+
 #endif
 
 #ifdef USE_FORMER_INPUT_METHOD
-typedef enum 
+typedef enum
 {
 	PSPIHM_NORMAL_1,
 	PSPIHM_NORMAL_2,
@@ -142,7 +189,7 @@ void DrawInputHandlerWindow()
 	}
 	pspDebugScreenSetXY(10,26);
 	pspDebugScreenPrintf    ("+--------------------------------------+");
-	
+
 
 
 }
@@ -152,20 +199,20 @@ void PSPInputHandlerStart()
 	char string[17];
 	sprintf(string, "QWERT. ,YUIOP@%c_", KEY_BACKSPACE);
 	memcpy(InputTable[PSPIHM_NORMAL_1][0], string, 16);
-	
+
 	sprintf(string, "ASDFG*(-HJKL;+)-");
 	memcpy(InputTable[PSPIHM_NORMAL_2][0], string, 16);
-	
+
 	sprintf(string, "ZXCVB=:;NM\"'?</>");
 	memcpy(InputTable[PSPIHM_NORMAL_3][0], string, 16);
-	
+
 	sprintf(string, "01234!#$56789%%^&");
 	memcpy(InputTable[PSPIHM_NORMAL_4][0], string, 16);
 
 	g_Mode = PSPIHM_NORMAL_1;
-	
+
 	DrawInputHandlerWindow();
-	
+
 	PSPInputHandler_DisplayButtons();
 						/*12345678901234567890*/
 	pspDebugScreenSetXY(16,12);
@@ -241,7 +288,7 @@ void PrintAxis(int x, int y, char *str)
 }
 
 /** Button combination to key index map (BKM) */
-const static int BKM[16/*indexes*/][8/*buttons*/] = 
+const static int BKM[16/*indexes*/][8/*buttons*/] =
 {
 /*      L   R   U   D   SQ  CI  TR  CR   */
 	{	1,	0,	0,	0,	0,	0,	0,	0 }, // 0  (left)
@@ -272,9 +319,9 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 	static int old_g_mode = PSPIHM_NORMAL_1;
 	int nl_b = pad.Buttons;
 	static int bm = 0;
-	SceCtrlLatch latch; 
+	SceCtrlLatch latch;
 
-	*key = 0; 
+	*key = 0;
 	retval = 1;
 
  	if ( !(nl_b & PSP_CTRL_LTRIGGER) && !(nl_b & PSP_CTRL_RTRIGGER) )
@@ -303,7 +350,7 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 	sceCtrlReadLatch(&latch);
 	if (latch.uiMake)
 	{
-		// Button Pressed 
+		// Button Pressed
 		bm = latch.uiPress;
 	}
 	else if (latch.uiBreak)
@@ -311,7 +358,7 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 		//printf("break! ");
 		for (index = 0; index < 16 ; index++)
 		{
-			//ModuleLog(LOG_LOWLEVEL, "index=%d: bm=0x%x A=0x%x B=%d C=%d", 
+			//ModuleLog(LOG_LOWLEVEL, "index=%d: bm=0x%x A=0x%x B=%d C=%d",
 			//	index, bm, (bm & PSP_CTRL_LEFT), (bm & PSP_CTRL_LEFT)?1:0, BKM[index][0]);
 			if ( (((bm & PSP_CTRL_LEFT)?1:0)	== BKM[index][0]) &&
 				(((bm & PSP_CTRL_RIGHT)?1:0)	== BKM[index][1]) &&
@@ -322,7 +369,7 @@ int PSPInputHandler(SceCtrlData pad, char *key)
 				(((bm & PSP_CTRL_TRIANGLE)?1:0)	== BKM[index][6]) &&
 				(((bm & PSP_CTRL_CROSS)?1:0)	== BKM[index][7]) 	)
 			{
-				*key = InputTable[g_Mode][g_Modif][index]; 
+				*key = InputTable[g_Mode][g_Modif][index];
 				//printf("key = %c ", *key);
 			}
 		}

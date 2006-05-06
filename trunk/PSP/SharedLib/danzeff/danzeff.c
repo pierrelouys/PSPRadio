@@ -30,10 +30,6 @@
 	};
 #endif //#ifdef DANZEFF_SCEGU
 
-#if defined (DANZEFF_GU_OWNDLIST)
-static unsigned int __attribute__((aligned(16))) gu_list[8192];
-#endif
-
 
 /*bool*/ int holding = false;     //user is holding a button
 /*bool*/ int dirty = true;        //keyboard needs redrawing
@@ -347,6 +343,7 @@ struct danzeff_gu_surface	keyTextures[guiStringsSize];
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
 void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight, int transperant)
 {
+	sceGuEnable( GU_TEXTURE_2D );
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
 	sceGuEnable( GU_ALPHA_TEST );
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
@@ -386,6 +383,7 @@ void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int
 
 	sceGuDisable( GU_BLEND );
 	sceGuDisable( GU_ALPHA_TEST );
+	sceGuDisable( GU_TEXTURE_2D );
 }
 
 void danzeff_block_copy(struct danzeff_gu_surface* surface, u32 *texture)
@@ -612,10 +610,6 @@ void danzeff_render_gu()
 	int	transperant;
 	dirty = false;
 
-#if defined (DANZEFF_GU_OWNDLIST)
-	sceGuStart(GU_DIRECT,gu_list);
-#endif /* defined (DANZEFF_GU_OWNDLIST) */
-
 	///Draw the background for the selected keyboard either transparent or opaque
 	///this is the whole background image, not including the special highlighted area
 	//if center is selected then draw the whole thing opaque
@@ -641,11 +635,6 @@ void danzeff_render_gu()
 	//size to render (always the same)
 	64, 64,
 	false);
-
-#if defined (DANZEFF_GU_OWNDLIST)
-	sceGuFinish();
-	sceGuSync(0,0);
-#endif /* defined (DANZEFF_GU_OWNDLIST) */
 }
 
 #endif //DANZEFF_SCEGU
