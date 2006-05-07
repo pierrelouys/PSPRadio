@@ -58,9 +58,7 @@ extra_plugins:
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	cd $(PLUGINS_DIR)/APP_NetScan   && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	make clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/APP_Retawq    && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	cd $(PLUGINS_DIR)/APP_Retawq    && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/APP_Retawq    && make prx install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	mkdir -p $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics
 	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics/.
 
