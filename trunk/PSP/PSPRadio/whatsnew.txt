@@ -1,8 +1,9 @@
-What's New for PSPRadio 
+What's New for PSPRadio
 ========================
 
 0.38.10 (r)(2006-05-xx)
 NEW FEATURES
+(sandberg) Dyn/Core: -Prepared the plugin framework for game plugins.
 (sandberg) Dyn/Retawq: -Modified Retawq plugin to use danzeff for inputs.
 (raf) Dyn: If plugin load fails because of lack of memory, then the message displayed on the screen will say so.
 (raf) Dyn/Code: Now PSPRadio allocates 6MB instead of 8MB or RAM. This to give more RAM to plugins.
@@ -215,7 +216,7 @@ NEW FEATURES
 (raf) Changed the text ui layout a bit, so that the stream name has more room
 (sandberg) Added a radial blur effect as a background effect on the 3D UI.
 (raf) Added code to draw font with outline - thanks to Halfast for the idea.
-(raf) Revamped code to handle playlists in memory. 
+(raf) Revamped code to handle playlists in memory.
 (raf) Now shoutcast.com entries are sorted by genre
 (raf) Now will reload shoutcast.com db on download. Also now include a default db.xml
 
@@ -298,36 +299,36 @@ r320 | rafpsp | 2005-10-17 02:19:15 -0400 (Mon, 17 Oct 2005) | 38 lines
 svn merge -r305:319 branches/OGGSupportAddition to trunk/
 ----------------------------------------------------------------------
 	r319 | rafpsp | 2005-10-17 01:52:33 -0400 (Mon, 17 Oct 2005) | 1 line
-	
+
 	Now if content type is not defined, it defaults to MPEG. Also added case for AAC (not supported yet)
 	------------------------------------------------------------------------
 	r318 | rafpsp | 2005-10-17 01:51:34 -0400 (Mon, 17 Oct 2005) | 1 line
-	
+
 	Added support for determining content types for ogg and aac.
 	------------------------------------------------------------------------
 	r317 | rafpsp | 2005-10-17 01:51:05 -0400 (Mon, 17 Oct 2005) | 1 line
-	
+
 	Added support for determining content types for ogg and aac.
 	------------------------------------------------------------------------
 	r316 | rafpsp | 2005-10-17 00:50:34 -0400 (Mon, 17 Oct 2005) | 2 lines
-	
+
 	Added support for different stream types in preparation for addition of new decoders. It detects the stream type (content type) from filename if local file, or
 	from content-type: metadata from online stream response. (Some servers don't send the response.. so may want to default to MAD.
 	------------------------------------------------------------------------
 	r315 | rafpsp | 2005-10-16 04:07:39 -0400 (Sun, 16 Oct 2005) | 1 line
-	
+
 	More modularization in progress...
 	------------------------------------------------------------------------
 	r314 | rafpsp | 2005-10-16 03:23:21 -0400 (Sun, 16 Oct 2005) | 1 line
-	
+
 	More modularization in progress...
 	------------------------------------------------------------------------
 	r306 | rafpsp | 2005-10-16 00:17:10 -0400 (Sun, 16 Oct 2005) | 1 line
-	
+
 	Making decoder more modular..
 	------------------------------------------------------------------------
 	r305 | rafpsp | 2005-10-15 17:40:37 -0400 (Sat, 15 Oct 2005) | 1 line
-	
+
 	Redoing dir by using copy from branch
 	------------------------------------------------------------------------
 	Also fix to report stream info (like samplerate) everytime
@@ -399,8 +400,8 @@ Updates to readme and whatsnew for 0.36-pre1
 
 
 0.35-final (r312)
--Refactored PSPSound/PSPSound_MP3. (lots of things are different. but one thing that is evident to the end 
-user is that the buffers were reduced by a factor of 5. Next -pre release will allow for the 
+-Refactored PSPSound/PSPSound_MP3. (lots of things are different. but one thing that is evident to the end
+user is that the buffers were reduced by a factor of 5. Next -pre release will allow for the
 buffers to be configurable).
 -Added basic multiple samplerate support!
 Supported rates:
@@ -421,8 +422,8 @@ with the config file.
 -Refactoring of PSPSound/PSPSound_MP3 -> PSPSound/PSPSoundDecoder_MAD, internal OO changes.
 -Thread priorities are now configurable in the .cfg file.
 -Added message queue class for inter thread communications and synchronization.
--Revamped comm system for PSPApp (PSPRadio) using message q. This solves the problem with callback messaging 
-(thread prio boosting/inheritance from caller, overhead on caller thread, etc. -- Also, now polling of buttons/vblank 
+-Revamped comm system for PSPApp (PSPRadio) using message q. This solves the problem with callback messaging
+(thread prio boosting/inheritance from caller, overhead on caller thread, etc. -- Also, now polling of buttons/vblank
 is done in a separate thread. -- still work in progress --).
 -Message queue system renamed to event queue.. Everything is now using this, except for vblank.
 -Changes to Logging to show time(in ms) and line numbers.
@@ -476,7 +477,7 @@ ignore the "NumberOfEntries"/"numberofentries" tag.
 -UI now completely encapsulated as a separate object, and an interface created that all UI need to follow. - This will allow for multiple
 user interfaces to coexist, and to ease transition to GUI.
 -Text UI now follows the interface; was also cleaned up a bit during conversion.
--Added exit synchronization, to help prevent crashes on exit. This is done with a semaphore. 
+-Added exit synchronization, to help prevent crashes on exit. This is done with a semaphore.
 -Keeping the loglevel at 20 seems to help prevent the app from crashing on exit also.
 
 0.32b

@@ -46,6 +46,7 @@ enum OptionIDs
 	OPTION_ID_UI,
 	OPTION_ID_FSS,
 	OPTION_ID_APP,
+	OPTION_ID_GAME,
 };
 
 OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
@@ -54,6 +55,7 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 	{	OPTION_ID_UI,				"User Interface",			{""},				0,0,0		},
 	{	OPTION_ID_FSS,				"FileSystemServers",		{"Off"},			1,1,1		},
 	{	OPTION_ID_APP,				"Applications",				{"Off"},			1,1,1		},
+	{	OPTION_ID_GAME,				"Games",					{"Off"},			1,1,1		},
 
 	{  -1,  						"",							{""},				0,0,0		}
 };
@@ -94,14 +96,15 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 	Options Option;
 
 	list<Options>::iterator		OptionIterator;
-	
+
 	while(m_OptionsList.size())
 	{
 		// Release allocated memory
 		OptionIterator = m_OptionsList.begin();
- 		if (    ((*OptionIterator).Id == OPTION_ID_UI) 
-			 || ((*OptionIterator).Id == OPTION_ID_FSS) 
-			 || ((*OptionIterator).Id == OPTION_ID_APP) 
+ 		if (    ((*OptionIterator).Id == OPTION_ID_UI)
+			 || ((*OptionIterator).Id == OPTION_ID_FSS)
+			 || ((*OptionIterator).Id == OPTION_ID_APP)
+			 || ((*OptionIterator).Id == OPTION_ID_GAME)
 			)
  		{
  			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
@@ -121,7 +124,7 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 		/* Make a copy of the table entry */
 		Option.Id = OptionsPluginMenuData[iOptNo].Id;
 		sprintf(Option.strName, 	OptionsPluginMenuData[iOptNo].strName);
-		memcpy(Option.strStates, OptionsPluginMenuData[iOptNo].strStates, 
+		memcpy(Option.strStates, OptionsPluginMenuData[iOptNo].strStates,
 				sizeof(char*)*OptionsPluginMenuData[iOptNo].iNumberOfStates);
 		Option.iActiveState		= OptionsPluginMenuData[iOptNo].iActiveState;
 		Option.iSelectedState	= OptionsPluginMenuData[iOptNo].iSelectedState;
@@ -131,18 +134,23 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 		switch(iOptNo)
 		{
 			case OPTION_ID_UI:
-				RetrievePlugins(/*option*/Option, /*prefix*/"UI_", 
+				RetrievePlugins(/*option*/Option, /*prefix*/"UI_",
 								m_ScreenHandler->GetCurrentUI());
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_FSS:
-				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_", 
+				RetrievePlugins(/*option*/Option, /*prefix*/"FSS_",
 								gPSPRadio->GetActivePluginName(PLUGIN_FSS), /*insert 'off'*/true);
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_APP:
-				RetrievePlugins(/*option*/Option, /*prefix*/"APP_", 
+				RetrievePlugins(/*option*/Option, /*prefix*/"APP_",
 								gPSPRadio->GetActivePluginName(PLUGIN_APP), /*insert 'off'*/true);
+				Option.iSelectedState = Option.iActiveState;
+				break;
+			case OPTION_ID_GAME:
+				RetrievePlugins(/*option*/Option, /*prefix*/"GAME_",
+								gPSPRadio->GetActivePluginName(PLUGIN_GAME), /*insert 'off'*/true);
 				Option.iSelectedState = Option.iActiveState;
 				break;
 		}
@@ -161,7 +169,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 	int iNumberOfPluginsFound = 0;
 	char *strPlugin = NULL;
 	SceIoDirent direntry;
-	
+
 	if (bInsertOff == true)
 	{
 		Option.strStates[0] = strdup(PLUGIN_OFF_STRING);
@@ -170,7 +178,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 
 	Log(LOG_LOWLEVEL, "RetrievePlugins: Reading '%s' Directory, looking for '%s' files...", strPath, strPrefix);
 	dfd = sceIoDopen(strPath);
-	
+
 	Option.iActiveState = 1; /* Initial value */
 
 	/** Get all files */
@@ -190,9 +198,9 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 				Log(LOG_LOWLEVEL, "Processing '%s'", direntry.d_name);
 				if (strncmp(direntry.d_name, strPrefix, strlen(strPrefix)) == 0)
 				{
-					Log(LOG_LOWLEVEL, "RetrievePlugins(): Adding '%s' to list. Found %d elements", 
+					Log(LOG_LOWLEVEL, "RetrievePlugins(): Adding '%s' to list. Found %d elements",
 						direntry.d_name, iNumberOfPluginsFound+1);
-					
+
 					strPlugin = (char*)malloc(128);
 					if (strPlugin)
 					{
@@ -200,18 +208,18 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 						sprintf(strFormat, "%s%%s", strPrefix);
 
 						sscanf(direntry.d_name, strFormat, strPlugin);
-						
+
 						if (strrchr(strPlugin, '.'))
 							*strrchr(strPlugin, '.') = 0;
 						Log(LOG_LOWLEVEL, "direntry='%s' strPlugin='%s' strActive='%s'", direntry.d_name, strPlugin, strActive);
 
 						Option.strStates[iNumberOfPluginsFound] = strPlugin;
-						
+
 						if (strcmp(direntry.d_name, strActive) == 0)
 						{
 							Option.iActiveState = iNumberOfPluginsFound + 1;
 						}
-	
+
 						iNumberOfPluginsFound++;
 					}
 					else
@@ -331,6 +339,41 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				{
 					m_UI->DisplayMessage("Continuing Plugin. . .");
 					ModuleContinueApp();
+				}
+			}
+			break;
+		case OPTION_ID_GAME:
+			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
+			{
+				sprintf(strPluginRealName, "GAME_%s.prx", strSelection);
+				Log(LOG_INFO, "User selected GAME Plugin '%s'.", strPluginRealName);
+				if (iSelectionBase0 > 0)
+				{
+					m_UI->DisplayMessage("Starting Plugin . . .");
+					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_GAME);
+					if (res == 0)
+					{
+						fOptionActivated = true;
+						m_UI->DisplayMessage("Plugin Started");
+					}
+					else
+					{
+						if (res == SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED)
+						{
+							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
+						}
+						else
+						{
+							m_UI->DisplayMessage("Error Starting Plugin . . .");
+						}
+					}
+				}
+				else
+				{
+					m_UI->DisplayMessage("Stopping Plugin. . .");
+					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_GAME);
+					fOptionActivated = true;
+					m_UI->DisplayMessage("Plugin Stopped");
 				}
 			}
 			break;

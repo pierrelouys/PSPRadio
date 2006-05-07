@@ -9,7 +9,8 @@ PRX_EXPORTS=exports.exp
 
 IMPORTED_OBJS = $(PLUGINS_DIR)/UI_Interface.o $(PLUGINS_DIR)/PSPRadio_UI.o \
 				$(PLUGINS_DIR)/PSPRadio_FSS.o \
-				$(PLUGINS_DIR)/PSPRadio_APP.o 
+				$(PLUGINS_DIR)/PSPRadio_APP.o \
+				$(PLUGINS_DIR)/PSPRadio_GAME.o
 
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/SHOUTcastScreen.o  \
@@ -33,8 +34,8 @@ INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
-LIBDIR = 
-LDFLAGS = 
+LIBDIR =
+LDFLAGS =
 
 # LIBS =  -lsupc++ -lstdc++ \
 # 		-lpspnet -lpspnet_apctl -lpspnet_inet -lpspnet_resolver \
@@ -53,7 +54,7 @@ LIBS =	-lstdc++ \
 		-lpspwlan \
 		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc -lpsppower \
 		-lpng -lz -lm \
-		
+
 
 
 all: $(TARGET).prx
@@ -66,6 +67,6 @@ all: $(TARGET).prx
 	mkdir -p $(KXPLOIT_PRIMARY)/Screenshots
 	cp -vf ./Init.png ./Shutdown.png $(KXPLOIT_PRIMARY)
 	cp -vf readme.txt whatsnew.txt $(RELEASE_DIR)
-	
+
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

@@ -30,7 +30,7 @@ int CPSPRadio::Main(int argc, char **argv)
 	Log(LOG_VERYLOW, "Main(): this=%p", this);
 	Log(LOG_INFO, "PSPRadio() Main, Calling ProcessEvents()");
 	ProcessEvents();
-	
+
 	return 0;
 }
 
@@ -41,7 +41,7 @@ int CPSPRadio::Setup(int argc, char **argv)
 	char strAppTitle[140];
 
 	sprintf(strAppTitle, "%s", GetProgramVersion());
-	
+
 	m_strCWD = (char*)malloc(MAXPATHLEN);
 	if (!m_strCWD)
 		return -1;
@@ -66,7 +66,7 @@ int CPSPRadio::Setup(int argc, char **argv)
 			Log(LOG_LOWLEVEL, "Main(Arg %d)='%s'", i, argv[i]);
 		}
 	}
-	
+
 	for (int i = 0 ; i < NUMBER_OF_PLUGIN_TYPES; i++)
 	{
 		m_ModuleLoader[i] = NULL;
@@ -80,7 +80,7 @@ int CPSPRadio::Setup(int argc, char **argv)
 			m_ModuleLoader[i]->SetName(PLUGIN_OFF_STRING);
 		}
 	}
-#endif	
+#endif
 
 	Setup_Sound();
 
@@ -136,7 +136,7 @@ int CPSPRadio::Setup_Logging(char *strCurrentDir)
 		int iLoglevel = m_Config->GetInteger("DEBUGGING:LOGLEVEL", 100);
 
 		InstantiateLogging();
-		
+
 		pLogging->SetPSPApp(this);
 
 		strFilename = (char*)malloc(strlen(strCurrentDir) + 1 + strlen(m_Config->GetStr("DEBUGGING:LOGFILE")) + 10);
@@ -275,7 +275,7 @@ void CPSPRadio::OnExit()
 	}
 
 	Log(LOG_VERYLOW, "Exiting. The end.");
-#endif 
+#endif
 }
 
 int CPSPRadio::ProcessEvents()
@@ -286,7 +286,7 @@ int CPSPRadio::ProcessEvents()
 	IScreen *StreamOwnerScreen = NULL;
 
 	Log(LOG_VERYLOW, "ProcessEvents(): Starts.");
-	
+
 	Log(LOG_VERYLOW, "ProcessEvents(): StartPolling()");
 	StartPolling();
 
@@ -467,7 +467,7 @@ int CPSPRadio::ProcessEvents()
 				if (m_UI)
 					m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
 				break;
-			
+
 			case MID_STREAM_TIME_UPDATED:
 				if (m_UI)
 					m_UI->OnStreamTimeUpdate(m_Sound->GetCurrentStream()->GetMetaData());
@@ -486,7 +486,7 @@ int CPSPRadio::ProcessEvents()
 				Log(LOG_VERYLOW, "On button released received. data = 0x%x", ((int)event.pData));
 				m_ScreenHandler->CommonInputHandler((int)(event.pData), MID_ONBUTTON_RELEASED);
 				break;
-				
+
 			case MID_ONBUTTON_REPEAT:
 				Log(LOG_VERYLOW, "On button repeat received. data = 0x%x", ((int)event.pData));
 				m_ScreenHandler->CommonInputHandler((int)(event.pData), MID_ONBUTTON_REPEAT);
@@ -538,7 +538,7 @@ int CPSPRadio::ProcessEvents()
 				#endif
 				PSPRadioExport_GiveUpExclusiveAccess();
 				break;
-				
+
 			default:
 				Log(LOG_VERYLOW, "ProcessEvents: Unhandled event: MID=0x%x SID=0x%x",
 					event.EventId, event.SenderId);
@@ -558,8 +558,8 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 {
 	/* check for power switch and suspending as one is manual and the other automatic */
 	Log(LOG_INFO, "OnPowerEvent() flags: 0x%08X", pwrflags);
-	
-	if (pwrflags & PSP_POWER_CB_POWER_SWITCH || pwrflags & PSP_POWER_CB_SUSPENDING) 
+
+	if (pwrflags & PSP_POWER_CB_POWER_SWITCH || pwrflags & PSP_POWER_CB_SUSPENDING)
 	{
 		Log(LOG_INFO, "OnPowerEvent: Suspending");
 	}
@@ -605,9 +605,9 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 	{
 		Log(LOG_INFO, "OnPowerEvent: Entering Standby mode");
 	}
-	
+
 	Log(LOG_VERYLOW, "OnPowerEvent() End.");
-	
+
 	return 0;
 }
 
@@ -747,53 +747,54 @@ void CPSPRadio::ScreenshotStore(char *filename)
 #ifdef DYNAMIC_BUILD
 	#include <FSS_Exports.h>
 	#include <APP_Exports.h>
-	
+	#include <GAME_Exports.h>
+
 	int CPSPRadio::LoadPlugin(char *strPlugin, plugin_type type)
 	{
 		char strModulePath[MAXPATHLEN+1];
 		char cwd[MAXPATHLEN+1];
-		
+
 		if (type < NUMBER_OF_PLUGIN_TYPES)
 		{
-		
+
 			if (m_ModuleLoader[type]->IsLoaded() == true)
 			{
 				Log(LOG_INFO, "Unloading currently running plugin");
 				m_ModuleLoader[type]->Unload();
 				m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
 			}
-		
+
 			/** Asked to just unload */
 			if (strcmp(strPlugin, PLUGIN_OFF_STRING) == 0)
 			{
 				return 0;
 			}
-		
+
 			sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);
-		
+
 			int id = m_ModuleLoader[type]->Load(strModulePath);
-			
+
 			if (m_ModuleLoader[type]->IsLoaded() == true)
 			{
 				m_ModuleLoader[type]->SetName(strPlugin);
-				
+
 				SceKernelModuleInfo modinfo;
 				memset(&modinfo, 0, sizeof(modinfo));
 				modinfo.size = sizeof(modinfo);
 				sceKernelQueryModuleInfo(id, &modinfo);
 				Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
 					strPlugin, modinfo.text_addr);
-			
+
 				int iRet = m_ModuleLoader[type]->Start();
-				
+
 				Log(LOG_INFO, "Module start returned: 0x%x", iRet);
-	
+
 	/*			if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
 				{
 					Log(LOG_ERROR, "WARNING: Plugin '%' was compiled against PSPRadio '%s' (this is '%s')",
 						getPSPRadioVersionForPlugin(), PSPRADIO_VERSION);
 				}*/
-				
+
 				switch(type)
 				{
 					case PLUGIN_UI:
@@ -804,12 +805,15 @@ void CPSPRadio::ScreenshotStore(char *filename)
 					case PLUGIN_APP:
 						ModuleStartAPP();
 						break;
+					case PLUGIN_GAME:
+						ModuleStartGAME();
+						break;
 					case NUMBER_OF_PLUGIN_TYPES: /**Not a real case */
 						break;
 				}
-		
+
 				return 0;
-				
+
 			}
 			else
 			{
@@ -828,7 +832,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 			return -1;
 		}
 	}
-	
+
 	char *CPSPRadio::GetActivePluginName(plugin_type type)
 	{
 		return m_ModuleLoader[type]->GetName();
