@@ -378,7 +378,7 @@ void CMetaDataContainer::ProcessGenre(MetaData *metadata)
 	strGenre[0] = toupper(strGenre[0]);
 	
 	/** All go here */
-	AddToGenre(metadata, "**All Top 600**");
+	AddToGenre(metadata, "** All **");
 
 	if (strstr(strGenre, "70s"))
 		AddToGenre(metadata, "70s");
