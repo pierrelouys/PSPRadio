@@ -688,8 +688,8 @@ bool	exit_game = false;
 
 				sceCtrlReadBufferPositive(&pad_data, 1);
 				entered_char = danzeff_readInput(pad_data);
-				danzeff_render();
 				PSPTris_render_text(highscore.name, 128 + 5 * 16 + 8, 242);
+				danzeff_render();
 
 				/* Get input from OSK and convert to uppercase */
 				if (isalnum(entered_char))
