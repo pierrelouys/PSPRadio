@@ -65,9 +65,7 @@ extra_plugins:
 
 app_links2:
 	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) prx
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) install_prx
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) prepare prx install_prx
 
 game_psptris:
 	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
@@ -80,6 +78,11 @@ clean_plugin_common_objects:
 clean:
 	make clean_objects
 	rm -Rfv release
+	
+clobber:
+	make clean
+	find . -name "*.log" -exec rm {} \;
+	find . -name "*.prx" -exec rm {} \;
 
 clean_objects:
 	cd $(SHAREDLIB_DIR) && make clean
