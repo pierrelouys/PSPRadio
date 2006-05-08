@@ -6,19 +6,23 @@
  * by: Raf 2006.
  *
  */
-#include <pspctrl.h>
-#include <pspkernel.h>
-#include <pspdebug.h>
-#include <pspdisplay.h>
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#include <pspctrl.h>
+#include <pspkernel.h>
+#include <pspdebug.h>
+#include <pspdisplay.h>
+
+#include <pthread.h>
 #include <Tools.h>
 #include <PSPRadio_Exports.h>
 #include <APP_Exports.h>
 #include <Common.h>
+
 #include <links.h>
 
 #ifdef STAND_ALONE_APP
@@ -39,19 +43,22 @@ int connect_to_apctl(int config);
 /** Plugin code */
 int ModuleStartAPP()
 {
-	int thid = 0;
-	sleep(1);
+	pthread_t pthid;
+	pthread_attr_t pthattr;
+	struct sched_param shdparam;
 	
+	sleep(1);
+
 	pspDebugScreenInit();
 	
 	SceSize am = sceKernelTotalFreeMemSize();
 	ModuleLog(LOG_INFO, "ModuleStartApp(): Available memory: %dbytes (%dKB or %dMB)", am, am/1024, am/1024/1024);
 
-	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
-	if(thid >= 0)
-	{
-		sceKernelStartThread(thid, 0, 0);
-	}
+	pthread_attr_init(&pthattr);
+	shdparam.sched_policy = SCHED_OTHER;
+	shdparam.sched_priority = 80;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
 
 	return 0;
 }
@@ -261,7 +268,6 @@ void app_init_progress(char *str)
 }
 
 
-
 /** Stand alone code: */
 #ifdef STAND_ALONE_APP
 /** -- Exception handler */
@@ -297,41 +303,41 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 int StartNetworkThread(SceSize args, void *argp);
 int main(int argc, char **argv)
 {
-	int thid;
+	pthread_t pthid;
+	pthread_attr_t pthattr;
+	struct sched_param shdparam;
+	
+	pspDebugInstallErrorHandler(MyExceptionHandler);
+	
+	pthread_attr_init(&pthattr);
+	shdparam.sched_policy = SCHED_OTHER;
+	
+	shdparam.sched_priority = 0x30;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, CallbackThread, NULL);
+	
 	pspDebugScreenInit();
 	pspDebugScreenPrintf("Links2 For PSP\n\n");
-	pspDebugScreenPrintf("-Loading networking modules...\n");
+	pspDebugScreenPrintf("- Loading networking modules...\n");
 	
 	sceDisplayWaitVblankStart();
-		
-	pspDebugInstallErrorHandler(MyExceptionHandler);
-		
+	
 	pspSdkInstallNoDeviceCheckPatch();
 	pspSdkInstallNoPlainModuleCheckPatch();
-		
+	
 	if(pspSdkLoadInetModules() < 0)
 	{
-		printf("** Error, could not load inet modules\n");
-		sceKernelSleepThreadCB();
+		pspDebugScreenPrintf("** Error, could not load inet modules\n");
+		sceDisplayWaitVblankStart();
 	}
 	
-	thid = sceKernelCreateThread("update_thread", CallbackThread, 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
-	if(thid >= 0)
-	{
-		sceKernelStartThread(thid, 0, 0);
-	}
+	shdparam.sched_priority = 0x30;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
 	
-	thid = sceKernelCreateThread("network_start_thread", StartNetworkThread, 0x11, 0xFA0, PSP_THREAD_ATTR_USER, 0);
-	if(thid >= 0)
-	{
-		sceKernelStartThread(thid, 0, 0);
-	}
-	
-	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 80, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
-	if(thid >= 0)
-	{
-		sceKernelStartThread(thid, 0, 0);
-	}
+	shdparam.sched_priority = 0x40;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
 	
 	sceKernelSleepThreadCB();
 	return 0;
