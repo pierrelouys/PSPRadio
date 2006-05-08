@@ -38,6 +38,7 @@ prx: $(SHAREDLIB_DIR)/lib/libpthread.a
 	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make -f Makefile.psp $(EXPORTED_OBJS)
 	touch $(COMMON_OBJS) && rm $(COMMON_OBJS) && make -f Makefile.psp $(COMMON_OBJS)
 	touch ../../../APP_Exports.o && rm ../../../APP_Exports.o && make -f Makefile.psp  ../../../APP_Exports.o
+	./update_svn_version.sh ..
 	make BUILD_PRX=1 TARGET="APP_Links2" the_prx
 
 PSP_EBOOT_ICON = "$(BASE_DIR)/Resources/Links2_Icons_Sem/icone03.png"
