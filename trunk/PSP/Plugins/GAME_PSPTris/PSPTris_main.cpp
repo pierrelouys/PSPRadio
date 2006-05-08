@@ -50,14 +50,15 @@ PSP_MAIN_THREAD_PRIORITY(80);
 static unsigned int __attribute__((aligned(16))) gu_list[8192];
 
 /* Local variables */
-bool home_exit = false;
+bool game_exit = false;
+
 char *cwd = NULL;
 
 #if !defined(DYNAMIC_BUILD)
 /* Exit callback */
 int exit_callback(int arg1, int arg2, void *common)
 {
-	home_exit = true;
+	game_exit = true;
 	return 0;
 }
 
@@ -138,9 +139,7 @@ int main(int argc, char *argv[])
 #endif /* defined(DYNAMIC_BUILD) */
 
 #if !defined(DYNAMIC_BUILD)
-    //init screen and callbacks
-    pspDebugScreenInit();
-    pspDebugScreenClear();
+    //init callbacks
     SetupCallbacks();
 #endif /* !defined(DYNAMIC_BUILD) */
 
@@ -158,7 +157,7 @@ int main(int argc, char *argv[])
 	PSPTris_intro_init(cwd);
 
 	/* Run intro sequence until a key is pressed */
-	while (!done && !home_exit)
+	while (!done && !game_exit)
 	{
 		PSPTris_intro();
 		if(keyHandler.KeyHandler(keyEvent))
@@ -173,7 +172,7 @@ int main(int argc, char *argv[])
 
 	PSPTris_menu_init(cwd);
 
-	while (!home_exit)
+	while (!game_exit)
 		{
 		u32	key_state = 0;
 
@@ -187,13 +186,16 @@ int main(int argc, char *argv[])
 				key_state = keyEvent.key_state;
 				}
 			}
+#if defined(DYNAMIC_BUILD)
+		game_exit = PSPTris_menu(key_state, &keyDelay);
+#else
 		PSPTris_menu(key_state, &keyDelay);
+#endif /*defined(DYNAMIC_BUILD)*/
 		/* Set repeat delay reported by the menu / game */
 		keyHandler.KeyHandler_Repeat(keyDelay);
 		};
 
 	PSPTris_menu_destroy();
-
 	PSPTris_audio_shutdown();
 
 	free(cwd);

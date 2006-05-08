@@ -42,7 +42,7 @@
 static unsigned int __attribute__((aligned(16))) gu_list[262144];
 
 /* Texture handler */
-static jsaTextureCache				*tcache;
+static jsaTextureCache				*tcache = NULL;
 
 static char	*mCwd;
 
@@ -68,6 +68,9 @@ enum MENU_ACTIONS {
 	ACTION_INSTRUCTIONS,
 	ACTION_CREDITS,
 	ACTION_HIGHSCORE,
+#if defined(DYNAMIC_BUILD)
+	ACTION_EXIT,
+#endif /*defined(DYNAMIC_BUILD)*/
 	};
 
 static int	active_menu = MENU_MAIN;
@@ -75,14 +78,23 @@ static bool render_credits = false;
 static bool game_started = false;
 static bool show_version = false;
 
+#if defined(DYNAMIC_BUILD)
+static bool exit_plugin = false;
+#endif /* defined(DYNAMIC_BUILD) */
+
 #define MENU_DELAY	250
 #define GAME_DELAY	150
 
 static u32	repeat_delay = MENU_DELAY;
 
 static unsigned int menu_main_selection = 0;
+#if !defined(DYNAMIC_BUILD)
 static char *menu_main_table[] = {"START", "GAME TYPE", "LEVEL", "INSTRUCTIONS", "CREDITS", "HIGHSCORE"};
 static u8 opacity_main_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+#else
+static char *menu_main_table[] = {"START", "GAME TYPE", "LEVEL", "INSTRUCTIONS", "CREDITS", "HIGHSCORE", "EXIT"};
+static u8 opacity_main_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+#endif /*defined(DYNAMIC_BUILD)*/
 
 #define	MENU_MAIN_ITEMS		(sizeof(menu_main_table) / sizeof(char *))
 
@@ -152,7 +164,7 @@ static textline instructions[] = {	{ 12, " "},
 #define	SCREEN_LINES			15
 
 /* pointer for background image and for the framebuffer */
-static u8		*backimage;
+static u8		*backimage = NULL;
 static void		*framebuffer;
 
 
@@ -432,9 +444,9 @@ void PSPTris_menu_init(char *cwd)
 {
 	char path[1024];
 
+#if !defined(DYNAMIC_BUILD)
 	/* Start playing menu module */
 	sprintf(path, "%s/Music/ingame.mod", cwd);
-#if !defined(DYNAMIC_BUILD)
 	PSPTris_audio_play_module(path);
 #endif /* !defined(DYNAMIC_BUILD) */
 
@@ -459,6 +471,10 @@ void PSPTris_menu_destroy(void)
 	if (backimage)
 		{
 		free(backimage);
+		}
+	if (tcache)
+		{
+		delete tcache;
 		}
 }
 
@@ -497,6 +513,12 @@ void PSPTris_handle_menu_main(u32 key_state)
 				PSPTris_update_highscore_table();
 				active_menu = MENU_HIGHSCORE;
 				}
+#if defined(DYNAMIC_BUILD)
+			else if (menu_main_selection == ACTION_EXIT)
+				{
+				exit_plugin = true;
+				}
+#endif /*defined(DYNAMIC_BUILD)*/
 			break;
 		case	PSP_CTRL_UP:
 			if (menu_main_selection > 0)
@@ -666,7 +688,11 @@ void PSPTris_handle_key(u32 key_state)
 		}
 }
 
+#if defined(DYNAMIC_BUILD)
+bool PSPTris_menu(u32 key_state, u32 *key_delay)
+#else
 void PSPTris_menu(u32 key_state, u32 *key_delay)
+#endif /*DYNAMIC_BUILD*/
 {
 	sceGuStart(GU_DIRECT,::gu_list);
 
@@ -718,4 +744,8 @@ void PSPTris_menu(u32 key_state, u32 *key_delay)
 	sceDisplayWaitVblankStart();
 
 	*key_delay = repeat_delay;
+
+#if defined(DYNAMIC_BUILD)
+	return exit_plugin;
+#endif /*defined(DYNAMIC_BUILD)*/
 }

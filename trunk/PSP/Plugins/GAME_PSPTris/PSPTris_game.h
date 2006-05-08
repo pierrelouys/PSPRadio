@@ -62,6 +62,7 @@ typedef struct _moving_brick
 
 /* Prototypes */
 void PSPTris_game_init(char *cwd);
+void PSPTris_game_stop();
 bool PSPTris_game_render(u32 key_state, jsaTextureCache *tcache);
 void PSPTris_game_start_level(int level);
 void PSPTris_game_type(int gametype);

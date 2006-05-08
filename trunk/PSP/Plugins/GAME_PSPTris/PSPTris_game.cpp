@@ -315,6 +315,10 @@ void PSPTris_game_type(int type)
 	gametype = type;
 }
 
+void PSPTris_game_stop()
+{
+}
+
 bool PSPTris_game_render(u32 key_state, jsaTextureCache *mytcache)
 {
 bool	exit_game = false;
