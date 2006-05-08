@@ -21,10 +21,27 @@
 	
 	typedef void (*thread_function)(void *);
 	
-	
+	#define PTHREAD_SCOPE_SYSTEM  10 /* Kernel */
+	#define PTHREAD_SCOPE_PROCESS 20 /* User */
+	#define SCHED_OTHER			  0
+	#define PTHREAD_STACK_MIN	  8*1024    /* 8KB   */
+	#define PTHREAD_STACK_DEFAULT 128*1024  /* 128KB */
+
 	/** Revise: */
 	typedef int pthread_t;
-	typedef int pthread_attr_t;
+
+	typedef struct 
+	{
+		int scope;
+		int priority;
+		int stack_size;
+	} pthread_attr_t;
+
+	struct sched_param
+	{
+		int sched_priority;
+		int sched_policy;
+	};
 
 	/* Create a thread */
 	int pthread_create(pthread_t *thread_id, const pthread_attr_t *attributes, thread_function tf, void *arguments);
@@ -32,6 +49,12 @@
 	/* pthreads terminate when they return, or if they call: */
 	int pthread_exit(void *status);
 	
+
+	int pthread_attr_init(pthread_attr_t *attr);
+	int pthread_attr_setstacksize(pthread_attr_t *attr, size_t size);
+	int pthread_attr_setscope(pthread_attr_t *attr, int scope);
+	int pthread_attr_setschedparam(pthread_attr_t *attr, const struct sched_param *param);
+
 	///int pthread_join(pthread_t thread, void **status_ptr);
 	
 	/* get thread id from within thread */
