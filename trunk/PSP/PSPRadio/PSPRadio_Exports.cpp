@@ -84,15 +84,6 @@ void PSPRadioExport_RequestExclusiveAccess(plugin_type type)
 void PSPRadioExport_GiveUpExclusiveAccess()
 {
 	gPSPRadio->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
-#if 0 /** We send a msg and do this in the msg handler, as it will be executed by the correct thread then. */
-	if (gPSPRadio->GetUI())
-	{
-		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
-		/** Re-draw the current screen */
-		gPSPRadio->GetScreenHandler()->GetCurrentScreen()->Activate(gPSPRadio->GetScreenHandler()->GetCurrentUIPtr());
-	}
-	gPSPRadio->StartKeyLatch();
-#endif
 }
 
 char *PSPRadioExport_GetVersion()
