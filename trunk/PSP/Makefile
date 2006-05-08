@@ -87,7 +87,7 @@ clean_objects:
 clean_extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make clean
 	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
-	cd $(PLUGINS_DIR)/APP_Retawq    && make clean
+	cd $(PLUGINS_DIR)/APP_Retawq    && make clean2
 	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make clean
 
 skin_packs:

@@ -41,6 +41,9 @@ prx:
 stand_alone: 
 	make EXTRA_FLAGS="-DSTAND_ALONE_APP" EXPORTED_OBJS="" COMMON_OBJS="" the_pbp
 
+clean2:
+	rm -f *.o *.elf *.prx *.pbp *.PBP
+
 install:
 	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
