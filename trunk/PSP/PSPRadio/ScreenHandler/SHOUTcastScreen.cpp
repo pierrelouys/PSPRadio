@@ -16,21 +16,24 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#include <PSPApp.h>
-#include <PSPSound.h>
 #include <stdio.h>
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <malloc.h>
+
+#include <PSPApp.h>
+#include <PSPSound.h>
+#include <pspwlan.h> 
+#include <psphprm.h>
+
 #include <iniparser.h>
 #include <Tools.h>
 #include <Logging.h>
-#include <pspwlan.h> 
-#include <psphprm.h>
 #include <UI_Interface.h>
 #include "SHOUTcastScreen.h"
+#include <Main.h>
 
 #define SHOUTCAST_DB_REQUEST_STRING				"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio&no_compress=1"
 #define SHOUTCAST_DB_COMPRESSED_REQUEST_STRING 	"http://www.shoutcast.com/sbin/xmllister.phtml?service=pspradio"
@@ -77,49 +80,77 @@ int inf(FILE *source, FILE *dest);
 bool CScreenHandler::DownloadSHOUTcastDB()
 {
 	bool success = false;
+	bool isCompressedDownload = true;
 	CPSPStream *WebConnection = new CPSPStream();
+	char *strRequestString = SHOUTCAST_DB_COMPRESSED_REQUEST_STRING;
 
 	/** First, we back-up the db in case the download fails.. */
 	int iRet = rename(SHOUTCAST_DB_FILENAME, SHOUTCAST_DB_FILENAME_BACKUP);
 
-
-	WebConnection->SetURI(SHOUTCAST_DB_COMPRESSED_REQUEST_STRING);
+	strRequestString = strdup(gPSPRadio->GetConfig()->GetString("SHOUTCAST:DB_REQUEST_STRING", 
+							  SHOUTCAST_DB_COMPRESSED_REQUEST_STRING));
+	
+	if (strstr(strRequestString, "no_compress=1"))
+	{
+		isCompressedDownload = false;
+	}
+	else
+	{
+		isCompressedDownload = true;
+	}
+	
+	WebConnection->SetURI(strRequestString);
 	WebConnection->Open();
 	if (true == WebConnection->IsOpen())
 	{
-		Log(LOG_INFO, "DownloadSHOUTcastDB(): Connected - Downloading '%s'", SHOUTCAST_DB_COMPRESSED_FILENAME);
+		Log(LOG_INFO, "DownloadSHOUTcastDB(): Connected - Downloading '%s'", 
+			isCompressedDownload?SHOUTCAST_DB_COMPRESSED_FILENAME:SHOUTCAST_DB_FILENAME);
 		bool bRet;
 		size_t bytes;
-		bRet = WebConnection->DownloadToFile(SHOUTCAST_DB_COMPRESSED_FILENAME, bytes);
+		bRet = WebConnection->DownloadToFile((char*)(isCompressedDownload?SHOUTCAST_DB_COMPRESSED_FILENAME:SHOUTCAST_DB_FILENAME),
+											 bytes);
 		
 		if (true == bRet)
 		{
 			WebConnection->Close();
 			delete WebConnection, WebConnection = NULL;
 			Log(LOG_INFO, "DownloadSHOUTcastDB(): DB Retrieved. (%dbytes)", bytes);
-			m_UI->DisplayMessage("Uncompressing . . .");
-			bRet = UnCompress(SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
-			if (true == bRet)
+			if (isCompressedDownload == true)
 			{
-				m_UI->DisplayMessage("SHOUTcast DataBase Retrieved");
-				Log(LOG_INFO, "SHOUTcast.com DB retrieved.");
-				success = true;
+				m_UI->DisplayMessage("Uncompressing . . .");
+				bRet = UnCompress(SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
+				if (true == bRet)
+				{
+					m_UI->DisplayMessage("SHOUTcast DataBase Retrieved");
+					Log(LOG_INFO, "SHOUTcast.com DB retrieved.");
+					success = true;
+				}
+				else
+				{
+					Log(LOG_ERROR, "Error uncompressing '%s' to '%s'",SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
+					m_UI->DisplayMessage("Error Uncompressing . . .");
+				}
 			}
 			else
 			{
-				Log(LOG_ERROR, "Error uncompressing '%s' to '%s'",SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
-				m_UI->DisplayMessage("Error Uncompressing . . .");
+				if (bytes > 0)
+				{
+					success = true;
+				}
 			}
 		}
 	}
 	else
 	{
-		Log(LOG_ERROR, "Error connecting to '%s'", SHOUTCAST_DB_COMPRESSED_REQUEST_STRING);
+		Log(LOG_ERROR, "Error connecting to '%s'", strRequestString);
 		m_UI->DisplayErrorMessage("Couldn't connect to SHOUTcast.com ...");
 	}
 	
 	/** The compressed file is not needed anymore */
-	remove (SHOUTCAST_DB_COMPRESSED_FILENAME);
+	if (isCompressedDownload)
+	{
+		remove (SHOUTCAST_DB_COMPRESSED_FILENAME);
+	}
 
 	if (false == success)
 	{
