@@ -1,0 +1,47 @@
+BASE_DIR = ../..
+include $(BASE_DIR)/include.mak
+
+TARGET = GAME_PSPTris
+
+EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o
+COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
+OBJS = plugin_main.o PSPTris_main.o PSPTris_intro.o PSPTris_audio.o PSPTris_menu.o PSPTris_game.o PSPTris_game_classic.o PSPTris_game_color.o PSPTris_credits.o PSPTris_highscore.o jsaParticle.o jsaTextureCache.o valloc.o PSPKeyHandler.o \
+		$(COMMON_OBJS) $(EXPORTED_OBJS)
+
+BUILD_PRX=1
+USE_PSPSDK_LIBC = 0
+# Define the name of our custom exports (minus the .exp extension)
+PRX_EXPORTS=$(PLUGINS_DIR)/GAME_Exports.exp
+
+INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DIR)/ScreenHandler \
+		   -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+		   -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
+		   -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff
+
+MY_CFLAGS = -DDANZEFF_SCEGU
+CFLAGS = $(MY_CFLAGS) $(EXTRA_FLAGS) $(GLOBAL_CFLAGS) -g -Wall $(INCLUDES)
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+
+LIBDIR =
+LDFLAGS =
+
+DANZEFF_LIBS = -ldanzeff -lSDL_image -lSDL -lpng -lz -lm  -lpspgu -lpspaudio -ljpeg -lpsphprm
+LIBS = $(DANZEFF_LIBS) -lsupc++ -lstdc++ -lpspgum -lpspgu -lpsprtc -lpsppower -lpng -lz -lm -lmikmod -lpspaudio
+
+all: $(TARGET).prx
+
+install:
+	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Music
+	cp -vf audio/*.mod $(KXPLOIT_PRIMARY)/$(TARGET)/Music
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Samples
+	cp -vf audio/*.wav $(KXPLOIT_PRIMARY)/$(TARGET)/Samples
+	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Textures
+	cp -vf graphics/*.png $(KXPLOIT_PRIMARY)/$(TARGET)/Textures
+	cp -vf readme.txt $(KXPLOIT_PRIMARY)/$(TARGET)/.
+	cp -vf whatsnew.txt $(KXPLOIT_PRIMARY)/$(TARGET)/.
+
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak

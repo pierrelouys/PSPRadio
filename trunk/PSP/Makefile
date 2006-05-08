@@ -69,6 +69,11 @@ app_links2:
 	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) install_prx
 
+game_psptris:
+	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+
 clean_plugin_common_objects:
 	rm -fv $(PLUGINS_DIR)/*.o
 
@@ -89,6 +94,7 @@ clean_extra_plugins:
 	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
 	cd $(PLUGINS_DIR)/APP_Retawq    && make clean2
 	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make clean
+	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin clean
 
 skin_packs:
 	make KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) albadross_skin_pack
