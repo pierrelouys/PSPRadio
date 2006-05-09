@@ -2443,6 +2443,11 @@ char msg[];
 #endif
 	{
 	(void) fprintf( stderr, "%s\n", msg );
+#ifdef PSP
+		pspDebugScreenPrintf("javascr.c: ");
+		wait_for_triangle(msg);
+#endif
+
 	exit( YY_EXIT_FAILURE );
 	}
 
