@@ -3,10 +3,12 @@ What's new for PSPTris
 Version 0.7 (xxth of xxx 2006)
 --------------------------------
 Fixes:
-	- xxx
+	- Bugfix in highscore screen where the name wasn't shown.
 
 Features:
 	- Implemented support to use PSPTris as a plugin to PSPRadio.
+	- Exit option has been added to the menu.
+	- Exit to menu from the pause screen.
 
 
 Version 0.6 (07th of May 2006)

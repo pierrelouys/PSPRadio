@@ -419,6 +419,13 @@ static void PSPTris_game_update_timer()
 		}
 }
 
+void PSPTris_game_stop_color()
+{
+	PSPTris_audio_free_sample(new_level_sample);
+	PSPTris_audio_free_sample(remove_lines_sample);
+	danzeff_free();
+}
+
 bool PSPTris_game_render_color(u32 key_state, jsaTextureCache *mytcache)
 {
 bool	exit_game = false;
@@ -607,7 +614,7 @@ bool	exit_game = false;
 
 	if (exit_game)
 		{
-		PSPTris_audio_free_sample(remove_lines_sample);
+		PSPTris_game_stop_color();
 		}
 
 	return exit_game;

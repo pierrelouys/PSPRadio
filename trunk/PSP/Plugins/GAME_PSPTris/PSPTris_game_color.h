@@ -26,5 +26,6 @@
 void PSPTris_game_init_color(char *cwd);
 bool PSPTris_game_render_color(u32 key_state, jsaTextureCache *tcache);
 void PSPTris_game_start_level_color(int level);
+void PSPTris_game_stop_color();
 
 #endif /* _PSPTRIS_GAME_COLOR_H_ */

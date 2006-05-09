@@ -317,6 +317,14 @@ void PSPTris_game_type(int type)
 
 void PSPTris_game_stop()
 {
+	if (gametype == GAMETYPE_CLASSIC)
+		{
+		PSPTris_game_stop_classic();
+		}
+	else
+		{
+		PSPTris_game_stop_color();
+		}
 }
 
 bool PSPTris_game_render(u32 key_state, jsaTextureCache *mytcache)
@@ -352,8 +360,16 @@ static	bool game_pause = false;
 			game_pause = false;
 			MikMod_EnableOutput();
 			}
+		/* Check for exit to menu */
+		if (key_state & PSP_CTRL_CIRCLE)
+			{
+			game_pause = false;
+			exit_game = true;
+			PSPTris_game_stop();
+			}
 		PSPTris_render_text("PAUSE",	128 + 4 * 16 + 1 * 8,  82);
 		PSPTris_render_text("X TO CONTINUE",	128 + 0 * 16 + 1 * 8,  142);
+		PSPTris_render_text("O TO EXIT",	128 + 2 * 16 + 1 * 8,  182);
 		}
 	return exit_game;
 }

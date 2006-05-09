@@ -37,5 +37,6 @@ typedef struct
 void PSPTris_game_init_classic(char *cwd);
 bool PSPTris_game_render_classic(u32 key_state, jsaTextureCache *tcache);
 void PSPTris_game_start_level_classic(int level);
+void PSPTris_game_stop_classic();
 
 #endif /* _PSPTRIS_GAME_CLASSIC_H_ */
