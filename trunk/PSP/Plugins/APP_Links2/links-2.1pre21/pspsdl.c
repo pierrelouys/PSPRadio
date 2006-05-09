@@ -306,7 +306,7 @@ static void sdl_catch_event(void *data)
 				{
 					if (oldButtonMask & PSP_CTRL_LTRIGGER)
 					{
-						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_PAGE_DOWN, fl);
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_DEL, fl);
 					}
 					else
 					{
@@ -317,7 +317,7 @@ static void sdl_catch_event(void *data)
 				{
 					if (oldButtonMask & PSP_CTRL_LTRIGGER)
 					{
-						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_PAGE_UP, fl);
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_INS, fl);
 					}
 					else
 					{
@@ -326,11 +326,25 @@ static void sdl_catch_event(void *data)
 				}
 				else if (oldButtonMask & PSP_CTRL_LEFT)
 				{
-					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_LEFT, fl);
+					if (oldButtonMask & PSP_CTRL_LTRIGGER)
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), '[', fl);
+					}
+					else
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_LEFT, fl);
+					}
 				}
 				else if (oldButtonMask & PSP_CTRL_RIGHT)
 				{
-					sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_RIGHT, fl);
+					if (oldButtonMask & PSP_CTRL_LTRIGGER)
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), ']', fl);
+					}
+					else
+					{
+						sdl_GD(dev)->keyboard_handler(sdl_GD(dev), KBD_RIGHT, fl);
+					}
 				}
 				else if (oldButtonMask & PSP_CTRL_LTRIGGER)
 				{
