@@ -47,11 +47,7 @@ enum TEX_NAMES
 /* Prototypes */
 void PSPTris_menu_init(char *cwd);
 void PSPTris_menu_destroy(void);
-#if defined(DYNAMIC_BUILD)
 bool PSPTris_menu(u32 key_state, u32 *key_delay);
-#else
-void PSPTris_menu(u32 key_state, u32 *key_delay);
-#endif /*defined(DYNAMIC_BUILD)*/
 
 void PSPTris_get_texture_coords(char letter, int *u, int *v);
 

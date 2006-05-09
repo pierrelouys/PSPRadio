@@ -186,11 +186,8 @@ int main(int argc, char *argv[])
 				key_state = keyEvent.key_state;
 				}
 			}
-#if defined(DYNAMIC_BUILD)
 		game_exit = PSPTris_menu(key_state, &keyDelay);
-#else
-		PSPTris_menu(key_state, &keyDelay);
-#endif /*defined(DYNAMIC_BUILD)*/
+
 		/* Set repeat delay reported by the menu / game */
 		keyHandler.KeyHandler_Repeat(keyDelay);
 		};
