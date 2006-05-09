@@ -189,6 +189,9 @@
 
 /* The following if from times(3) man page.  It may need to be changed */
 #ifndef HZ
+# if defined(OPENSSL_SYS_PSP)
+#	define HZ CLOCKS_PER_SEC
+# else
 # if defined(_SC_CLK_TCK) \
      && (!defined(OPENSSL_SYS_VMS) || __CTRL_VER >= 70000000)
 #  define HZ ((double)sysconf(_SC_CLK_TCK))
@@ -203,9 +206,10 @@
 #   define HZ ((double)CLK_TCK)
 #  endif
 # endif
+# endif
 #endif
 
-#if !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_WINDOWS) && !defined(OPENSSL_SYS_MACINTOSH_CLASSIC) && !defined(OPENSSL_SYS_OS2)
+#if !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_WINDOWS) && !defined(OPENSSL_SYS_MACINTOSH_CLASSIC) && !defined(OPENSSL_SYS_OS2) && !defined(OPENSSL_SYS_PSP)
 # define HAVE_FORK 1
 #endif
 
@@ -238,6 +242,10 @@ static double results[ALGOR_NUM][SIZE_NUM];
 static int lengths[SIZE_NUM]={16,64,256,1024,8*1024};
 static double rsa_results[RSA_NUM][2];
 static double dsa_results[DSA_NUM][2];
+
+#ifdef OPENSSL_SYS_PSP
+#undef SIGALRM
+#endif
 
 #ifdef SIGALRM
 #if defined(__STDC__) || defined(sgi) || defined(_AIX)
@@ -342,6 +350,22 @@ static double Time_F(int s)
 			{
 			tick_end = tickGet();
 			ret = (double)(tick_end - tick_start) / (double)sysClkRateGet();
+			return((ret < 0.001)?0.001:ret);
+			}
+                }
+# elif OPENSSL_SYS_PSP
+                {
+		static unsigned long tick_start, tick_end;
+
+		if( s == START )
+			{
+			tick_start = clock();
+			return 0;
+			}
+		else
+			{
+			tick_end = clock();
+			ret = (double)(tick_end - tick_start) / (double)HZ;
 			return((ret < 0.001)?0.001:ret);
 			}
                 }

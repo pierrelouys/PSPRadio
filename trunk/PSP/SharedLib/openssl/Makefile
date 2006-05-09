@@ -12,9 +12,9 @@ SHLIB_VERSION_HISTORY=
 SHLIB_MAJOR=0
 SHLIB_MINOR=9.7
 SHLIB_EXT=
-PLATFORM=dist
-OPTIONS= no-krb5
-CONFIGURE_ARGS=dist
+PLATFORM=psp
+OPTIONS=--prefix=/usr/local/pspdev/psp threads zlib no-shared no-asm no-krb5
+CONFIGURE_ARGS=psp --prefix=/usr/local/pspdev/psp threads zlib no-shared no-asm
 SHLIB_TARGET=
 
 # HERE indicates where this Makefile lives.  This can be used to indicate
@@ -26,10 +26,10 @@ HERE=.
 # for, say, /usr/ and yet have everything installed to /tmp/somedir/usr/.
 # Normally it is left empty.
 INSTALL_PREFIX=
-INSTALLTOP=/usr/local/ssl
+INSTALLTOP=/usr/local/pspdev/psp
 
 # Do not edit this manually. Use Configure --openssldir=DIR do change this!
-OPENSSLDIR=/usr/local/ssl
+OPENSSLDIR=/usr/local/pspdev/psp/ssl
 
 # NO_IDEA - Define to build without the IDEA algorithm
 # NO_RC4  - Define to build without the RC4 algorithm
@@ -59,12 +59,12 @@ OPENSSLDIR=/usr/local/ssl
 # equal 4.
 # PKCS1_CHECK - pkcs1 tests.
 
-CC= cc
+CC= psp-gcc
 #CFLAG= -DL_ENDIAN -DTERMIO -O3 -fomit-frame-pointer -m486 -Wall -Wuninitialized -DSHA1_ASM -DMD5_ASM -DRMD160_ASM
-CFLAG= -DOPENSSL_NO_KRB5 -O
+CFLAG= -DZLIB -DOPENSSL_THREADS -DOPENSSL_NO_KRB5 -DOPENSSL_NO_ASM -DPSP -DNO_CHMOD -DL_ENDIAN -DNO_STRINGS_H -DNO_SYSLOG -DNO_SYS_UN_H -DOPENSSL_SYS_PSP -O2 -G0 -I/usr/local/pspdev/psp/sdk/include
 DEPFLAG= 
 PEX_LIBS= 
-EX_LIBS= 
+EX_LIBS= -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel -L/usr/local/pspdev/psp/lib -L/usr/local/pspdev/psp/sdk/lib -lz
 EXE_EXT= 
 ARFLAGS= 
 AR=ar $(ARFLAGS) r

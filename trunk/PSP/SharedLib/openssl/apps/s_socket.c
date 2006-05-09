@@ -479,6 +479,12 @@ err:
 	return(0);
 	}
 
+#ifdef OPENSSL_SYS_PSP
+int extract_port(char *str, short *port_ptr)
+{
+return -1;
+}
+#else
 int extract_port(char *str, short *port_ptr)
 	{
 	int i;
@@ -499,6 +505,7 @@ int extract_port(char *str, short *port_ptr)
 		}
 	return(1);
 	}
+#endif
 
 #define GHBN_NUM	4
 static struct ghbn_cache_st

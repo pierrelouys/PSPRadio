@@ -66,6 +66,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef OPENSSL_SYS_PSP
+#include <sys/fd_set.h>
+#endif
 
 #define USE_SOCKETS
 #include "apps.h"
@@ -369,6 +372,14 @@ bad:
  */
 #define START	0
 #define STOP	1
+
+#ifdef OPENSSL_SYS_PSP
+clock_t _times(struct tms *buf)
+{
+	buf->tms_utime = sceKernelLibcClock();
+	return sceKernelLibcClock();
+}
+#endif
 
 static double tm_Time_F(int s)
 	{

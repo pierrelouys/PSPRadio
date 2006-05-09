@@ -159,8 +159,11 @@ int BIO_get_host_ip(const char *str, unsigned char *ip)
 int BIO_get_port(const char *str, unsigned short *port_ptr)
 	{
 	int i;
+#ifdef OPENSSL_SYS_PSP
+	char *s = NULL;
+#else
 	struct servent *s;
-
+#endif
 	if (str == NULL)
 		{
 		BIOerr(BIO_F_BIO_GET_PORT,BIO_R_NO_PORT_DEFINED);
@@ -171,6 +174,9 @@ int BIO_get_port(const char *str, unsigned short *port_ptr)
 		*port_ptr=(unsigned short)i;
 	else
 		{
+#ifdef OPENSSL_SYS_PSP
+		s = NULL;
+#else
 		CRYPTO_w_lock(CRYPTO_LOCK_GETSERVBYNAME);
 		/* Note: under VMS with SOCKETSHR, it seems like the first
 		 * parameter is 'char *', instead of 'const char *'
@@ -183,6 +189,7 @@ int BIO_get_port(const char *str, unsigned short *port_ptr)
 		if(s != NULL)
 			*port_ptr=ntohs((unsigned short)s->s_port);
 		CRYPTO_w_unlock(CRYPTO_LOCK_GETSERVBYNAME);
+#endif
 		if(s == NULL)
 			{
 			if (strcmp(str,"http") == 0)
@@ -490,7 +497,7 @@ void BIO_sock_cleanup(void)
 #endif
 	}
 
-#if !defined(OPENSSL_SYS_VMS) || __VMS_VER >= 70000000
+#if !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_PSP) || __VMS_VER >= 70000000
 
 int BIO_socket_ioctl(int fd, long type, void *arg)
 	{

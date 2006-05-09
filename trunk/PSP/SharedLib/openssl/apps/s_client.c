@@ -117,6 +117,9 @@
 #ifdef OPENSSL_NO_STDIO
 #define APPS_WIN16
 #endif
+#ifdef OPENSSL_SYS_PSP
+#include <sys/fd_set.h>
+#endif
 
 /* With IPv6, it looks like Digital has mixed up the proper order of
    recursive header file inclusion, resulting in the compiler complaining

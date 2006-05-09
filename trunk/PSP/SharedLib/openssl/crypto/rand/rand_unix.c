@@ -115,13 +115,16 @@
 #include <openssl/rand.h>
 #include "rand_lcl.h"
 
-#if !(defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_OS2) || defined(OPENSSL_SYS_VXWORKS))
+#if !(defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_OS2) || defined(OPENSSL_SYS_VXWORKS)) || defined(OPENSSL_SYS_PSP)
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/times.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef OPENSSL_SYS_PSP
+#include <sys/fd_set.h>
+#endif
 #include <unistd.h>
 #include <time.h>
 
@@ -257,8 +260,10 @@ int RAND_poll(void)
 	/* put in some default random data, we need more than just this */
 	l=curr_pid;
 	RAND_add(&l,sizeof(l),0);
+#if !defined (OPENSSL_SYS_PSP)
 	l=getuid();
 	RAND_add(&l,sizeof(l),0);
+#endif
 
 	l=time(NULL);
 	RAND_add(&l,sizeof(l),0);

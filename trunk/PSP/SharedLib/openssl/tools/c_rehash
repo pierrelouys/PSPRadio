@@ -6,7 +6,7 @@
 
 my $openssl;
 
-my $dir = "/usr/local/ssl";
+my $dir = "/usr/local/pspdev/psp/ssl";
 
 if(defined $ENV{OPENSSL}) {
 	$openssl = $ENV{OPENSSL};

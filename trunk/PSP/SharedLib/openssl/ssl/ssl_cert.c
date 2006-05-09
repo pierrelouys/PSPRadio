@@ -746,6 +746,10 @@ err:
 #ifndef OPENSSL_SYS_VMS		/* XXXX This may be fixed in the future */
 #ifndef OPENSSL_SYS_MACINTOSH_CLASSIC /* XXXXX: Better scheme needed! */
 
+#if defined(OPENSSL_SYS_PSP)
+#include <sys/dirent.h>
+#endif
+
 int SSL_add_dir_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
 				       const char *dir)
 	{

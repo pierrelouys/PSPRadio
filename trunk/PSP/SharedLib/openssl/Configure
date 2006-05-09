@@ -122,6 +122,8 @@ my $alpha_asm="::::::::";
 
 #config-string	$cc : $cflags : $unistd : $thread_cflag : $sys_id : $lflags : $bn_ops : $bn_obj : $des_obj : $bf_obj : $md5_obj : $sha1_obj : $cast_obj : $rc4_obj : $rmd160_obj : $rc5_obj : $dso_scheme : $shared_target : $shared_cflag : $shared_ldflag : $shared_extension : $ranlib : $arflags
 
+my $pspdev=$ENV{'PSPDEV'};
+
 my %table=(
 # File 'TABLE' (created by 'make TABLE') contains the data from this list,
 # formatted for better readability.
@@ -587,6 +589,9 @@ my %table=(
 ##### Compaq Non-Stop Kernel (Tandem)
 "tandem-c89","c89:-Ww -D__TANDEM -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1 -D_TANDEM_SOURCE -DB_ENDIAN::(unknown):::THIRTY_TWO_BIT:::",
 
+##### PSP
+"psp", "psp-gcc:-DPSP -DNO_CHMOD -DL_ENDIAN -DNO_STRINGS_H -DNO_SYSLOG -DNO_SYS_UN_H -DOPENSSL_SYS_PSP -O2 -G0 -I$pspdev/psp/sdk/include::(unknown)::-lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel -L$pspdev/psp/lib -L$pspdev/psp/sdk/lib:LL:::",
+#-DOPENSSL_NO_SOCK 
 );
 
 my @WinTargets=qw(VC-NT VC-CE VC-WIN32 VC-WIN16 VC-W31-16 VC-W31-32 VC-MSDOS
@@ -975,6 +980,7 @@ $prefix=$openssldir if $prefix eq "";
 $default_ranlib= &which("ranlib") or $default_ranlib="true";
 $perl=$ENV{'PERL'} or $perl=&which("perl5") or $perl=&which("perl")
   or $perl="perl";
+
 
 chop $openssldir if $openssldir =~ /\/$/;
 chop $prefix if $prefix =~ /\/$/;

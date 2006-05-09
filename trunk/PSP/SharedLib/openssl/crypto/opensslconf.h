@@ -9,6 +9,12 @@
 #endif
 
 #endif /* OPENSSL_DOING_MAKEDEPEND */
+#ifndef OPENSSL_THREADS
+# define OPENSSL_THREADS
+#endif
+#ifndef OPENSSL_NO_ASM
+# define OPENSSL_NO_ASM
+#endif
 
 /* The OPENSSL_NO_* macros are also defined as NO_* if the application
    asks for it.  This is a transient feature that is provided for those
@@ -27,7 +33,7 @@
 
 #if !(defined(VMS) || defined(__VMS)) /* VMS uses logical names instead */
 #if defined(HEADER_CRYPTLIB_H) && !defined(OPENSSLDIR)
-#define OPENSSLDIR "/usr/local/ssl"
+#define OPENSSLDIR "/usr/local/pspdev/psp/ssl"
 #endif
 #endif
 
