@@ -245,7 +245,7 @@ configure:3336: checking for strtoul
 configure:3364: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:3336: checking for strtoq
 configure:3364: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccGUoW1B.o: In function `main':
+/tmp/ccecfpYl.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `strtoq'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -275,7 +275,7 @@ configure:3336: checking for strtoll
 configure:3364: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:3336: checking for chmod
 configure:3364: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccWrYQHs.o: In function `main':
+/tmp/ccEEw4Cd.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `chmod'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -305,7 +305,7 @@ configure:3391: checking for getpid
 configure:3419: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:3391: checking for setpgid
 configure:3419: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccMDdiYa.o: In function `main':
+/tmp/ccaG8Ey5.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `setpgid'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -333,7 +333,7 @@ setpgid();
 ; return 0; }
 configure:3446: checking for popen
 configure:3474: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccKC7Hnk.o: In function `main':
+/tmp/ccH5Z41k.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `popen'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -361,7 +361,7 @@ popen();
 ; return 0; }
 configure:3501: checking for uname
 configure:3529: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccaXoQ6H.o: In function `main':
+/tmp/ccuBD2xD.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `uname'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -389,7 +389,7 @@ uname();
 ; return 0; }
 configure:3556: checking for getpagesize
 configure:3584: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccqkInB5.o: In function `main':
+/tmp/ccimJr81.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `getpagesize'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -459,7 +459,7 @@ MD5Data()
 ; return 0; }
 configure:3913: checking for MD5Init
 configure:3941: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccUt531r.o: In function `main':
+/tmp/ccUx3JeM.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `MD5Init'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -487,7 +487,7 @@ MD5Init();
 ; return 0; }
 configure:3913: checking for MD5Data
 configure:3941: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/cc0P5bqN.o: In function `main':
+/tmp/ccwW3Bvd.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `MD5Data'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -523,7 +523,7 @@ configure:4320: checking for gethostbyaddr
 configure:4348: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:4371: checking for dhcp_option
 configure:4399: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccCu7XwH.o: In function `main':
+/tmp/cc6NldT8.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `dhcp_option'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -551,7 +551,7 @@ dhcp_option();
 ; return 0; }
 configure:4423: checking for herror
 configure:4451: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccWpJRZ2.o: In function `main':
+/tmp/ccmGfvRe.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `herror'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -579,7 +579,7 @@ herror();
 ; return 0; }
 configure:4474: checking for cfmakeraw
 configure:4502: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccMxXqJq.o: In function `main':
+/tmp/ccQQyIWH.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `cfmakeraw'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -607,7 +607,7 @@ cfmakeraw();
 ; return 0; }
 configure:4528: checking for cygwin_conv_to_full_win32_path
 configure:4556: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccuQhoYu.o: In function `main':
+/tmp/ccQjRjS3.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `cygwin_conv_to_full_win32_path'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -660,7 +660,7 @@ configure: failed program was:
 #include <pcre.h>
 configure:4734: checking for regcomp
 configure:4762: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccYFMEf8.o: In function `main':
+/tmp/ccIFu1PP.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `regcomp'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -739,7 +739,7 @@ configure: failed program was:
 #include <atheos/threads.h>
 configure:5038: checking for spawn_thread
 configure:5066: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccsxPRA7.o: In function `main':
+/tmp/ccUQPkox.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `spawn_thread'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -767,7 +767,7 @@ spawn_thread();
 ; return 0; }
 configure:5093: checking for resume_thread
 configure:5121: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/cckxHzhd.o: In function `main':
+/tmp/ccIjCSGT.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `resume_thread'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -795,7 +795,7 @@ resume_thread();
 ; return 0; }
 configure:5147: checking for MouOpen
 configure:5175: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccIgSpkH.o: In function `main':
+/tmp/ccIU5mlp.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `MouOpen'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -823,7 +823,7 @@ MouOpen();
 ; return 0; }
 configure:5198: checking for _read_kbd
 configure:5226: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/tmp/ccSkTx75.o: In function `main':
+/tmp/ccOex27M.o: In function `main':
 conftest.c:(.text+0x10): undefined reference to `_read_kbd'
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -852,7 +852,8 @@ _read_kbd();
 configure:5250: checking for XFree for OS/2
 configure:5316: checking for dlopen in -ldl
 configure:5335: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -ldl  -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-/usr/local/pspdev/lib/gcc/psp/4.0.2/../../../../psp/bin/ld: cannot find -ldl
+/tmp/ccmLNEzf.o: In function `main':
+conftest.c:(.text+0x10): undefined reference to `dlopen'
 collect2: ld returned 1 exit status
 configure: failed program was:
 #line 5324 "configure"
@@ -871,27 +872,10 @@ configure:5432: checking OPENSSL_CFLAGS
 configure:5437: checking OPENSSL_LIBS
 configure:5465: checking for OpenSSL
 configure:5476: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-configure:5470:25: error: openssl/ssl.h: No such file or directory
-configure: failed program was:
-#line 5469 "configure"
-#include "confdefs.h"
-#include <openssl/ssl.h>
-int main() {
-OpenSSL_add_all_algorithms()
-; return 0; }
-configure:5495: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
-configure:5489:25: error: openssl/ssl.h: No such file or directory
-configure: failed program was:
-#line 5488 "configure"
-#include "confdefs.h"
-#include <openssl/ssl.h>
-int main() {
-SSLeay_add_ssl_algorithms()
-; return 0; }
 configure:6370: checking for sdl-config
 configure:6405: checking for SDL >= 1.2.0
 configure:6418: checking for XextAddDisplay in -lXext
-configure:6437: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lXext  -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:6437: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lXext  -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 /usr/local/pspdev/lib/gcc/psp/4.0.2/../../../../psp/bin/ld: cannot find -lXext
 collect2: ld returned 1 exit status
 configure: failed program was:
@@ -906,38 +890,38 @@ int main() {
 XextAddDisplay()
 ; return 0; }
 configure:7070: checking for inflate in -lz
-configure:7089: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lz  -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7089: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lz  -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7120: checking for png.h
-configure:7130: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
+configure:7130: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
 configure:7120: checking for libpng/png.h
-configure:7130: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
+configure:7130: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
 configure:7126:24: error: libpng/png.h: No such file or directory
 configure: failed program was:
 #line 7125 "configure"
 #include "confdefs.h"
 #include <libpng/png.h>
 configure:7157: checking for png_create_info_struct in -lpng
-configure:7176: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng  -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7176: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng  -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7210: checking for png_set_rgb_to_gray
-configure:7238: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7238: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_image_width
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_image_height
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_gAMA
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_color_type
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_bit_depth
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_set_strip_alpha
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_valid
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7265: checking for png_get_sRGB
-configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7293: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7330: checking if you can include both setjmp.h and png.h
-configure:7343: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -c -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c 1>&5
+configure:7343: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -c -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c 1>&5
 In file included from configure:7336:
 /usr/local/pspdev/psp/include/machine/setjmp.h:212: error: syntax error before 'typedef'
 In file included from /usr/local/pspdev/lib/gcc/psp/4.0.2/../../../../psp/include/zlib.h:34,
@@ -953,18 +937,18 @@ int main() {
 jmp_buf bla;
 ; return 0; }
 configure:7377: checking for jpeglib.h
-configure:7387: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
+configure:7387: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
 configure:7414: checking for jpeg_destroy_decompress in -ljpeg
-configure:7433: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -ljpeg  -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7433: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -ljpeg  -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 configure:7482: checking for tiffio.h
-configure:7492: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
+configure:7492: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -E    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT conftest.c >/dev/null 2>conftest.out
 configure:7488:20: error: tiffio.h: No such file or directory
 configure: failed program was:
 #line 7487 "configure"
 #include "confdefs.h"
 #include <tiffio.h>
 configure:7519: checking for TIFFClientOpen in -ltiff
-configure:7538: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -ltiff  -ljpeg -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
+configure:7538: psp-gcc -I../../../../SharedLib/libpthread -I/usr/local/pspdev/psp/include/ -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -o conftest -I/usr/local/pspdev/psp/sdk/include/ -I/usr/local/pspdev/psp/include/machine/ -I../../../../SharedLib/Tools    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib conftest.c -ltiff  -ljpeg -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel 1>&5
 /usr/local/pspdev/lib/gcc/psp/4.0.2/../../../../psp/bin/ld: cannot find -ltiff
 collect2: ld returned 1 exit status
 configure: failed program was:

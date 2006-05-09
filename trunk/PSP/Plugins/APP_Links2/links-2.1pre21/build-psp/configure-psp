@@ -13,8 +13,11 @@ echo "Building internal configure dependencies..."
 cd $SHAREDLIB_DIR/libpthread && pwd && make all || (echo "Error building libpthread"; exit 0);
 cd -
 
+echo "Creating dummy dl library so configure can finish..."
+touch $SHAREDLIB_DIR/lib/libdl.a
+
 echo "Calling configure..."
-../configure --prefix=$(psp-config --psp-prefix) --srcdir=../ --target=psp --includedir=$PSPDEV/psp/sdk/include/ --enable-javascript --enable-graphics --without-svgalib --without-x --without-fb --without-directfb --without-pmshell --without-atheos --without-sdl --without-pspgu || (echo "Error configuring links2" ; exit 0);
+../configure --prefix=$(psp-config --psp-prefix) --srcdir=../ --target=psp --includedir=$PSPDEV/psp/sdk/include/ --enable-javascript --enable-graphics --without-svgalib --without-x --without-fb --without-directfb --without-pmshell --without-atheos --without-sdl --without-pspgu --with-ssl || (echo "Error configuring links2" ; exit 0);
 
 echo "include Makefile.psp" >> Makefile
 echo "Done."

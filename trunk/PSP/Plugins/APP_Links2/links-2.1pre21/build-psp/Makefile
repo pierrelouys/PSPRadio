@@ -83,7 +83,7 @@ links_SOURCES = psp.c plugin_main.c pspsdl.c pspgu.c af_unix.c auth.c beos.c bfu
 CXXFLAGS = 
 
 datadir = $(prefix)/@DATADIRNAME@
-LIBS = -ljpeg -lpng -lz -lSDL -lpthread -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel
+LIBS = -ljpeg -lpng -lz -lSDL -lpthread -lssl -lcrypto -ldl   -lm -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspsdk -lc -lpspnet -lpspnet_inet -lpspnet_apctl -lpspnet_resolver -lpsputility -lpspuser -liberty -lpspsdk -lpspnet -lpspaudio -lpspgu -lpspge -lpsphprm -lpspkernel
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
@@ -92,7 +92,7 @@ PROGRAMS =  $(bin_PROGRAMS)
 
 
 DEFS = -DHAVE_CONFIG_H -I. -I$(srcdir) -I.
-CPPFLAGS =  -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT
+CPPFLAGS =    -DPSP -I/usr/local/pspdev/psp/include/ -I/usr/include/SDL -D_REENTRANT
 LDFLAGS = -L/usr/local/pspdev/psp/sdk/lib -L/usr/local/pspdev/psp/sdk/sdk/lib -L../../../../SharedLib/lib
 links_OBJECTS =  psp.o plugin_main.o pspsdl.o pspgu.o af_unix.o auth.o \
 beos.o bfu.o block.o bookmarks.o builtin.o cache.o charsets.o connect.o \

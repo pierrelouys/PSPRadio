@@ -28,7 +28,9 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR =
 
-LIBS =  -ldanzeff -lSDL_image -lSDL -lpspgu -lpspge -lpspaudio -lpng -ljpeg -lz -lm -lpthread -lpsphprm
+OPENSSL_LIBS= -lssl -lcrypto
+
+LIBS =  -ldanzeff -lSDL_image -lSDL -lpspgu -lpspge -lpspaudio -lpng -ljpeg -lz -lm -lpthread -lpsphprm $(OPENSSL_LIBS)
 
 the_prx: $(OBJS) $(TARGET).prx 
 
