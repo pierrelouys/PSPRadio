@@ -328,10 +328,22 @@ char	filename[MAXPATHLEN];
 	sceKernelDcacheWritebackAll();
 }
 
-static void PSPTris_game_rotate_brick(brick &orig_brick)
+static void PSPTris_game_rotate_brick_left(brick &orig_brick)
 {
 	orig_brick.current_shape++;
 	orig_brick.current_shape = orig_brick.current_shape % 4;
+}
+
+static void PSPTris_game_rotate_brick_right(brick &orig_brick)
+{
+	if (orig_brick.current_shape == 0)
+		{
+		orig_brick.current_shape = 3;
+		}
+	else
+		{
+		orig_brick.current_shape--;
+		}
 }
 
 static void PSPTris_game_update_score(int event)
@@ -539,23 +551,34 @@ bool	exit_game = false;
 				time_out--;
 				}
 
-			/* Check for rotation */
-			if (key_state & PSP_CTRL_CROSS)
+			/* Check for rotation left */
+			if (key_state & PSP_CTRL_LTRIGGER)
 				{
 				/* Rotate current brick */
-				PSPTris_game_rotate_brick(current_brick);
+				PSPTris_game_rotate_brick_left(current_brick);
 				/* Check for collision */
 				if (PSPTris_game_collision(current_brick))
 					{
 					/* On collision -> back to original state */
-					PSPTris_game_rotate_brick(current_brick);
-					PSPTris_game_rotate_brick(current_brick);
-					PSPTris_game_rotate_brick(current_brick);
+					PSPTris_game_rotate_brick_right(current_brick);
+					}
+				}
+
+			/* Check for rotation right */
+			if (key_state & PSP_CTRL_RTRIGGER)
+				{
+				/* Rotate current brick */
+				PSPTris_game_rotate_brick_right(current_brick);
+				/* Check for collision */
+				if (PSPTris_game_collision(current_brick))
+					{
+					/* On collision -> back to original state */
+					PSPTris_game_rotate_brick_left(current_brick);
 					}
 				}
 
 			/* Check for movement -> RIGHT */
-			if ((key_state & PSP_CTRL_RIGHT) || (key_state & PSP_CTRL_RTRIGGER))
+			if (key_state & PSP_CTRL_RIGHT)
 				{
 				if (current_brick.current_pos.x < PLAYFIELD_X_SIZE)
 					{
@@ -568,7 +591,7 @@ bool	exit_game = false;
 					}
 				}
 			/* Check for movement -> LEFT */
-			if ((key_state & PSP_CTRL_LEFT) || (key_state & PSP_CTRL_LTRIGGER))
+			if (key_state & PSP_CTRL_LEFT)
 				{
 				if (current_brick.current_pos.x > -BRICK_SIZE)
 					{
