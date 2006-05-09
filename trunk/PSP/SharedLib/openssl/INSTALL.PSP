@@ -1,0 +1,11 @@
+OpenSSL PSP Port by Raf.
+------------------------
+
+To configure and compile, run:
+
+user$> make -f Makefile.psp prepare all
+
+To install, as root run:
+
+root$> make install
+
