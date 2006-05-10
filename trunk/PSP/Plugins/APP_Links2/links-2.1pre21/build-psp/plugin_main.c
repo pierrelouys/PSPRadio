@@ -16,6 +16,9 @@
 #include <pspkernel.h>
 #include <pspdebug.h>
 #include <pspdisplay.h>
+#include <psprtc.h>
+
+#include <openssl/rand.h>
 
 #include <pthread.h>
 #include <Tools.h>
@@ -28,7 +31,8 @@
 #ifdef STAND_ALONE_APP
 	PSP_MODULE_INFO("Links2", 0x1000, 1, 1);
 	PSP_MAIN_THREAD_ATTR(0);
-	int CallbackThread(SceSize args, void *argp);
+	void CallbackThread(void *argp);
+	void StartNetworkThread(void *argp);
 #else
 	PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
 	PSP_HEAP_SIZE_KB(1024*6);
@@ -300,12 +304,12 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 }
 
 
-int StartNetworkThread(SceSize args, void *argp);
 int main(int argc, char **argv)
 {
 	pthread_t pthid;
 	pthread_attr_t pthattr;
 	struct sched_param shdparam;
+	pspTime time;
 	
 	pspDebugInstallErrorHandler(MyExceptionHandler);
 	
@@ -318,8 +322,14 @@ int main(int argc, char **argv)
 	
 	pspDebugScreenInit();
 	pspDebugScreenPrintf("Links2 For PSP\n\n");
-	pspDebugScreenPrintf("- Loading networking modules...\n");
 	
+	pspDebugScreenPrintf("- Seeding SSL random generator...\n");
+	sceDisplayWaitVblankStart();
+	
+	sceRtcGetCurrentClockLocalTime(&time);
+	RAND_seed(&time, sizeof(pspTime));
+	
+	pspDebugScreenPrintf("- Loading networking modules...\n");
 	sceDisplayWaitVblankStart();
 	
 	pspSdkInstallNoDeviceCheckPatch();
@@ -351,7 +361,7 @@ int exit_callback(int arg1, int arg2, void *common)
 }
 
 /* Callback thread */
-int StartNetworkThread(SceSize args, void *argp)
+void StartNetworkThread(void *argp)
 {
 	int cbid;
 	static int ResolverId;
@@ -364,11 +374,9 @@ int StartNetworkThread(SceSize args, void *argp)
 	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
 
 	sceKernelSleepThreadCB();
-
-	return 0;
 }
 
-int CallbackThread(SceSize args, void *argp)
+void CallbackThread(void *argp)
 {
 	int cbid;
 	
@@ -376,8 +384,6 @@ int CallbackThread(SceSize args, void *argp)
 	sceKernelRegisterExitCallback(cbid);
 	
 	sceKernelSleepThreadCB();
-
-	return 0;
 }
 
 #include <png.h>

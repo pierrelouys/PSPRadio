@@ -29,6 +29,8 @@
 #undef TEXT
 #endif
 
+#include <openssl/rand.h>
+
 #include "links.h"
 #include <signal.h>
 
@@ -177,6 +179,8 @@ static void sdl_catch_event(void *data)
 		
 		sceCtrlReadBufferPositive(&pad, 1);
 		sceCtrlReadLatch(&latch);
+		
+		RAND_add(&pad, sizeof(pad), sizeof(pad)); /** Add more randomness to SSL */
 			
 		if (sf_danzeffOn)
 		{
