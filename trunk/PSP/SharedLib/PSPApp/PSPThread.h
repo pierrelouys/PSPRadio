@@ -30,8 +30,8 @@
 		#define SleepAndServiceCallbacks() sceKernelSleepThreadCB()
 
 	public:
-		CPSPThread(const char *strName, SceKernelThreadEntry ThreadEntry, int initPriority = 0x11,
-					int stackSize = 0xFA0, SceUInt attr = PSP_THREAD_ATTR_USER, SceKernelThreadOptParam *option = NULL);
+		CPSPThread(const char *strName, SceKernelThreadEntry ThreadEntry, int initPriority = 0x20,
+					int stackSize = 128*1024, SceUInt attr = PSP_THREAD_ATTR_USER, SceKernelThreadOptParam *option = NULL);
 		~CPSPThread();
 
 		int Start(int argc = 0, char **argv = NULL)
