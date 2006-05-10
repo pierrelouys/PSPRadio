@@ -69,7 +69,7 @@ release_stand_alone:
 
 install_prx:
 	cp -vf APP_Links2.prx $(KXPLOIT_PRIMARY)
-	mkdir -p $(KXPLOIT_PRIMARY)/APP_Links2/links
+	mkdir -p $(KXPLOIT_PRIMARY)/APP_Links2/links/Screenshots
 	cp -vf *.cfg $(KXPLOIT_PRIMARY)/APP_Links2/links
 	cp -vf dithertable.bin $(KXPLOIT_PRIMARY)
 
