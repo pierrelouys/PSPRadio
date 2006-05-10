@@ -73,8 +73,8 @@ void CPSPSound::Initialize()
 	m_EventToDecTh  = new CPSPEventQ("eventq2dec_th");
 	m_EventToPlayTh = new CPSPEventQ("eventq2play_th");
 
-	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 80000);
-	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 16, 80000);
+	m_thDecode = new CPSPThread("decode_thread", ThDecode, 64, 128*1024);
+	m_thPlayAudio = new CPSPThread("playaudio_thread", ThPlayAudio, 32, 128*1024);
 
 	if (m_CurrentStream && m_EventToDecTh && m_EventToPlayTh && m_thDecode && m_thPlayAudio)
 	{
