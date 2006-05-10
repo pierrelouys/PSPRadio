@@ -3,6 +3,10 @@ What's New for PSPRadio
 
 0.38.10 (r)(2006-05-xx)
 NEW FEATURES
+(raf) Links2: Added download directory configuration for AVC MP4 files. Added support for 'other' download directory.
+(raf) openssl/Links2: OpenSSL ported to the PSP. Links now links against it to provide SSL support.
+(raf) Links2: Updated to version 2.1-pre21
+(raf) Links2: L+ UP/DOWN/LEFT/RIGHT now scrolls the screen in those directions.
 (raf) Core/(Links2): Updated/enhanced pthreads implementation.
 (raf) Core/SHOUTcast: The SHOUTcast request string can now be specified in the configuration file.
 (sandberg) Dyn/Core: -Prepared the plugin framework for game plugins.
