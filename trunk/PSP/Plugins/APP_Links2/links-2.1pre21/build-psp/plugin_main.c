@@ -310,8 +310,7 @@ int main(int argc, char **argv)
 	pthread_attr_t pthattr;
 	struct sched_param shdparam;
 	pspTime time;
-	
-	pspDebugInstallErrorHandler(MyExceptionHandler);
+	int kmode_is_available = (sceKernelDevkitVersion() < 0x02000010);
 	
 	pthread_attr_init(&pthattr);
 	shdparam.sched_policy = SCHED_OTHER;
@@ -329,15 +328,26 @@ int main(int argc, char **argv)
 	sceRtcGetCurrentClockLocalTime(&time);
 	RAND_seed(&time, sizeof(pspTime));
 	
-	pspDebugScreenPrintf("- Loading networking modules...\n");
-	sceDisplayWaitVblankStart();
-	
-	pspSdkInstallNoDeviceCheckPatch();
-	pspSdkInstallNoPlainModuleCheckPatch();
-	
-	if(pspSdkLoadInetModules() < 0)
+	if (kmode_is_available) 
 	{
-		pspDebugScreenPrintf("** Error, could not load inet modules\n");
+		pspKernelSetKernelPC();
+		pspDebugInstallErrorHandler(MyExceptionHandler);
+		
+		pspSdkInstallNoDeviceCheckPatch();
+		pspSdkInstallNoPlainModuleCheckPatch();
+		
+		pspDebugScreenPrintf("- Loading networking modules...\n");
+		sceDisplayWaitVblankStart();
+		
+		if(pspSdkLoadInetModules() < 0)
+		{
+			pspDebugScreenPrintf("** Error, could not load inet modules\n");
+			sceDisplayWaitVblankStart();
+		}
+	}
+	else
+	{
+		pspDebugScreenPrintf("- F/W Version Found >= 2.0: Skipping Module Loading...\n");
 		sceDisplayWaitVblankStart();
 	}
 	
