@@ -2478,7 +2478,14 @@ void query_file(struct session *ses, unsigned char *url, void (*std)(struct sess
 		{
 			if (0 == strncasecmp(ext, "mp4", 3))
 			{
-				strcpy(download_dir, ext_dl_dir.mp4);
+				if (0 == strncasecmp(file, "maq", 3))
+				{
+					strcpy(download_dir, ext_dl_dir.avcmp4);
+				}
+				else 
+				{
+					strcpy(download_dir, ext_dl_dir.mp4);
+				}
 			}
 			else if (0 == strncasecmp(ext, "mp", 2))
 			{
@@ -2507,6 +2514,10 @@ void query_file(struct session *ses, unsigned char *url, void (*std)(struct sess
 			else if (0 == strncasecmp(ext, "avi", 3))
 			{
 				strcpy(download_dir, ext_dl_dir.videos);
+			}
+			else
+			{
+				strcpy(download_dir, ext_dl_dir.other);
 			}
 		}
 	}

@@ -17,6 +17,7 @@
 	{
 		char music[MAXPATHLEN+1];
 		char mp4[MAXPATHLEN+1];
+		char avcmp4[MAXPATHLEN+1];
 		char videos[MAXPATHLEN+1];
 		char images[MAXPATHLEN+1];
 		char other[MAXPATHLEN+1];

@@ -1536,6 +1536,7 @@ struct option links_options[] = {
 #ifdef PSP
 	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.music,  "download_directory_music",  NULL},
 	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.mp4,    "download_directory_mp4",    NULL},
+	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.avcmp4,    "download_directory_avc_mp4", NULL},
 	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.videos, "download_directory_videos", NULL},
 	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.images, "download_directory_images", NULL},
 	{1, gen_cmd, str_rd, str_wr, 0, MAXPATHLEN, ext_dl_dir.other,  "download_directory_other",  NULL},
