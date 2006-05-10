@@ -69,7 +69,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionS
 	m_EventToPSPApp = new CPSPEventQ("msg_to_pspapp_q");
 	
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 
-										0x11, 0xFA0, THREAD_ATTR_USER);
+										32, 4*1024, THREAD_ATTR_USER);
 	if (m_thCallbackSetup)
 	{
 		m_thCallbackSetup->Start();
@@ -84,7 +84,7 @@ int CPSPApp::StartPolling()
 {
 	if (NULL == m_thRun)
 	{
-		m_thRun = new CPSPThread("run_thread", runThread, 80, 80000);
+		m_thRun = new CPSPThread("run_thread", runThread, 80, 128*1024);
 
 		/** Start Polling for Vblank and buttons */
 		m_thRun->Start();
