@@ -1,5 +1,5 @@
 prepare:
-	./configure_psp.sh
+	chmod u+x configure_psp.sh && ./configure_psp.sh
 
 all:
 	make -f Makefile
