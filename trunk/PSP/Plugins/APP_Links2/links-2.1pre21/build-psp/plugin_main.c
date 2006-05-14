@@ -165,13 +165,20 @@ void app_plugin_main()
 	static int argc = sizeof(argv)/sizeof(char *)-1; 	/* idea from scummvm psp port */
 	char str[128];
 	int ret;
+	pspTime time;
 	
 	PSPRadioExport_RequestExclusiveAccess(PLUGIN_APP);
-	pspDebugScreenInit();
+//	pspDebugScreenInit();
 
 	g_PSPEnableInput = truE;
 	g_PSPEnableRendering = truE;
 
+	pspDebugScreenPrintf("- Seeding SSL random generator...\n");
+	sceDisplayWaitVblankStart();
+	
+	sceRtcGetCurrentClockLocalTime(&time);
+	RAND_seed(&time, sizeof(pspTime));
+		
 	ret = main_loop(argc, (char **)&argv);
 
 	if (ret != 0) 
@@ -309,7 +316,6 @@ int main(int argc, char **argv)
 	pthread_t pthid;
 	pthread_attr_t pthattr;
 	struct sched_param shdparam;
-	pspTime time;
 	int kmode_is_available = (sceKernelDevkitVersion() < 0x02000010);
 	
 	pthread_attr_init(&pthattr);
@@ -321,12 +327,6 @@ int main(int argc, char **argv)
 	
 	pspDebugScreenInit();
 	pspDebugScreenPrintf("Links2 For PSP\n\n");
-	
-	pspDebugScreenPrintf("- Seeding SSL random generator...\n");
-	sceDisplayWaitVblankStart();
-	
-	sceRtcGetCurrentClockLocalTime(&time);
-	RAND_seed(&time, sizeof(pspTime));
 	
 	if (kmode_is_available) 
 	{
