@@ -29,8 +29,14 @@
 #include <links.h>
 
 #ifdef STAND_ALONE_APP
-	PSP_MODULE_INFO("Links2", 0x1000, 1, 1);
-	PSP_MAIN_THREAD_ATTR(0);
+	#ifdef DEBUGMODE
+		PSP_MODULE_INFO("DebugLinks2", 0x0, 0, 1); 	 
+		PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER); 
+		PSP_MAIN_THREAD_PRIORITY(80);
+	#else
+		PSP_MODULE_INFO("Links2", 0x1000, 1, 1);
+		PSP_MAIN_THREAD_ATTR(0);
+	#endif
 	void CallbackThread(void *argp);
 	void StartNetworkThread(void *argp);
 #else
@@ -61,7 +67,7 @@ int ModuleStartAPP()
 
 	pthread_attr_init(&pthattr);
 	shdparam.sched_policy = SCHED_OTHER;
-	shdparam.sched_priority = 80;
+	shdparam.sched_priority = 35;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
 
@@ -319,18 +325,21 @@ int main(int argc, char **argv)
 	pthread_t pthid;
 	pthread_attr_t pthattr;
 	struct sched_param shdparam;
-	int kmode_is_available = (sceKernelDevkitVersion() < 0x02000010);
-	
+#ifndef DEBUGMODE	
+	int kmode_is_available = (sceKernelDevkitVersion() < 0x02000010); /** Copied from SDL_psp_main.c */
+#endif
+
 	pthread_attr_init(&pthattr);
 	shdparam.sched_policy = SCHED_OTHER;
 	
-	shdparam.sched_priority = 0x30;
+	shdparam.sched_priority = 32;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, CallbackThread, NULL);
 	
 	pspDebugScreenInit();
 	pspDebugScreenPrintf("Links2 For PSP\n\n");
 	
+#ifndef DEBUGMODE
 	if (kmode_is_available) 
 	{
 		pspKernelSetKernelPC();
@@ -353,8 +362,9 @@ int main(int argc, char **argv)
 		pspDebugScreenPrintf("- F/W Version Found >= 2.0: Skipping Module Loading...\n");
 		sceDisplayWaitVblankStart();
 	}
+#endif
 	
-	shdparam.sched_priority = 0x30;
+	shdparam.sched_priority = 32;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
 	
@@ -362,7 +372,7 @@ int main(int argc, char **argv)
 	while (networkThreadInitialized != truE)
 		sceKernelDelayThread(200*1000);
 	
-	shdparam.sched_priority = 0x40;
+	shdparam.sched_priority = 35;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
 	
@@ -541,7 +551,7 @@ char *ScreenshotName(char *path)
 	{
 		for (image_number = 0 ; image_number < 1000 ; image_number++)
 		{
-			sprintf(filename, "%sPSPRadio_Screen%03d.png", path, image_number);
+			sprintf(filename, "%sPSPLinks2_Screen%03d.png", path, image_number);
 			temp_handle = fopen(filename, "r");
 			// If the file didn't exist we can use this current filename for the screenshot
 			if (!temp_handle)
