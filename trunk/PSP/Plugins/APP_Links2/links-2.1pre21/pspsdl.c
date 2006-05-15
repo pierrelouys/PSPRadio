@@ -304,7 +304,7 @@ static void sdl_catch_event(void *data)
 			{
 				if (oldButtonMask & PSP_CTRL_SELECT && oldButtonMask & PSP_CTRL_CROSS)
 				{
-					connect_to_apctl(1);
+					wifiChooseConnect();
 				}
 				else if (oldButtonMask & PSP_CTRL_DOWN)
 				{

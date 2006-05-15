@@ -43,6 +43,7 @@ void app_plugin_main();
 void wait_for_triangle(char *str);
 int main_loop(int argc, char** argv);
 int connect_to_apctl(int config);
+void wifiChooseConnect();
 
 /** Plugin code */
 int ModuleStartAPP()
@@ -310,6 +311,8 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 	sceKernelExitGame();
 }
 
+//Set to truE by the network thread once it has connected.
+tBoolean networkThreadInitialized = falsE;
 
 int main(int argc, char **argv)
 {
@@ -355,6 +358,10 @@ int main(int argc, char **argv)
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
 	
+	//Wait while the network thread connects
+	while (networkThreadInitialized != truE)
+		sceKernelDelayThread(200*1000);
+	
 	shdparam.sched_priority = 0x40;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
@@ -370,6 +377,100 @@ int exit_callback(int arg1, int arg2, void *common)
 	return 0;
 }
 
+
+/* Functions for a user connecting to Wifi */
+
+#define multiselect(x,y,picks,size,selected,message); {\
+		while (!done)\
+		{\
+			char msBuffer[100];\
+			SceCtrlData pad;\
+			int onepressed = 0;\
+			int loop;\
+				/*Print out current selection*/\
+			pspDebugScreenSetXY(0,3);\
+			pspDebugScreenPrintf(message"\n");\
+			for (loop = 0; loop < size; loop++)\
+			{\
+				if (selected == loop)\
+				{ pspDebugScreenPrintf("> %s\n",picks[loop].name); }\
+				else\
+				{ pspDebugScreenPrintf("  %s\n",picks[loop].name); }\
+			}\
+				/*now loop on input, let it fall through to redraw, if it is X then break*/\
+			while (!onepressed)/*While havent pressed a key*/\
+			{\
+				sceCtrlReadBufferPositive(&pad, 1); \
+				onepressed = ( (pad.Buttons & PSP_CTRL_CROSS) ||\
+								(pad.Buttons & PSP_CTRL_UP) ||\
+								(pad.Buttons & PSP_CTRL_DOWN));\
+			}\
+			/*Find the key and change based on it*/\
+			if (pad.Buttons & PSP_CTRL_CROSS) done = 1;\
+			if (pad.Buttons & PSP_CTRL_UP) selected = (selected + size - 1) % size;\
+			if (pad.Buttons & PSP_CTRL_DOWN) selected = (selected+1) % size;\
+			while (onepressed)/*Wait for Key Release*/\
+			{\
+				sceCtrlReadBufferPositive(&pad, 1); \
+				onepressed = ( (pad.Buttons & PSP_CTRL_CROSS) ||\
+								(pad.Buttons & PSP_CTRL_UP) ||\
+								(pad.Buttons & PSP_CTRL_DOWN));\
+			}\
+		}\
+	}
+
+int getWifiAPFromUser()
+{
+	// enumerate connections
+#define MAX_PICK 10
+	struct
+	{
+		int index;
+		char name[64];
+	} picks[MAX_PICK];
+	int pick_count = 0;
+	char buffer[200];
+
+	int iNetIndex;
+	for (iNetIndex = 1; iNetIndex < 100; iNetIndex++) // skip the 0th connection
+	{
+		if (sceUtilityCheckNetParam(iNetIndex) != 0)
+			continue;  // no good
+		sceUtilityGetNetParam(iNetIndex, 0, picks[pick_count].name);
+		picks[pick_count].index = iNetIndex;
+		pick_count++;
+		if (pick_count >= MAX_PICK)
+			break;  // no more room
+	}
+
+	pspDebugScreenSetXY(0,5);
+	if (pick_count == 0)
+	{
+		pspDebugScreenPrintf("No connections\n");
+		pspDebugScreenPrintf("Please try Network Settings\n");
+		sceKernelDelayThread(10*1000000); // 10sec to read before exit
+		return -1;
+	}
+	
+	iNetIndex = 0;
+	if (pick_count > 1)
+	{
+		int done = 0;
+		
+		sceCtrlSetSamplingCycle(0);
+		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
+
+		multiselect(0,5,picks,pick_count,iNetIndex,"Choose a connection and press X");
+	}
+	return picks[iNetIndex].index;
+}
+
+/* Choose the wifi AP to connect to and connect to it */
+void wifiChooseConnect()
+{
+	connect_to_apctl(getWifiAPFromUser());
+}
+
 /* Callback thread */
 void StartNetworkThread(void *argp)
 {
@@ -379,9 +480,11 @@ void StartNetworkThread(void *argp)
 
 	pspSdkInetInit();
 	
-	connect_to_apctl(1); /* Just connect to the first profile for now */
+	wifiChooseConnect();
 	
 	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
+
+	networkThreadInitialized = truE;
 
 	sceKernelSleepThreadCB();
 }
