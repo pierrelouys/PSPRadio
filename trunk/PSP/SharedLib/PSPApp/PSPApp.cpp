@@ -84,7 +84,7 @@ int CPSPApp::StartPolling()
 {
 	if (NULL == m_thRun)
 	{
-		m_thRun = new CPSPThread("run_thread", runThread, 80, 128*1024);
+		m_thRun = new CPSPThread("run_thread", runThread, 45, 128*1024);
 
 		/** Start Polling for Vblank and buttons */
 		m_thRun->Start();
