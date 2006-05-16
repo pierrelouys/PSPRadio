@@ -364,13 +364,26 @@ int main(int argc, char **argv)
 	}
 #endif
 	
+	pspDebugScreenPrintf("- Connecting to Access Point (Press TRIANGLE To Skip Wait)...\n");
+	sceDisplayWaitVblankStart();
 	shdparam.sched_priority = 32;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
 	
 	//Wait while the network thread connects
+	SceCtrlData pad;
+	SceCtrlLatch latch ; 
+	int button = 0;
 	while (networkThreadInitialized != truE)
-		sceKernelDelayThread(200*1000);
+	{
+		sceDisplayWaitVblankStart();
+		sceCtrlPeekBufferPositive(&pad, 1);
+		
+		if (pad.Buttons & PSP_CTRL_TRIANGLE)
+			break;
+	
+		//sceKernelDelayThread(200*1000);
+	}
 	
 	shdparam.sched_priority = 35;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
@@ -490,9 +503,9 @@ void StartNetworkThread(void *argp)
 
 	pspSdkInetInit();
 	
-	wifiChooseConnect();
-	
 	sceNetResolverCreate(&ResolverId, resolver_buffer, 1024);
+	
+	wifiChooseConnect();
 
 	networkThreadInitialized = truE;
 
