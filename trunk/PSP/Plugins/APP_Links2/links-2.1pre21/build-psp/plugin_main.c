@@ -364,25 +364,17 @@ int main(int argc, char **argv)
 	}
 #endif
 	
-	pspDebugScreenPrintf("- Connecting to Access Point (Press TRIANGLE To Skip Wait)...\n");
+	pspDebugScreenPrintf("- Connecting to Access Point ...\n");
 	sceDisplayWaitVblankStart();
+	
 	shdparam.sched_priority = 32;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
 	
 	//Wait while the network thread connects
-	SceCtrlData pad;
-	SceCtrlLatch latch ; 
-	int button = 0;
 	while (networkThreadInitialized != truE)
 	{
-		sceDisplayWaitVblankStart();
-		sceCtrlPeekBufferPositive(&pad, 1);
-		
-		if (pad.Buttons & PSP_CTRL_TRIANGLE)
-			break;
-	
-		//sceKernelDelayThread(200*1000);
+		sceKernelDelayThread(200*1000);
 	}
 	
 	shdparam.sched_priority = 35;
@@ -411,7 +403,7 @@ int exit_callback(int arg1, int arg2, void *common)
 			int onepressed = 0;\
 			int loop;\
 				/*Print out current selection*/\
-			pspDebugScreenSetXY(0,3);\
+			pspDebugScreenSetXY(x,y);\
 			pspDebugScreenPrintf(message"\n");\
 			for (loop = 0; loop < size; loop++)\
 			{\
@@ -455,6 +447,11 @@ int getWifiAPFromUser()
 	char buffer[200];
 
 	int iNetIndex;
+	
+	picks[0].index = 0;
+	strlcpy(picks[0].name, "None", 64);
+	pick_count++;
+	
 	for (iNetIndex = 1; iNetIndex < 100; iNetIndex++) // skip the 0th connection
 	{
 		if (sceUtilityCheckNetParam(iNetIndex) != 0)
@@ -466,7 +463,7 @@ int getWifiAPFromUser()
 			break;  // no more room
 	}
 
-	pspDebugScreenSetXY(0,5);
+	pspDebugScreenSetXY(0,7);
 	if (pick_count == 0)
 	{
 		pspDebugScreenPrintf("No connections\n");
@@ -483,7 +480,7 @@ int getWifiAPFromUser()
 		sceCtrlSetSamplingCycle(0);
 		sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
-		multiselect(0,5,picks,pick_count,iNetIndex,"Choose a connection and press X");
+		multiselect(0,7,picks,pick_count,iNetIndex,"Choose a connection and press X");
 	}
 	return picks[iNetIndex].index;
 }
@@ -491,7 +488,13 @@ int getWifiAPFromUser()
 /* Choose the wifi AP to connect to and connect to it */
 void wifiChooseConnect()
 {
-	connect_to_apctl(getWifiAPFromUser());
+	int iAP = 0;
+	iAP = getWifiAPFromUser();
+	
+	if (iAP > 0)
+	{
+		connect_to_apctl(iAP);
+	}
 }
 
 /* Callback thread */
