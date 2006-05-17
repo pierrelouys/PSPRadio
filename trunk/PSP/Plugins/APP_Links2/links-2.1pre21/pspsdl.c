@@ -205,6 +205,8 @@ static void sdl_catch_event(void *data)
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
 					TakeScreenShot();
+					wait_for_triangle("");
+					cls_redraw_all_terminals();
 				}
 				oldButtonMask = 0;
 			}
@@ -304,7 +306,9 @@ static void sdl_catch_event(void *data)
 			{
 				if (oldButtonMask & PSP_CTRL_SELECT && oldButtonMask & PSP_CTRL_CROSS)
 				{
+					pspDebugScreenInit();
 					wifiChooseConnect();
+					cls_redraw_all_terminals();
 				}
 				else if (oldButtonMask & PSP_CTRL_DOWN)
 				{
@@ -401,6 +405,8 @@ static void sdl_catch_event(void *data)
 				else if (oldButtonMask & PSP_CTRL_SELECT)
 				{
 					TakeScreenShot();
+					wait_for_triangle("");
+					cls_redraw_all_terminals();
 				}
 				oldButtonMask = 0;
 			}
