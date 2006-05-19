@@ -39,6 +39,8 @@ kxploit: $(TARGET).elf $(PSP_EBOOT_SFO) $(EXTRA_TARGETS) $(FINAL_TARGET)
 		$(PSP_EBOOT_SND0) NULL $(PSP_EBOOT_PSAR)
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Music
 	cp -vf audio/*.mod $(KXPLOIT_PRIMARY_DIR)/Music
+	cp -vf audio/*.xm $(KXPLOIT_PRIMARY_DIR)/Music
+	cp $(KXPLOIT_PRIMARY_DIR)/Music/menu.mod $(KXPLOIT_PRIMARY_DIR)/Music/ingame_default.mod
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Samples
 	cp -vf audio/*.wav $(KXPLOIT_PRIMARY_DIR)/Samples
 	mkdir -p $(KXPLOIT_PRIMARY_DIR)/Textures

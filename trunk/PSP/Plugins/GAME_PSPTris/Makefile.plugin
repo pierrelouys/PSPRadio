@@ -36,6 +36,8 @@ install:
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Music
 	cp -vf audio/*.mod $(KXPLOIT_PRIMARY)/$(TARGET)/Music
+	cp -vf audio/*.xm $(KXPLOIT_PRIMARY)/Music
+	cp $(KXPLOIT_PRIMARY)/Music/menu.mod $(KXPLOIT_PRIMARY)/Music/ingame_default.mod
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Samples
 	cp -vf audio/*.wav $(KXPLOIT_PRIMARY)/$(TARGET)/Samples
 	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Textures
