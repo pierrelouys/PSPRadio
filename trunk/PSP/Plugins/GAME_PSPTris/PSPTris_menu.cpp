@@ -465,7 +465,7 @@ void PSPTris_menu_init(char *cwd)
 	backimage = NULL;
 	framebuffer = NULL;
 
-	PSPTris_highscore_init();
+	PSPTris_highscore_init(cwd);
 	PSPTris_update_highscore_table();
 
 	PSPTris_load_background();

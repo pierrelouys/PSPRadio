@@ -4,6 +4,9 @@ Version 0.7 (xxth of xxx 2006)
 --------------------------------
 Fixes:
 	- Bugfix in highscore screen where the name wasn't shown.
+	- Exit via home-button now works again.
+	- Selecting pause on the OSK caused the text not to render.
+	- Highscores were written in the parent dir in the plugin version.
 
 Features:
 	- Implemented support to use PSPTris as a plugin to PSPRadio.

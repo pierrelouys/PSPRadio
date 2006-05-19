@@ -231,6 +231,7 @@ void PSPTris_render_text(char *text, int x, int y)
 
 	length = strlen(text);
 
+	sceGuEnable(GU_TEXTURE_2D);
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
 	sceGuEnable( GU_ALPHA_TEST );
 	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
@@ -267,6 +268,7 @@ void PSPTris_render_text(char *text, int x, int y)
 
 	sceGuDisable( GU_BLEND );
 	sceGuDisable( GU_ALPHA_TEST );
+	sceGuDisable(GU_TEXTURE_2D);
 }
 
 void PSPTris_render_brick(float x, float y, float size, float tex_size, int texture_id, u32 brightness)
@@ -286,8 +288,10 @@ void PSPTris_render_brick(float x, float y, float size, float tex_size, int text
 	c_vertices[1].y 	= y + size;
 	c_vertices[1].z 	= 0;
 	c_vertices[1].color = brightness;
+	sceGuEnable(GU_TEXTURE_2D);
 	(void)tcache->jsaTCacheSetTexture(texture_id);
 	sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
+	sceGuDisable(GU_TEXTURE_2D);
 }
 
 void PSPTris_game_remove_moving_brick(moving_brick *finished_brick)

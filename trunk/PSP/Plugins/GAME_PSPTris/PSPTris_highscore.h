@@ -27,7 +27,7 @@ typedef struct
 	u32		rank;
 	} highscore_str;
 
-void PSPTris_highscore_init(void);
+void PSPTris_highscore_init(char *cwd);
 u32 PSPTris_highscore_check(u32 score, u32 game_type);
 void PSPTris_highscore_store(highscore_str *highscore, u32 game_type);
 highscore_str *PSPTris_highscore_get(u32 rank, u32 game_type);

@@ -50,6 +50,7 @@ PSP_MAIN_THREAD_PRIORITY(80);
 static unsigned int __attribute__((aligned(16))) gu_list[8192];
 
 /* Local variables */
+bool home_exit = false;
 bool game_exit = false;
 
 char *cwd = NULL;
@@ -58,7 +59,7 @@ char *cwd = NULL;
 /* Exit callback */
 int exit_callback(int arg1, int arg2, void *common)
 {
-	game_exit = true;
+	home_exit = true;
 	return 0;
 }
 
@@ -157,7 +158,7 @@ int main(int argc, char *argv[])
 	PSPTris_intro_init(cwd);
 
 	/* Run intro sequence until a key is pressed */
-	while (!done && !game_exit)
+	while (!done && !home_exit)
 	{
 		PSPTris_intro();
 		if(keyHandler.KeyHandler(keyEvent))
@@ -172,7 +173,7 @@ int main(int argc, char *argv[])
 
 	PSPTris_menu_init(cwd);
 
-	while (!game_exit)
+	while (!game_exit && !home_exit)
 		{
 		u32	key_state = 0;
 

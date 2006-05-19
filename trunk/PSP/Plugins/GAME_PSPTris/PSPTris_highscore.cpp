@@ -60,9 +60,14 @@ static highscore_str	*color_hs;
 
 static FILE				*fhandle;
 
-void PSPTris_highscore_init(void)
+void PSPTris_highscore_init(char *cwd)
 {
-	fhandle = fopen("./highscore.dat", "a+");
+	char path[1024];
+
+	/* Start playing menu module */
+	sprintf(path, "%s/highscore.dat", cwd);
+
+	fhandle = fopen(path, "a+");
 	if (fhandle != NULL)
 		{
 		int bytes;
