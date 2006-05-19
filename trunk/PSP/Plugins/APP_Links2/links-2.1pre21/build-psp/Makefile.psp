@@ -62,6 +62,7 @@ stand_alone:
 	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png "__SCE__Links2/graphics/"
 	cp -vf *.cfg "__SCE__Links2/.links/"
 	cp -vf dithertable.bin "__SCE__Links2"
+	cp -vf whatsnew.txt "__SCE__Links2"
 
 debug:
 	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make -f Makefile.psp EXTRA_FLAGS="-DSTAND_ALONE_APP" $(EXPORTED_OBJS)
@@ -78,6 +79,7 @@ install_prx:
 	mkdir -p $(KXPLOIT_PRIMARY)/APP_Links2/links
 	cp -vf *.cfg $(KXPLOIT_PRIMARY)/APP_Links2/links
 	cp -vf dithertable.bin $(KXPLOIT_PRIMARY)
+	cp whatsnew.txt $(KXPLOIT_PRIMARY)/app_links2_whatsnew.txt
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

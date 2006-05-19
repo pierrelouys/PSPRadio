@@ -1,0 +1,40 @@
+ What's New for Links2 PSP Port
+================================
+
+rXXXX (2006-05-xx)
+NEW FEATURES
+(raf) StandAlone: New connection selection: "None" allows the user to continue initialization without having to connect.
+BUG FIXES
+(raf) Cosmetic changes when taking screenshots, and reconnecting. (Wait for the user, redrawing).
+
+rXXXX (2006-05-15?)
+NEW FEATURES
+(danzel) StandAlone: Wifi "Connect to" dialog.
+(raf) Changed thread priorities.
+BUG FIXES
+(raf) Renamed screenshots to PSPLinks2_ScreenXXX.png
+
+    * Added rename() to newlib, now saving configuration files/bookmarks should work again
+    * Now L+UP/DOWN = PgUp/PgDown
+    * Now R+UP/DOWN/LEFT/RIGHT = Scroll
+
+rXXXX (2006-05-??)
+NEW FEATURES
+(raf) Links2: Added download directory configuration for AVC MP4 files. Added support for 'other' download directory.
+(raf) openssl/Links2: OpenSSL ported to the PSP. Links now links against it to provide SSL support.
+(raf) Links2: Updated to version 2.1-pre21
+(raf) Links2: L+ UP/DOWN/LEFT/RIGHT now scrolls the screen in those directions.
+(raf) Core/(Links2): Updated/enhanced pthreads implementation.
+(raf) Dyn/Links2: -Browser ported to PSP. PSPRadio plugin created. Using version 2.1pre20 with utf8 patch. Using SDL SW Surfaces for graphics.
+(raf) Dyn/Links2: -dithertable is now saved to file, if file is found (now provided), the its loaded instead of generated. (This speeds up startup from over 1min to seconds)
+(raf) Dyn/Links2: -danzeff SDL library used for OSK. Thanks, Danzel.
+(raf) Dyn/Links2: -Screenshot can be taken pressing SELECT. Use File->Switch to PSPRadio to go back to PSPRadio. Then select the plugin again to get back to Links2.
+(raf) Dyn/Links2: -SMB support is completely removed to free more memory.
+(raf) Dyn/Links2: -Removed support for all languages except english to free more memory.
+(raf) Dyn/Links2: -Removed japanese font to free more memory.
+(danzel) Dyn/Links2: -Use lite danzeff OSK now (no transparencies) to free memory.
+(raf) Dyn/Links2: -Version reported includes the subversion revision now.
+BUG FIXES
+(raf) Core/(Links2): pthreads implementation improved so threads exit and delete themselves instead of just exiting.
+(raf) When a socket closed, writestring() would keep trying to send, and keep reporting errors, filling up the event queue, and causing pspradio to exit. Thanks PSP KEVIN for the report.
+(raf) Dyn/Links2: -When exiting, the plugin is turned off correctly.
