@@ -7,6 +7,7 @@ Fixes:
 	- Exit via home-button now works again.
 	- Selecting pause on the OSK caused the text not to render.
 	- Highscores were written in the parent dir in the plugin version.
+	- Modified the displaylists, which reduces the memory consumption by 1.5 MB.
 
 Features:
 	- Implemented support to use PSPTris as a plugin to PSPRadio.

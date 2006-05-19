@@ -39,7 +39,7 @@
 #define SCR_HEIGHT	(272)
 #define PIXEL_SIZE	(4)
 
-static unsigned int __attribute__((aligned(16))) gu_list[262144];
+static unsigned int __attribute__((aligned(16))) gu_list[65536];
 
 static char *mCwd = NULL;
 /* Texture handler */
@@ -697,7 +697,7 @@ void PSPTris_handle_key(u32 key_state)
 
 bool PSPTris_menu(u32 key_state, u32 *key_delay)
 {
-	sceGuStart(GU_DIRECT,::gu_list);
+ 	sceGuStart(GU_DIRECT,::gu_list);
 
 	sceGuClearColor(0xFF1009B2);
 	sceGuClearDepth(0);

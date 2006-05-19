@@ -47,7 +47,7 @@
 #define		COLOR_PINK		0x80E349FF
 #define		COLOR_YELLOW	0x8000FFFF
 
-static unsigned int __attribute__((aligned(16))) gu_list[262144];
+static unsigned int __attribute__((aligned(16))) gu_list[65536];
 
 static const struct CVertex __attribute__((aligned(16))) pink_vertices[] =
 {
@@ -509,7 +509,7 @@ u32			temp;
 void PSPTris_intro()
 {
 	/* Play intro sequence */
-	sceGuStart(GU_DIRECT,::gu_list);
+ 	sceGuStart(GU_DIRECT,::gu_list);
 
 	sceGuClearColor(PSPTris_get_bg_color());
 	sceGuClearDepth(0);
