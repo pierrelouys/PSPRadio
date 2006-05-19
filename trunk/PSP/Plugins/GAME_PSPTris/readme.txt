@@ -14,6 +14,16 @@ Installation Guide
 I only have a 1.5 FW, so this is for 1.5 FW, but it has been tested on 2.0 and 2.6 FW also.
 Copy the folders "__SCE_PSPTris" and "%__SCE_PSPTris" to your PSP under "\PSP\GAME\".
 
+User defined music
+------------------
+To listen to your own modules during the game, place the modules in the __SCE__PSPTris/Music
+folder and name the modules ingame_xxx, i.e. if you have a moduled called mymod.mod rename it
+to ingame_mymod.mod.
+The player supports at least .mod and .xm files. It should support other types as well (like .it etc.)
+but I haven't tested those, so I don't know if they actually works.
+
+When the game starts it will randomly choose a module among the available modules.
+
 
 Credits
 -------

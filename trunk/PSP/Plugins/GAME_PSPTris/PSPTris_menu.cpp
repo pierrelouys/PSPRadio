@@ -41,10 +41,9 @@
 
 static unsigned int __attribute__((aligned(16))) gu_list[262144];
 
+static char *mCwd = NULL;
 /* Texture handler */
 static jsaTextureCache				*tcache = NULL;
-
-static char	*mCwd;
 
 static char font_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
 							'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '0', '1', '2', '3', '4',
@@ -181,13 +180,11 @@ static jsaTextureFile __attribute__((aligned(16))) texture_list[] =
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(jsaTextureFile))
 
-void PSPTris_load_background(char *cwd)
+void PSPTris_load_background()
 {
 	char filename[MAXPATHLEN];
 
-	mCwd = cwd;
-
-	sprintf(filename, "%s/Textures/psptris_background.png", cwd);
+	sprintf(filename, "%s/Textures/psptris_background.png", mCwd);
 	backimage = (u8 *) memalign(16, SCR_WIDTH * SCR_HEIGHT * PIXEL_SIZE);
 
 	if (backimage == NULL)
@@ -431,14 +428,32 @@ highscore_str *highscore;
 		}
 }
 
+void PSPTris_start_music()
+{
+#if !defined(DYNAMIC_BUILD)
+	char path[1024];
+
+	/* Start playing menu module */
+	sprintf(path, "%s/Music/menu.mod", mCwd);
+	PSPTris_audio_play_module(path);
+#endif /* !defined(DYNAMIC_BUILD) */
+}
+
+void PSPTris_stop_music()
+{
+#if !defined(DYNAMIC_BUILD)
+	PSPTris_audio_stop_module();
+#endif /* !defined(DYNAMIC_BUILD) */
+}
+
 void PSPTris_menu_init(char *cwd)
 {
 	char path[1024];
 
+	mCwd = cwd;
 #if !defined(DYNAMIC_BUILD)
 	/* Start playing menu module */
-	sprintf(path, "%s/Music/ingame.mod", cwd);
-	PSPTris_audio_play_module(path);
+	PSPTris_start_music();
 #endif /* !defined(DYNAMIC_BUILD) */
 
 	/* Create a texture cache object */
@@ -453,12 +468,14 @@ void PSPTris_menu_init(char *cwd)
 	PSPTris_highscore_init();
 	PSPTris_update_highscore_table();
 
-	PSPTris_load_background(cwd);
+	PSPTris_load_background();
 	sceKernelDcacheWritebackAll();
 }
 
 void PSPTris_menu_destroy(void)
 {
+	PSPTris_stop_music();
+
 	if (backimage)
 		{
 		free(backimage);
@@ -477,6 +494,7 @@ void PSPTris_handle_menu_main(u32 key_state)
 		case	PSP_CTRL_CROSS:
 			if (menu_main_selection == ACTION_START)
 				{
+				PSPTris_stop_music();
 				PSPTris_game_init(mCwd);
 				game_started = true;
 				repeat_delay = GAME_DELAY;
@@ -706,6 +724,7 @@ bool PSPTris_menu(u32 key_state, u32 *key_delay)
 		{
 		if (PSPTris_game_render(key_state, tcache))
 			{
+			PSPTris_start_music();
 			game_started = false;
 			repeat_delay = MENU_DELAY;
 			}

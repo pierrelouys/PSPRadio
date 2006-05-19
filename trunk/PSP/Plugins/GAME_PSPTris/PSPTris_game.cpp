@@ -62,13 +62,96 @@ static float myrandf(void)
 	return((unsigned)(next/65536) % 1024);
 }
 
+void PSPTris_game_start_music(char *cwd, char *name)
+{
+#if !defined(DYNAMIC_BUILD)
+	char path[1024];
+
+	/* Start playing menu module */
+	sprintf(path, "%s%s", cwd, name);
+	printf("Loading : %s\n", path);
+	PSPTris_audio_play_module(path);
+#endif /* !defined(DYNAMIC_BUILD) */
+}
+
+void PSPTris_game_stop_music()
+{
+#if !defined(DYNAMIC_BUILD)
+	PSPTris_audio_stop_module();
+#endif /* !defined(DYNAMIC_BUILD) */
+}
+
+#if !defined(DYNAMIC_BUILD)
+int PSPTris_get_ingame_mods(char *cwd, char *prefix, bool play, int number)
+{
+	int dfd = 0;
+	int modules = 0;
+	SceIoDirent direntry;
+	char path[1024];
+
+	sprintf(path, "%s/Music/", cwd);
+
+	dfd = sceIoDopen(path);
+
+	if (dfd >= 0)
+	{
+		memset(&direntry, 0, sizeof(SceIoDirent));
+		while(sceIoDread(dfd, &direntry) > 0)
+		{
+			if((direntry.d_stat.st_attr & FIO_SO_IFREG))
+			{
+				if (strcmp(direntry.d_name, ".") == 0)
+					continue;
+				else if (strcmp(direntry.d_name, "..") == 0)
+					continue;
+
+				if (strncmp(direntry.d_name, prefix, strlen(prefix)) == 0)
+				{
+					if (play)
+						{
+						if (modules == number)
+							{
+							PSPTris_game_start_music(path, direntry.d_name);
+							return 0;
+							}
+						}
+					else
+						{
+						}
+					modules++;
+				}
+			}
+		}
+		sceIoDclose(dfd);
+	}
+	else
+	{
+		printf("Mod scanner: Unable to open '%s' Directory! (Error=0x%x)\n", path, dfd);
+	}
+
+	return modules;
+}
+#endif /*!defined(DYNAMIC_BUILD)*/
+
 void PSPTris_game_init(char *cwd)
 {
 u64		ticks;
+#if !defined(DYNAMIC_BUILD)
+int		nbr_modules;
+#endif /*!defined(DYNAMIC_BUILD)*/
 
 	/* Seed the rand generator */
 	(void)sceRtcGetCurrentTick(&ticks);
 	next = (unsigned long) ticks;
+
+#if !defined(DYNAMIC_BUILD)
+	/* Search for ingame modules */
+	nbr_modules = PSPTris_get_ingame_mods(cwd, "ingame_", false, 0);
+	/* Select random ingame module */
+	nbr_modules = (int)myrandf() % nbr_modules;
+	/* Play ingame module */
+	PSPTris_get_ingame_mods(cwd, "ingame_", true, nbr_modules);
+#endif /*!defined(DYNAMIC_BUILD)*/
 
 	if (gametype == GAMETYPE_CLASSIC)
 		{
@@ -317,6 +400,7 @@ void PSPTris_game_type(int type)
 
 void PSPTris_game_stop()
 {
+	PSPTris_game_stop_music();
 	if (gametype == GAMETYPE_CLASSIC)
 		{
 		PSPTris_game_stop_classic();

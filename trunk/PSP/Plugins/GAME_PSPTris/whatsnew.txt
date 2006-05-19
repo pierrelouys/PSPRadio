@@ -9,6 +9,7 @@ Features:
 	- Implemented support to use PSPTris as a plugin to PSPRadio.
 	- Exit option has been added to the menu.
 	- Exit to menu from the pause screen.
+	- Added support for user defined music. (see readme.txt)
 
 
 Version 0.6 (07th of May 2006)

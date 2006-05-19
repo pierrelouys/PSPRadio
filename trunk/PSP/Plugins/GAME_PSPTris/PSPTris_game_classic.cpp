@@ -552,7 +552,7 @@ bool	exit_game = false;
 				}
 
 			/* Check for rotation left */
-			if (key_state & PSP_CTRL_LTRIGGER)
+			if ((key_state & PSP_CTRL_LTRIGGER) || (key_state & PSP_CTRL_CROSS))
 				{
 				/* Rotate current brick */
 				PSPTris_game_rotate_brick_left(current_brick);
