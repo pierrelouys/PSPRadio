@@ -51,6 +51,9 @@ int main_loop(int argc, char** argv);
 int connect_to_apctl(int config);
 void wifiChooseConnect();
 
+//Set to truE by the network thread once it has connected.
+tBoolean networkThreadInitialized = falsE;
+
 /** Plugin code */
 int ModuleStartAPP()
 {
@@ -85,7 +88,6 @@ int ModuleContinueApp()
 	return 0;
 }
 
-
 int CreateHomepage(char *file)
 {
 	FILE *fp = fopen(file, "w");
@@ -100,31 +102,7 @@ int CreateHomepage(char *file)
 #else
 		fprintf(fp, "This port is a plugin for PSPRadio Version %s.<br>", PSPRadioExport_GetVersion());
 #endif
-		fprintf(fp, "Visit us at <a href=\"http://pspradio.berlios.de\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
-		
-		/** Google search Start */
-		fprintf(fp, "<center>");
-		fprintf(fp, "<form method=\"get\" action=\"http://www.google.com/custom\" target=\"_top\">");
-		fprintf(fp, "<table bgcolor=\"#ffffff\">");
-		fprintf(fp, "<tr><td nowrap=\"nowrap\" valign=\"top\" align=\"left\" height=\"32\">");
-		fprintf(fp, "<a href=\"http://www.google.com/\">");
-		fprintf(fp, "<img src=\"http://www.google.com/logos/Logo_25wht.gif\" border=\"0\" alt=\"Google\" align=\"middle\"></img></a>");
-		fprintf(fp, "<br/>");
-		fprintf(fp, "<input type=\"text\" name=\"q\" size=\"31\" maxlength=\"255\" value=\"\"></input>");
-		fprintf(fp, "</td></tr>");
-		fprintf(fp, "<tr><td valign=\"top\" align=\"left\">");
-		fprintf(fp, "<input type=\"submit\" name=\"sa\" value=\"Search\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"client\" value=\"pub-3916941649621652\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"forid\" value=\"1\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"channel\" value=\"5433159913\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"ie\" value=\"ISO-8859-1\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"oe\" value=\"ISO-8859-1\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"cof\" value=\"GALT:#008000;GL:1;DIV:#336699;VLC:663399;AH:center;BGC:FFFFFF;LBGC:336699;ALC:0000FF;LC:0000FF;T:000000;GFNT:0000FF;GIMP:0000FF;FORID:1;\"></input>");
-		fprintf(fp, "<input type=\"hidden\" name=\"hl\" value=\"en\"></input>");
-		fprintf(fp, "</td></tr></table>");
-		fprintf(fp, "</form>");
-		fprintf(fp, "</center><br><br>");
-		/** Google Search end */
+		fprintf(fp, "Visit us at <a href=\"http://pspradio.sourceforge.net\">PSPRadio Forums</a> Or <a href=\"http://rafpsp.blogspot.com\">PSPRadio HomePage</a>.</p>\n");
 		
 		/** Load tips from tips file */
 		{
@@ -285,114 +263,6 @@ void app_init_progress(char *str)
 	step++;
 }
 
-
-/** Stand alone code: */
-#ifdef STAND_ALONE_APP
-/** -- Exception handler */
-void MyExceptionHandler(PspDebugRegBlock *regs)
-{
-	static int bFirstTime = 1;
-
-	if (bFirstTime)
-	{
-		pspDebugScreenInit();
-		pspDebugScreenSetBackColor(0x000000FF);
-		pspDebugScreenSetTextColor(0xFFFFFFFF);
-		pspDebugScreenClear();
-
-		pspDebugScreenPrintf("Links2 -- Exception Caught:\n");
-		pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
-		pspDebugScreenPrintf("Exception Details:\n");
-		pspDebugDumpException(regs);
-		pspDebugScreenPrintf("\nHolding select to capture a shot of this screen for reference\n");
-		pspDebugScreenPrintf("may or may not work at this point.\n");
-		pspDebugScreenPrintf("\nPlease Use the Home Menu to return to the VSH.\n");
-		pspDebugScreenPrintf("-----------------------------------------------------------------\n");
-
-		bFirstTime = 0;
-	}
-	pspDebugScreenPrintf("******* Important Registers: epc=0x%x ra=0x%x\n", regs->epc, regs->r[31]);
-
-	wait_for_triangle("");
-	sceKernelExitGame();
-}
-
-//Set to truE by the network thread once it has connected.
-tBoolean networkThreadInitialized = falsE;
-
-int main(int argc, char **argv)
-{
-	pthread_t pthid;
-	pthread_attr_t pthattr;
-	struct sched_param shdparam;
-#ifndef DEBUGMODE	
-	int kmode_is_available = (sceKernelDevkitVersion() < 0x02000010); /** Copied from SDL_psp_main.c */
-#endif
-
-	pthread_attr_init(&pthattr);
-	shdparam.sched_policy = SCHED_OTHER;
-	
-	shdparam.sched_priority = 32;
-	pthread_attr_setschedparam(&pthattr, &shdparam);
-	pthread_create(&pthid, &pthattr, CallbackThread, NULL);
-	
-	pspDebugScreenInit();
-	pspDebugScreenPrintf("Links2 For PSP\n\n");
-	
-#ifndef DEBUGMODE
-	if (kmode_is_available) 
-	{
-		pspKernelSetKernelPC();
-		pspDebugInstallErrorHandler(MyExceptionHandler);
-		
-		pspSdkInstallNoDeviceCheckPatch();
-		pspSdkInstallNoPlainModuleCheckPatch();
-		
-		pspDebugScreenPrintf("- Loading networking modules...\n");
-		sceDisplayWaitVblankStart();
-		
-		if(pspSdkLoadInetModules() < 0)
-		{
-			pspDebugScreenPrintf("** Error, could not load inet modules\n");
-			sceDisplayWaitVblankStart();
-		}
-	}
-	else
-	{
-		pspDebugScreenPrintf("- F/W Version Found >= 2.0: Skipping Module Loading...\n");
-		sceDisplayWaitVblankStart();
-	}
-#endif
-	
-	pspDebugScreenPrintf("- Connecting to Access Point ...\n");
-	sceDisplayWaitVblankStart();
-	
-	shdparam.sched_priority = 32;
-	pthread_attr_setschedparam(&pthattr, &shdparam);
-	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
-	
-	//Wait while the network thread connects
-	while (networkThreadInitialized != truE)
-	{
-		sceKernelDelayThread(200*1000);
-	}
-	
-	shdparam.sched_priority = 35;
-	pthread_attr_setschedparam(&pthattr, &shdparam);
-	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
-	
-	sceKernelSleepThreadCB();
-	return 0;
-}
-
-/* Exit callback */
-int exit_callback(int arg1, int arg2, void *common)
-{
-	sceKernelExitGame();
-	return 0;
-}
-
-
 /* Functions for a user connecting to Wifi */
 
 #define multiselect(x,y,picks,size,selected,message); {\
@@ -495,6 +365,109 @@ void wifiChooseConnect()
 	{
 		connect_to_apctl(iAP);
 	}
+}
+
+/** Stand alone code: */
+#ifdef STAND_ALONE_APP
+/** -- Exception handler */
+void MyExceptionHandler(PspDebugRegBlock *regs)
+{
+	static int bFirstTime = 1;
+
+	if (bFirstTime)
+	{
+		pspDebugScreenInit();
+		pspDebugScreenSetBackColor(0x000000FF);
+		pspDebugScreenSetTextColor(0xFFFFFFFF);
+		pspDebugScreenClear();
+
+		pspDebugScreenPrintf("Links2 -- Exception Caught:\n");
+		pspDebugScreenPrintf("Please provide the following information when filing a bug report:\n\n");
+		pspDebugScreenPrintf("Exception Details:\n");
+		pspDebugDumpException(regs);
+		pspDebugScreenPrintf("\nHolding select to capture a shot of this screen for reference\n");
+		pspDebugScreenPrintf("may or may not work at this point.\n");
+		pspDebugScreenPrintf("\nPlease Use the Home Menu to return to the VSH.\n");
+		pspDebugScreenPrintf("-----------------------------------------------------------------\n");
+
+		bFirstTime = 0;
+	}
+	pspDebugScreenPrintf("******* Important Registers: epc=0x%x ra=0x%x\n", regs->epc, regs->r[31]);
+
+	wait_for_triangle("");
+	sceKernelExitGame();
+}
+
+int main(int argc, char **argv)
+{
+	pthread_t pthid;
+	pthread_attr_t pthattr;
+	struct sched_param shdparam;
+#ifndef DEBUGMODE	
+	int kmode_is_available = (sceKernelDevkitVersion() < 0x02000010); /** Copied from SDL_psp_main.c */
+#endif
+
+	pthread_attr_init(&pthattr);
+	shdparam.sched_policy = SCHED_OTHER;
+	
+	shdparam.sched_priority = 32;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, CallbackThread, NULL);
+	
+	pspDebugScreenInit();
+	pspDebugScreenPrintf("Links2 For PSP\n\n");
+	
+#ifndef DEBUGMODE
+	if (kmode_is_available) 
+	{
+		pspKernelSetKernelPC();
+		pspDebugInstallErrorHandler(MyExceptionHandler);
+		
+		pspSdkInstallNoDeviceCheckPatch();
+		pspSdkInstallNoPlainModuleCheckPatch();
+		
+		pspDebugScreenPrintf("- Loading networking modules...\n");
+		sceDisplayWaitVblankStart();
+		
+		if(pspSdkLoadInetModules() < 0)
+		{
+			pspDebugScreenPrintf("** Error, could not load inet modules\n");
+			sceDisplayWaitVblankStart();
+		}
+	}
+	else
+	{
+		pspDebugScreenPrintf("- F/W Version Found >= 2.0: Skipping Module Loading...\n");
+		sceDisplayWaitVblankStart();
+	}
+#endif
+	
+	pspDebugScreenPrintf("- Connecting to Access Point ...\n");
+	sceDisplayWaitVblankStart();
+	
+	shdparam.sched_priority = 32;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, StartNetworkThread, NULL);
+	
+	//Wait while the network thread connects
+	while (networkThreadInitialized != truE)
+	{
+		sceKernelDelayThread(200*1000);
+	}
+	
+	shdparam.sched_priority = 35;
+	pthread_attr_setschedparam(&pthattr, &shdparam);
+	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
+	
+	sceKernelSleepThreadCB();
+	return 0;
+}
+
+/* Exit callback */
+int exit_callback(int arg1, int arg2, void *common)
+{
+	sceKernelExitGame();
+	return 0;
 }
 
 /* Callback thread */

@@ -30,11 +30,17 @@ static:
 packages:
 	make clean
 	make static
-	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Static.zip *.txt static/
+	make static_zip
 	make clean_objects
 	make dynamic
-	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Dynamic.zip *.txt dynamic/
+	make dynamic_zip
 	echo "Ready."
+
+dynamic_zip:
+	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Dynamic.zip *.txt dynamic/
+	
+static_zip:	
+	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Static.zip *.txt static/
 
 exports:
 	cd $(PSPRADIO_DIR) && psp-build-exports -s exports.exp
@@ -64,7 +70,7 @@ extra_plugins:
 	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics/.
 
 app_links2:
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre21/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) prepare prx install_prx
 
 game_psptris:
@@ -96,7 +102,7 @@ clean_extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make clean
 	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
 	cd $(PLUGINS_DIR)/APP_Retawq    && make clean2
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre20/build-psp && make clean
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre21/build-psp && make clean
 	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin clean
 
 skin_packs:

@@ -1,7 +1,7 @@
 What's New for PSPRadio
 ========================
 
-0.38.10 (r1157)(2006-05-19)
+0.38.10 (r1158)(2006-05-19)
 NEW FEATURES
 (raf) Core/(Links2): Updated/enhanced pthreads implementation.
 (raf) Core/SHOUTcast: The SHOUTcast request string can now be specified in the configuration file.
