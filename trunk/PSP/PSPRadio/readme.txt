@@ -1,20 +1,16 @@
-PSPRadio by Raf 0.38.09 2006-04-06
-=====================================
-
-****
-This is a Preview version!
-****
+PSPRadio 0.38.10 2006-05-19
+============================
 
 -Official blog:  http://rafpsp.blogspot.com
--Offical forums: http://pspradio.berlios.de/phpBB/index.php
--Official subversion repo: http://svn.berlios.de/viewcvs/pspradio/trunk/PSP/
+-Offical forums: http://pspradio.sourceforge.net/phpBB/index.php
+-Official subversion repo: https://svn.sourceforge.net/svnroot/pspradio/trunk/PSP
 
 -No official documentation available yet.
 
-In the meantime, go to http://pspradio.berlios.de/phpBB/index.php and look 
+In the meantime, go to http://pspradio.sourceforge.net/phpBB/index.php and look 
 for setup and configuration guides under Guides.
 
-The developer would like to thank BerliOS for providing hosting for this
+The developer would like to thank BerliOS.de and SourceForge.net for providing hosting for this
 open source project.
 
 This project is protected under the GPL license.
@@ -24,25 +20,24 @@ Use at your own risk.
 
 Quick Installation Guide:
 -------------------------
--Copy the folders "PSPRadio" and "PSPRadio%" to your PSP under "\PSP\GAME\".
+-Copy the folders "__SCE__PSPRadio" and "%__SCE__PSPRadio" to your PSP under "\PSP\GAME\".
 
 Credits
 -------
 Development:
-Raf:       Lead, Concept, Core, Decoders, TextUI
-JPFouch48: GraphicsUI (currently disabled)
-Sandberg:  3D UI, enchancements, bug fixes, new secret UI in the works...
+Raf:       Lead, Concept, Core, Decoders, TextUI.
+Sandberg:  3D UI, Text 3D UI, PSPTris Plugin, Enchancements, bug fixes.
+Danzel:    Danzeff OSK, Links2 connection selector.
 
 Other Routines:
 echto:	SHOUTcast.com interface, zlib routines.
 
-Art/Other:
--Albadross:  TextUI Backgrounds/Skins/Documentation/Ideas/Configurations.
+Art:
+-Semtex199:  TextUI Backgrounds, Iconset, PSPTris art, Links2 homepage art, 3D UI Art.
 -HalfastII:  Iconset/Skin Tweaking/Config Tweaking/Ideas/Forum Moderation/Testing/Lots of Help.
+-Albadross:  TextUI Backgrounds/Skins/Documentation/Ideas/Configurations.
 -handojinUK: Iconset
 -harbringer: Iconset, default GraphicsUI theme
--Mr Pochi:   Iconset
--Semtex:     TextUI Backgrounds, Iconset
 
 Thanks
 ------
