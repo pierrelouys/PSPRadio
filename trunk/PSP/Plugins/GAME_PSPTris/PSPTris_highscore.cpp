@@ -30,6 +30,8 @@
 
 #define		HIGHSCORE_COUNT		10
 
+static char highscore_name[1024];
+
 static highscore_str	highscore[] =	{
 										/* For classic */
 										{10000, "PSP",  1},
@@ -62,12 +64,9 @@ static FILE				*fhandle;
 
 void PSPTris_highscore_init(char *cwd)
 {
-	char path[1024];
+	sprintf(highscore_name, "%s/highscore.dat", cwd);
 
-	/* Start playing menu module */
-	sprintf(path, "%s/highscore.dat", cwd);
-
-	fhandle = fopen(path, "a+");
+	fhandle = fopen(highscore_name, "a+");
 	if (fhandle != NULL)
 		{
 		int bytes;
@@ -139,7 +138,7 @@ highscore_str *table = highscore + game_type * HIGHSCORE_COUNT;
 	memcpy(&table[new_highscore->rank - 1], new_highscore, sizeof(highscore_str));
 
 	/* save the current highscore list to highscore.dat */
-	fhandle = fopen("./highscore.dat", "w");
+	fhandle = fopen(highscore_name, "w");
 
 	if (fhandle != NULL)
 		{
