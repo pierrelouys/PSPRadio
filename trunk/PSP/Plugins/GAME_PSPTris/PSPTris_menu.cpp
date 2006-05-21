@@ -184,7 +184,7 @@ void PSPTris_load_background()
 {
 	char filename[MAXPATHLEN];
 
-	sprintf(filename, "%s/Textures/psptris_background.png", mCwd);
+	sprintf(filename, "%s/Textures/psptris_background_01.png", mCwd);
 	backimage = (u8 *) memalign(16, SCR_WIDTH * SCR_HEIGHT * PIXEL_SIZE);
 
 	if (backimage == NULL)
