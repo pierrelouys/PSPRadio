@@ -32,6 +32,7 @@
 #include "PSPTris_menu.h"
 #include "PSPKeyHandler.h"
 #include "valloc.h"
+#include "jsaRand.h"
 
 #if !defined(DYNAMIC_BUILD)
 PSP_MODULE_INFO("PSPTRIS", 0x0000, 0, 1);
@@ -143,6 +144,9 @@ int main(int argc, char *argv[])
     //init callbacks
     SetupCallbacks();
 #endif /* !defined(DYNAMIC_BUILD) */
+
+	/* seed the random number generator */
+	jsaRandInit();
 
 	/* Mark memory for screens */
 	(void)valloc(2*FRAME_SIZE + ZBUF_SIZE);

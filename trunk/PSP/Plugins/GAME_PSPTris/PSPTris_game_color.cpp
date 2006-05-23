@@ -301,7 +301,7 @@ static void PSPTris_game_fill_empty()
 			{
 			if (playfield[x][y][LAYER_BRICKS] == 0)
 				{
-				playfield[x][y][LAYER_BRICKS] 		= (PSPTris_blockrand()%6)+8;;
+				playfield[x][y][LAYER_BRICKS] 		= (PSPTris_blockrand()%6)+8;
 				playfield[x][y][LAYER_ATTRIBUTES] 	= FIELD_NONE;
 				}
 			}

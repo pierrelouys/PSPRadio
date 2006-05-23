@@ -3,7 +3,7 @@ What's new for PSPTris
 Version 0.7 (xxth of xxx 2006)
 --------------------------------
 Fixes:
-	- xxx
+	- Replaced internal random number algorithm with the PSPs native functionality. Should give more randomness.
 
 Features:
 	- xxx

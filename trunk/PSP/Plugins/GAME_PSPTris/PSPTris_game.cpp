@@ -34,6 +34,7 @@
 #include "PSPTris_menu.h"
 #include "PSPTris_highscore.h"
 #include "PSPTris_audio.h"
+#include "jsaRand.h"
 
 #include "danzeff.h"
 
@@ -46,21 +47,9 @@ static int			gametype = GAMETYPE_CLASSIC;
 static moving_brick	*dynamic_brick_list = NULL;
 static moving_brick	*last_in_list = NULL;
 
-
-/* From POSIX  1003.1-2003 (modified) */
-
-static unsigned long next = 114343;
-
 int PSPTris_blockrand(void)
 {
-	next = next * 1103515245 + 12345;
-	return((unsigned)(next/65536) % BRICK_COUNT);
-}
-
-static float myrandf(void)
-{
-	next = next * 1103515245 + 12345;
-	return((unsigned)(next/65536) % 1024);
+	return jsaRandRange(0, BRICK_COUNT);
 }
 
 void PSPTris_game_start_music(char *cwd, char *name)
@@ -70,7 +59,6 @@ void PSPTris_game_start_music(char *cwd, char *name)
 
 	/* Start playing menu module */
 	sprintf(path, "%s%s", cwd, name);
-	printf("Loading : %s\n", path);
 	PSPTris_audio_play_module(path);
 #endif /* !defined(DYNAMIC_BUILD) */
 }
@@ -136,20 +124,15 @@ int PSPTris_get_ingame_mods(char *cwd, char *prefix, bool play, int number)
 
 void PSPTris_game_init(char *cwd)
 {
-u64		ticks;
 #if !defined(DYNAMIC_BUILD)
 int		nbr_modules;
 #endif /*!defined(DYNAMIC_BUILD)*/
-
-	/* Seed the rand generator */
-	(void)sceRtcGetCurrentTick(&ticks);
-	next = (unsigned long) ticks;
 
 #if !defined(DYNAMIC_BUILD)
 	/* Search for ingame modules */
 	nbr_modules = PSPTris_get_ingame_mods(cwd, "ingame_", false, 0);
 	/* Select random ingame module */
-	nbr_modules = (int)myrandf() % nbr_modules;
+	nbr_modules = jsaRandRange(0, nbr_modules);
 	/* Play ingame module */
 	PSPTris_get_ingame_mods(cwd, "ingame_", true, nbr_modules);
 #endif /*!defined(DYNAMIC_BUILD)*/
@@ -180,9 +163,9 @@ moving_brick	*new_brick;
 	new_brick->x			= x;
 	new_brick->y			= y;
 	new_brick->z			= 0;
-	new_brick->vx			= (myrandf() / 256.0f) - 2.0f;
-	new_brick->vy			= (myrandf() / 256.0f) - 2.0f;
-	new_brick->vz			= (myrandf() / 256.0f) - 2.0f;
+	new_brick->vx			= jsaRandRangef(-2.0f, 2.0f);
+	new_brick->vy			= jsaRandRangef(-2.0f, 2.0f);
+	new_brick->vz			= jsaRandRangef(-2.0f, 2.0f);
 	new_brick->g			= 0.05;
 	new_brick->texture_id	= texture_id;
 	new_brick->opacity		= 0xFF;

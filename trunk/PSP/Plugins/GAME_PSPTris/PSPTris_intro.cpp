@@ -33,6 +33,7 @@
 #include "PSPTris_audio.h"
 #include "jsaTextureCache.h"
 #include "jsaParticle.h"
+#include "jsaRand.h"
 
 #define		TRUE			1
 #define		FALSE			0
@@ -291,16 +292,6 @@ static jsaTextureFile __attribute__((aligned(16))) texture_list[] =
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(jsaTextureFile))
 
-/* From POSIX  1003.1-2003 (modified) */
-
-static unsigned long next = 114343;
-
-static int myrand(void)
-{
-	next = next * 1103515245 + 12345;
-	return((unsigned)(next/65536) % 480);
-}
-
 void PSPTris_intro_setup_particles(void)
 {
 	physical.gravitational = 0;
@@ -319,15 +310,15 @@ void PSPTris_intro_setup_particles(void)
 
 static void PSPTris_get_new_brick(int index)
 {
-	int new_brick = myrand() % 5;
+	int new_brick = jsaRand() % 5;
 
 	bricks[index].facecount = bricks_facecount[new_brick];
 	bricks[index].vertices 	= bricks_vertices[new_brick];
 	bricks[index].faces 	= bricks_faces[new_brick];
-	bricks[index].delay 	= myrand()+60;
+	bricks[index].delay 	= jsaRandRange(60,480+60);
 	bricks[index].rotation 	= 0;
-	bricks[index].x_offset 	= (float)((float)myrand() / 48) - 5.0f;
-	bricks[index].z_offset 	= (float)-((float)myrand() / 96) - 1.0f;
+	bricks[index].x_offset 	= (float)((float)jsaRandRange(0,480) / 48) - 5.0f;
+	bricks[index].z_offset 	= (float)-((float)jsaRandRange(0,480) / 96) - 1.0f;
 	bricks[index].y_offset 	= 4.0f;
 }
 
@@ -342,11 +333,6 @@ void PSPTris_setup_bricks()
 void PSPTris_intro_init(char *cwd)
 {
 	char path[1024];
-	u64	ticks;
-
-	/* Seed the rand generator */
-	(void)sceRtcGetCurrentTick(&ticks);
-	next = (unsigned long) ticks;
 
 	/* Start playing intro module */
 	sprintf(path, "%s/Music/intro.mod", cwd);
