@@ -70,7 +70,7 @@ int ModuleStartAPP()
 
 	pthread_attr_init(&pthattr);
 	shdparam.sched_policy = SCHED_OTHER;
-	shdparam.sched_priority = 35;
+	shdparam.sched_priority = 45;
 	pthread_attr_setschedparam(&pthattr, &shdparam);
 	pthread_create(&pthid, &pthattr, app_plugin_main, NULL);
 
