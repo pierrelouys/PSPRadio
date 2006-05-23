@@ -25,6 +25,7 @@
 enum 	{
 		GAMETYPE_CLASSIC,
 		GAMETYPE_COLOR,
+		GAMETYPE_ORIGINAL,
 		};
 
 enum	{
@@ -59,6 +60,17 @@ typedef struct _moving_brick
 	int				texture_id;
 	u8				opacity;
 } moving_brick;
+
+typedef struct
+{
+	int 	texture_id;
+	int		current_shape;
+	coord	current_pos;
+	coord	shape1[4];
+	coord	shape2[4];
+	coord	shape3[4];
+	coord	shape4[4];
+} brick;
 
 /* Prototypes */
 void PSPTris_game_init(char *cwd);

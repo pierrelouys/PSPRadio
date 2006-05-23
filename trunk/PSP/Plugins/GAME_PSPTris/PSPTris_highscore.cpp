@@ -44,7 +44,7 @@ static highscore_str	highscore[] =	{
 										{ 3000, "PSP",  8},
 										{ 2000, "PSP",  9},
 										{ 1000, "PSP", 10},
-										/* For classic */
+										/* For color */
 										{50000, "PSP",  1},
 										{45000, "PSP",  2},
 										{40000, "PSP",  3},
@@ -55,10 +55,18 @@ static highscore_str	highscore[] =	{
 										{15000, "PSP",  8},
 										{10000, "PSP",  9},
 										{ 5000, "PSP", 10},
+										/* For original */
+										{10000, "PSP",  1},
+										{ 9000, "PSP",  2},
+										{ 8000, "PSP",  3},
+										{ 7000, "PSP",  4},
+										{ 6000, "PSP",  5},
+										{ 5000, "PSP",  6},
+										{ 4000, "PSP",  7},
+										{ 3000, "PSP",  8},
+										{ 2000, "PSP",  9},
+										{ 1000, "PSP", 10},
 										};
-
-static highscore_str	*classic_hs;
-static highscore_str	*color_hs;
 
 static FILE				*fhandle;
 
@@ -100,9 +108,6 @@ void PSPTris_highscore_init(char *cwd)
 		{
 		printf("Couldn't open or create highscore.dat!!!\n");
 		}
-
-	classic_hs	= highscore;
-	color_hs	= highscore+10;
 }
 
 u32 PSPTris_highscore_check(u32 score, u32 game_type)

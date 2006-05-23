@@ -1,4 +1,4 @@
-PSPTris version 0.5 by Sandberg
+PSPTris version 0.7 by Sandberg
 -------------------------------
 
 
@@ -36,8 +36,9 @@ Music by Prophet
 Game types
 ----------
 
-Classic - This is the classic tetris game that we all know and love :-)
-Color   - In this game you'll have to match 2 or more balls in the same color.
+Classic  - This is the classic tetris game that we all know and love :-)
+Color    - In this game you'll have to match 2 or more balls in the same color.
+Original - The same as Classic but with the screen rotated 90 degrees.
 
 
 Game instructions
@@ -75,6 +76,21 @@ The points are not linear, i.e. removing 2 times 2 balls will give less points t
 The formula for the points are : points(N) = N*10 + (N-1)*10 .. + 10
 
 e.g. : 2 balls gives 2*10 + 1*10 = 20 points, and 4 balls give 4*10 + 3*10 + 2*10 + 1*10 = 100 points.
+
+
+Original:
+In the game use LEFT (or LEFT_TRIGGER), RIGHT (or RIGHT_TRIGGER) and DOWN for moving the bricks.
+UP will drop the current brick.
+CROSS will rotate the current brick.
+START will pause the game.
+
+Points :
+dropping the brick gives 5 points
+1 line = 10  * level
+2 line = 40  * level
+3 line = 80  * level
+4 line = 120 * level
+
 
 
 Entering names on the highscore screen

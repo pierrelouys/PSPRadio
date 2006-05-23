@@ -30,6 +30,7 @@
 #include "PSPTris_game.h"
 #include "PSPTris_game_classic.h"
 #include "PSPTris_game_color.h"
+#include "PSPTris_game_original.h"
 #include "PSPTris_menu.h"
 #include "PSPTris_highscore.h"
 #include "PSPTris_audio.h"
@@ -157,11 +158,14 @@ int		nbr_modules;
 		{
 		PSPTris_game_init_classic(cwd);
 		}
-	else
+	else if (gametype == GAMETYPE_COLOR)
 		{
 		PSPTris_game_init_color(cwd);
 		}
-
+	else
+		{
+		PSPTris_game_init_original(cwd);
+		}
 	sceKernelDcacheWritebackAll();
 }
 
@@ -391,9 +395,13 @@ void PSPTris_game_start_level(int level)
 		{
 		PSPTris_game_start_level_classic(level);
 		}
-	else
+	else if (gametype == GAMETYPE_COLOR)
 		{
 		PSPTris_game_start_level_color(level);
+		}
+	else
+		{
+		PSPTris_game_start_level_original(level);
 		}
 }
 
@@ -409,9 +417,13 @@ void PSPTris_game_stop()
 		{
 		PSPTris_game_stop_classic();
 		}
-	else
+	else if (gametype == GAMETYPE_COLOR)
 		{
 		PSPTris_game_stop_color();
+		}
+	else
+		{
+		PSPTris_game_stop_original();
 		}
 }
 
@@ -435,9 +447,13 @@ static	bool game_pause = false;
 			{
 			exit_game = PSPTris_game_render_classic(key_state, mytcache);
 			}
-		else
+		else if (gametype == GAMETYPE_COLOR)
 			{
 			exit_game = PSPTris_game_render_color(key_state, mytcache);
+			}
+		else
+			{
+			exit_game = PSPTris_game_render_original(key_state, mytcache);
 			}
 		}
 	else

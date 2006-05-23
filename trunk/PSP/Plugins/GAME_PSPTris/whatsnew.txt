@@ -3,6 +3,14 @@ What's new for PSPTris
 Version 0.7 (xxth of xxx 2006)
 --------------------------------
 Fixes:
+	- xxx
+
+Features:
+	- xxx
+
+Version 0.61 (22th of May 2006)
+--------------------------------
+Fixes:
 	- Bugfix in highscore screen where the name wasn't shown.
 	- Exit via home-button now works again.
 	- Selecting pause on the OSK caused the text not to render.

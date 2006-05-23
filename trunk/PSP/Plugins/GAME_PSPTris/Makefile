@@ -4,7 +4,7 @@ KXPLOIT_SECONDARY_DIR = "%__SCE__PSPTris"
 PSP_EBOOT_ICON = eboot_resource/icon0.png
 PSP_EBOOT_PIC1 = eboot_resource/pic1.png
 
-OBJS = PSPTris_main.o PSPTris_intro.o PSPTris_audio.o PSPTris_menu.o PSPTris_game.o PSPTris_game_classic.o PSPTris_game_color.o PSPTris_credits.o PSPTris_highscore.o jsaParticle.o jsaTextureCache.o valloc.o PSPKeyHandler.o
+OBJS = PSPTris_main.o PSPTris_intro.o PSPTris_audio.o PSPTris_menu.o PSPTris_game.o PSPTris_game_classic.o PSPTris_game_original.o PSPTris_game_color.o PSPTris_credits.o PSPTris_highscore.o jsaParticle.o jsaTextureCache.o valloc.o PSPKeyHandler.o
 
 INCDIR = ../
 

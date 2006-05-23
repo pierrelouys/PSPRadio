@@ -89,8 +89,8 @@ static u8 opacity_main_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 #define	MENU_MAIN_ITEMS		(sizeof(menu_main_table) / sizeof(char *))
 
 static unsigned int menu_gt_selection = 0;
-static char *menu_gt_table[] = {"CLASSIC", "COLOR"};
-static u8 opacity_gt_table[] = {0xFF, 0xFF};
+static char *menu_gt_table[] = {"CLASSIC", "COLOR", "ORIGINAL"};
+static u8 opacity_gt_table[] = {0xFF, 0xFF, 0xFF};
 
 #define	MENU_GT_ITEMS		(sizeof(menu_gt_table) / sizeof(char *))
 
@@ -100,7 +100,7 @@ static u8 opacity_lvl_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 
 #define	MENU_LVL_ITEMS		(sizeof(menu_lvl_table) / sizeof(char *))
 
-static char *menu_hs_table[] = {"10000  JSA", "09000  JSA", "08000  JSA", "07000  JSA", "06000  JSA", "05000  JSA", "04000  JSA", "03000  JSA", "02000  JSA", "01000  JSA"};
+static char *menu_hs_table[] = {"10000  PSP", "09000  PSP", "08000  PSP", "07000  PSP", "06000  PSP", "05000  PSP", "04000  PSP", "03000  PSP", "02000  PSP", "01000  PSP"};
 static u8 opacity_hs_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 #define	MENU_HS_ITEMS		(sizeof(menu_hs_table) / sizeof(char *))
@@ -180,20 +180,21 @@ static jsaTextureFile __attribute__((aligned(16))) texture_list[] =
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(jsaTextureFile))
 
-void PSPTris_load_background()
+void PSPTris_load_background(char *name)
 {
-	char filename[MAXPATHLEN];
-
-	sprintf(filename, "%s/Textures/psptris_background_01.png", mCwd);
+	if (backimage)
+		{
+		free(backimage);
+		}
 	backimage = (u8 *) memalign(16, SCR_WIDTH * SCR_HEIGHT * PIXEL_SIZE);
 
 	if (backimage == NULL)
 		{
-		printf("Memory allocation error for background image..(%s)\n", filename);
+		printf("Memory allocation error for background image..(%s)\n", name);
 		return;
 		}
 
-	if (tcache->jsaTCacheLoadPngImage((const char *)filename, (u32 *)backimage) == -1)
+	if (tcache->jsaTCacheLoadPngImage((const char *)name, (u32 *)backimage) == -1)
 		{
 		printf("Failed loading background image..\n");
 		free(backimage);
@@ -468,7 +469,8 @@ void PSPTris_menu_init(char *cwd)
 	PSPTris_highscore_init(cwd);
 	PSPTris_update_highscore_table();
 
-	PSPTris_load_background();
+	sprintf(path, "%s/Textures/psptris_background_01.png", cwd);
+	PSPTris_load_background(path);
 	sceKernelDcacheWritebackAll();
 }
 
@@ -494,6 +496,13 @@ void PSPTris_handle_menu_main(u32 key_state)
 		case	PSP_CTRL_CROSS:
 			if (menu_main_selection == ACTION_START)
 				{
+				/* The original game needs to use another background */
+				if (menu_gt_selection == GAMETYPE_ORIGINAL)
+					{
+					char	path[1024];
+					sprintf(path, "%s/Textures/psptris_background_02.png", mCwd);
+					PSPTris_load_background(path);
+					}
 				PSPTris_stop_music();
 				PSPTris_game_init(mCwd);
 				game_started = true;
@@ -724,6 +733,13 @@ bool PSPTris_menu(u32 key_state, u32 *key_delay)
 		{
 		if (PSPTris_game_render(key_state, tcache))
 			{
+			/* Reload the menu background if needed */
+			if (menu_gt_selection == GAMETYPE_ORIGINAL)
+				{
+				char	path[1024];
+				sprintf(path, "%s/Textures/psptris_background_01.png", mCwd);
+				PSPTris_load_background(path);
+				}
 			PSPTris_start_music();
 			game_started = false;
 			repeat_delay = MENU_DELAY;

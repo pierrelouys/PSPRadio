@@ -1,5 +1,5 @@
 /*
-	PSPTris - The game - Classic Game
+	PSPTris - The game - Original Game
 	Copyright (C) 2006  Jesper Sandberg
 
 	This program is free software; you can redistribute it and/or
@@ -17,15 +17,15 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef _PSPTRIS_GAME_CLASSIC_H_
-#define _PSPTRIS_GAME_CLASSIC_H_
+#ifndef _PSPTRIS_GAME_ORIGINAL_H_
+#define _PSPTRIS_GAME_ORIGINAL_H_
 
 #include "jsaTextureCache.h"
 
 /* Prototypes */
-void PSPTris_game_init_classic(char *cwd);
-bool PSPTris_game_render_classic(u32 key_state, jsaTextureCache *tcache);
-void PSPTris_game_start_level_classic(int level);
-void PSPTris_game_stop_classic();
+void PSPTris_game_init_original(char *cwd);
+bool PSPTris_game_render_original(u32 key_state, jsaTextureCache *tcache);
+void PSPTris_game_start_level_original(int level);
+void PSPTris_game_stop_original();
 
-#endif /* _PSPTRIS_GAME_CLASSIC_H_ */
+#endif /* _PSPTRIS_GAME_ORIGINAL_H_ */

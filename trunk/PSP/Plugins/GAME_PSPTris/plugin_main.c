@@ -18,7 +18,7 @@
 void game_plugin_main();
 
 PSP_MODULE_INFO("PSPTris", 0, 1, 1);
-PSP_HEAP_SIZE_KB(4096);
+PSP_HEAP_SIZE_KB(6*1024);
 
 int ModuleStartGAME()
 {
@@ -29,7 +29,7 @@ int ModuleStartGAME()
 
 	int thid = 0;
 
-	thid = sceKernelCreateThread("game_thread", (void*) game_plugin_main, 0x25, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
+	thid = sceKernelCreateThread("game_thread", (void*) game_plugin_main, 45, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
 		sceKernelStartThread(thid, 0, 0);
