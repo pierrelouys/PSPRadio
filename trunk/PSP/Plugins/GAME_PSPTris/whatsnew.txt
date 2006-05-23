@@ -4,6 +4,7 @@ Version 0.7 (xxth of xxx 2006)
 --------------------------------
 Fixes:
 	- Replaced internal random number algorithm with the PSPs native functionality. Should give more randomness.
+	- Fixed the rotation of the L shaped bricks.
 
 Features:
 	- xxx

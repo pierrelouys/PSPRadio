@@ -71,18 +71,18 @@ static const brick	green = {TEX_BRICK_GREEN,
 static const brick	lime = {TEX_BRICK_LIME,
 							0,
 							{0, 0},
-							{{0,0},{0,1},{0,2},{1,2}},
+							{{1,0},{1,1},{1,2},{2,2}},
 							{{0,1},{1,1},{2,1},{2,0}},
 							{{0,0},{1,0},{1,1},{1,2}},
-							{{0,0},{0,1},{1,0},{2,0}},
+							{{0,1},{0,2},{1,1},{2,1}},
 							};
 
 static const brick	orange = {TEX_BRICK_ORANGE,
 							0,
 							{0, 0},
 							{{1,0},{1,1},{1,2},{0,2}},
-							{{0,0},{1,0},{2,0},{2,1}},
-							{{0,0},{1,0},{0,1},{0,2}},
+							{{0,1},{1,1},{2,1},{2,2}},
+							{{1,0},{2,0},{1,1},{1,2}},
 							{{0,0},{0,1},{1,1},{2,1}},
 							};
 
@@ -436,8 +436,9 @@ static void PSPTris_render_next_brick()
 	shape = PSPTris_game_get_shape(next_brick);
 	PSPTris_game_get_size(next_brick, &x, &y);
 
-	/* hack for the blue brick :-) */
-	if (next_brick.texture_id == TEX_BRICK_BLUE)
+	/* hack for the blue and lime bricks :-) */
+	if ((next_brick.texture_id == TEX_BRICK_BLUE) ||
+	    (next_brick.texture_id == TEX_BRICK_LIME))
 		{
 		cx = 380 + ((32 - x * 8) / 2) - 8;
 		cy = 165 + ((32 - y * 8) / 2);
