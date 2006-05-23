@@ -5,9 +5,11 @@ Version 0.7 (xxth of xxx 2006)
 Fixes:
 	- Replaced internal random number algorithm with the PSPs native functionality. Should give more randomness.
 	- Fixed the rotation of the L shaped bricks.
+	- The gametype is now selected via start, instead of via it's own menu.
 
 Features:
 	- xxx
+
 
 Version 0.61 (22th of May 2006)
 --------------------------------

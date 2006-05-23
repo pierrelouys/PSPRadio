@@ -62,7 +62,6 @@ enum MENU_LIST {
 
 enum MENU_ACTIONS {
 	ACTION_START,
-	ACTION_GAMETYPE,
 	ACTION_LEVEL,
 	ACTION_INSTRUCTIONS,
 	ACTION_CREDITS,
@@ -83,8 +82,8 @@ static bool exit_plugin = false;
 static u32	repeat_delay = MENU_DELAY;
 
 static unsigned int menu_main_selection = 0;
-static char *menu_main_table[] = {"START", "GAME TYPE", "LEVEL", "INSTRUCTIONS", "CREDITS", "HIGHSCORE", "EXIT"};
-static u8 opacity_main_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static char *menu_main_table[] = {"START", "LEVEL", "INSTRUCTIONS", "CREDITS", "HIGHSCORE", "EXIT"};
+static u8 opacity_main_table[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 #define	MENU_MAIN_ITEMS		(sizeof(menu_main_table) / sizeof(char *))
 
@@ -496,20 +495,6 @@ void PSPTris_handle_menu_main(u32 key_state)
 		case	PSP_CTRL_CROSS:
 			if (menu_main_selection == ACTION_START)
 				{
-				/* The original game needs to use another background */
-				if (menu_gt_selection == GAMETYPE_ORIGINAL)
-					{
-					char	path[1024];
-					sprintf(path, "%s/Textures/psptris_background_02.png", mCwd);
-					PSPTris_load_background(path);
-					}
-				PSPTris_stop_music();
-				PSPTris_game_init(mCwd);
-				game_started = true;
-				repeat_delay = GAME_DELAY;
-				}
-			else if (menu_main_selection == ACTION_GAMETYPE)
-				{
 				active_menu = MENU_GAMETYPE;
 				}
 			else if (menu_main_selection == ACTION_LEVEL)
@@ -569,6 +554,17 @@ void PSPTris_handle_menu_gametype(u32 key_state)
 		{
 		case	PSP_CTRL_CROSS:
 			PSPTris_game_type(menu_gt_selection);
+			/* The original game needs to use another background */
+			if (menu_gt_selection == GAMETYPE_ORIGINAL)
+				{
+				char	path[1024];
+				sprintf(path, "%s/Textures/psptris_background_02.png", mCwd);
+				PSPTris_load_background(path);
+				}
+			PSPTris_stop_music();
+			PSPTris_game_init(mCwd);
+			game_started = true;
+			repeat_delay = GAME_DELAY;
 			active_menu = MENU_MAIN;
 			break;
 		case	PSP_CTRL_UP:
