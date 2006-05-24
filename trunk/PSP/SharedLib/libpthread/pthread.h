@@ -19,6 +19,10 @@
 #ifndef PTHREAD_H
 	#define PTHREAD_H
 	
+	#ifdef __cplusplus
+	extern "C" {
+	#endif
+	
 	typedef void (*thread_function)(void *);
 	
 	#define PTHREAD_SCOPE_SYSTEM  10 /* Kernel */
@@ -66,4 +70,8 @@
 	/** Mutexes */
 	///int pthread_mutex_init, unlock, trylock, destroy
 	
+	#ifdef __cplusplus
+	}
+	#endif
+
 #endif
