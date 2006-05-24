@@ -535,10 +535,13 @@ void OptionsScreen::OnOptionActivation()
 			{
 				m_UI->DisplayMessage("Downloading latest SHOUTcast Database. . .");
 				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
-				if (true == m_ScreenHandler->DownloadSHOUTcastDB())
+				if (true == m_ScreenHandler->DownloadNewSHOUTcastDB())
 				{
 					timeLastTime = timeNow; /** Only when successful */
-					((SHOUTcastScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->LoadLists();
+					int iItemNo = ((SHOUTcastScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->LoadLists();
+					char strMsg[45];
+					sprintf(strMsg, "* %d Radio Stations Retrieved *", iItemNo);
+					m_UI->DisplayMessage(strMsg);
 				}
 			}
 			else

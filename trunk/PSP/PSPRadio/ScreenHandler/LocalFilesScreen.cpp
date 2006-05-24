@@ -53,7 +53,7 @@ LocalFilesScreen::~LocalFilesScreen()
 	}
 }
 
-void LocalFilesScreen::LoadLists()
+int LocalFilesScreen::LoadLists()
 {
 	if (!m_Lists)
 	{
@@ -70,4 +70,6 @@ void LocalFilesScreen::LoadLists()
 
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 	}
+
+	return 0;
 }

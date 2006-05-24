@@ -11,7 +11,7 @@
 			LocalFilesScreen(int Id, CScreenHandler *ScreenHandler);
 			~LocalFilesScreen();
 			
-			void LoadLists();
+			int LoadLists();
 
 		protected:
 			char *m_strPath;

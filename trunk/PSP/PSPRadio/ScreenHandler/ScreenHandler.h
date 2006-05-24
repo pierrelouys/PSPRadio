@@ -127,6 +127,7 @@
 			void OnHPRMReleased(u32 iHPRMMask);
 	
 			bool DownloadSHOUTcastDB();
+			bool DownloadNewSHOUTcastDB();
 	
 			IScreen *GetCurrentScreen(){return m_CurrentScreen;}
 	#ifdef DYNAMIC_BUILD

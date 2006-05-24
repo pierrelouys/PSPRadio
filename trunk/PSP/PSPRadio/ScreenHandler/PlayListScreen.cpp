@@ -50,7 +50,7 @@ PlayListScreen::~PlayListScreen()
 	}
 }
 
-void PlayListScreen::LoadLists()
+int PlayListScreen::LoadLists()
 {
 	if (!m_Lists)
 	{
@@ -70,6 +70,8 @@ void PlayListScreen::LoadLists()
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 
 	}
+
+	return 0;
 }
 
 void PlayListScreen::Activate(IPSPRadio_UI *UI)

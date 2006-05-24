@@ -10,7 +10,7 @@
 			PlayListScreen(int Id, CScreenHandler *ScreenHandler);
 			virtual ~PlayListScreen();
 			
-			virtual void LoadLists();
+			virtual int LoadLists();
 
 			virtual void Activate(IPSPRadio_UI *UI);
 

@@ -207,7 +207,7 @@ void CMetaDataContainerIndexer::PrevElement()
 #define SHOUTXML_TITLE_TAG					"<Name>"
 #define SHOUTXML_GENRE_TAG					"<Genre>"
 #define XML_END_TAG							"</"
-void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
+int CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 {
 	FILE *fd = NULL;
 	char strLine[256];
@@ -367,6 +367,176 @@ void CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 	Log(LOG_INFO, "LoadSHOUTcastXML(): Processed %d Elements", 
 		iCount);
 
+	return iCount;
+}
+
+
+#define NEW_SHOUTXML_URI_BASE					"http://www.shoutcast.com"
+//#define NEW_SHOUTXML_TUNEIN_BASE_TAG 					"<tunein base=\""
+#define NEW_SHOUTXML_TITLE_TAG					"<station name=\""
+#define NEW_SHOUTXML_ID_FIELD					"id=\""
+#define NEW_SHOUTXML_GENRE_FIELD				"genre=\""
+//http://www.shoutcast.com/sbin/tunein-station.pls?id=4698&amp;filename=playlist.pls
+#define NEW_SHOUTXML_URI_PREFIX					"http://www.shoutcast.com/sbin/tunein-station.pls?id="
+#define NEW_SHOUTXML_URI_POSTFIX				"&amp;filename=playlist.pls"
+int CMetaDataContainer::LoadNewSHOUTcastXML(char *strFileName)
+{
+	FILE *fd = NULL;
+	char strLine[256];
+	int iLines = 0;
+	MetaData *songdata;
+	char strURI[256];
+	char strTitle[256];
+	char strGenre[128];
+	int iCount = 0;
+	
+	enum shoutcastxml_states
+	{
+		WAITING_FOR_TITLE,
+		WAITING_FOR_ID,
+		WAITING_FOR_GENRE,
+	} shoutxml_state = WAITING_FOR_TITLE;
+	
+	songdata = new MetaData;
+	
+	fd = fopen(strFileName, "r");
+	
+	if(fd != NULL)
+	{
+		while ( !feof(fd) )
+		{
+			strLine[0] = 0;
+			fgets(strLine, 256, fd);
+			if (strlen(strLine) == 0 || strLine[0] == '\r' || strLine[0] == '\n')
+			{
+				continue;
+			}
+			if (strLine[0] == '<' && strLine[1] == '&')
+			{
+				/** A comment!, ignore */
+				continue;
+			}
+			
+			strLine[strlen(strLine)-1] = 0; /** Remove LF 0D*/
+			if (strLine[strlen(strLine)-1] == 0x0D) 
+				strLine[strlen(strLine)-1] = 0; /** Remove CR 0A*/
+			
+			/** This shouldn't happen at this point, but it won't hurt */
+			if (0 == strlen(strLine))
+			{
+				continue;
+			}
+			/** We have a line with data here */
+			
+			Log(LOG_VERYLOW, "line(%d) strLine='%s'", iLines, strLine);
+			char *Tag;
+			switch(shoutxml_state)
+			{
+				case WAITING_FOR_TITLE: 
+					Tag = strstr(strLine, NEW_SHOUTXML_TITLE_TAG);
+					if (Tag)
+					{
+						strcpy(strTitle, Tag + strlen(NEW_SHOUTXML_TITLE_TAG));
+						Log(LOG_VERYLOW, "line(%d) strLine='%s' strTitle = '%s'", iLines, strLine, strTitle);
+						
+						/* Terminate the string where the closing quotes are */
+						Tag = strchr(strTitle, '"');
+						if (Tag)
+						{
+							Tag[0] = 0;
+						}
+						
+						CorrectHTTPString(strTitle);
+						
+						shoutxml_state = WAITING_FOR_ID;
+					}
+//					break;
+				case WAITING_FOR_ID: 
+					Tag = strstr(strLine, NEW_SHOUTXML_ID_FIELD);
+					if (Tag)
+					{
+						strcpy(strURI, NEW_SHOUTXML_URI_PREFIX);
+						strcat(strURI, Tag + strlen(NEW_SHOUTXML_ID_FIELD));
+						strcat(strURI, NEW_SHOUTXML_URI_POSTFIX);
+						Log(LOG_VERYLOW, "line(%d) strLine='%s' strURI = '%s'", iLines, strLine, strURI);
+						if(strchr(strURI, '"'))
+						{
+							*strchr(strURI, '"') = 0;
+						}
+						shoutxml_state = WAITING_FOR_GENRE;
+					}
+//					break;
+				case WAITING_FOR_GENRE: 
+					Tag = strstr(strLine, NEW_SHOUTXML_GENRE_FIELD);
+					if (Tag)
+					{
+						strcpy(strGenre, Tag + strlen(NEW_SHOUTXML_GENRE_FIELD));
+						Log(LOG_VERYLOW, "line(%d) strLine='%s' strGenre = '%s'", iLines, strLine, strGenre);
+						
+						Tag = strchr(strTitle, '"');
+						if (Tag)
+						{
+							Tag[0] = 0;
+						}
+
+						/** Good!, all fields for this entry aquired, let's insert in the list! */
+						memset(songdata, 0, sizeof(MetaData));
+						Log(LOG_LOWLEVEL, "Adding SHOUTcast Entry: URI='%s' Title='%s' Genre='%s' to the list.", 
+							strURI, strTitle, strGenre);
+						memcpy(songdata->strURI,  strURI,  256);
+						songdata->strURI[255] = 0;
+						memcpy(songdata->strTitle, strTitle, 256);
+						songdata->strTitle[255] = 0;
+						memcpy(songdata->strGenre, strGenre, 128);
+						songdata->strGenre[127] = 0;
+						
+						if (0 == strlen(songdata->strGenre))
+						{
+							strcpy(songdata->strGenre, "Other");
+						}
+
+						ProcessGenre(songdata);
+
+						iCount++;
+
+						shoutxml_state = WAITING_FOR_TITLE;
+					}
+					break;					
+			}
+			
+			iLines++;
+		}
+		fclose(fd), fd = NULL;
+		
+		/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
+		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+		GetCurrentContainerIteratorRef()++; /** Skip 600 listing */
+		for (; GetCurrentContainerIteratorRef() != m_containerListMap.end(); GetCurrentContainerIteratorRef()++)
+		{
+			m_CurrentSelectionIndexer->AssociateElementList();
+			if (GetElementList())
+			{
+				GetCurrentElementListRef().sort(SortMetaDataByTitle);
+			}
+		}
+		
+		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+		m_CurrentSelectionIndexer->AssociateElementList();
+	}
+	else
+	{
+		ReportError("Unable to open XML file '%s'", strFileName);
+	}
+	
+	if (songdata)
+	{
+		delete(songdata), songdata = NULL;
+	}
+
+	Log(LOG_INFO, "LoadNewSHOUTcastXML(): Processed %d Elements", 
+		iCount);
+
+	return iCount;
 }
 
 void CMetaDataContainer::ProcessGenre(MetaData *metadata)

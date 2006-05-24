@@ -28,11 +28,15 @@ static:
 	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
 
 packages:
+	make download_shoutcast_db
 	make clean
 	make static
 	make static_zip
 	make clean_objects
 	make dynamic
+	make extra_plugins
+	make app_links2
+	make game_psptris
 	make dynamic_zip
 	echo "Ready."
 
@@ -77,6 +81,10 @@ game_psptris:
 	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+
+download_shoutcast_db:
+	wget -O PSPRadio/SHOUTcast/newdb.xml "http://www.shoutcast.com/sbin/newxml.phtml?genre=Top500"
+	chmod a+w PSPRadio/SHOUTcast/newdb.xml
 
 clean_plugin_common_objects:
 	rm -fv $(PLUGINS_DIR)/*.o

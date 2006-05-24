@@ -188,7 +188,7 @@ int OptionsPluginMenuScreen::RetrievePlugins(Options &Option, char *strPrefix, c
 		memset(&direntry, 0, sizeof(SceIoDirent));
 		while(sceIoDread(dfd, &direntry) > 0)
 		{
-			if((direntry.d_stat.st_attr & FIO_SO_IFREG)) /** It's a file */
+			if(!(direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a file -- FIO_SO_IFREG doesn't work all the time?*/
 			{
 				if (strcmp(direntry.d_name, ".") == 0)
 					continue;

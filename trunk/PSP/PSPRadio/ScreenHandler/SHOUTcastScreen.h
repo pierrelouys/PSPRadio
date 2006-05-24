@@ -12,7 +12,7 @@
 			SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler);
 			~SHOUTcastScreen();
 
-			void LoadLists();
+			int LoadLists();
 		
 		private:
 	};

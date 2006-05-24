@@ -79,7 +79,8 @@
 			/** Population */
 			void LoadDirectory(char *strPath);
 			void LoadPlaylistsFromDirectory(char *strDirectory);
-			void LoadSHOUTcastXML(char *strFileName);
+			int LoadSHOUTcastXML(char *strFileName);
+			int LoadNewSHOUTcastXML(char *strFileName);
 			
 
 			Side GetCurrentSide() { return m_CurrentSide; }

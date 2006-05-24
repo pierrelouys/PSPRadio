@@ -41,6 +41,10 @@
 #define SHOUTCAST_DB_FILENAME					"SHOUTcast/db.xml"
 #define SHOUTCAST_DB_FILENAME_BACKUP			"SHOUTcast/db.xml.bk"
 
+/** New */
+#define DB_NEW_REQUEST_STRING					"http://www.shoutcast.com/sbin/newxml.phtml?genre=Top500"
+#define DB_NEW_FILENAME							"SHOUTcast/newdb.xml"
+
 SHOUTcastScreen::SHOUTcastScreen(int Id, CScreenHandler *ScreenHandler)
 	:PlayListScreen(Id, ScreenHandler)
 {
@@ -54,8 +58,10 @@ SHOUTcastScreen::~SHOUTcastScreen()
 
 }
 
-void SHOUTcastScreen::LoadLists()
+int SHOUTcastScreen::LoadLists()
 {
+	int iElementNo = 0;
+
 	if (!m_Lists)
 	{
 		m_Lists = new CMetaDataContainer();
@@ -66,12 +72,15 @@ void SHOUTcastScreen::LoadLists()
 		Log(LOG_LOWLEVEL, "StartScreen::PSPRADIO_SCREEN_SHOUTCAST_BROWSER");
 		m_Lists->Clear();
 		
-		Log(LOG_LOWLEVEL, "Loading xml file '%s'.", SHOUTCAST_DB_FILENAME);
-		m_Lists->LoadSHOUTcastXML(SHOUTCAST_DB_FILENAME);
+		//Log(LOG_LOWLEVEL, "Loading xml file '%s'.", SHOUTCAST_DB_FILENAME);
+		//iElementNo = m_Lists->LoadSHOUTcastXML(SHOUTCAST_DB_FILENAME);
+		Log(LOG_LOWLEVEL, "Loading xml file '%s'.", DB_NEW_FILENAME);
+		iElementNo = m_Lists->LoadNewSHOUTcastXML(DB_NEW_FILENAME);
 
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
-
 	}
+
+	return iElementNo;
 }
 
 bool UnCompress(char *strSourceFile, char *strDestFile);
@@ -168,6 +177,60 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 	return success;
 }
 
+bool CScreenHandler::DownloadNewSHOUTcastDB()
+{
+	bool success = false;
+	CPSPStream *WebConnection = new CPSPStream();
+	char *strRequestString = DB_NEW_REQUEST_STRING;
+
+	/** First, we back-up the db in case the download fails.. */
+	int iRet = rename(DB_NEW_FILENAME, SHOUTCAST_DB_FILENAME_BACKUP);
+
+	strRequestString = strdup(gPSPRadio->GetConfig()->GetString("SHOUTCAST:DB_NEW_REQUEST_STRING", 
+							  DB_NEW_REQUEST_STRING));
+	
+	WebConnection->SetURI(strRequestString);
+	WebConnection->Open();
+	if (true == WebConnection->IsOpen())
+	{
+		bool bRet;
+		size_t bytes;
+
+		Log(LOG_INFO, "DownloadNewSHOUTcastDB(): Connected - Downloading '%s'", 
+			DB_NEW_FILENAME);
+		bRet = WebConnection->DownloadToFile((char*)(DB_NEW_FILENAME), bytes);
+		
+		if (true == bRet)
+		{
+			WebConnection->Close();
+			delete WebConnection, WebConnection = NULL;
+			Log(LOG_INFO, "DownloadNewSHOUTcastDB(): DB Retrieved. (%dbytes)", bytes);
+			if (bytes > 0)
+			{
+				success = true;
+			}
+		}
+	}
+	else
+	{
+		Log(LOG_ERROR, "Error connecting to '%s'", strRequestString);
+		m_UI->DisplayErrorMessage("Couldn't connect to SHOUTcast.com ...");
+	}
+	
+	if (false == success)
+	{
+		/** We restore the back-up of the db, as the download failed.. */
+		Log(LOG_ERROR, "Error, so restoring from backup '%s'", SHOUTCAST_DB_FILENAME_BACKUP);
+		iRet = rename(SHOUTCAST_DB_FILENAME_BACKUP, DB_NEW_FILENAME);
+	}
+	else
+	{
+		Log(LOG_LOWLEVEL, "Success, so removing backup '%s'", SHOUTCAST_DB_FILENAME_BACKUP);
+		remove(SHOUTCAST_DB_FILENAME_BACKUP);
+	}
+
+	return success;
+}
 
 /** Raf: Thanks to echto for the uncompression routines! */
 #include "zlib.h"
