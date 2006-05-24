@@ -29,12 +29,7 @@
 void app_plugin_main();
 
 #ifdef STAND_ALONE_APP
-//PSP_MODULE_INFO("Retawq", 0x1000, 1, 1);
-//PSP_MAIN_THREAD_ATTR(0);
 PSP_MODULE_INFO("Retawq", 0, 1, 1);
-//PSP_MAIN_THREAD_ATTR(0);
-
-//int CallbackThread(SceSize args, void *argp);
 
 int main(int argc, char **argv)
 {
@@ -54,7 +49,7 @@ int main(int argc, char **argv)
 #else /** PRX */
 
 PSP_MODULE_INFO("APP_Retawq", 0, 1, 1);
-PSP_HEAP_SIZE_KB(4096);
+PSP_HEAP_SIZE_KB(4*1024); /* 4MB of Heap */
 
 int ModuleStartAPP()
 {
@@ -65,7 +60,7 @@ int ModuleStartAPP()
 
 	int thid = 0;
 
-	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 0x25, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
+ 	thid = sceKernelCreateThread("app_thread", (void*) app_plugin_main, 45, 0xFA0*2, PSP_THREAD_ATTR_USER, 0);
 	if(thid >= 0)
 	{
 		sceKernelStartThread(thid, 0, 0);
