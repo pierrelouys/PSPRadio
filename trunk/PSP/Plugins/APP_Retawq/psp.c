@@ -93,7 +93,7 @@ void PSPInputHandlerStart()
 {
 	static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
 
-	danzeff_load_lite(DANZEFF_RENDER_SCEGU);
+	danzeff_load_lite();
 	danzeff_moveTo(danzeff_x, danzeff_y);
 	if (danzeff_isinitialized())
 	{

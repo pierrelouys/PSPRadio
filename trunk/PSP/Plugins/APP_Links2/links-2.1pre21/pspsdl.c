@@ -391,7 +391,7 @@ static void sdl_catch_event(void *data)
 					//sdl_GD(dev)->keyboard_handler(sdl_GD(dev), 'g', fl);
 					if (danzeff_isinitialized())
 					{
-						danzef_set_screen(sdl_SURFACE(dev));
+						danzeff_set_screen(sdl_SURFACE(dev));
 						danzeff_moveTo(danzeff_x, danzeff_y);
 						danzeff_render();
 						sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
@@ -822,7 +822,7 @@ u_char_t *sdl_init_driver(u_char_t *param, u_char_t *display)
 	/* Setup input */
 	sceCtrlSetSamplingCycle(0);
 	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-	danzeff_load_lite(DANZEFF_RENDER_SDL);
+	danzeff_load_lite();
 	
 	return NULL;
 }

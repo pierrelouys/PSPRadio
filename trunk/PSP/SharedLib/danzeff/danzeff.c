@@ -45,8 +45,6 @@ int selected_y = 1;
 int moved_x = 0;
 int moved_y = 0;
 
-static int render_used = 0;
-
 //Variable describing where each of the images is
 #define guiStringsSize 12 /* size of guistrings array */
 #define PICS_BASEDIR "./graphics/"
@@ -197,7 +195,7 @@ int keyBitsSize = 0;
 ///variable needed for rendering in SDL, the screen surface to draw to, and a function to set it!
 SDL_Surface* danzeff_screen;
 SDL_Rect danzeff_screen_rect;
-void danzef_set_screen(SDL_Surface* screen)
+void danzeff_set_screen(SDL_Surface* screen)
 {
 	danzeff_screen = screen;
 	danzeff_screen_rect.x = 0;
@@ -210,7 +208,7 @@ void danzef_set_screen(SDL_Surface* screen)
 ///Internal function to draw a surface internally offset
 //Render the given surface at the current screen position offset by screenX, screenY
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
-void surface_draw_offset_sdl(SDL_Surface* pixels, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
+void surface_draw_offset(SDL_Surface* pixels, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight)
 {
 	//move the draw position
 	danzeff_screen_rect.x = moved_x + screenX;
@@ -229,11 +227,11 @@ void surface_draw_offset_sdl(SDL_Surface* pixels, int screenX, int screenY, int 
 ///Draw a surface at the current moved_x, moved_y
 void surface_draw_sdl(SDL_Surface* pixels)
 {
-	surface_draw_offset_sdl(pixels, 0, 0, 0, 0, pixels->w, pixels->h);
+	surface_draw_offset(pixels, 0, 0, 0, 0, pixels->w, pixels->h);
 }
 
 /* load all the guibits that make up the OSK */
-void danzeff_load_sdl()
+void danzeff_load()
 {
 	if (initialized) return;
 
@@ -258,7 +256,7 @@ void danzeff_load_sdl()
 	initialized = true;
 }
 
-void danzeff_load_lite_sdl()
+void danzeff_load_lite()
 {
 	if (initialized) return;
 
@@ -290,7 +288,7 @@ void danzeff_load_lite_sdl()
 
 
 /* remove all the guibits from memory */
-void danzeff_free_sdl()
+void danzeff_free()
 {
 	if (!initialized) return;
 
@@ -304,7 +302,7 @@ void danzeff_free_sdl()
 }
 
 /* draw the keyboard at the current position */
-void danzeff_render_sdl()
+void danzeff_render()
 {
 	printf("Drawing Keyboard at %i,%i\n", selected_x, selected_y);
 	dirty = false;
@@ -318,7 +316,7 @@ void danzeff_render_sdl()
 		surface_draw_sdl(keyBits[6*mode + shifted*3 + 1]);
 
 	///Draw the current Highlighted Selector (orange bit)
-	surface_draw_offset_sdl(keyBits[6*mode + shifted*3 + 2],
+	surface_draw_offset(keyBits[6*mode + shifted*3 + 2],
 	//Offset from the current draw position to render at
 	selected_x*43, selected_y*43,
 	//internal offset of the image
@@ -341,7 +339,7 @@ struct danzeff_gu_surface	keyTextures[guiStringsSize];
 ///Internal function to draw a surface internally offset
 //Render the given surface at the current screen position offset by screenX, screenY
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
-void surface_draw_offset_gu(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight, int transperant)
+void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight, int transperant)
 {
 	sceGuEnable( GU_TEXTURE_2D );
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
@@ -527,7 +525,7 @@ u32 danzeff_convert_pow2(u32 size)
 }
 
 /* load all the guibits that make up the OSK */
-void danzeff_load_gu()
+void danzeff_load()
 {
 	u32 *temp_texture;
 
@@ -589,9 +587,14 @@ void danzeff_load_gu()
 	}
 	initialized = true;
 }
+//These are the same in the Gu Implementation :)
+void danzeff_load_lite()
+{
+	danzeff_load();
+}
 
 /* remove all the guibits from memory */
-void danzeff_free_gu()
+void danzeff_free()
 {
 	if (!initialized) return;
 
@@ -605,7 +608,7 @@ void danzeff_free_gu()
 }
 
 /* draw the keyboard at the current position */
-void danzeff_render_gu()
+void danzeff_render()
 {
 	int	transperant;
 	dirty = false;
@@ -622,12 +625,12 @@ void danzeff_render_gu()
 		transperant = true;
 		}
 
-	surface_draw_offset_gu(&keyTextures[6*mode + shifted*3], 0, 0, 0, 0, keyTextures[6*mode + shifted*3].texture_width,
+	surface_draw_offset(&keyTextures[6*mode + shifted*3], 0, 0, 0, 0, keyTextures[6*mode + shifted*3].texture_width,
 																	 	 keyTextures[6*mode + shifted*3].texture_height,
 																	 	 transperant);
 
 	///Draw the current Highlighted Selector (orange bit)
-	surface_draw_offset_gu(&keyTextures[6*mode + shifted*3 + 2],
+	surface_draw_offset(&keyTextures[6*mode + shifted*3 + 2],
 	//Offset from the current draw position to render at
 	selected_x*43, selected_y*43,
 	//internal offset of the image
@@ -644,77 +647,4 @@ void danzeff_moveTo(const int newX, const int newY)
 {
 	moved_x = newX;
 	moved_y = newY;
-}
-
-/* Common interface */
-void danzeff_load(int render)
-{
-	switch	(render)
-		{
-#if defined (DANZEFF_SDL)
-		case	DANZEFF_RENDER_SDL:
-			danzeff_load_sdl();
-			break;
-#endif /* defined (DANZEFF_SDL) */
-#if defined (DANZEFF_SCEGU)
-		case	DANZEFF_RENDER_SCEGU:
-			danzeff_load_gu();
-			break;
-#endif /* defined (DANZEFF_SCE_GU) */
-		}
-	/* Store for reference in render and free */
-	render_used = render;
-}
-
-void danzeff_load_lite(int render)
-{
-	switch	(render)
-		{
-#if defined (DANZEFF_SDL)
-		case	DANZEFF_RENDER_SDL:
-			danzeff_load_lite_sdl();
-			break;
-#endif /* defined (DANZEFF_SDL) */
-#if defined (DANZEFF_SCEGU)
-		case	DANZEFF_RENDER_SCEGU:
-			danzeff_load_gu();
-			break;
-#endif /* defined (DANZEFF_SCE_GU) */
-		}
-	/* Store for reference in render and free */
-	render_used = render;
-}
-
-void danzeff_free()
-{
-	switch	(render_used)
-		{
-#if defined (DANZEFF_SDL)
-		case	DANZEFF_RENDER_SDL:
-			danzeff_free_sdl();
-			break;
-#endif /* defined (DANZEFF_SDL) */
-#if defined (DANZEFF_SCEGU)
-		case	DANZEFF_RENDER_SCEGU:
-			danzeff_free_gu();
-			break;
-#endif /* defined (DANZEFF_SCE_GU) */
-		}
-}
-
-void danzeff_render()
-{
-	switch	(render_used)
-		{
-#if defined (DANZEFF_SDL)
-		case	DANZEFF_RENDER_SDL:
-			danzeff_render_sdl();
-			break;
-#endif /* defined (DANZEFF_SDL) */
-#if defined (DANZEFF_SCEGU)
-		case	DANZEFF_RENDER_SCEGU:
-			danzeff_render_gu();
-			break;
-#endif /* defined (DANZEFF_SCE_GU) */
-		}
 }

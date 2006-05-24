@@ -4,18 +4,9 @@
 //danzeff is BSD licensed, if you do make a new renderer then please share it back and I can add it
 //to the original distribution.
 
-//Set which renderer target to build for
-/* #define DANZEFF_SDL */
-/* #define DANZEFF_SCEGU */
-
-
-//the SDL implementation needs the pspctrl_emu wrapper to convert
-//a SDL_Joystick into a SceCtrlData
-#if defined(DANZEFF_SDL) && !defined(DANZEFF_USE_STD_PSPCTRL_H)
-#include "pspctrl_emu.h"
-#else //not DANZEFF_SDL
+//Danzeff always uses pspctrl.h, if you want to build it on pc then add it to your includes
+// then use the pspctrlemu lib to convert a SDL_Joystick into a SceCtrlData
 #include <pspctrl.h>
-#endif //DANZEFF_SDL
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,9 +16,9 @@ extern "C" {
 #define DANZEFF_RENDER_SCEGU	2
 
 //Initialization and de-init of the keyboard, provided as the keyboard uses alot of images, so if you aren't going to use it for a while, I'd recommend unloading it.
-void danzeff_load(int render);
-//Loads the danzeff keyboard without the transparent images (_t images)
-void danzeff_load_lite(int render);
+void danzeff_load();
+//Loads the danzeff keyboard without the transparent images (_t images) (NO DIFFERENCE IN GU IMPLEMENTATION)
+void danzeff_load_lite();
 void danzeff_free();
 
 //returns true if the keyboard is initialized
@@ -62,7 +53,7 @@ void danzeff_render();
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 //set the screen surface for rendering on.
-void danzef_set_screen(SDL_Surface* screen);
+void danzeff_set_screen(SDL_Surface* screen);
 #endif //DANZEFF_SDL
 
 

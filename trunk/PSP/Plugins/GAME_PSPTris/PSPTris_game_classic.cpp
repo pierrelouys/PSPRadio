@@ -709,7 +709,7 @@ bool	exit_game = false;
 				strcpy(highscore.name, "AAA");
 				first_time = false;
 				/* Initialize OSK */
-				danzeff_load(DANZEFF_RENDER_SCEGU);
+				danzeff_load();
 				danzeff_moveTo(165, 82);
 				}
 

@@ -1,11 +1,11 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET_LIB = ../lib/libdanzeff.a
-OBJS = danzeff.o
+TARGET_LIB = ../lib/libdanzeffsdl.a
+OBJS = danzeffsdl.o
 
 INCDIR =
-CFLAGS = $(GLOBAL_CFLAGS) -G0 -mno-explicit-relocs -Wall -g -DDANZEFF_SDL -DDANZEFF_SCEGU -DDANZEFF_USE_STD_PSPCTRL_H
+CFLAGS = $(GLOBAL_CFLAGS) -G0 -mno-explicit-relocs -Wall -g -DDANZEFF_SDL
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
@@ -14,3 +14,6 @@ LIBS =
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
+
+danzeffsdl.o: danzeff.c
+	psp-gcc $(CFLAGS) -c -o danzeffsdl.o danzeff.c

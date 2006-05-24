@@ -27,7 +27,7 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR =
 
-DANZEFF_LIBS = -ldanzeff -lSDL_image -lSDL -lpng -lz -lm  -lpspgu -lpspaudio -ljpeg -lpsphprm
+DANZEFF_LIBS = -ldanzeffgu -lpng -lz -lm  -lpspgu -lpspaudio -ljpeg -lpsphprm
 
 LIBS =    $(DANZEFF_LIBS) -lpspsdk -lpspwlan -lpspnet
 

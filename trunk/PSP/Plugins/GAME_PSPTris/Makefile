@@ -17,7 +17,7 @@ ASFLAGS = $(CFLAGS)
 LIBDIR = ../../SharedLib/lib/
 LDFLAGS =
 
-DANZEFF_LIBS = -ldanzeff -lSDL_image -lSDL -lpng -lz -lm  -lpspgu -lpspaudio -ljpeg -lpsphprm
+DANZEFF_LIBS = -ldanzeffgu -lpng -lz -lm  -lpspgu -lpspaudio -ljpeg -lpsphprm
 LIBS = $(DANZEFF_LIBS) -lsupc++ -lstdc++ -lpspgum -lpspgu -lpsprtc -lpsppower -lpng -lz -lm -lmikmod -lpspaudio
 
 EXTRA_TARGETS = EBOOT.PBP
