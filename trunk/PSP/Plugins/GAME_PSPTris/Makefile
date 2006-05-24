@@ -10,7 +10,7 @@ INCDIR = ../
 
 INCLUDES = -I../../SharedLib/danzeff
 
-CFLAGS = -G0 -Wall -ggdb -O2 -fno-strict-aliasing -Werror -DDANZEFF_SCEGU $(INCLUDES)
+CFLAGS = -G0 -Wall -ggdb -O2 -fno-strict-aliasing -Werror $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 

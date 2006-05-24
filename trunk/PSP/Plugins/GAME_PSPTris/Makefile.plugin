@@ -5,7 +5,7 @@ TARGET = GAME_PSPTris
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS = plugin_main.o PSPTris_main.o PSPTris_intro.o PSPTris_audio.o PSPTris_menu.o PSPTris_game.o PSPTris_game_classic.o PSPTris_game_color.o PSPTris_credits.o PSPTris_highscore.o jsaParticle.o jsaTextureCache.o valloc.o PSPKeyHandler.o \
+OBJS = plugin_main.o PSPTris_main.o PSPTris_intro.o PSPTris_audio.o PSPTris_menu.o PSPTris_game.o PSPTris_game_classic.o PSPTris_game_color.o PSPTris_game_original.o PSPTris_credits.o PSPTris_highscore.o jsaParticle.o jsaTextureCache.o jsaRand.o valloc.o PSPKeyHandler.o \
 		$(COMMON_OBJS) $(EXPORTED_OBJS)
 
 BUILD_PRX=1
@@ -18,7 +18,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DI
 		   -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		   -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff
 
-MY_CFLAGS = -DDANZEFF_SCEGU
+MY_CFLAGS =
 CFLAGS = $(MY_CFLAGS) $(EXTRA_FLAGS) $(GLOBAL_CFLAGS) -g -Wall $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
