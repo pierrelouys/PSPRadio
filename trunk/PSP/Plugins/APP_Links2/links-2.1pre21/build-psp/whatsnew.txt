@@ -4,6 +4,7 @@
 rXXXX (2006-05-xx)
 NEW FEATURES
 (raf) StandAlone: New connection selection: "None" allows the user to continue initialization without having to connect.
+(raf) Plugin: Changed the plugin priority to 45, this should prevent skipping while listening to pspradio.
 BUG FIXES
 (raf) Cosmetic changes when taking screenshots, and reconnecting. (Wait for the user, redrawing).
 
