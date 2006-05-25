@@ -1,4 +1,4 @@
-PSPTris version 0.7 by Sandberg
+PSPTris version 0.9a by Sandberg
 -------------------------------
 
 
@@ -49,9 +49,9 @@ In the menus, use UP/DOWN for navigating and CROSS for selecting a menu and exit
 If you press SELECT on the menu it will show you the version of PSPTris.
 
 Classic:
-In the game use LEFT (or LEFT_TRIGGER), RIGHT (or RIGHT_TRIGGER) and DOWN for moving the bricks.
+In the game use LEFT, RIGHT and DOWN for moving the bricks.
 UP will drop the current brick.
-CROSS will rotate the current brick.
+CROSS or RIGHT_TRIGGER/LEFT_TRIGGER will rotate the current brick.
 START will pause the game.
 
 Points :
@@ -79,9 +79,10 @@ e.g. : 2 balls gives 2*10 + 1*10 = 20 points, and 4 balls give 4*10 + 3*10 + 2*1
 
 
 Original:
-In the game use LEFT (or LEFT_TRIGGER), RIGHT (or RIGHT_TRIGGER) and DOWN for moving the bricks.
+In the game use LEFT, RIGHT and DOWN for moving the bricks. Note the screen are rotated and thus the
+keys are assigned differently than in the classical game mode.
 UP will drop the current brick.
-CROSS will rotate the current brick.
+CROSS or RIGHT_TRIGGER/LEFT_TRIGGER will rotate the current brick.
 START will pause the game.
 
 Points :

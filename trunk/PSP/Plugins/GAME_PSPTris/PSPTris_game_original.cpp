@@ -36,6 +36,7 @@
 #include "danzeff.h"
 
 static jsaTextureCache *tcache;
+static char *mCwd = NULL;
 
 extern int	playfield[PLAYFIELD_MAX_X_SIZE+2*BRICK_SIZE][PLAYFIELD_MAX_Y_SIZE+BRICK_SIZE][LAYER_COUNT];
 
@@ -155,13 +156,19 @@ static SAMPLE		*remove_lines_sample = NULL;
 #define	max(a,b)	((a > b) ? a : b)
 #define	min(a,b)	((a < b) ? a : b)
 
-static const int	PLAYFIELD_X_SIZE	= 14;
-static const int	PLAYFIELD_Y_SIZE 	= 16;
+static const int	PLAYFIELD_X_SIZE	= 10;
+static const int	PLAYFIELD_Y_SIZE 	= 18;
+
+#define				MIRROR_X(x)			(456 - (x))
+#define 			NEXT_BRICK_X		(12)
+#define 			NEXT_BRICK_Y		(116)
+#define				PLAYFIELD_X			(56)
+#define				PLAYFIELD_Y			(8)
 
 static void PSPTris_render_playfield(u32 brightness)
 {
-	float cx = 128;
-	float cy = 8;
+	float cx = PLAYFIELD_X;
+	float cy = PLAYFIELD_Y;
 
 	for (int y = 0 ; y < PLAYFIELD_Y_SIZE ; y++)
 		{
@@ -169,11 +176,11 @@ static void PSPTris_render_playfield(u32 brightness)
 			{
 			if (playfield[x][y][LAYER_BRICKS] != 0)
 				{
-				PSPTris_render_brick(cx, cy, 16, 16, playfield[x][y][LAYER_BRICKS], brightness);
+				PSPTris_render_brick(MIRROR_X(cy), cx, 16, 16, playfield[x][y][LAYER_BRICKS], brightness);
 				}
 			cx += 16;
 			}
-		cx = 128;
+		cx = PLAYFIELD_X;
 		cy += 16;
 		}
 }
@@ -253,6 +260,8 @@ void PSPTris_game_init_original(char *cwd)
 {
 int		ret_value;
 char	filename[MAXPATHLEN];
+
+	mCwd = cwd;
 
 	sprintf(filename, "%s/Samples/brick_drop.wav", cwd);
 	ret_value = PSPTris_audio_load_sample(filename, &brick_drop_sample);
@@ -428,8 +437,8 @@ u32		linecount = 0;
 static void PSPTris_render_next_brick()
 {
 	coord	*shape;
-	float 	cx = 380;
-	float 	cy = 165;
+	float 	cx = NEXT_BRICK_X;
+	float 	cy = NEXT_BRICK_Y;
 	int		x;
 	int		y;
 
@@ -439,32 +448,34 @@ static void PSPTris_render_next_brick()
 	/* hack for the blue brick :-) */
 	if (next_brick.texture_id == TEX_BRICK_BLUE)
 		{
-		cx = 380 + ((32 - x * 8) / 2) - 8;
-		cy = 165 + ((32 - y * 8) / 2);
+		cx = NEXT_BRICK_X + ((32 - x * 8) / 2) - 8;
+		cy = NEXT_BRICK_Y + ((32 - y * 8) / 2);
 		}
 	else
 		{
-		cx = 380 + ((32 - x * 8) / 2);
-		cy = 165 + ((32 - y * 8) / 2);
+		cx = NEXT_BRICK_X + ((32 - x * 8) / 2);
+		cy = NEXT_BRICK_Y + ((32 - y * 8) / 2);
 		}
 
 	for (int i = 0 ; i < BRICK_SIZE ; i++)
 		{
-		PSPTris_render_brick(cx + shape[i].x * 8, cy + shape[i].y * 8, 8, 16, next_brick.texture_id, 0xFFFFFFFF);
+		PSPTris_render_brick(MIRROR_X(cy + shape[i].y * 8), cx + shape[i].x * 8, 8, 16, next_brick.texture_id, 0xFFFFFFFF);
 		}
 }
+
+
 
 static void PSPTris_render_current_brick()
 {
 	coord	*shape;
-	float cx = 128 + 16 * current_brick.current_pos.x;
-	float cy = 8 + 16 * current_brick.current_pos.y;
+	float cx = PLAYFIELD_X + 16 * current_brick.current_pos.x;
+	float cy = PLAYFIELD_Y + 16 * current_brick.current_pos.y;
 
 	shape = PSPTris_game_get_shape(current_brick);
 
 	for (int i = 0 ; i < BRICK_SIZE ; i++)
 		{
-		PSPTris_render_brick(cx + shape[i].x * 16, cy + shape[i].y * 16, 16, 16, current_brick.texture_id, 0xFFFFFFFF);
+		PSPTris_render_brick(MIRROR_X(cy + shape[i].y * 16), cx + shape[i].x * 16, 16, 16, current_brick.texture_id, 0xFFFFFFFF);
 		}
 }
 
@@ -532,7 +543,7 @@ bool	exit_game = false;
 			}
 
 		/* Check for drop */
-		if ((key_state & PSP_CTRL_UP) && !drop)
+		if ((key_state & PSP_CTRL_RIGHT) && !drop)
 			{
 			drop = true;
 			PSPTris_game_update_score(POINT_DROP);
@@ -543,7 +554,7 @@ bool	exit_game = false;
 			/* Check for time-out -> Force brick down */
 			if (time_out == 0)
 				{
-				key_state |= PSP_CTRL_DOWN;
+				key_state |= PSP_CTRL_LEFT;
 				time_out = level_speed[level-1];
 				}
 			else
@@ -578,7 +589,7 @@ bool	exit_game = false;
 				}
 
 			/* Check for movement -> RIGHT */
-			if (key_state & PSP_CTRL_RIGHT)
+			if (key_state & PSP_CTRL_DOWN)
 				{
 				if (current_brick.current_pos.x < PLAYFIELD_X_SIZE)
 					{
@@ -591,7 +602,7 @@ bool	exit_game = false;
 					}
 				}
 			/* Check for movement -> LEFT */
-			if (key_state & PSP_CTRL_LEFT)
+			if (key_state & PSP_CTRL_UP)
 				{
 				if (current_brick.current_pos.x > -BRICK_SIZE)
 					{
@@ -611,12 +622,12 @@ bool	exit_game = false;
 			if (drop_counter == DROP_SPEED)
 				{
 				drop_counter = 0;
-				key_state = PSP_CTRL_DOWN;
+				key_state = PSP_CTRL_LEFT;
 				}
 			}
 
 		/* Check for movement -> DOWN */
-		if (key_state & PSP_CTRL_DOWN)
+		if (key_state & PSP_CTRL_LEFT)
 			{
 			if (current_brick.current_pos.y < PLAYFIELD_Y_SIZE)
 				{
@@ -640,6 +651,8 @@ bool	exit_game = false;
 					if (PSPTris_game_collision(current_brick))
 						{
 						game_over = true;
+						PSPTris_game_stop_music();
+						PSPTris_game_start_music(mCwd, "/Music/endgame.mod");
 						highscore_rank = PSPTris_highscore_check(score, GAMETYPE_ORIGINAL);
 						}
 					}
@@ -651,15 +664,11 @@ bool	exit_game = false;
 			}
 		PSPTris_render_playfield(0xFFFFFFFF);
 
-		PSPTris_render_text("SCORE", 	374,   2);
-		PSPTris_render_text(score_text, 	374,  22);
-		PSPTris_render_text("LEVEL", 	374,  42);
-		PSPTris_render_text(level_text,	398,  62);
-		PSPTris_render_text("LINES", 	374,  82);
-		PSPTris_render_text(line_text,	374, 102);
+		PSPTris_render_text_vertical(score_text, 100,  18);
+		PSPTris_render_text_vertical(level_text,  44,  42);
+		PSPTris_render_text_vertical(line_text,	 100, 172);
 		PSPTris_update_time();
-		PSPTris_render_text("TIME",  	382, 122);
-		PSPTris_render_text(time_text, 	374, 142);
+		PSPTris_render_text_vertical(time_text,   44, 172);
 
 		if (!game_over)
 			{
@@ -680,14 +689,10 @@ bool	exit_game = false;
 
 		PSPTris_render_playfield(brightness);
 
-		PSPTris_render_text("SCORE", 	374,   2);
-		PSPTris_render_text(score_text, 	374,  22);
-		PSPTris_render_text("LEVEL", 	374,  42);
-		PSPTris_render_text(level_text,	398,  62);
-		PSPTris_render_text("LINES", 	374,  82);
-		PSPTris_render_text(line_text,	374, 102);
-		PSPTris_render_text("TIME",  	382, 122);
-		PSPTris_render_text(time_text, 	374, 142);
+		PSPTris_render_text_vertical(score_text, 100,  18);
+		PSPTris_render_text_vertical(level_text,  44,  42);
+		PSPTris_render_text_vertical(line_text,	 100, 172);
+		PSPTris_render_text_vertical(time_text,   44, 172);
 
 		/* If we made it to the highscore rank, then get input */
 		if (highscore_rank > 0)
@@ -697,9 +702,10 @@ bool	exit_game = false;
 			static highscore_str	highscore;
 			SceCtrlData pad_data;
 
-			PSPTris_render_text("WELL DONE",			128 + 2 * 16 + 8,   22);
-			PSPTris_render_text("YOU MADE IT TO",	128 + 0 * 16 + 0,   42);
-			PSPTris_render_text("THE HIGHSCORE",		128 + 0 * 16 + 8,   62);
+			PSPTris_render_text_vertical("WELL DONE",		420, 56 + 0 * 16 + 8);
+			PSPTris_render_text_vertical("YOU MADE",		380, 56 + 1 * 16 + 0);
+			PSPTris_render_text_vertical("IT TO THE",		360, 56 + 0 * 16 + 8);
+			PSPTris_render_text_vertical("HIGHSCORE",		340, 56 + 0 * 16 + 8);
 
 			if (first_time)
 				{
@@ -709,7 +715,7 @@ bool	exit_game = false;
 				first_time = false;
 				/* Initialize OSK */
 				danzeff_load();
-				danzeff_moveTo(165, 82);
+				danzeff_moveTo(128, 62);
 				}
 
 			if (!name_entered)
@@ -719,7 +725,7 @@ bool	exit_game = false;
 
 				sceCtrlReadBufferPositive(&pad_data, 1);
 				entered_char = danzeff_readInput(pad_data);
-				PSPTris_render_text(highscore.name, 128 + 5 * 16 + 8, 242);
+				PSPTris_render_text_vertical(highscore.name, 300, 56 + 3 * 16 + 8);
 				danzeff_render();
 
 				/* Get input from OSK and convert to uppercase */
@@ -758,11 +764,13 @@ bool	exit_game = false;
 		/* We didn't make it to the highscore rank */
 		else
 			{
-			PSPTris_render_text("SORRY",			128 + 4 * 16 + 8,   82);
-			PSPTris_render_text("YOU NEED MORE",	128 + 0 * 16 + 8,  122);
-			PSPTris_render_text("PRACTICE TO",	128 + 1 * 16 + 8,  142);
-			PSPTris_render_text("REACH THE",		128 + 2 * 16 + 8,  162);
-			PSPTris_render_text("HIGHSCORE",		128 + 2 * 16 + 8,  182);
+			PSPTris_render_text_vertical("SORRY",			360, 56 + 2 * 16 + 8);
+			PSPTris_render_text_vertical("YOU NEED",		320, 56 + 1 * 16 + 0);
+			PSPTris_render_text_vertical("MORE",			300, 56 + 3 * 16 + 0);
+			PSPTris_render_text_vertical("PRACTICE",		280, 56 + 1 * 16 + 0);
+			PSPTris_render_text_vertical("TO",				260, 56 + 4 * 16 + 0);
+			PSPTris_render_text_vertical("REACH THE",		240, 56 + 0 * 16 + 8);
+			PSPTris_render_text_vertical("HIGHSCORE",		220, 56 + 0 * 16 + 8);
 
 			/* Check for exit */
 			if (key_state & PSP_CTRL_CROSS)

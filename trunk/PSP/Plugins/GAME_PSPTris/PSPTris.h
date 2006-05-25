@@ -20,7 +20,7 @@
 #ifndef _PSPTRIS_H_
 #define _PSPTRIS_H_
 
-#define APP_NAME		"PSPTRIS VER. 0.7"
+#define APP_NAME		"PSPTRIS VER. 0.9a"
 
 	struct NCVertex
 	{

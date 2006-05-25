@@ -258,6 +258,54 @@ void PSPTris_render_text(char *text, int x, int y)
 	sceGuDisable(GU_TEXTURE_2D);
 }
 
+void PSPTris_render_text_vertical(char *text, int x, int y)
+{
+	int	length;
+	int	u, v;
+
+	length = strlen(text);
+
+	sceGuEnable(GU_TEXTURE_2D);
+	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
+	sceGuEnable( GU_ALPHA_TEST );
+	sceGuTexFunc(GU_TFX_BLEND,GU_TCC_RGBA);
+	sceGuTexEnvColor(0xFF000000);
+	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
+	sceGuEnable( GU_BLEND );
+	(void)tcache->jsaTCacheSetTexture(TEX_FONT_02);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
+
+	for (int i = 0 ; i < length ; i++)
+		{
+		PSPTris_get_texture_coords_vertical(text[i], &u, &v);
+
+		struct NCVertex* c_vertices = (struct NCVertex*)sceGuGetMemory(2 * sizeof(struct NCVertex));
+
+		c_vertices[0].u 		= u;
+		c_vertices[0].v 		= v;
+		c_vertices[0].x 		= x;
+		c_vertices[0].y 		= y;
+		c_vertices[0].z 		= 0;
+		c_vertices[0].color 	= 0xFFFFFFFF;
+
+		c_vertices[1].u 		= u + FONT_X_SIZE;
+		c_vertices[1].v 		= v + FONT_Y_SIZE;
+		c_vertices[1].x 		= x + FONT_X_SIZE;
+		c_vertices[1].y 		= y + FONT_Y_SIZE;
+		c_vertices[1].z 		= 0;
+		c_vertices[1].color 	= 0xFFFFFFFF;
+
+		sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
+
+/*		x += FONT_X_SIZE;*/
+		y += FONT_X_SIZE;
+		}
+
+	sceGuDisable( GU_BLEND );
+	sceGuDisable( GU_ALPHA_TEST );
+	sceGuDisable(GU_TEXTURE_2D);
+}
+
 void PSPTris_render_brick(float x, float y, float size, float tex_size, int texture_id, u32 brightness)
 {
 	struct NCVertex* c_vertices = (struct NCVertex*)sceGuGetMemory(2 * sizeof(struct NCVertex));

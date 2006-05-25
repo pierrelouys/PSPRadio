@@ -1,14 +1,15 @@
 What's new for PSPTris
 
-Version 0.7 (xxth of xxx 2006)
+Version 0.9a (xxth of xxx 2006)
 --------------------------------
 Fixes:
 	- Replaced internal random number algorithm with the PSPs native functionality. Should give more randomness.
 	- Fixed the rotation of the L shaped bricks.
-	- The gametype is now selected via start, instead of via it's own menu.
 
 Features:
-	- xxx
+	- New game type, where the screen is rotated 90 degrees and with a 10 x 18 playfield.
+	- The gametype is now selected via start, instead of via it's own menu.
+	- Endgame tune are played while entering names on the highscore screen.
 
 
 Version 0.61 (22th of May 2006)

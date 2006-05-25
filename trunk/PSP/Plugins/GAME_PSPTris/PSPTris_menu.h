@@ -38,11 +38,14 @@ enum TEX_NAMES
 	TEX_BALL_YELLOW,
 	TEX_BALL_FRAME,
 	TEX_BALL_SELECT,
+	TEX_FONT_02,
 	} ;
 
 #define FONT_X_SIZE		(16)
 #define FONT_Y_SIZE		(16)
 #define FONT_X_COUNT	(256/FONT_X_SIZE)
+#define FONT_X_COUNT_V	(64/FONT_X_SIZE)
+#define FONT_Y_COUNT_V	(256/FONT_Y_SIZE)
 
 /* Prototypes */
 void PSPTris_menu_init(char *cwd);
@@ -50,5 +53,6 @@ void PSPTris_menu_destroy(void);
 bool PSPTris_menu(u32 key_state, u32 *key_delay);
 
 void PSPTris_get_texture_coords(char letter, int *u, int *v);
+void PSPTris_get_texture_coords_vertical(char letter, int *u, int *v);
 
 #endif /* PSPTRIS_MENU_H_ */

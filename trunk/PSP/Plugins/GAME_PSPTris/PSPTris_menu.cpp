@@ -175,6 +175,7 @@ static jsaTextureFile __attribute__((aligned(16))) texture_list[] =
 	{TEX_BALL_YELLOW,	GU_PSM_8888, 32,  32, true, FT_PNG, "ball_yellow.png"},
 	{TEX_BALL_FRAME,	GU_PSM_8888, 32,  32, true, FT_PNG, "ball_frame.png"},
 	{TEX_BALL_SELECT,	GU_PSM_8888, 32,  32, true, FT_PNG, "ball_select.png"},
+	{TEX_FONT_02,		GU_PSM_8888, 64, 256, true, FT_PNG, "menufont_02.png"},
 	};
 
 #define	TEXTURE_COUNT		(sizeof(texture_list) / sizeof(jsaTextureFile))
@@ -246,6 +247,33 @@ int		char_number = 0;
 		{
 		*u = (char_number % FONT_X_SIZE) * FONT_X_SIZE;
 		*v = (char_number / FONT_X_COUNT) * FONT_Y_SIZE;
+		}
+}
+
+void PSPTris_get_texture_coords_vertical(char letter, int *u, int *v)
+{
+bool	found = false;
+int		char_number = 0;
+
+	for (unsigned int i = 0 ; i < FONT_COUNT; i++)
+		{
+		if (font_table[i] == letter)
+			{
+			found = true;
+			break;
+			}
+		char_number++;
+		}
+
+	if (found == false)
+		{
+		/* call this function again to get the coords for a space */
+		PSPTris_get_texture_coords(' ', u, v);
+		}
+	else
+		{
+		*u = ((FONT_X_COUNT_V - 1) * FONT_Y_SIZE) - ((char_number / FONT_Y_COUNT_V) * FONT_Y_SIZE);
+		*v = (char_number % FONT_Y_COUNT_V) * FONT_X_SIZE;
 		}
 }
 

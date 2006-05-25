@@ -86,6 +86,7 @@ int PSPTris_blockrand(void);
 void PSPTris_game_add_moving_brick(int x, int y, int texture_id, float size);
 void PSPTris_remove_rows(int columns, int rows);
 void PSPTris_render_text(char *text, int x, int y);
+void PSPTris_render_text_vertical(char *text, int x, int y);
 void PSPTris_render_brick(float x, float y, float size, float tex_size, int texture_id, u32 brightness);
 void PSPTris_game_render_moving_brick();
 
