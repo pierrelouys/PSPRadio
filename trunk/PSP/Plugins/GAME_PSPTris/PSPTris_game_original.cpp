@@ -716,6 +716,7 @@ bool	exit_game = false;
 				/* Initialize OSK */
 				danzeff_load();
 				danzeff_moveTo(128, 62);
+				danzeff_set_orientation(DANZEFF_ORIENT_RIGHT);
 				}
 
 			if (!name_entered)
