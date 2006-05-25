@@ -36,6 +36,7 @@
 /*bool*/ int shifted = false;     //user is holding shift
 int mode = 0;             //charset selected. (0 - letters or 1 - numbers)
 /*bool*/ int initialized = false; //keyboard is initialized
+int orientation = DANZEFF_ORIENT_UP;
 
 //Position on the 3-3 grid the user has selected (range 0-2)
 int selected_x = 1;
@@ -86,6 +87,35 @@ char modeChar[MODE_COUNT*2][3][3][5] =
 	}
 };
 
+// Rotated 90 degrees CW
+char modeCharRight[MODE_COUNT*2][3][3][5] =
+{
+	{	//standard letters
+		{ "rst(", "jkl-"   , "abc," },
+		{ "uvw:", "m n\010", "def." },
+		{ "xyz)", "opq?"   , "ghi!" }
+
+	},
+
+	{	//capital letters
+		{ "RST=", "JKL_"   , "ABC^" },
+		{ "UVW;", "M N\010", "DEF@"},
+		{ "XYZ/", "OPQ\""  , "GHI*"}
+	},
+
+	{	//numbers
+		{ "\0\0007\0", "\0\0004\0","\0\0001\0"},
+		{ "\0\0008\0", "\0 5\010" ,"\0\0002\0"},
+		{ "\00009\0", "\0\0006\0","\0\0003\0"}
+	},
+
+	{	//special characters
+		{ "@;#:", "{?}!"     , "(.)'"},
+		{ "$`%~", "\0 \0\010", "<'>\""},
+		{ "^|&*", "\\=/+"    , "[_]-"}
+	}
+};
+
 /*bool*/ int danzeff_isinitialized()
 {
 	return initialized;
@@ -104,6 +134,24 @@ char modeChar[MODE_COUNT*2][3][3][5] =
 */
 unsigned int danzeff_readInput(SceCtrlData pspctrl)
 {
+	//For rotated keyboards
+	u32	up_key, down_key, left_key, right_key;
+
+	if (orientation == DANZEFF_ORIENT_RIGHT)
+	{
+		up_key    = PSP_CTRL_RIGHT;
+		down_key  = PSP_CTRL_LEFT;
+		left_key  = PSP_CTRL_UP;
+		right_key = PSP_CTRL_DOWN;
+	}
+	else
+	{
+		up_key    = PSP_CTRL_UP;
+		down_key  = PSP_CTRL_DOWN;
+		left_key  = PSP_CTRL_LEFT;
+		right_key = PSP_CTRL_RIGHT;
+	}
+
 	//Work out where the analog stick is selecting
 	int x = 1;
 	int y = 1;
@@ -141,7 +189,14 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl)
 				innerChoice = 3;
 
 			//Now grab the value out of the array
-			pressed = modeChar[ mode*2 + shifted][y][x][innerChoice];
+			if (orientation == DANZEFF_ORIENT_RIGHT)
+			{
+				pressed = modeCharRight[ mode*2 + shifted][y][x][innerChoice];
+			}
+			else
+			{
+				pressed = modeChar[ mode*2 + shifted][y][x][innerChoice];
+			}
 		}
 		else if (pspctrl.Buttons& PSP_CTRL_LTRIGGER) //toggle mode
 		{
@@ -149,19 +204,19 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl)
 			mode++;
 			mode %= MODE_COUNT;
 		}
-		else if (pspctrl.Buttons& PSP_CTRL_DOWN)
+		else if (pspctrl.Buttons& down_key)
 		{
 			pressed = '\n';
 		}
-		else if (pspctrl.Buttons& PSP_CTRL_UP)
+		else if (pspctrl.Buttons& up_key)
 		{
 			pressed = 8; //backspace
 		}
-		else if (pspctrl.Buttons& PSP_CTRL_LEFT)
+		else if (pspctrl.Buttons& left_key)
 		{
 			pressed = DANZEFF_LEFT; //LEFT
 		}
-		else if (pspctrl.Buttons& PSP_CTRL_RIGHT)
+		else if (pspctrl.Buttons& right_key)
 		{
 			pressed = DANZEFF_RIGHT; //RIGHT
 		}
@@ -341,6 +396,8 @@ struct danzeff_gu_surface	keyTextures[guiStringsSize];
 //the surface will be internally offset by offsetX,offsetY. And the size of it to be drawn will be intWidth,intHeight
 void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int screenY, int offsetX, int offsetY, int intWidth, int intHeight, int transperant)
 {
+	float	temp_u, temp_v;
+
 	sceGuEnable( GU_TEXTURE_2D );
 	sceGuAlphaFunc( GU_GREATER, 0, 0xff );
 	sceGuEnable( GU_ALPHA_TEST );
@@ -352,7 +409,7 @@ void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int sc
 	sceGuTexImage(0,surface->surface_width, surface->surface_height,surface->surface_width, surface->texture);
 	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 
-	struct danzeff_vertex* c_vertices = (struct danzeff_vertex*)sceGuGetMemory(2 * sizeof(struct danzeff_vertex));
+	struct danzeff_vertex* c_vertices = (struct danzeff_vertex*)sceGuGetMemory(6 * sizeof(struct danzeff_vertex));
 
 	c_vertices[0].u 		= offsetX;
 	c_vertices[0].v 		= offsetY;
@@ -361,23 +418,68 @@ void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int sc
 	c_vertices[0].z 		= 0;
 
 	c_vertices[1].u 		= offsetX + intWidth;
-	c_vertices[1].v 		= offsetY + intHeight;
+	c_vertices[1].v 		= offsetY;
 	c_vertices[1].x 		= moved_x + screenX + intWidth;
-	c_vertices[1].y 		= moved_y + screenY + intHeight;
+	c_vertices[1].y 		= moved_y + screenY;
 	c_vertices[1].z 		= 0;
+
+	c_vertices[2].u 		= offsetX;
+	c_vertices[2].v 		= offsetY + intHeight;
+	c_vertices[2].x 		= moved_x + screenX;
+	c_vertices[2].y 		= moved_y + screenY + intHeight;
+	c_vertices[2].z 		= 0;
+
+	memcpy(&c_vertices[3], &c_vertices[2], sizeof(struct danzeff_vertex));
+	memcpy(&c_vertices[4], &c_vertices[1], sizeof(struct danzeff_vertex));
+
+	c_vertices[5].u 		= offsetX + intWidth;
+	c_vertices[5].v 		= offsetY + intHeight;
+	c_vertices[5].x 		= moved_x + screenX + intWidth;
+	c_vertices[5].y 		= moved_y + screenY + intHeight;
+	c_vertices[5].z 		= 0;
+
+	if (orientation == DANZEFF_ORIENT_RIGHT)
+		{
+		temp_u = c_vertices[1].u;
+		temp_v = c_vertices[1].v;
+
+		c_vertices[1].u = c_vertices[0].u;
+		c_vertices[4].u = c_vertices[0].u;
+		c_vertices[1].v = c_vertices[0].v;
+		c_vertices[4].v = c_vertices[0].v;
+
+		c_vertices[0].u = c_vertices[2].u;
+		c_vertices[0].v = c_vertices[2].v;
+
+		c_vertices[2].u = c_vertices[5].u;
+		c_vertices[3].u = c_vertices[5].u;
+		c_vertices[2].v = c_vertices[5].v;
+		c_vertices[3].v = c_vertices[5].v;
+
+		c_vertices[5].u = temp_u;
+		c_vertices[5].v = temp_v;
+		}
 
 	if (transperant == true)
 		{
 		c_vertices[0].color 	= 0x80FFFFFF;
 		c_vertices[1].color 	= 0x80FFFFFF;
+		c_vertices[2].color 	= 0x80FFFFFF;
+		c_vertices[3].color 	= 0x80FFFFFF;
+		c_vertices[4].color 	= 0x80FFFFFF;
+		c_vertices[5].color 	= 0x80FFFFFF;
 		}
 	else
 		{
 		c_vertices[0].color 	= 0xFFFFFFFF;
 		c_vertices[1].color 	= 0xFFFFFFFF;
+		c_vertices[2].color 	= 0xFFFFFFFF;
+		c_vertices[3].color 	= 0xFFFFFFFF;
+		c_vertices[4].color 	= 0xFFFFFFFF;
+		c_vertices[5].color 	= 0xFFFFFFFF;
 		}
 
-	sceGuDrawArray(GU_SPRITES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D,2,0,c_vertices);
+	sceGuDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D, 6, 0, c_vertices);
 
 	sceGuDisable( GU_BLEND );
 	sceGuDisable( GU_ALPHA_TEST );
@@ -611,6 +713,8 @@ void danzeff_free()
 void danzeff_render()
 {
 	int	transperant;
+	int	x = selected_x*64;
+	int y = selected_y*64;
 	dirty = false;
 
 	///Draw the background for the selected keyboard either transparent or opaque
@@ -629,12 +733,19 @@ void danzeff_render()
 																	 	 keyTextures[6*mode + shifted*3].texture_height,
 																	 	 transperant);
 
-	///Draw the current Highlighted Selector (orange bit)
+	///Draw the current Highlighted Selector (orange bit) based on the orientation
+
+	if (orientation == DANZEFF_ORIENT_RIGHT)
+		{
+		x = selected_y*64;
+		y = (2-selected_x)*64;
+		}
+
 	surface_draw_offset(&keyTextures[6*mode + shifted*3 + 2],
 	//Offset from the current draw position to render at
 	selected_x*43, selected_y*43,
 	//internal offset of the image
-	selected_x*64,selected_y*64,
+	x,y,
 	//size to render (always the same)
 	64, 64,
 	false);
@@ -647,4 +758,9 @@ void danzeff_moveTo(const int newX, const int newY)
 {
 	moved_x = newX;
 	moved_y = newY;
+}
+
+void danzeff_set_orientation(const int new_orientation)
+{
+	orientation = new_orientation;
 }

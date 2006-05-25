@@ -39,6 +39,11 @@ unsigned int danzeff_readInput(SceCtrlData pspctrl);
 //Move the area the keyboard is rendered at to here
 void danzeff_moveTo(const int newX, const int newY);
 
+#define DANZEFF_ORIENT_UP     1  /* Normal rendering       */
+#define DANZEFF_ORIENT_RIGHT  2  /* Rotated 90 degrees CW  */
+
+void danzeff_set_orientation(const int new_orientation);
+
 //Returns true if the keyboard that would be rendered now is different to the last time
 //that the keyboard was drawn, this is altered by readInput/render.
 /*bool*/ int danzeff_dirty();

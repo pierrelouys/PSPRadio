@@ -5,6 +5,7 @@ What's New for PSPRadio
 NEW FEATURES
 (raf) Added support for the new SHOUTcast DB Listing. This will retrieve now 500 stations by default. Look at the config file to change.
 (raf) Dyn/Retawq: Updated priority to 45 so it will co-operate with pspradio better.
+(sandberg) Core: Updated danzeff to support 90 degrees CW rotated keyboards.
 BUG FIXES
 
 0.38.10 (r1159)(2006-05-19)
