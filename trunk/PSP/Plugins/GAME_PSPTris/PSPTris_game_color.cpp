@@ -36,6 +36,7 @@
 #include "danzeff.h"
 
 static jsaTextureCache *tcache;
+static char *mCwd = NULL;
 
 extern int	playfield[PLAYFIELD_MAX_X_SIZE+2*BRICK_SIZE][PLAYFIELD_MAX_Y_SIZE+BRICK_SIZE][LAYER_COUNT];
 
@@ -85,6 +86,8 @@ void PSPTris_game_init_color(char *cwd)
 {
 int		ret_value;
 char	filename[MAXPATHLEN];
+
+	mCwd = cwd;
 
 	sprintf(filename, "%s/Samples/lines.wav", cwd);
 	ret_value = PSPTris_audio_load_sample(filename, &remove_lines_sample);
@@ -456,6 +459,8 @@ bool	exit_game = false;
 	if(!game_over && PSPTris_game_detect_gameover())
 		{
 		game_over = true;
+		PSPTris_game_stop_music();
+		PSPTris_game_start_music(mCwd, "/Music/endgame.mod");
 		highscore_rank = PSPTris_highscore_check(score, GAMETYPE_COLOR);
 		}
 
@@ -485,6 +490,8 @@ bool	exit_game = false;
 		if (timer == 0)
 			{
 			game_over = true;
+			PSPTris_game_stop_music();
+			PSPTris_game_start_music(mCwd, "/Music/endgame.mod");
 			highscore_rank = PSPTris_highscore_check(score, GAMETYPE_COLOR);
 			}
 		else

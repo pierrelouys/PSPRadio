@@ -43,7 +43,7 @@ const int	FIELD_REMOVE	=	0x00000002;
 const int	FIELD_NEW		=	0x00000003;
 
 static const int	PLAYFIELD_MAX_X_SIZE	= 14;
-static const int	PLAYFIELD_MAX_Y_SIZE 	= 16;
+static const int	PLAYFIELD_MAX_Y_SIZE 	= 18;
 
 typedef struct
 {
@@ -78,6 +78,9 @@ void PSPTris_game_stop();
 bool PSPTris_game_render(u32 key_state, jsaTextureCache *tcache);
 void PSPTris_game_start_level(int level);
 void PSPTris_game_type(int gametype);
+
+void PSPTris_game_start_music(char *cwd, char *name);
+void PSPTris_game_stop_music();
 
 int PSPTris_blockrand(void);
 void PSPTris_game_add_moving_brick(int x, int y, int texture_id, float size);

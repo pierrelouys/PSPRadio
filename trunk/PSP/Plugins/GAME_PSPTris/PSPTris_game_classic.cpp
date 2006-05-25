@@ -36,6 +36,7 @@
 #include "danzeff.h"
 
 static jsaTextureCache *tcache;
+static char *mCwd = NULL;
 
 extern int	playfield[PLAYFIELD_MAX_X_SIZE+2*BRICK_SIZE][PLAYFIELD_MAX_Y_SIZE+BRICK_SIZE][LAYER_COUNT];
 
@@ -253,6 +254,8 @@ void PSPTris_game_init_classic(char *cwd)
 {
 int		ret_value;
 char	filename[MAXPATHLEN];
+
+	mCwd = cwd;
 
 	sprintf(filename, "%s/Samples/brick_drop.wav", cwd);
 	ret_value = PSPTris_audio_load_sample(filename, &brick_drop_sample);
@@ -641,6 +644,8 @@ bool	exit_game = false;
 					if (PSPTris_game_collision(current_brick))
 						{
 						game_over = true;
+						PSPTris_game_stop_music();
+						PSPTris_game_start_music(mCwd, "/Music/endgame.mod");
 						highscore_rank = PSPTris_highscore_check(score, GAMETYPE_CLASSIC);
 						}
 					}
