@@ -1,0 +1,18 @@
+DEST_DIR = ../../lib/
+TARGET_LIB = $(DEST_DIR)libdanzeffpuresdlpc.a
+OBJS = danzeffpc.o
+
+INCDIR =
+CFLAGS += -Wall -g -DDANZEFF_INPUT_SMARTJOY_PS2
+
+LDFLAGS =
+LIBS =
+
+all: TARGET_LIB
+
+TARGET_LIB: danzeffpc.o
+	ar cru $(TARGET_LIB) $(OBJS)
+	ranlib $(TARGET_LIB)
+
+danzeffpc.o: danzeff.c
+	g++ $(CFLAGS) -c danzeff.c -o danzeffpc.o

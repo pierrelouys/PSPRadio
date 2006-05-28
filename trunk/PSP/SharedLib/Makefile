@@ -7,6 +7,7 @@ all:
 	cd libpthread && make
 	cd danzeff && make -f Makefile.gu
 	cd danzeff && make -f Makefile.sdl
+	cd danzeff/puresdl && make -f Makefile.pspradio
 
 clean:
 	cd lib && rm -f *.a 
