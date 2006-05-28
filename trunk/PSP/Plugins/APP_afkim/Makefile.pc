@@ -1,0 +1,23 @@
+# set up compiler and options
+
+INCLUDES = -I/usr/local/pspdev/psp/include/freetype2 -I../../SharedLib/danzeff/puresdl -L../../SharedLib/lib
+CXX = g++
+CXXFLAGS = -Wall -g $(INCLUDES)  -DPC
+
+SRC = main.cc \
+      dlib/guibit.cc dlib/render.cc dlib/support.cc dlib/textBits.cc  dlib/util.cc dlib/inputable.cc \
+      irc.cc bitlbee.cc \
+      gui/accountsStatus.cc gui/chatInput.cc gui/chatSelector.cc gui/newmsgBit.cc \
+      gui/menuPopup.cc gui/accountCreateText.cc gui/accountCreator.cc \
+      dlib/guibits/textArea.cc dlib/guibits/textLineInput.cc dlib/guibits/selector.cc dlib/guibits/wifiSelector.cc \
+      dlib/keyboards/pspctrl_emu.cc dlib/keyboards/p_sprint.cc dlib/keyboards/kbwrap.cc
+
+OBJ = $(addsuffix .o, $(basename $(SRC)))
+
+LIBS = -lSDL -lSDL_image -lfreetype -ldanzeffpuresdlpc
+
+pc: $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LIBS)
+
+clean:
+	rm -f $(OBJ)

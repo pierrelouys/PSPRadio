@@ -73,6 +73,9 @@ extra_plugins:
 	mkdir -p $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics
 	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics/.
 
+app_afkim:
+	cd $(PLUGINS_DIR)/APP_afkim/ && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) install
 app_links2:
 	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre21/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) prepare prx install_prx
