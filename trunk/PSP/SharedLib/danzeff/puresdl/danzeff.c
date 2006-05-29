@@ -178,7 +178,7 @@ char modeChar[MODE_COUNT*2][3][3][5] =
 	},
 
 	{	//special characters
-		{ "'(.)",  "\"<'>","-[_]" },
+		{ ",(.)",  "\"<'>","-[_]" },
 		{ "!{?}","\010\0 \0", "+\\=/" },
 		{ ":@;#",  "~$`%","*^|&" }
 	}
@@ -237,7 +237,7 @@ unsigned int danzeff_readInput(SDL_Joystick* joystick)
 			//Now grab the value out of the array
 			pressed = modeChar[ mode*2 + shifted][state.y][state.x][innerChoice];
 		}
-		else if (state.buttons & BUT_SHIFT) //toggle mode
+		else if (state.buttons & BUT_SWITCH) //toggle mode
 		{
 			dirty = true;
 			mode++;
