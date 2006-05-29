@@ -102,6 +102,7 @@
 		bool IsPolling(){ return m_Polling;}
 
 		/** Networking */
+		char *m_strNetworkProxy;
 		int  InitializeNetworkDrivers(); /** This is called internally by PSPApp on initialization */
 		int  StopNetworkDrivers();
 		char *GetMyIP() { return m_strMyIP; };
@@ -114,6 +115,9 @@
 		int  ResolveHostname(char *strHostname, struct in_addr *addr);
 		int  StopKeyLatch(unsigned int key_combo_to_resume);
 		int  StartKeyLatch();
+		bool isNetworkProxyEnabled() { return (m_strNetworkProxy != NULL); }
+		char *GetNetworkProxy() { return m_strNetworkProxy; };
+		void SetNetworkProxy(char *strProxy) { m_strNetworkProxy = strdup(strProxy); }
 
 		/** USB */
 		int  EnableUSB();

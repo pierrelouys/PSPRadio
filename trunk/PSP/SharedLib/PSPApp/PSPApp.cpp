@@ -37,6 +37,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionS
 {
 	m_Exit = false;
 	m_NetworkEnabled = false;
+	m_strNetworkProxy = NULL;
 	m_USBEnabled = false;
 	m_EventToPSPApp = NULL;
 	m_thRun = NULL; /** Run Thread */
@@ -134,6 +135,12 @@ CPSPApp::~CPSPApp()
 	{
 		Log(LOG_VERYLOW, "~CPSPApp(): deleting m_KeyHandler");
 		delete(m_KeyHandler), m_KeyHandler = NULL;
+	}
+
+	if (m_strNetworkProxy)
+	{	
+		Log(LOG_VERYLOW, "~CPSPApp(): freeing m_strNetworkProxy");
+		free(m_strNetworkProxy), m_strNetworkProxy = NULL;
 	}
 
 	Log(LOG_VERYLOW, "~CPSPApp(): freeing program name.");

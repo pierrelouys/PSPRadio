@@ -1,3 +1,4 @@
+
 /*
 	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
 	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
@@ -91,6 +92,12 @@ int CPSPRadio::Setup(int argc, char **argv)
 			m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
 
 		sceKernelChangeThreadPriority(sceKernelGetThreadId(), m_Config->GetInteger("SYSTEM:MAIN_THREAD_PRIO"));
+	}
+
+	if (m_Config->GetInteger("WIFI:USE_PROXY") == 1)
+	{
+		SetNetworkProxy(m_Config->GetStr("WIFI:PROXY"));
+		Log(LOG_INFO, "Configured To use proxy '%s'", GetNetworkProxy());
 	}
 
 	CScreenHandler::Screen iInitialScreen = (CScreenHandler::Screen)m_Config->GetInteger("SYSTEM:INITIAL_SCREEN", 0);

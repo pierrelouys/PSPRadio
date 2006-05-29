@@ -285,12 +285,10 @@ int CPSPStream::http_open(char *url)
 	{
 		if (!proxyurl)
 		{
-			if (!(proxyurl = getenv("MP3_HTTP_PROXY")))
-			{
-				if (!(proxyurl = getenv("http_proxy")))
-				{
-					proxyurl = getenv("HTTP_PROXY");
-				}
+			if (pPSPApp->isNetworkProxyEnabled() == true)
+			{	
+				proxyurl = pPSPApp->GetNetworkProxy();
+				Log(LOG_LOWLEVEL, "Using proxy '%s'.", proxyurl);
 			}
 		}
 		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) 
