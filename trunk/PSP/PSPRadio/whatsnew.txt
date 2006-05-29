@@ -1,7 +1,7 @@
 What's New for PSPRadio
 ========================
 
-0.38.11 (r) ()
+0.38.11 (r1184) (2006-05-28)
 NEW FEATURES
 (raf) Added support for the new SHOUTcast DB Listing. This will retrieve now 500 stations by default. Look at the config file to change.
 (raf) Dyn/Retawq: Updated priority to 45 so it will co-operate with pspradio better.

@@ -1,4 +1,4 @@
-PSPRadio 0.38.10 2006-05-19
+PSPRadio 0.38.11 2006-05-28
 ============================
 
 -Official blog:  http://rafpsp.blogspot.com
