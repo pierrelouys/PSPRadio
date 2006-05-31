@@ -419,12 +419,16 @@ int CPSPRadio::ProcessEvents()
 				}
 				else
 				{
-					Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but the stream has no owner.");
+					Log(LOG_LOWLEVEL, "Wanted to call OnPlayStateChange(STOP), but the stream has no owner.");
 				}
 				break;
 
 			case MID_DECODE_STREAM_OPEN_ERROR:
 				Log(LOG_VERYLOW, "MID_DECODE_STREAM_OPEN_ERROR received, calling OnPlayStateChange(STOP)");
+				m_Sound->Stop(); /* this sends a MID_SOUND_STOPPED */
+				if (m_UI)
+					m_UI->OnStreamOpeningError();
+				/*
 				if (StreamOwnerScreen)
 				{
 					StreamOwnerScreen->OnPlayStateChange(PLAYSTATE_STOP);
@@ -433,8 +437,7 @@ int CPSPRadio::ProcessEvents()
 				{
 					Log(LOG_ERROR, "Wanted to call OnPlayStateChange(STOP), but the stream has no owner.");
 				}
-				if (m_UI)
-					m_UI->OnStreamOpeningError();
+				*/
 				break;
 
 			case MID_THDECODE_DECODING:
@@ -468,7 +471,6 @@ int CPSPRadio::ProcessEvents()
 					m_UI->NewPCMBuffer((short *)event.pData);
 				g_PCMBuffer = (DeviceBuffer *)event.pData;
 				break;
-
 
 			case MID_NEW_METADATA_AVAILABLE:
 				if (m_UI)

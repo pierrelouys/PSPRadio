@@ -112,9 +112,10 @@ void PlayListScreen::Activate(IPSPRadio_UI *UI)
 void PlayListScreen::InputHandler(int iButtonMask)
 {
 	CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
-	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 	CMetaDataContainerIndexer *SelectionIndexer = m_Lists->GetCurrentSelectionIndexer();
-	//CMetaDataContainerIndexer *PlayIndexer = m_Lists->GetPlayingTrackIndexer();
+	CPSPStream *currentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
+
+	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 		
 	if (iButtonMask & PSP_CTRL_LEFT)
 	{
@@ -254,7 +255,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 							PlaySetStream();
 							
 							/** If the new selected (not playing) stream is different than the current, only then stop-"restart" */
-							if (0 != strcmp(m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI(), (*(m_Lists->GetCurrentElementIterator()))->strURI))
+							if (0 != strcmp(currentStream->GetURI(), (*(m_Lists->GetCurrentElementIterator()))->strURI))
 							{
 								m_Lists->SetPlayingToSelection();
 								
@@ -274,10 +275,10 @@ void PlayListScreen::InputHandler(int iButtonMask)
 							currently selected stream! */
 							/** We do this by stopping the stream, and asking the handler to start playing
 							when the stream stops. */
-							if (CPSPStream::STREAM_STATE_OPEN == m_ScreenHandler->GetSound()->GetCurrentStream()->GetState())
+							if (CPSPStream::STREAM_STATE_OPEN == currentStream->GetState())
 							{
 								/** If the new selected (not playing) stream is different than the current, only then stop-"restart" */
-								if (0 != strcmp(m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI(), (*(m_Lists->GetCurrentElementIterator()))->strURI))
+								if (0 != strcmp(currentStream->GetURI(), (*(m_Lists->GetCurrentElementIterator()))->strURI))
 								{
 									m_Lists->SetPlayingToSelection();
 									
@@ -296,9 +297,9 @@ void PlayListScreen::InputHandler(int iButtonMask)
 								}
 								else //the selected stream == current stream, if a file stream, then pause.
 								{
-									if (CPSPStream::STREAM_TYPE_FILE == m_ScreenHandler->GetSound()->GetCurrentStream()->GetType())
+									if (CPSPStream::STREAM_TYPE_FILE == currentStream->GetType())
 									{
-										//m_ScreenHandler->GetSound()->GetCurrentStream()->
+										//currentStream->
 										//	SetURI((*(m_Lists->GetCurrentElementIterator()))->strURI);
 										m_ScreenHandler->GetSound()->Pause();
 										OnPlayStateChange(PLAYSTATE_PAUSE);
@@ -546,23 +547,20 @@ void PlayListScreen::EOSHandler()
 void PlayListScreen::PlaySetStream()
 {
 	CPSPSound::pspsound_state playingstate = m_ScreenHandler->GetSound()->GetPlayState();
-	
+	CPSPStream *currentStream = m_ScreenHandler->GetSound()->GetCurrentStream();
+
 	switch (playingstate)
 	{
 		case CPSPSound::PLAY:
 		case CPSPSound::STOP:
-			memcpy(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), 	
-					&(*(*(m_Lists->GetCurrentElementIterator()))),
-					sizeof(MetaData));
-			m_ScreenHandler->GetSound()->GetCurrentStream()->
-					SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
-
+			memcpy(currentStream->GetMetaData(), &(*(*(m_Lists->GetCurrentElementIterator()))), sizeof(MetaData));
+			currentStream->SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
 			break;
 		case CPSPSound::PAUSE:
 			break;
 	}
 	
-	Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", m_ScreenHandler->GetSound()->GetCurrentStream()->GetURI());
+	Log(LOG_LOWLEVEL, "Calling Play. URI set to '%s'", currentStream->GetURI());
 	#if 0
 	/** Populate m_CurrentMetaData */
 		///memcpy(&(*(m_Lists->GetCurrentElementIterator())), m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData(), sizeof(MetaData));
