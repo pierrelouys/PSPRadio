@@ -369,6 +369,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 						case MetaData::CONTENT_AUDIO_AAC:
 							Log(LOG_INFO, "ThDecode:: AAC Stream Not supported.");
 							pPSPSound->SendEvent(MID_DECODE_STREAM_OPEN_ERROR);
+							//pPSPSound->m_CurrentState = STOP;
 							bDecoderCreated = false;
 							break;
 
@@ -387,6 +388,7 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 								strURI = strstr(strPlayListBuf, "File1=")+strlen("File1=");
 								*strchr(strURI, 0xA) = 0;
 								pPSPSound->m_CurrentStream->SetURI(strURI);
+								pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 								/** We send an event to ourselves */
 								event.EventId = MID_DECODER_START;
 								m_EventToDecTh->Send(event);

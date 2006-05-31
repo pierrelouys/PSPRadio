@@ -287,8 +287,8 @@ int CPSPStream::http_open(char *url)
 		{
 			if (pPSPApp->isNetworkProxyEnabled() == true)
 			{	
-				proxyurl = pPSPApp->GetNetworkProxy();
-				Log(LOG_LOWLEVEL, "Using proxy '%s'.", proxyurl);
+				proxyurl = strdup(pPSPApp->GetNetworkProxy());
+				Log(LOG_LOWLEVEL, "Setting proxy to '%s'.", proxyurl);
 			}
 		}
 		if (proxyurl && proxyurl[0] && strcmp(proxyurl, "none")) 
