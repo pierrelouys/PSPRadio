@@ -52,7 +52,15 @@
  */
 
 /* We assume here int holds at least 32 bits */
+#ifdef PSP
+/* Let's save some memory */
+static int dither_table[65536];
+static int *red_table   = dither_table;
+static int *green_table = dither_table;
+static int *blue_table  = dither_table;
+#else
 static int red_table[65536],green_table[65536],blue_table[65536];
+#endif
 /* If we want to represent some 16-bit from-screen-light, it would require certain display input
  * value (0-255 red, 0-255 green, 0-255 blue), possibly not a whole number. [red|green|blue]_table
  * translares 16-bit light to the nearest index (that should be fed into the
@@ -333,6 +341,22 @@ ROUND_TEMPLATE(round_451)
 #undef SAVE_CODE
 #undef SKIP_CODE
 
+#ifdef PSP
+
+/* R G B 0 */
+#define SKIP_CODE out->x*4;
+#define SAVE_CODE *outp=rt>>16;\
+	outp[1]=gt>>16;\
+	outp[2]=bt>>16;\
+	outp[3]=0;\
+	outp+=4;
+DITHER_TEMPLATE(dither_196)
+ROUND_TEMPLATE(round_196)
+#undef SAVE_CODE
+#undef SKIP_CODE 
+
+#else
+
 /* B G R 0 */
 #define SKIP_CODE out->x*4;
 #define SAVE_CODE *outp=bt>>16;\
@@ -344,6 +368,8 @@ DITHER_TEMPLATE(dither_196)
 ROUND_TEMPLATE(round_196)
 #undef SAVE_CODE
 #undef SKIP_CODE 
+
+#endif
 
 /* 0 B G R */
 #define SKIP_CODE out->x*4;
@@ -447,6 +473,14 @@ void pass_bgr(unsigned short *in, struct bitmap *out)
 		
 }
 
+#ifdef PSP
+#define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+long color_8888_bgr0(int rgb)
+{
+	//return RGB2BGR(rgb);
+	return rgb;
+}
+#else
 long color_8888_bgr0(int rgb)
 {
 	long ret;
@@ -458,6 +492,7 @@ long color_8888_bgr0(int rgb)
 
 	return ret;
 }
+#endif
 
 /* Long live the sigma-delta modulator! */
 long color_8888_0bgr(int rgb)
@@ -831,6 +866,9 @@ void make_round_tables(void)
 /* Also makes up the dithering tables.
  * You may call it twice - it doesn't leak any memory.
  */
+void _save_tables();
+void _load_tables();
+
 void init_dither(int depth)
 {
 	switch(depth){
@@ -920,9 +958,13 @@ void init_dither(int depth)
 		 * Even this is dithered!
 		 * B G R 0
 		 */
+#ifdef PSP
+		_load_tables();
+#else
 		make_red_table(8,0,0,0);
 		make_green_table(8,0,0,0);
 		make_blue_table(8,0,0,0);
+#endif
 		dither_fn_internal=dither_196;
 		round_fn=round_196;
 		break;
@@ -944,7 +986,75 @@ void init_dither(int depth)
 		internal("Graphics driver returned unsupported \
 pixel memory organisation");
 	}
+
 	make_round_tables();
+}
+
+void _save_tables()
+{
+	int ret;
+	FILE *fp = NULL;
+	int table_size;
+	
+	errno = 0;
+	fp = fopen("dithertable.bin", "w");
+	
+	if (fp != NULL)
+	{
+		ret = fwrite(dither_table, sizeof(int), 65536, fp);
+		
+		fclose(fp);
+		
+		if (ret == 65536)
+		{
+			pspDebugScreenPrintf("done. saved.\n");
+			wait_for_triangle("");
+		}
+		else
+		{
+			pspDebugScreenPrintf("write returns %d\n", ret);
+			wait_for_triangle("error writing dither tables.");
+		}
+	}
+	else
+	{
+		pspDebugScreenPrintf("open returns -- errno = %d\n",  errno);
+		wait_for_triangle("error opening file to write dither tables.");
+	}
+}
+
+void _load_tables()
+{
+	int ret;
+	FILE *fp = NULL;
+	int table_size;
+	
+	errno = 0;
+	fp = fopen("dithertable.bin", "r");
+	
+	if (fp != NULL)
+	{
+		ret = fread(dither_table, sizeof(int), 65536, fp);
+		
+		fclose(fp);
+		
+		if (ret == 65536)
+		{
+			pspDebugScreenPrintf("Dither tables loaded from disk.\n");
+		}
+		else
+		{
+			pspDebugScreenPrintf("read returns %d\n", ret);
+			wait_for_triangle("error reading dither tables.");
+		}
+	}
+	else
+	{
+		pspDebugScreenPrintf("dither table file not found. generating . . .");
+		make_red_table(8,0,0,0);
+		_save_tables();
+		//wait_for_triangle("error opening file to read dither tables.");
+	}
 }
 
 /* Input is in sRGB space (unrounded, i. e. directly from HTML)

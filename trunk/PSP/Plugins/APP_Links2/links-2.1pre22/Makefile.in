@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -77,7 +77,7 @@ bin_PROGRAMS = links
 
 @ATHEOS_GR_TRUE@links_LDADD = atheos.o
 
-links_SOURCES = af_unix.c auth.c beos.c bfu.c block.c bookmarks.c builtin.c cache.c charsets.c connect.c context.c cookies.c default.c dip.c directfb.c directfb_cursors.h dither.c dns.c drivers.c error.c file.c finger.c font_include.c framebuffer.c ftp.c gif.c html.c html_gr.c html_r.c html_tbl.c http.c https.c img.c imgcache.c ipret.c javascr.c javascript.c jpeg.c jsint.c kbd.c language.c links_icon.c listedit.c lru.c mailto.c main.c md5.c md5hl.c menu.c memory.c ns.c objreq.c os_dep.c pmshell.c png.c pomocny.c regexp.c sched.c sdl.c select.c session.c smb.c svgalib.c terminal.c tiff.c types.c url.c view.c view_gr.c win32.c x.c xbm.c links.h cfg.h os_dep.h os_depx.h setup.h codepage.h language.h codepage.inc entity.inc uni_7b.inc language.inc upcase.inc arrow.inc md5.h ns.h struct.h tree.h typy.h ipret.h javascript.h builtin.h builtin_keys.h bits.h sdl_data.inc
+links_SOURCES = psp.c plugin_main.c pspsdl.c pspgu.c af_unix.c auth.c beos.c bfu.c block.c bookmarks.c builtin.c cache.c charsets.c connect.c context.c cookies.c default.c dip.c directfb.c directfb_cursors.h dither.c dns.c drivers.c error.c file.c finger.c font_include.c framebuffer.c ftp.c gif.c html.c html_gr.c html_r.c html_tbl.c http.c https.c img.c imgcache.c ipret.c javascr.c javascript.c jpeg.c jsint.c kbd.c language.c links_icon.c listedit.c lru.c mailto.c main.c md5.c md5hl.c menu.c memory.c ns.c objreq.c os_dep.c pmshell.c png.c pomocny.c regexp.c sched.c sdl.c select.c session.c smb.c svgalib.c terminal.c tiff.c types.c url.c view.c view_gr.c win32.c x.c xbm.c links.h cfg.h os_dep.h os_depx.h setup.h codepage.h language.h codepage.inc entity.inc uni_7b.inc language.inc upcase.inc arrow.inc md5.h ns.h struct.h tree.h typy.h ipret.h javascript.h builtin.h builtin_keys.h bits.h sdl_data.inc
 
 CXXFLAGS = @CXXFLAGS@
 
@@ -93,16 +93,16 @@ PROGRAMS =  $(bin_PROGRAMS)
 DEFS = @DEFS@ -I. -I$(srcdir) -I.
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-links_OBJECTS =  af_unix.o auth.o beos.o bfu.o block.o bookmarks.o \
-builtin.o cache.o charsets.o connect.o context.o cookies.o default.o \
-dip.o directfb.o dither.o dns.o drivers.o error.o file.o finger.o \
-font_include.o framebuffer.o ftp.o gif.o html.o html_gr.o html_r.o \
-html_tbl.o http.o https.o img.o imgcache.o ipret.o javascr.o \
-javascript.o jpeg.o jsint.o kbd.o language.o links_icon.o listedit.o \
-lru.o mailto.o main.o md5.o md5hl.o menu.o memory.o ns.o objreq.o \
-os_dep.o pmshell.o png.o pomocny.o regexp.o sched.o sdl.o select.o \
-session.o smb.o svgalib.o terminal.o tiff.o types.o url.o view.o \
-view_gr.o win32.o x.o xbm.o
+links_OBJECTS =  psp.o plugin_main.o pspsdl.o pspgu.o af_unix.o auth.o \
+beos.o bfu.o block.o bookmarks.o builtin.o cache.o charsets.o connect.o \
+context.o cookies.o default.o dip.o directfb.o dither.o dns.o drivers.o \
+error.o file.o finger.o font_include.o framebuffer.o ftp.o gif.o html.o \
+html_gr.o html_r.o html_tbl.o http.o https.o img.o imgcache.o ipret.o \
+javascr.o javascript.o jpeg.o jsint.o kbd.o language.o links_icon.o \
+listedit.o lru.o mailto.o main.o md5.o md5hl.o menu.o memory.o ns.o \
+objreq.o os_dep.o pmshell.o png.o pomocny.o regexp.o sched.o sdl.o \
+select.o session.o smb.o svgalib.o terminal.o tiff.o types.o url.o \
+view.o view_gr.o win32.o x.o xbm.o
 @ATHEOS_GR_TRUE@links_DEPENDENCIES =  atheos.o
 links_LDFLAGS = 
 CFLAGS = @CFLAGS@
@@ -123,6 +123,23 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
+DEP_FILES =  .deps/af_unix.P .deps/auth.P .deps/beos.P .deps/bfu.P \
+.deps/block.P .deps/bookmarks.P .deps/builtin.P .deps/cache.P \
+.deps/charsets.P .deps/connect.P .deps/context.P .deps/cookies.P \
+.deps/default.P .deps/dip.P .deps/directfb.P .deps/dither.P .deps/dns.P \
+.deps/drivers.P .deps/error.P .deps/file.P .deps/finger.P \
+.deps/font_include.P .deps/framebuffer.P .deps/ftp.P .deps/gif.P \
+.deps/html.P .deps/html_gr.P .deps/html_r.P .deps/html_tbl.P \
+.deps/http.P .deps/https.P .deps/img.P .deps/imgcache.P .deps/ipret.P \
+.deps/javascr.P .deps/javascript.P .deps/jpeg.P .deps/jsint.P \
+.deps/kbd.P .deps/language.P .deps/links_icon.P .deps/listedit.P \
+.deps/lru.P .deps/mailto.P .deps/main.P .deps/md5.P .deps/md5hl.P \
+.deps/memory.P .deps/menu.P .deps/ns.P .deps/objreq.P .deps/os_dep.P \
+.deps/plugin_main.P .deps/pmshell.P .deps/png.P .deps/pomocny.P \
+.deps/psp.P .deps/pspgu.P .deps/pspsdl.P .deps/regexp.P .deps/sched.P \
+.deps/sdl.P .deps/select.P .deps/session.P .deps/smb.P .deps/svgalib.P \
+.deps/terminal.P .deps/tiff.P .deps/types.P .deps/url.P .deps/view.P \
+.deps/view_gr.P .deps/win32.P .deps/x.P .deps/xbm.P
 SOURCES = $(links_SOURCES)
 OBJECTS = $(links_OBJECTS)
 
@@ -130,9 +147,9 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -196,9 +213,6 @@ uninstall-binPROGRAMS:
 	list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
-
-.c.o:
-	$(COMPILE) -c $<
 
 .s.o:
 	$(COMPILE) -c $<
@@ -326,6 +340,11 @@ distdir: $(DISTFILES)
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
 	$(mkinstalldirs) $(distdir)/Unicode $(distdir)/doc/links_cal \
 	   $(distdir)/graphics \
 	   $(distdir)/graphics/font/century_school-bold-roman-serif-vari \
@@ -338,7 +357,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -346,149 +365,38 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 	$(MAKE) $(AM_MAKEFLAGS) top_distdir="$(top_distdir)" distdir="$(distdir)" dist-hook
-af_unix.o: af_unix.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-auth.o: auth.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-beos.o: beos.c
-bfu.o: bfu.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-block.o: block.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-bookmarks.o: bookmarks.c links.h cfg.h config.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h
-builtin.o: builtin.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h struct.h typy.h builtin_keys.h builtin.h \
-	ipret.h ns.h tree.h md5.h
-cache.o: cache.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-charsets.o: charsets.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h codepage.inc uni_7b.inc entity.inc \
-	upcase.inc
-connect.o: connect.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-context.o: context.c cfg.h config.h struct.h links.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h tree.h typy.h ipret.h builtin.h \
-	ns.h
-cookies.o: cookies.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-default.o: default.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-dip.o: dip.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-directfb.o: directfb.c cfg.h config.h
-dither.o: dither.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-dns.o: dns.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-drivers.o: drivers.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-error.o: error.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-file.o: file.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-finger.o: finger.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-font_include.o: font_include.c cfg.h config.h links.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h
-framebuffer.o: framebuffer.c cfg.h config.h links.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h arrow.inc
-ftp.o: ftp.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-gif.o: gif.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-html.o: html.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-html_gr.o: html_gr.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-html_r.o: html_r.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-html_tbl.o: html_tbl.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-http.o: http.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-https.o: https.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-img.o: img.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-imgcache.o: imgcache.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-ipret.o: ipret.c cfg.h config.h struct.h links.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h tree.h typy.h ipret.h ns.h \
-	builtin.h builtin_keys.h
-javascr.o: javascr.c cfg.h config.h tree.h struct.h links.h os_dep.h \
-	os_depx.h setup.h language.h codepage.h ipret.h javascript.h
-javascript.o: javascript.c cfg.h config.h struct.h links.h os_dep.h \
-	os_depx.h setup.h language.h codepage.h tree.h ns.h
-jpeg.o: jpeg.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-jsint.o: jsint.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h struct.h ipret.h builtin_keys.h
-kbd.o: kbd.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-language.o: language.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h language.inc
-links_icon.o: links_icon.c cfg.h config.h links.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h
-listedit.o: listedit.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-lru.o: lru.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-mailto.o: mailto.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-main.o: main.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-md5.o: md5.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h md5.h
-md5hl.o: md5hl.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h md5.h
-memory.o: memory.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-menu.o: menu.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-ns.o: ns.c cfg.h config.h struct.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h typy.h ns.h ipret.h builtin_keys.h
-objreq.o: objreq.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-os_dep.o: os_dep.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-pmshell.o: pmshell.c cfg.h config.h
-png.o: png.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-pomocny.o: pomocny.c cfg.h config.h struct.h links.h os_dep.h os_depx.h \
-	setup.h language.h codepage.h
-regexp.o: regexp.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h struct.h
-sched.o: sched.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-sdl.o: sdl.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h sdl_data.inc
-select.o: select.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-session.o: session.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-smb.o: smb.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-svgalib.o: svgalib.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h bits.h arrow.inc
-terminal.o: terminal.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-tiff.o: tiff.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h bits.h
-types.o: types.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-url.o: url.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-view.o: view.c links.h cfg.h config.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-view_gr.o: view_gr.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
-win32.o: win32.c
-x.o: x.c cfg.h config.h links.h os_dep.h os_depx.h setup.h language.h \
-	codepage.h
-xbm.o: xbm.c cfg.h config.h links.h os_dep.h os_depx.h setup.h \
-	language.h codepage.h
 
+DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+
+-include $(DEP_FILES)
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+	-rm -rf .deps
+
+maintainer-clean-depend:
+
+%.o: %.c
+	@echo '$(COMPILE) -c $<'; \
+	$(COMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.c
+	@echo '$(LTCOMPILE) -c $<'; \
+	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
 info-am:
 info: info-am
 dvi-am:
@@ -529,25 +437,27 @@ distclean-generic:
 
 maintainer-clean-generic:
 mostlyclean-am:  mostlyclean-hdr mostlyclean-binPROGRAMS \
-		mostlyclean-compile mostlyclean-tags \
+		mostlyclean-compile mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
 clean-am:  clean-hdr clean-binPROGRAMS clean-compile clean-tags \
-		clean-generic mostlyclean-am
+		clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
 distclean-am:  distclean-hdr distclean-binPROGRAMS distclean-compile \
-		distclean-tags distclean-generic clean-am
+		distclean-tags distclean-depend distclean-generic \
+		clean-am
 
 distclean: distclean-am
 	-rm -f config.status
 
 maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-binPROGRAMS \
 		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-generic distclean-am
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -560,8 +470,9 @@ maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
 mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile install-man1 uninstall-man1 install-man \
 uninstall-man tags mostlyclean-tags distclean-tags clean-tags \
-maintainer-clean-tags distdir info-am info dvi-am dvi check check-am \
-installcheck-am installcheck all-recursive-am install-exec-am \
+maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
+clean-depend maintainer-clean-depend info-am info dvi-am dvi check \
+check-am installcheck-am installcheck all-recursive-am install-exec-am \
 install-exec install-data-am install-data install-am install \
 uninstall-am uninstall all-redirect all-am all installdirs \
 mostlyclean-generic distclean-generic clean-generic \
