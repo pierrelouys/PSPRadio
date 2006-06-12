@@ -382,7 +382,7 @@
 #define PACKAGE "links"
 
 /* Version number of package */
-#define VERSION "2.1pre21"
+#define VERSION "2.1pre22"
 
 
 /* Define to 1 if NLS is requested.  */
@@ -464,7 +464,7 @@
 #define CHCEME_FLEXI_LIBU 1
 
 /* By PerM's ideological comittee */
-#define VERSION "2.1pre21"
+#define VERSION "2.1pre22"
 
 /* */
 #define G 1

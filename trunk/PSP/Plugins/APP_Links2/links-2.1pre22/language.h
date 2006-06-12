@@ -4,7 +4,7 @@
 	#define N_LANGUAGES 1
 #else
 	#define N_LANGUAGES 32
-#endif#
+#endif
 
 #define T__CHAR_SET      1	
 #define T__LANGUAGE      2	
