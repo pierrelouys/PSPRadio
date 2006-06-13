@@ -1,30 +1,43 @@
  What's New for Links2 PSP Port
 ================================
 
-rXXXX (2006-05-xx)
+links-2.1pre22 PSP r1195 (2006-06-13)
 NEW FEATURES
 (raf) StandAlone: New connection selection: "None" allows the user to continue initialization without having to connect.
 (raf) Plugin: Changed the plugin priority to 45, this should prevent skipping while listening to pspradio.
-(raf) Updated to links-2.1pre22
+(raf) Updated to links-2.1pre22:
+	Details of links-2.1pre22 (from Changelog):
+		-sponsored by Alex Poylisher <sher@komkon.org>
+		Use 8-bit gamma correction on machines with slow FPU (or with FPU
+		emulation) --- this significantly reduces startup time
+		-Optional scrollbars in frames
+		-Implemented porn mode (bare image autoscaling aka fullscreen).
+		-Fixed ignorance of aspect ratio for images where only one dimension
+		is specified.
+		-Fixed crash when deleting item at the top of the window in bookmarks
+		or associations or extensions
+		-Ignore space at the end of url
+		-Fixed memory leak on image with no src attribute and usemap attribute
+		-Support 4th and 6th mouse button on svgalib
 (raf) Now when adding a bookmark, bookmarks are saved automatically.
 BUG FIXES
 (raf) Cosmetic changes when taking screenshots, and reconnecting. (Wait for the user, redrawing).
 
-r1142 (2006-05-16)
+links-2.1pre21 PSP r1142 (2006-05-16)
 NEW FEATURES
 (danzel) StandAlone: Wifi "Connect to" dialog.
 (raf) Changed thread priorities.
 BUG FIXES
 (raf) Renamed screenshots to PSPLinks2_ScreenXXX.png
 
-r1136 (2006-05-14)
+links-2.1pre21 PSP r1136 (2006-05-14)
 NEW FEATURES
 (raf) Now L+UP/DOWN = PgUp/PgDown
 (raf) Now R+UP/DOWN/LEFT/RIGHT = Scroll
 BUG FIXES
 (raf) Added rename() to newlib, now saving configuration files/bookmarks should work again
 
-r1129 (2006-05-10)
+links-2.1pre21 PSP r1129 (2006-05-10)
 NEW FEATURES
 (raf) Links2: Now it won't load network modules if f/w version is 2.0+ (hope this allows it to work via eLoader).
 (raf) Links2: Added download directory configuration for AVC MP4 files. Added support for 'other' download directory.
@@ -33,7 +46,7 @@ NEW FEATURES
 (raf) Links2: L+ UP/DOWN/LEFT/RIGHT now scrolls the screen in those directions.
 BUG FIXES
 
-r1105 (2006-05-08)
+links-2.1pre20 PSP r1105 (2006-05-08)
 NEW FEATURES
 (raf) Core/(Links2): Updated/enhanced pthreads implementation.
 (raf) Added configuration options for default directories for downloads of files based on their extension.
@@ -45,7 +58,7 @@ NEW FEATURES
 (raf) Compiled with compiler optiimizations turned on (-O2) 
 BUG FIXES
 
-r1090 (2006-05-04) FIRST RELEASE
+links-2.1pre20 PSP r1090 (2006-05-04) FIRST RELEASE
 (raf) Browser ported to PSP. PSPRadio plugin created. Using version 2.1pre20 with utf8 patch. Using SDL SW Surfaces for graphics.
 (raf) Updated code to take advantage of changes to newlib (for pipes/file descriptors/sockets)
 (raf) dithertable is now saved to file, if file is found (now provided), the its loaded instead of generated. (This speeds up startup from over 1min to seconds)
