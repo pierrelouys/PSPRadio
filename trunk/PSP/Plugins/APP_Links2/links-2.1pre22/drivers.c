@@ -37,7 +37,7 @@ extern struct graphics_driver sdl_driver;
 #ifdef GRDRV_PSPSDL
 extern struct graphics_driver pspsdl_driver;
 #endif
-#ifdef GRDRV_GUSDL
+#ifdef GRDRV_PSPGU
 extern struct graphics_driver pspgu_driver;
 #endif
 

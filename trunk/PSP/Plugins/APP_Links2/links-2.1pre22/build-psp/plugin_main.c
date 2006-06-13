@@ -432,7 +432,7 @@ int main(int argc, char **argv)
 		if(pspSdkLoadInetModules() < 0)
 		{
 			pspDebugScreenPrintf("** Error, could not load inet modules\n");
-			sceDisplayWaitVblankStart();
+			
 		}
 	}
 	else
@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 	}
 #endif
 	
-	pspDebugScreenPrintf("- Connecting to Access Point ...\n");
+	pspDebugScreenPrintf("- Connecting to Access Point...\n");
 	sceDisplayWaitVblankStart();
 	
 	shdparam.sched_priority = 32;
