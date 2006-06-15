@@ -743,10 +743,10 @@ typedef unsigned short __u16;
 struct pspgu_cmap {
 	int start,
 	len;
-	__u16 *red,
-	*green,
+	unsigned char *transp,
 	*blue,
-	*transp;
+	*green,
+	*red;
 };
 static void set_palette(struct palette *pal)
 {
@@ -758,10 +758,10 @@ static void set_palette(struct palette *pal)
 	unsigned short *blue=pal->blue;
 	__u16 *r, *g, *b, *t;
 
-	r=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-	g=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-	b=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-	t=mem_calloc(pspgu_palette_colors*sizeof(__u16));
+	r=mem_alloc(pspgu_palette_colors*sizeof(__u8));
+	g=mem_alloc(pspgu_palette_colors*sizeof(__u8));
+	b=mem_alloc(pspgu_palette_colors*sizeof(__u8));
+	t=mem_calloc(pspgu_palette_colors*sizeof(__u8));
 
 	if (!r||!g||!b||!t) {
 		/*internal("Cannot allocate memory.\n")*/;
@@ -1466,7 +1466,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 
 	pspgu_xsize=PSP_SCREEN_WIDTH;
 	pspgu_ysize=PSP_SCREEN_HEIGHT;
-	pspgu_bits_pp=16;
+	pspgu_bits_pp=32;
 #define pspgu_VISUAL_DIRECTCOLOR 10
 #define pspgu_VISUAL_PSEUDOCOLOR 20
 
@@ -1625,7 +1625,11 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_vmem = pspgu_mem + border_left * pspgu_pixelsize + border_top * pspgu_linesize;
 	pspgu_driver.depth=pspgu_pixelsize&7;
 	pspgu_driver.depth|=(pspgu_bits_pp&31)<<3;
-	pspgu_driver.depth|=(!!(1/*?*/))<<8;	/* nonstd byte order */
+	//pspgu_driver.depth|=(!!(1/*?*/))<<8;	/* nonstd byte order */
+	/* endianness (stolen from directfb.c) */
+	if (htons (0x1234) == 0x1234)
+		pspgu_driver.depth |= 0x100;
+
 	
 	pspgu_driver.get_color=get_color_fn(pspgu_driver.depth);
 	/*pspgu_switch_init();*/
