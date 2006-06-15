@@ -29,6 +29,10 @@
 
 #include "links.h"
 
+#include <pthread.h>
+#include <pspctrl.h>
+static int sf_danzeffOn = 0;
+
 #define PSP_SCREEN_WIDTH 480
 #define PSP_SCREEN_HEIGHT 272
 #define PSP_LINE_SIZE 512
@@ -86,14 +90,15 @@ volatile int pspgu_active=1;
 
 struct palette
 {
-	unsigned short *red;
-	unsigned short *green;
-	unsigned short *blue;
+	unsigned char *alpha;
+	unsigned char *blue;
+	unsigned char *green;
+	unsigned char *red;
 };
 
 struct palette old_palette;
 struct palette global_pal;
-static struct vt_mode vt_mode,vt_omode;
+///static struct vt_mode vt_mode,vt_omode;
 
 ///struct pspgu_var_screeninfo oldmode;
 
@@ -133,9 +138,9 @@ static int global_mouse_hidden;
 
 
 
-#define TEST_INACTIVITY if (!pspgu_active/*||dev!=current_virtual_device*/) return;
+#define TEST_INACTIVITY if (!pspgu_active||dev!=current_virtual_device) return;
 
-#define TEST_INACTIVITY_0 if (!pspgu_active/*||dev!=current_virtual_device*/) return 0;
+#define TEST_INACTIVITY_0 if (!pspgu_active||dev!=current_virtual_device) return 0;
 
 #define RECTANGLES_INTERSECT(xl0, xh0, xl1, xh1, yl0, yh0, yl1, yh1) (\
 				   (xl0)<(xh1)\
@@ -313,7 +318,7 @@ static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 
 static void redraw_mouse(void);
 
-static void pspgu_mouse_move(int dx, int dy)
+static void pspgu_mouse_move(int dx, int dy, int fl)
 {
 	struct event ev;
 	mouse_x += dx;
@@ -327,12 +332,13 @@ static void pspgu_mouse_move(int dx, int dy)
 	ev.y = mouse_y;
 	ev.b = B_MOVE;
 	if (!current_virtual_device) return;
-	if (current_virtual_device->mouse_handler) current_virtual_device->mouse_handler(current_virtual_device, ev.x, ev.y, ev.b);
+	if (current_virtual_device->mouse_handler) current_virtual_device->mouse_handler(current_virtual_device, ev.x, ev.y, fl/*ev.b*/);
 	redraw_mouse();
 }
 
 static void pspgu_key_in(void *p, struct event *ev, int size)
 {
+#ifndef PSP
 	if (size != sizeof(struct event) || ev->ev != EV_KBD) return;
 	if ((ev->y & KBD_ALT) && ev->x >= '0' && ev->x <= '9') {
 		switch_virtual_device((ev->x - '1' + 10) % 10);
@@ -349,6 +355,7 @@ static void pspgu_key_in(void *p, struct event *ev, int size)
 			if ((ev->x=cp2u(ev->x,pspgu_driver.codepage)) == -1) return;
 		if (current_virtual_device->keyboard_handler) current_virtual_device->keyboard_handler(current_virtual_device, ev->x, ev->y);
 	}
+#endif
 }
 
 
@@ -1099,6 +1106,273 @@ static void unblock_pspgu_mouse(void)
 #endif
 #endif
 
+
+void pspInputThread()
+{
+	for(;;)
+	{
+		static int oldButtonMask = 0;
+		int deltax = 0, deltay = 0;
+		static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
+		SceCtrlData pad;
+		SceCtrlLatch latch; 
+		unsigned short	fl	= 0;
+				
+		if ( g_PSPEnableInput == truE )
+		{
+			
+			if (g_PSPEnableRendering == falsE)
+			{
+				g_PSPEnableRendering = truE;
+				cls_redraw_all_terminals();
+			}
+			
+			sceCtrlReadBufferPositive(&pad, 1);
+			sceCtrlReadLatch(&latch);
+			
+			RAND_add(&pad, sizeof(pad), sizeof(pad)); /** Add more randomness to SSL */
+				
+			if (sf_danzeffOn)
+			{
+				if (danzeff_dirty())
+				{
+					///??sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+				}
+				
+				if (latch.uiMake)
+				{
+					// Button Pressed 
+					oldButtonMask = latch.uiPress;
+				}
+				else if (latch.uiBreak) /** Button Released */
+				{
+					if (oldButtonMask & PSP_CTRL_START)
+					{
+						/* Enter input */
+						sf_danzeffOn = 0;
+						cls_redraw_all_terminals();
+					}
+					else if (oldButtonMask & PSP_CTRL_SELECT)
+					{
+						TakeScreenShot();
+						wait_for_triangle("");
+						cls_redraw_all_terminals();
+					}
+					oldButtonMask = 0;
+				}
+				
+				if (pad.Buttons & PSP_CTRL_LEFT)
+				{
+					danzeff_x-=5;
+					cls_redraw_all_terminals();
+				}
+				else if (pad.Buttons & PSP_CTRL_RIGHT)
+				{
+					danzeff_x+=5;
+					cls_redraw_all_terminals();
+				}
+				else
+				{
+					int key = 0;
+					key = danzeff_readInput(pad);
+					if (key) 
+					{
+						switch (key)
+						{
+							case '\n':
+								key = KBD_ENTER;
+								break;
+							case 8:
+								key = KBD_BS;
+								break;
+						}
+						current_virtual_device->keyboard_handler(current_virtual_device, key, 0);
+						//sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+					}
+				}
+				danzeff_moveTo(danzeff_x, danzeff_y);
+				
+			}
+			else
+			{
+				if  (pad.Lx < 128)
+				{
+					//newx = mouse_x - (128 - pad.Lx)/30;
+					deltax = -(128 - pad.Lx)/30;
+				}
+				else
+				{
+					//newx = mouse_x + (pad.Lx - 128)/30;
+					deltax = (pad.Lx - 128)/30;
+				}
+			
+				if  (pad.Ly < 128)
+				{
+					//newy = mouse_y - (128 - pad.Ly)/30;
+					deltay = - (128 - pad.Ly)/30;
+				}
+				else
+				{
+					//newy = mouse_y + (pad.Ly - 128)/30;
+					deltay = (pad.Ly - 128)/30;
+				}
+	
+				
+				//if (mouse_x != newx || mouse_y != newy)
+				{
+					//if (newx >= 0 && newx < 480)
+					//	mouse_x = newx;
+					//if (newy >=0 && newy < 272)
+					//	mouse_y = newy;
+	
+					///SDL_WarpMouse(mouse_x, mouse_y);
+					
+					fl	= B_MOVE;
+					if (pad.Buttons & PSP_CTRL_CROSS)
+					{
+						fl = B_DRAG | B_LEFT;
+					}
+					else if (pad.Buttons & PSP_CTRL_TRIANGLE)
+					{
+						fl = B_DRAG | B_RIGHT;
+					}
+						
+					/* call handler */
+					//current_virtual_device->mouse_handler(current_virtual_device, mouse_x, mouse_y, fl);
+					pspgu_mouse_move(deltax, deltay, fl);
+				}
+				
+				if (latch.uiMake)
+				{
+					// Button Pressed 
+					oldButtonMask = latch.uiPress;
+					if (oldButtonMask & PSP_CTRL_CROSS)
+					{
+						fl	= B_DOWN | B_LEFT;
+						if (current_virtual_device) current_virtual_device->mouse_handler(current_virtual_device, mouse_x, mouse_y, fl);
+					}
+					else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					{
+						fl	= B_DOWN | B_RIGHT;
+						if (current_virtual_device) current_virtual_device->mouse_handler(current_virtual_device, mouse_x, mouse_y, fl);
+					}
+				}
+				else if (latch.uiBreak) /** Button Released */
+				{
+					if (oldButtonMask & PSP_CTRL_SELECT && oldButtonMask & PSP_CTRL_CROSS)
+					{
+						pspDebugScreenInit();
+						wifiChooseConnect();
+						cls_redraw_all_terminals();
+					}
+					else if (oldButtonMask & PSP_CTRL_DOWN)
+					{
+						if (oldButtonMask & PSP_CTRL_RTRIGGER)
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_DEL, fl);
+						}
+						else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_PAGE_DOWN, fl);
+						}
+						else
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_DOWN, fl);
+						}
+					}
+					else if (oldButtonMask & PSP_CTRL_UP)
+					{
+						if (oldButtonMask & PSP_CTRL_RTRIGGER)
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_INS, fl);
+						}
+						else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_PAGE_UP, fl);
+						}
+						else
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_UP, fl);
+						}
+					}
+					else if (oldButtonMask & PSP_CTRL_LEFT)
+					{
+						if (oldButtonMask & PSP_CTRL_RTRIGGER)
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, '[', fl);
+						}
+						else
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_LEFT, fl);
+						}
+					}
+					else if (oldButtonMask & PSP_CTRL_RIGHT)
+					{
+						if (oldButtonMask & PSP_CTRL_RTRIGGER)
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, ']', fl);
+						}
+						else
+						{
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_RIGHT, fl);
+						}
+					}
+					else if (oldButtonMask & PSP_CTRL_LTRIGGER)
+					{
+					}
+					else if (oldButtonMask & PSP_CTRL_RTRIGGER)
+					{
+					}
+					else if (oldButtonMask & PSP_CTRL_CROSS)
+					{
+						fl	= B_UP | B_LEFT;
+						if (current_virtual_device) current_virtual_device->mouse_handler(current_virtual_device, mouse_x, mouse_y, fl);
+					}
+					else if (oldButtonMask & PSP_CTRL_SQUARE)
+					{
+						if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_ESC, fl);
+					}
+					else if (oldButtonMask & PSP_CTRL_TRIANGLE)
+					{
+						fl	= B_UP | B_RIGHT;
+						if (current_virtual_device) current_virtual_device->mouse_handler(current_virtual_device, mouse_x, mouse_y, fl);
+					}
+					else if (oldButtonMask & PSP_CTRL_CIRCLE)
+					{
+						if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_ENTER, fl);
+					}
+					else if (oldButtonMask & PSP_CTRL_START)
+					{
+						//current_virtual_device->keyboard_handler(current_virtual_device, 'g', fl);
+						if (danzeff_isinitialized())
+						{
+							///???danzeff_set_screen(sdl_SURFACE(dev));
+							danzeff_moveTo(danzeff_x, danzeff_y);
+							danzeff_render();
+							///???sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+							sf_danzeffOn = 1;
+						}
+						else
+						{
+							wait_for_triangle("Error loading danzeff OSK");
+						}
+					}
+					else if (oldButtonMask & PSP_CTRL_SELECT)
+					{
+						TakeScreenShot();
+						wait_for_triangle("");
+						cls_redraw_all_terminals();
+					}
+					oldButtonMask = 0;
+				}
+			}
+		}
+		//sceKernelDelayThread(50*1000); /* Wait 50ms */
+		sceDisplayWaitVblankStart();
+	}
+}
+
+
 static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ignore)
 {
 	unsigned char *e;
@@ -1112,6 +1386,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	if(param != NULL)
 		pspgu_driver_param=stracpy(param);
 
+#ifndef PSP
 	border_left = border_right = border_top = border_bottom = 0;
 	if (!param) param="";
 	if (*param) {
@@ -1154,7 +1429,6 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 
 	pspgu_console = st.st_rdev & 0xff;
 
-#ifndef PSP
 	ioctl(TTY, VT_WAITACTIVE, pspgu_console);
 	if ((e = pspgu_switch_init())) {
 		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
@@ -1175,10 +1449,8 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
 		return stracpy("Cannot get FB VSCREENINFO.\n");
 	}
-#endif
-	///oldmode=vi;
+	oldmode=vi;
 
-#ifndef PSP
 	if ((ioctl (pspgu_handler, FBIOGET_FSCREENINFO, &fi))==-1)
 	{
 		close(pspgu_handler);
@@ -1300,12 +1572,25 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	}
 #ifndef PSP
 	pspgu_kbd = handle_svgalib_keyboard((void (*)(void *, unsigned char *, int))pspgu_key_in);
+#else
+	
+	{
+		pthread_t pthid;
+		pthread_attr_t pthattr;
+		struct sched_param shdparam;
+		pthread_attr_init(&pthattr);
+		shdparam.sched_policy = SCHED_OTHER;
+		shdparam.sched_priority = 45;
+		pthread_attr_setschedparam(&pthattr, &shdparam);
+		pthread_create(&pthid, &pthattr, pspInputThread, NULL);
+	}
 #endif
+
 	/* Mikulas: nechodi to na sparcu */
 	if (pspgu_mem_size < pspgu_linesize * pspgu_ysize)
 	{
 		pspgu_shutdown_palette();
-		svgalib_free_trm(pspgu_kbd);
+		///svgalib_free_trm(pspgu_kbd);
 		shutdown_virtual_devices();
 #ifndef PSP
 		close(pspgu_handler);
@@ -1373,8 +1658,8 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		return stracpy("Cannot open GPM mouse.\n");
 	}
 	/* hide cursor */
-	printf("\033[?25l");
-	fflush(stdout);
+	///printf("\033[?25l");
+	///fflush(stdout);
 #endif
 	if (border_left | border_top | border_right | border_bottom) memset(pspgu_mem,0,pspgu_mem_size);
 		
@@ -1396,7 +1681,7 @@ static void pspgu_shutdown_driver(void)
 	///close(pspgu_handler);
 
 	memset(pspgu_mem,0,pspgu_mem_size);
-	munmap(pspgu_mem,pspgu_mem_size);
+	///munmap(pspgu_mem,pspgu_mem_size);
 	shutdown_virtual_devices();
 	pspgu_switch_shutdown();
 	///svgalib_free_trm(pspgu_kbd);
@@ -1630,13 +1915,13 @@ static void pspgu_set_clip_area(struct graphics_device *dev, struct rect *r)
 static int pspgu_block(struct graphics_device *dev)
 {
 	if (pspgu_old_vd) return 1;
-	unhandle_pspgu_mouse();
+	///unhandle_pspgu_mouse();
 	pspgu_old_vd = current_virtual_device;
 	current_virtual_device=NULL;
-	svgalib_block_itrm(pspgu_kbd);
+	///svgalib_block_itrm(pspgu_kbd);
 	if (have_cmap) set_palette(&old_palette);
-	printf("\033[?25h");
-	fflush(stdout);
+	///printf("\033[?25h");
+	///fflush(stdout);
 	return 0;
 }
 
@@ -1648,13 +1933,13 @@ static void pspgu_unblock(struct graphics_device *dev)
 		return;
 	}
 #endif /* #ifdef DEBUG */
-	if (svgalib_unblock_itrm(pspgu_kbd)) return;
+	///if (svgalib_unblock_itrm(pspgu_kbd)) return;
 	current_virtual_device = pspgu_old_vd;
 	pspgu_old_vd = NULL;
 	if (have_cmap) set_palette(&global_pal);
-	printf("\033[?25l");
-	fflush(stdout);
-	handle_pspgu_mouse();
+	///printf("\033[?25l");
+	///fflush(stdout);
+	///handle_pspgu_mouse();
 	if (border_left | border_top | border_right | border_bottom) memset(pspgu_mem,0,pspgu_mem_size);
 	if (current_virtual_device) current_virtual_device->redraw_handler(current_virtual_device
 			,&current_virtual_device->size);

@@ -488,10 +488,10 @@
 /* #undef GRDRV_SDL */
 
 /* */
-#define GRDRV_PSPSDL 1
+/* #undef GRDRV_PSPSDL */
 
 /* */
-/* #undef GRDRV_PSPGU */
+#define GRDRV_PSPGU 1
 
 /* */
 /* #undef GRDRV_ATHEOS */

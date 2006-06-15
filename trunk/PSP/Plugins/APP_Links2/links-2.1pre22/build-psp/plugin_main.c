@@ -143,7 +143,8 @@ int CreateHomepage(char *file)
 	return -1;
 }
 
-static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", LINKS_HOMEPAGE_URL, NULL };	
+//static char *argv[] = { "APP_Links2", "-g", "-driver", "pspsdl", "-mode", "480x272", LINKS_HOMEPAGE_URL, NULL };	
+static char *argv[] = { "APP_Links2", "-g", "-driver", "pspgu", "-mode", "480x272", LINKS_HOMEPAGE_URL, NULL };	
 
 void app_plugin_main()
 {
@@ -312,15 +313,12 @@ int getWifiAPFromUser()
 	{
 		int index;
 		char name[64];
-	} picks[MAX_PICK];
+	} picks[MAX_PICK+1];
 	int pick_count = 0;
 	char buffer[200];
 
 	int iNetIndex;
 	
-	picks[0].index = 0;
-	strlcpy(picks[0].name, "None", 64);
-	pick_count++;
 	
 	for (iNetIndex = 1; iNetIndex < 100; iNetIndex++) // skip the 0th connection
 	{
@@ -332,6 +330,10 @@ int getWifiAPFromUser()
 		if (pick_count >= MAX_PICK)
 			break;  // no more room
 	}
+
+	picks[pick_count].index = 0;
+	strlcpy(picks[pick_count].name, "None", 64);
+	pick_count++;
 
 	pspDebugScreenSetXY(0,7);
 	if (pick_count == 0)

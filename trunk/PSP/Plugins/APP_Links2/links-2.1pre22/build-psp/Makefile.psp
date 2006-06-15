@@ -9,7 +9,6 @@ PSP_OBJECTS = psp.o plugin_main.o $(COMMON_OBJS) $(EXPORTED_OBJS)
 
 OBJS = $(PSP_OBJECTS) $(links_OBJECTS)
 
-# Define to build this as a prx (instead of a static elf)
 USE_PSPSDK_LIBC = 0
 # Define the name of our custom exports (minus the .exp extension)
 PRX_EXPORTS=$(PLUGINS_DIR)/APP_Exports.exp
@@ -43,7 +42,6 @@ prx: $(SHAREDLIB_DIR)/lib/libpthread.a
 	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make -f Makefile.psp $(EXPORTED_OBJS)
 	touch $(COMMON_OBJS) && rm $(COMMON_OBJS) && make -f Makefile.psp $(COMMON_OBJS)
 	touch ../../../APP_Exports.o && rm ../../../APP_Exports.o && make -f Makefile.psp  ../../../APP_Exports.o
-	./update_svn_version.sh ..
 	make BUILD_PRX=1 TARGET="APP_Links2" the_prx
 
 PSP_EBOOT_ICON = "$(BASE_DIR)/Resources/Links2_Icons_Sem/icone03.png"
@@ -63,6 +61,7 @@ stand_alone:
 	cp -vf *.cfg "__SCE__Links2/.links/"
 	cp -vf dithertable.bin "__SCE__Links2"
 	cp -vf whatsnew.txt "__SCE__Links2"
+	cp -vf ../ChangeLog __SCE__Links2/ChangeLog.orig
 
 debug:
 	touch $(EXPORTED_OBJS) && rm $(EXPORTED_OBJS) && make -f Makefile.psp EXTRA_FLAGS="-DSTAND_ALONE_APP" $(EXPORTED_OBJS)
@@ -73,6 +72,19 @@ release_stand_alone:
 	make prepare
 	make stand_alone
 	zip -r release.zip __SCE__Links2 %__SCE__Links2
+
+release_plugin:
+	make prepare
+	make prx
+	cp ../ChangeLog ChangeLog.orig
+	zip -r plugin_release.zip whatsnew.txt ChangeLog.orig APP_Links2.prx 
+
+release:
+	rm *.zip
+	make clean
+	make release_stand_alone
+	make clean
+	make release_plugin
 
 install_prx:
 	cp -vf APP_Links2.prx $(KXPLOIT_PRIMARY)

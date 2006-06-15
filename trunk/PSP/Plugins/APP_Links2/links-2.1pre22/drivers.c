@@ -178,7 +178,7 @@ void update_driver_param(void)
 	}
 }
 
-#if defined(GRDRV_SVGALIB)|defined(GRDRV_FB)
+#if defined(GRDRV_SVGALIB)|defined(GRDRV_FB)|defined(GRDRV_PSPGU)
 
 struct graphics_driver *virtual_device_driver;
 struct graphics_device **virtual_devices;
