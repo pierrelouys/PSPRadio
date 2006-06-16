@@ -681,7 +681,8 @@ long (*get_color_fn(int depth))(int rgb)
 		default:
 			printf("depth=%d\n",depth);
 			internal("Unsupported depth in get_color_fn.");
-			return NULL;
+			return color_8888_0bgr;
+//			return NULL;
 			break;
 
 	}

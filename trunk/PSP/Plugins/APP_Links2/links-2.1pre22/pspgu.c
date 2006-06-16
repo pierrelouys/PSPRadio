@@ -134,7 +134,7 @@ static int global_mouse_hidden;
 //		if (!pspgu_active)ioctl(TTY,VT_RELDISP,1);
 		
 
-#define NUMBER_OF_DEVICES	10
+#define NUMBER_OF_DEVICES	1
 
 
 
@@ -1508,7 +1508,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		case 32:
 		pspgu_palette_colors=256;
 		pspgu_pixelsize=4;
-		pspgu_bits_pp=24;
+		pspgu_bits_pp=32;//24;
 		break;
 
 		default:
@@ -1545,7 +1545,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		set_palette(&global_pal);
 	}
 	
-	pspgu_linesize=PSP_LINE_SIZE;//fi.line_length;
+	pspgu_linesize=PSP_LINE_SIZE*pspgu_pixelsize;//fi.line_length;
 	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
 
 #ifndef PSP
@@ -1619,12 +1619,13 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_mem = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 	sceDisplaySetFrameBuf((void *) pspgu_mem, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
-	pspgu_mem_size = PSP_SCREEN_WIDTH * PSP_SCREEN_HEIGHT * 16;
+	//pspgu_mem_size = PSP_SCREEN_WIDTH * PSP_SCREEN_HEIGHT * 32;
+	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
 #endif
 
 	pspgu_vmem = pspgu_mem + border_left * pspgu_pixelsize + border_top * pspgu_linesize;
 	pspgu_driver.depth=pspgu_pixelsize&7;
-	pspgu_driver.depth|=(pspgu_bits_pp&31)<<3;
+	pspgu_driver.depth|=(24/*pspgu_bits_pp*/&31)<<3;
 	//pspgu_driver.depth|=(!!(1/*?*/))<<8;	/* nonstd byte order */
 	/* endianness (stolen from directfb.c) */
 	if (htons (0x1234) == 0x1234)
