@@ -1109,7 +1109,7 @@ static void unblock_pspgu_mouse(void)
 
 void pspInputThread()
 {
-	for(;;)
+	//for(;;)
 	{
 		static int oldButtonMask = 0;
 		int deltax = 0, deltay = 0;
@@ -1367,7 +1367,7 @@ void pspInputThread()
 				}
 			}
 		}
-		//sceKernelDelayThread(50*1000); /* Wait 50ms */
+		sceKernelDelayThread(1*1000); /* Wait 50ms */
 		sceDisplayWaitVblankStart();
 	}
 }
@@ -1574,15 +1574,20 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_kbd = handle_svgalib_keyboard((void (*)(void *, unsigned char *, int))pspgu_key_in);
 #else
 	
+	if (0)
 	{
 		pthread_t pthid;
 		pthread_attr_t pthattr;
 		struct sched_param shdparam;
 		pthread_attr_init(&pthattr);
 		shdparam.sched_policy = SCHED_OTHER;
-		shdparam.sched_priority = 45;
+		shdparam.sched_priority = 80;
 		pthread_attr_setschedparam(&pthattr, &shdparam);
 		pthread_create(&pthid, &pthattr, pspInputThread, NULL);
+	}
+	else
+	{
+	//	install_timer(10, pspInputThread, NULL);
 	}
 #endif
 

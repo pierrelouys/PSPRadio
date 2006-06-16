@@ -433,6 +433,12 @@ void select_loop(void (*init)(void))
 #ifdef DEBUG_CALLS
 		fprintf(stderr, "select\n");
 #endif
+#ifdef PSP
+		tv.tv_sec = 0;
+		tv.tv_usec = 1*1000;
+		tm = &tv;
+		pspInputThread();
+#endif
 		if ((n = loop_select(w_max, &x_read, &x_write, &x_error, tm)) < 0) {
 #ifdef DEBUG_CALLS
 			fprintf(stderr, "select intr\n");
