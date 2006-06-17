@@ -8,7 +8,8 @@
 
 #ifdef GRDRV_PSPGU
 
-//#define USE_GPM_DX
+#define pspgu_VISUAL_DIRECTCOLOR 10
+#define pspgu_VISUAL_PSEUDOCOLOR 20
 
 /* #define pspgu_DEBUG */
 /* #define SC_DEBUG */
@@ -37,14 +38,7 @@ static int sf_danzeffOn = 0;
 #define PSP_SCREEN_HEIGHT 272
 #define PSP_LINE_SIZE 512
 #define PSP_PIXEL_FORMAT 3
-	//#include <gpm.h>
 
-//#include <sys/mman.h>
-//#include <sys/ioctl.h>
-
-//#include <linux/fb.h>
-//#include <linux/kd.h>
-//#include <linux/vt.h>
 #include <signal.h>
 
 #include "arrow.inc"
@@ -59,8 +53,6 @@ static int sf_danzeffOn = 0;
 
 #ifndef USE_GPM_DX
 int pspgu_txt_xsize, pspgu_txt_ysize;
-///struct winsize pspgu_old_ws;
-///struct winsize pspgu_new_ws;
 int pspgu_old_ws_v;
 int pspgu_msetsize;
 #endif
@@ -72,14 +64,11 @@ struct itrm *pspgu_kbd;
 
 struct graphics_device *pspgu_old_vd;
 
-///int pspgu_handler;
 char *pspgu_mem, *pspgu_vmem;
 int pspgu_mem_size,pspgu_linesize,pspgu_bits_pp,pspgu_pixelsize;
 int pspgu_xsize,pspgu_ysize;
 int border_left, border_right, border_top, border_bottom;
 int pspgu_colors, pspgu_palette_colors;
-///struct pspgu_var_screeninfo vi;
-///struct pspgu_fix_screeninfo fi;
 
 void pspgu_draw_bitmap(struct graphics_device *dev,struct bitmap* hndl, int x, int y);
 
@@ -98,9 +87,6 @@ struct palette
 
 struct palette old_palette;
 struct palette global_pal;
-///static struct vt_mode vt_mode,vt_omode;
-
-///struct pspgu_var_screeninfo oldmode;
 
 static volatile int in_gr_operation;
 
@@ -130,9 +116,6 @@ static int global_mouse_hidden;
 		END_MOUSE\
 		in_gr_operation=0;
 
-//\
-//		if (!pspgu_active)ioctl(TTY,VT_RELDISP,1);
-		
 
 #define NUMBER_OF_DEVICES	1
 
@@ -454,7 +437,6 @@ static void place_mouse(void)
 	bmp.data=mouse_buffer;	
 	{
 		struct graphics_device * current_graphics_device_backup;
-//#ifndef PSP
 		current_graphics_device_backup=current_virtual_device;
 		current_virtual_device=mouse_graphics_device;
 		pspgu_draw_bitmap(mouse_graphics_device, &bmp, mouse_x, mouse_y);
@@ -740,96 +722,15 @@ static void free_palette(struct palette *pal)
 }
 
 typedef unsigned short __u16;
+typedef unsigned char __u8;
 struct pspgu_cmap {
 	int start,
 	len;
-	unsigned char *transp,
+	__u8 *transp,
 	*blue,
 	*green,
 	*red;
 };
-static void set_palette(struct palette *pal)
-{
-#ifndef PSP
-	struct pspgu_cmap cmap;
-	int i;
-	unsigned short *red=pal->red;
-	unsigned short *green=pal->green;
-	unsigned short *blue=pal->blue;
-	__u16 *r, *g, *b, *t;
-
-	r=mem_alloc(pspgu_palette_colors*sizeof(__u8));
-	g=mem_alloc(pspgu_palette_colors*sizeof(__u8));
-	b=mem_alloc(pspgu_palette_colors*sizeof(__u8));
-	t=mem_calloc(pspgu_palette_colors*sizeof(__u8));
-
-	if (!r||!g||!b||!t) {
-		/*internal("Cannot allocate memory.\n")*/;
-	}
-
-	for (i = 0; i < pspgu_palette_colors; i++)
-	{
-	        r[i] = red[i];
-	        g[i] = green[i];
-	        b[i] = blue[i];
-		/*fprintf(stderr, "%d %d %d\n", r[i], g[i], b[i]);*/
-                /*fprintf(stderr, "%5x: %5x\t%5x\t%5x\t%5x\n",i,r[i],g[i],b[i],t[i]);*/
-
-	}
-
-	cmap.start = 0;
-	cmap.len = pspgu_palette_colors;
-	cmap.red = r;
-	cmap.green = g;
-	cmap.blue = b;
-	cmap.transp = t;
-	if ((ioctl(pspgu_handler, FBIOPUTCMAP, &cmap))==-1) {
-		/*internal("Cannot set palette\n")*/;
-	}
-	mem_free(r);mem_free(g);mem_free(b);mem_free(t);
-#endif
-}
-
-
-static void get_palette(struct palette *pal)
-{
-#ifndef PSP
-	struct pspgu_cmap cmap;
-	int i;
-	__u16 *r, *g, *b, *t;
-
-	r=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-	g=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-	b=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-	t=mem_alloc(pspgu_palette_colors*sizeof(__u16));
-
-	if (!r||!g||!b||!t) {
-		/*internal("Cannot allocate memory.\n")*/;
-	}
-
-	cmap.start = 0;
-	cmap.len = pspgu_palette_colors;
-	cmap.red = r;
-	cmap.green = g;
-	cmap.blue = b;
-	cmap.transp = t;
-
-	if (ioctl(pspgu_handler, FBIOGETCMAP, &cmap)) {
-		/*internal("Cannot get palette\n")*/;
-	}
-
-	for (i = 0; i < pspgu_palette_colors; i++)
-	{
-		/*printf("%d %d %d\n",r[i],g[i],b[i]);*/
-	        pal->red[i] = r[i];
-	        pal->green[i] = g[i];
-	        pal->blue[i] = b[i];
-	}
-
-	mem_free(r);mem_free(g);mem_free(b);mem_free(t);
-#endif
-}
-
 
 static void pspgu_switch_signal(void *data)
 {
@@ -850,8 +751,6 @@ static void pspgu_switch_signal(void *data)
 		if (st.v_active != pspgu_console) return;
 		pspgu_active=1;
 		ioctl(TTY,VT_RELDISP,VT_ACKACQ);
-		if (have_cmap && current_virtual_device)
-			set_palette(&global_pal);
 		r.x1=0;
 		r.y1=0;
 		r.x2=pspgu_xsize;
@@ -862,250 +761,6 @@ static void pspgu_switch_signal(void *data)
 	}
 #endif
 }
-
-
-static unsigned char *pspgu_switch_init(void)
-{
-#ifndef PSP
-	install_signal_handler(SIG_REL, pspgu_switch_signal, (void*)SIG_REL, 1);
-	install_signal_handler(SIG_ACQ, pspgu_switch_signal, (void*)SIG_ACQ, 0);
-	if (-1 == ioctl(TTY,VT_GETMODE, &vt_omode)) {
-		return stracpy("Could not get VT mode.\n");
-	}
-	memcpy(&vt_mode, &vt_omode, sizeof(vt_mode));
-
-	vt_mode.mode   = VT_PROCESS;
-	vt_mode.waitv  = 0;
-	vt_mode.relsig = SIG_REL;
-	vt_mode.acqsig = SIG_ACQ;
-
-	if (-1 == ioctl(TTY,VT_SETMODE, &vt_mode)) {
-		return stracpy("Could not set VT mode.\n");
-	}
-	return NULL;
-#endif
-}
-
-static void pspgu_switch_shutdown(void)
-{
-#ifndef PSP
-	ioctl(TTY,VT_SETMODE, &vt_omode);
-#endif
-}
-
-static void pspgu_shutdown_palette(void)
-{
-	if (have_cmap)
-	{
-		set_palette(&old_palette);
-		free_palette(&old_palette);
-		free_palette(&global_pal);
-	}
-}
-
-static void pspgu_ctrl_c(struct itrm *i)
-{
-	kbd_ctrl_c();
-}
-
-#if !defined(USE_GPM_DX) && !defined(PSP)
-void pspgu_mouse_setsize()
-{
-	struct vt_stat vs;
-	if (!ioctl(0, VT_GETSTATE, &vs)) {
-		fd_set zero;
-		struct timeval tv;
-		FD_ZERO(&zero);
-		memset(&tv, 0, sizeof tv);
-		ioctl(0, VT_ACTIVATE, vs.v_active > 1 ? 1 : 2);
-		tv.tv_sec = 0;
-		tv.tv_usec = 100000;
-		select(0, &zero, &zero, &zero, &tv);
-		tv.tv_sec = 0;
-		tv.tv_usec = 100000;
-		select(0, &zero, &zero, &zero, &tv);
-		tv.tv_sec = 0;
-		tv.tv_usec = 100000;
-		select(0, &zero, &zero, &zero, &tv);
-		ioctl(0, VT_ACTIVATE, vs.v_active);
-	}
-}
-#endif
-
-void unhandle_pspgu_mouse(void);
-
-#ifndef PSP
-static void pspgu_gpm_in(void *nic)
-{
-#ifndef USE_GPM_DX
-	static int lx = -1, ly = -1;
-#endif
-	struct event ev;
-	Gpm_Event gev;
-	again:
-	if (Gpm_GetEvent(&gev) <= 0) {
-		unhandle_pspgu_mouse();
-		return;
-	}
-
-	/*fprintf(stderr, "%d %d\n", gev.x, gev.y);*/
-#ifndef USE_GPM_DX
-	if (gev.x != lx || gev.y != ly) {
-		mouse_x = (gev.x - 1) * pspgu_xsize / pspgu_txt_xsize + pspgu_xsize / pspgu_txt_xsize / 2 - 1;
-		mouse_y = (gev.y - 1) * pspgu_ysize / pspgu_txt_ysize + pspgu_ysize / pspgu_txt_ysize / 2 - 1;
-		lx = gev.x, ly = gev.y;
-	}
-#else
-	if (gev.dx || gev.dy) {
-		if (!(gev.type & gpm_smooth)) {
-			mouse_x += gev.dx * 8;
-			mouse_y += gev.dy * 8;
-		} else {
-			mouse_x += gev.dx;
-			mouse_y += gev.dy;
-		}
-	}
-#endif
-	ev.ev = EV_MOUSE;
-	if (mouse_x >= pspgu_xsize) mouse_x = pspgu_xsize - 1;
-	if (mouse_y >= pspgu_ysize) mouse_y = pspgu_ysize - 1;
-	if (mouse_x < 0) mouse_x = 0;
-	if (mouse_y < 0) mouse_y = 0;
-
-	if (!(gev.type & gpm_smooth) && (gev.dx || gev.dy)) {
-		mouse_x = (mouse_x + 8) / 8 * 8 - 4;
-		mouse_y = (mouse_y + 8) / 8 * 8 - 4;
-		if (mouse_x >= pspgu_xsize) mouse_x = pspgu_xsize - 1;
-		if (mouse_y >= pspgu_ysize) mouse_y = pspgu_ysize - 1;
-		if (mouse_x < 0) mouse_x = 0;
-		if (mouse_y < 0) mouse_y = 0;
-	}
-
-	ev.x = mouse_x;
-	ev.y = mouse_y;
-	if (gev.buttons & GPM_B_LEFT) ev.b = B_LEFT;
-	else if (gev.buttons & GPM_B_MIDDLE) ev.b = B_MIDDLE;
-	else if (gev.buttons & GPM_B_RIGHT) ev.b = B_RIGHT;
-	else ev.b = 0;
-	if (gev.type & GPM_DOWN) ev.b |= B_DOWN;
-	else if (gev.type & GPM_UP) ev.b |= B_UP;
-	else if (gev.type & GPM_DRAG) ev.b |= B_DRAG;
-	else ev.b |= B_MOVE;
-
-#ifndef USE_GPM_DX
-	if (pspgu_msetsize < 0) {
-	} else if (pspgu_msetsize < 10) {
-		pspgu_msetsize++;
-	} else if ((ev.b & BM_ACT) == B_MOVE && !(ev.b & BM_BUTT)) {
-		pspgu_mouse_setsize();
-		pspgu_msetsize = -1;
-	}
-#endif
-
-	if (((ev.b & BM_ACT) == B_MOVE && !(ev.b & BM_BUTT)) || (ev.b & BM_ACT) == B_DRAG) {
-		if (can_read(pspgu_hgpm)) goto again;
-	}
-
-	if (!current_virtual_device) return;
-	if (current_virtual_device->mouse_handler) current_virtual_device->mouse_handler(current_virtual_device, ev.x, ev.y, ev.b);
-	redraw_mouse();
-}
-#endif
-
-#ifndef PSP
-static int handle_pspgu_mouse(void)
-{
-	Gpm_Connect conn;
-#ifndef USE_GPM_DX
-	int gpm_ver = 0;
-	struct winsize ws;
-	pspgu_old_ws_v = 0;
-#endif
-	pspgu_hgpm = -1;
-#ifndef USE_GPM_DX
-	Gpm_GetLibVersion(&gpm_ver);
-	if (gpm_ver >= 11900 && ioctl(1, TIOCGWINSZ, &ws) != -1) {
-		memcpy(&pspgu_old_ws, &ws, sizeof(struct winsize));
-		pspgu_old_ws_v = 1;
-		ws.ws_row *= 2;
-		ioctl(1, TIOCSWINSZ, &ws);
-		pspgu_msetsize = 0;
-		memcpy(&pspgu_new_ws, &ws, sizeof ws);
-	} else pspgu_msetsize = -1;
-	get_terminal_size(1, &pspgu_txt_xsize, &pspgu_txt_ysize);
-#endif
-	conn.eventMask = ~0;
-	conn.defaultMask = gpm_smooth;
-	conn.minMod = 0;
-	conn.maxMod = -1;
-	if ((pspgu_hgpm = Gpm_Open(&conn, 0)) < 0) {
-		unhandle_pspgu_mouse();
-		return -1;
-	}
-	set_handlers(pspgu_hgpm, pspgu_gpm_in, NULL, NULL, NULL);
-#ifdef SIGTSTP
-	install_signal_handler(SIGTSTP, (void (*)(void *))sig_tstp, NULL, 0);
-#endif
-#ifdef SIGCONT
-	install_signal_handler(SIGCONT, (void (*)(void *))sig_cont, NULL, 0);
-#endif
-#ifdef SIGTTIN
-	install_signal_handler(SIGTTIN, (void (*)(void *))sig_tstp, NULL, 0);
-#endif
-
-	return 0;
-}
-#endif
-
-#ifndef PSP
-void unhandle_pspgu_mouse(void)
-{
-	if (pspgu_hgpm >= 0) set_handlers(pspgu_hgpm, NULL, NULL, NULL, NULL);
-#ifndef USE_GPM_DX
-	pspgu_hgpm = -1;
-	if (pspgu_old_ws_v) {
-		ioctl(1, TIOCSWINSZ, &pspgu_old_ws);
-		pspgu_old_ws_v = 0;
-	}
-#endif
-	Gpm_Close();
-#ifdef SIGTSTP
-	install_signal_handler(SIGTSTP, (void (*)(void *))sig_tstp, NULL, 0);
-#endif
-#ifdef SIGCONT
-	install_signal_handler(SIGCONT, (void (*)(void *))sig_cont, NULL, 0);
-#endif
-#ifdef SIGTTIN
-	install_signal_handler(SIGTTIN, (void (*)(void *))sig_tstp, NULL, 0);
-#endif
-}
-#endif
-
-#ifndef PSP
-#ifndef USE_GPM_DX
-static void block_pspgu_mouse(void)
-{
-	if (pspgu_hgpm >= 0) set_handlers(pspgu_hgpm, NULL, NULL, NULL, NULL);
-#ifndef USE_GPM_DX
-	if (pspgu_old_ws_v) {
-		ioctl(1, TIOCSWINSZ, &pspgu_old_ws);
-	}
-#endif
-}
-
-static void unblock_pspgu_mouse(void)
-{
-	if (pspgu_hgpm >= 0) set_handlers(pspgu_hgpm, pspgu_gpm_in, NULL, NULL, NULL);
-#ifndef USE_GPM_DX
-	if (pspgu_old_ws_v) {
-		ioctl(1, TIOCSWINSZ, &pspgu_new_ws);
-		pspgu_msetsize = 0;
-	}
-#endif
-}
-#endif
-#endif
-
 
 void pspInputThread()
 {
@@ -1187,7 +842,6 @@ void pspInputThread()
 								break;
 						}
 						current_virtual_device->keyboard_handler(current_virtual_device, key, 0);
-						//sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
 					}
 				}
 				danzeff_moveTo(danzeff_x, danzeff_y);
@@ -1197,50 +851,35 @@ void pspInputThread()
 			{
 				if  (pad.Lx < 128)
 				{
-					//newx = mouse_x - (128 - pad.Lx)/30;
 					deltax = -(128 - pad.Lx)/30;
 				}
 				else
 				{
-					//newx = mouse_x + (pad.Lx - 128)/30;
 					deltax = (pad.Lx - 128)/30;
 				}
 			
 				if  (pad.Ly < 128)
 				{
-					//newy = mouse_y - (128 - pad.Ly)/30;
 					deltay = - (128 - pad.Ly)/30;
 				}
 				else
 				{
-					//newy = mouse_y + (pad.Ly - 128)/30;
 					deltay = (pad.Ly - 128)/30;
 				}
 	
 				
-				//if (mouse_x != newx || mouse_y != newy)
+				fl	= B_MOVE;
+				if (pad.Buttons & PSP_CTRL_CROSS)
 				{
-					//if (newx >= 0 && newx < 480)
-					//	mouse_x = newx;
-					//if (newy >=0 && newy < 272)
-					//	mouse_y = newy;
-	
-					///SDL_WarpMouse(mouse_x, mouse_y);
-					
-					fl	= B_MOVE;
-					if (pad.Buttons & PSP_CTRL_CROSS)
-					{
-						fl = B_DRAG | B_LEFT;
-					}
-					else if (pad.Buttons & PSP_CTRL_TRIANGLE)
-					{
-						fl = B_DRAG | B_RIGHT;
-					}
-						
-					/* call handler */
-					//current_virtual_device->mouse_handler(current_virtual_device, mouse_x, mouse_y, fl);
-					pspgu_mouse_move(deltax, deltay, fl);
+					fl = B_DRAG | B_LEFT;
 				}
+				else if (pad.Buttons & PSP_CTRL_TRIANGLE)
+				{
+					fl = B_DRAG | B_RIGHT;
+				}
+					
+				/* calls handler */
+				pspgu_mouse_move(deltax, deltay, fl);
 				
 				if (latch.uiMake)
 				{
@@ -1367,7 +1006,7 @@ void pspInputThread()
 				}
 			}
 		}
-		sceKernelDelayThread(1*1000); /* Wait 50ms */
+		//sceKernelDelayThread(1*1000); /* Wait 1ms */
 		sceDisplayWaitVblankStart();
 	}
 }
@@ -1377,196 +1016,36 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 {
 	unsigned char *e;
 	struct stat st;
-#ifndef PSP
-	kbd_set_raw = 1;
-#endif
 	pspgu_old_vd = NULL;
 	ignore=ignore;
 	pspgu_driver_param=NULL;
 	if(param != NULL)
 		pspgu_driver_param=stracpy(param);
 
-#ifndef PSP
 	border_left = border_right = border_top = border_bottom = 0;
-	if (!param) param="";
-	if (*param) {
-		if (*param < '0' || *param > '9')
-			{ bad_p:
-				if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-				return stracpy("-mode syntax is left_border[,top_border[,right_border[,bottom_border]]]\n"); }
-		border_left = strtoul(param, (char **)(void *)&param, 10);
-		if (*param == ',') param++;
-	} else {
-		border_left = 0;
-	}
-	if (*param) {
-		if (*param < '0' || *param > '9') goto bad_p;
-		border_top = strtoul(param, (char **)(void *)&param, 10);
-		if (*param == ',') param++;
-	} else {
-		border_top = border_left;
-	}
-	if (*param) {
-		if (*param < '0' || *param > '9') goto bad_p;
-		border_right = strtoul(param, (char **)(void *)&param, 10);
-		if (*param == ',') param++;
-	} else {
-		border_right = border_left;
-	}
-	if (*param) {
-		if (*param < '0' || *param > '9') goto bad_p;
-		border_bottom = strtoul(param, (char **)(void *)&param, 10);
-		if (*param == ',') param++;
-	} else {
-		border_bottom = border_top;
-	}
-	if (*param) goto bad_p;
-
-	if (fstat(TTY, &st)) {
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return stracpy("Cannon stat stdin.\n");
-	}
 
 	pspgu_console = st.st_rdev & 0xff;
-
-	ioctl(TTY, VT_WAITACTIVE, pspgu_console);
-	if ((e = pspgu_switch_init())) {
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return e;
-	}
-
-	pspgu_handler=open("/dev/fb0",O_RDWR);
-	if (pspgu_handler==-1) {
-		pspgu_switch_shutdown();
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return stracpy("Cannot open /dev/fb0.\n");
-	}
-
-	if ((ioctl (pspgu_handler, FBIOGET_VSCREENINFO, &vi))==-1)
-	{
-		close(pspgu_handler);
-		pspgu_switch_shutdown();
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return stracpy("Cannot get FB VSCREENINFO.\n");
-	}
-	oldmode=vi;
-
-	if ((ioctl (pspgu_handler, FBIOGET_FSCREENINFO, &fi))==-1)
-	{
-		close(pspgu_handler);
-		pspgu_switch_shutdown();
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return stracpy("Cannot get FB FSCREENINFO.\n");
-	}
-
-	pspgu_xsize=vi.xres;
-	pspgu_ysize=vi.yres;
-	pspgu_bits_pp=vi.bits_per_pixel;
-#endif
 
 	pspgu_xsize=PSP_SCREEN_WIDTH;
 	pspgu_ysize=PSP_SCREEN_HEIGHT;
 	pspgu_bits_pp=32;
-#define pspgu_VISUAL_DIRECTCOLOR 10
-#define pspgu_VISUAL_PSEUDOCOLOR 20
-
-	///fi.visual = pspgu_VISUAL_DIRECTCOLOR;
-	///fi.line_length = PSP_LINE_SIZE;
-	///fi.smem_len = pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
-
-	if (pspgu_xsize <= border_left + border_right) border_left = border_right = 0;
-	pspgu_xsize -= border_left + border_right;
-	if (pspgu_ysize <= border_top + border_bottom) border_top = border_bottom = 0;
-	pspgu_ysize -= border_top + border_bottom;
-
 	pspgu_driver.x=pspgu_xsize;
 	pspgu_driver.y=pspgu_ysize;
-
-	 switch(pspgu_bits_pp)
-	{
-		case 4:
-		pspgu_pixelsize=1;
-		pspgu_palette_colors=16;
-		break;
-		
-		case 8:
-		pspgu_pixelsize=1;
-		pspgu_palette_colors=256;
-		break;
-
-		case 15:
-		case 16:
-		pspgu_pixelsize=2;
-		pspgu_palette_colors=64;
-		break;
-
-		case 24:
-		pspgu_palette_colors=256;
-		pspgu_pixelsize=3;
-		break;
-
-		case 32:
-		pspgu_palette_colors=256;
-		pspgu_pixelsize=4;
-		pspgu_bits_pp=32;//24;
-		break;
-
-		default:
-#ifndef PSP
-		close(pspgu_handler);
-		pspgu_switch_shutdown();
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-#endif
-		return stracpy("Unknown bit depth");
-	}
+	pspgu_palette_colors=256;
+	pspgu_pixelsize=4;
 	pspgu_colors=1<<pspgu_bits_pp;
 
-#ifndef PSP
-	if (fi.visual==pspgu_VISUAL_PSEUDOCOLOR && pspgu_colors <= 0x1000000) /* set palette */
-	{
-		have_cmap=1;
-		pspgu_palette_colors=pspgu_colors;
-		alloc_palette(&old_palette);
-		get_palette(&old_palette);
+	have_cmap=2;
+	alloc_palette(&old_palette);
 
-		alloc_palette(&global_pal);
-		generate_palette(&global_pal);
-		set_palette(&global_pal);
-	}
-	if (fi.visual==pspgu_VISUAL_DIRECTCOLOR) /* set pseudo palette */
-#endif
-	{
-		have_cmap=2;
-		alloc_palette(&old_palette);
-		get_palette(&old_palette);
-
-		alloc_palette(&global_pal);
-		generate_palette(&global_pal);
-		set_palette(&global_pal);
-	}
+	alloc_palette(&global_pal);
+	generate_palette(&global_pal);
 	
-	pspgu_linesize=PSP_LINE_SIZE*pspgu_pixelsize;//fi.line_length;
+	pspgu_linesize=PSP_LINE_SIZE*pspgu_pixelsize;
 	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
 
-#ifndef PSP
-	vi.xoffset=0;
-	vi.yoffset=0;
-	if ((ioctl(pspgu_handler, FBIOPAN_DISPLAY, &vi))==-1)
+	if (init_virtual_devices(&pspgu_driver, NUMBER_OF_DEVICES))
 	{
-	/* mikulas : nechodilo mi to, tak jsem tohle vyhodil a ono to chodi */
-		/*pspgu_shutdown_palette();
-		close(pspgu_handler);
-		return stracpy("Cannot pan display.\n");
-		*/
-	}
-#endif
-
-	if (init_virtual_devices(&pspgu_driver, NUMBER_OF_DEVICES)){
-		pspgu_shutdown_palette();
-#ifndef PSP	
-		close(pspgu_handler);
-#endif
-		pspgu_switch_shutdown();
 		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
 		return stracpy("Allocation of virtual devices failed.\n");
 	}
@@ -1594,52 +1073,24 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	/* Mikulas: nechodi to na sparcu */
 	if (pspgu_mem_size < pspgu_linesize * pspgu_ysize)
 	{
-		pspgu_shutdown_palette();
-		///svgalib_free_trm(pspgu_kbd);
 		shutdown_virtual_devices();
-#ifndef PSP
-		close(pspgu_handler);
-#endif
-		pspgu_switch_shutdown();
 		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
 		return stracpy("Nonlinear mapping of graphics memory not supported.\n");
 	}
 		
-	
-#ifndef PSP
-	if ((pspgu_mem=mmap(0,pspgu_mem_size,PROT_READ|PROT_WRITE,MAP_SHARED,pspgu_handler,0))==MAP_FAILED)
-	{
-		pspgu_shutdown_palette();
-		svgalib_free_trm(pspgu_kbd);
-		shutdown_virtual_devices();
-
-		close(pspgu_handler);
-		pspgu_switch_shutdown();
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return stracpy("Cannot mmap graphics memory.\n");
-	}
-#else /* PSP */
-
 	/* Place vram in uncached memory */
 	pspgu_mem = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 	sceDisplaySetFrameBuf((void *) pspgu_mem, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
 	//pspgu_mem_size = PSP_SCREEN_WIDTH * PSP_SCREEN_HEIGHT * 32;
 	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
-#endif
 
 	pspgu_vmem = pspgu_mem + border_left * pspgu_pixelsize + border_top * pspgu_linesize;
 	pspgu_driver.depth=pspgu_pixelsize&7;
 	pspgu_driver.depth|=(24/*pspgu_bits_pp*/&31)<<3;
-	//pspgu_driver.depth|=(!!(1/*?*/))<<8;	/* nonstd byte order */
-	/* endianness (stolen from directfb.c) */
-	if (htons (0x1234) == 0x1234)
-		pspgu_driver.depth |= 0x100;
-
+	if (htons (0x1234) == 0x1234) pspgu_driver.depth |= 0x100;
 	
 	pspgu_driver.get_color=get_color_fn(pspgu_driver.depth);
-	/*pspgu_switch_init();*/
-	///install_signal_handler(SIGINT, (void (*)(void *))pspgu_ctrl_c, pspgu_kbd, 0);
 
 	/* mouse */
 	mouse_buffer=mem_alloc(pspgu_pixelsize*arrow_area);
@@ -1652,25 +1103,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	mouse_graphics_device=pspgu_driver.init_device();
 	virtual_devices[0] = NULL;
 	global_mouse_hidden=1;
-#ifndef PSP
-	if (handle_pspgu_mouse()) {
-		pspgu_driver.shutdown_device(mouse_graphics_device);
-		mem_free(mouse_buffer);
-		mem_free(background_buffer);
-		mem_free(new_background_buffer);
-		pspgu_shutdown_palette();
-		///svgalib_free_trm(pspgu_kbd);
-		shutdown_virtual_devices();
 
-		///close(pspgu_handler);
-		pspgu_switch_shutdown();
-		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
-		return stracpy("Cannot open GPM mouse.\n");
-	}
-	/* hide cursor */
-	///printf("\033[?25l");
-	///fflush(stdout);
-#endif
 	if (border_left | border_top | border_right | border_bottom) memset(pspgu_mem,0,pspgu_mem_size);
 		
 	show_mouse();
@@ -1683,22 +1116,10 @@ static void pspgu_shutdown_driver(void)
 	mem_free(background_buffer);
 	mem_free(new_background_buffer);
 	pspgu_driver.shutdown_device(mouse_graphics_device);
-	///unhandle_pspgu_mouse();
-	///ioctl (pspgu_handler, FBIOPUT_VSCREENINFO, &oldmode);
-	pspgu_shutdown_palette();
-	///install_signal_handler(SIGINT, NULL, NULL, 0);
-
-	///close(pspgu_handler);
 
 	memset(pspgu_mem,0,pspgu_mem_size);
-	///munmap(pspgu_mem,pspgu_mem_size);
 	shutdown_virtual_devices();
-	pspgu_switch_shutdown();
-	///svgalib_free_trm(pspgu_kbd);
 	if(pspgu_driver_param) mem_free(pspgu_driver_param);
-	/* show cursor */
-	///printf("\033[?25h");
-	///fflush(stdout);
 }
 
 
@@ -1756,12 +1177,10 @@ static void *pspgu_prepare_strip(struct bitmap *bmp, int top, int lines)
 	return ((char *)bmp->data)+bmp->skip*top;
 }
 
-
 static void pspgu_commit_strip(struct bitmap *bmp, int top, int lines)
 {
 	return;
 }
-
 
 void pspgu_draw_bitmap(struct graphics_device *dev,struct bitmap* hndl, int x, int y)
 {
@@ -1777,7 +1196,6 @@ void pspgu_draw_bitmap(struct graphics_device *dev,struct bitmap* hndl, int x, i
 	}
 	END_GR
 }
-
 
 static void pspgu_draw_bitmaps(struct graphics_device *dev, struct bitmap **hndls, int n, int x, int y)
 {
@@ -1797,8 +1215,6 @@ static void pspgu_draw_bitmaps(struct graphics_device *dev, struct bitmap **hndl
 	}
 }
 
-
-
 static void pspgu_fill_area(struct graphics_device *dev, int left, int top, int right, int bottom, long color)
 {
 	unsigned char *dest;
@@ -1814,7 +1230,6 @@ static void pspgu_fill_area(struct graphics_device *dev, int left, int top, int 
 	END_GR
 }
 
-
 static void pspgu_draw_hline(struct graphics_device *dev, int left, int y, int right, long color)
 {
 	unsigned char *dest;
@@ -1824,7 +1239,6 @@ static void pspgu_draw_hline(struct graphics_device *dev, int left, int y, int r
 	pixel_set(dest,(right-left)*pspgu_pixelsize,&color);
 	END_GR
 }
-
 
 static void pspgu_draw_vline(struct graphics_device *dev, int x, int top, int bottom, long color)
 {
@@ -1839,7 +1253,6 @@ static void pspgu_draw_vline(struct graphics_device *dev, int x, int top, int bo
 	}
 	END_GR
 }
-
 
 static int pspgu_hscroll(struct graphics_device *dev, struct rect_set **ignore, int sc)
 {
@@ -1871,7 +1284,6 @@ static int pspgu_hscroll(struct graphics_device *dev, struct rect_set **ignore, 
 	END_GR
 	return 1;
 }
-
 
 static int pspgu_vscroll(struct graphics_device *dev, struct rect_set **ignore, int sc)
 {
@@ -1906,7 +1318,6 @@ static int pspgu_vscroll(struct graphics_device *dev, struct rect_set **ignore, 
 	return 1;
 }
 
-
 static void pspgu_set_clip_area(struct graphics_device *dev, struct rect *r)
 {
 	memcpy(&dev->clip, r, sizeof(struct rect));
@@ -1925,13 +1336,8 @@ static void pspgu_set_clip_area(struct graphics_device *dev, struct rect *r)
 static int pspgu_block(struct graphics_device *dev)
 {
 	if (pspgu_old_vd) return 1;
-	///unhandle_pspgu_mouse();
 	pspgu_old_vd = current_virtual_device;
 	current_virtual_device=NULL;
-	///svgalib_block_itrm(pspgu_kbd);
-	if (have_cmap) set_palette(&old_palette);
-	///printf("\033[?25h");
-	///fflush(stdout);
 	return 0;
 }
 
@@ -1943,13 +1349,8 @@ static void pspgu_unblock(struct graphics_device *dev)
 		return;
 	}
 #endif /* #ifdef DEBUG */
-	///if (svgalib_unblock_itrm(pspgu_kbd)) return;
 	current_virtual_device = pspgu_old_vd;
 	pspgu_old_vd = NULL;
-	if (have_cmap) set_palette(&global_pal);
-	///printf("\033[?25l");
-	///fflush(stdout);
-	///handle_pspgu_mouse();
 	if (border_left | border_top | border_right | border_bottom) memset(pspgu_mem,0,pspgu_mem_size);
 	if (current_virtual_device) current_virtual_device->redraw_handler(current_virtual_device
 			,&current_virtual_device->size);
