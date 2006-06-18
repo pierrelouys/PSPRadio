@@ -44,19 +44,14 @@ void PSPTris_audio_shutdown(void)
 {
 	mikmod_done = true;
 
+	PSPTris_audio_stop_module();
+
 	/*  Kill audiochannel thread */
 	if (mikModThreadID > 0)
 		{
 		SceUInt timeout = 100000;
 		sceKernelWaitThreadEnd(mikModThreadID, &timeout);
 		sceKernelDeleteThread(mikModThreadID);
-		}
-
-	if (module != NULL)
-		{
-		Player_Stop();
-		Player_Free(module);
-		module = NULL;
 		}
 
 	MikMod_Exit();
@@ -104,15 +99,19 @@ int PSPTris_audio_init(void)
 	return PSPTRIS_AUDIO_ERR_NONE;
 }
 
-int PSPTris_audio_play_module(char *modname)
+void PSPTris_audio_stop_module(void)
 {
-
 	if (module != NULL)
 		{
 		Player_Stop();
 		Player_Free(module);
 		module = NULL;
 		}
+}
+
+int PSPTris_audio_play_module(char *modname)
+{
+	PSPTris_audio_stop_module();
 
 	/* Load module */
 	module = Player_Load(modname, 64, 0);
@@ -127,16 +126,6 @@ int PSPTris_audio_play_module(char *modname)
 		return PSPTRIS_AUDIO_ERR_MOD_LOAD;
 		}
 	return PSPTRIS_AUDIO_ERR_NONE;
-}
-
-void PSPTris_audio_stop_module(void)
-{
-	if (module != NULL)
-		{
-		Player_Stop();
-		Player_Free(module);
-		module = NULL;
-		}
 }
 
 int PSPTris_audio_load_sample(char *samplename, SAMPLE **sample)

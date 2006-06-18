@@ -1,10 +1,13 @@
 What's new for PSPTris
 
-Version 0.9a (xxth of xxx 2006)
+Version 0.9a (18th of June 2006)
 --------------------------------
 Fixes:
 	- Replaced internal random number algorithm with the PSPs native functionality. Should give more randomness.
 	- Fixed the rotation of the L shaped bricks.
+	- Color game exits incorrect when no more options are available ?
+	- Crash when pressing Enter on the highscore list ?
+	- Clear exploding list on game exit.
 
 Features:
 	- New game type, where the screen is rotated 90 degrees and with a 10 x 18 playfield.

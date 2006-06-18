@@ -272,6 +272,17 @@ static particlephys_str		physical;
 /* Texture handler */
 static jsaTextureCache				*tcache;
 
+#if defined(INTRO_LOGO)
+/* pointer for background image and for the framebuffer */
+static u8		*backimage = NULL;
+static void		*framebuffer;
+
+#define SCR_WIDTH	(480)
+#define SCR_HEIGHT	(272)
+#define PIXEL_SIZE	(4)
+
+#endif /*defined(INTRO_LOGO)*/
+
 enum TEX_NAMES
 	{
 	TEX_P,
@@ -330,6 +341,46 @@ void PSPTris_setup_bricks()
 		}
 }
 
+#if defined(INTRO_LOGO)
+void PSPTris_intro_load_logo(char *name)
+{
+	if (backimage)
+		{
+		free(backimage);
+		}
+	backimage = (u8 *) memalign(16, SCR_WIDTH * SCR_HEIGHT * PIXEL_SIZE);
+
+	if (backimage == NULL)
+		{
+		printf("Memory allocation error for background image..(%s)\n", name);
+		return;
+		}
+
+	if (tcache->jsaTCacheLoadPngImage((const char *)name, (u32 *)backimage) == -1)
+		{
+		printf("Failed loading background image..\n");
+		free(backimage);
+		backimage = NULL;
+		return;
+		}
+}
+
+void PSPTris_intro_render_logo(void)
+{
+	static bool skip_first = true;
+
+	if (skip_first)
+		{
+		skip_first = false;
+		}
+	else
+		{
+		sceGuCopyImage(GU_PSM_8888, 0, 0, 480, 272, 480, backimage, 0, 0, 512, (void*)(0x04000000+(u32)framebuffer));
+		sceGuTexSync();
+		}
+}
+#endif /*defined(INTRO_LOGO)*/
+
 void PSPTris_intro_init(char *cwd)
 {
 	char path[1024];
@@ -339,6 +390,13 @@ void PSPTris_intro_init(char *cwd)
 #if !defined(DYNAMIC_BUILD)
 	PSPTris_audio_play_module(path);
 #endif /* !defined(DYNAMIC_BUILD) */
+
+#if defined(INTRO_LOGO)
+	backimage = NULL;
+	framebuffer = NULL;
+	sprintf(path, "%s/Textures/ps2dev_tfc_psp.png", cwd);
+	PSPTris_intro_load_logo(path);
+#endif /* defined(INTRO_LOGO) */
 
 	/* Create a texture cache object */
 	tcache = new jsaTextureCache();
@@ -357,6 +415,13 @@ void PSPTris_intro_destroy(void)
 #if !defined(DYNAMIC_BUILD)
 	PSPTris_audio_stop_module();
 #endif /* !defined(DYNAMIC_BUILD) */
+
+#if defined(INTRO_LOGO)
+	if (backimage)
+		{
+		free(backimage);
+		}
+#endif /* defined(INTRO_LOGO) */
 
 	/* dealocate memory */
 	for (int i = 0 ; i < LETTER_COUNT  ; i++)
@@ -494,43 +559,63 @@ u32			temp;
 
 void PSPTris_intro()
 {
+#if defined(INTRO_LOGO)
+static int frame_counter = 0;
+#endif /*defined(INTRO_LOGO)*/
+
 	/* Play intro sequence */
  	sceGuStart(GU_DIRECT,::gu_list);
 
-	sceGuClearColor(PSPTris_get_bg_color());
-	sceGuClearDepth(0);
-	sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
+#if defined(INTRO_LOGO)
+	if (frame_counter++ > 60 * 5)
+		{
+#endif /*defined(INTRO_LOGO)*/
+		sceGuClearColor(PSPTris_get_bg_color());
+		sceGuClearDepth(0);
+		sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
 
-	sceGumMatrixMode(GU_PROJECTION);
-	sceGumLoadIdentity();
-	sceGumPerspective(75.0f,16.0f/9.0f,0.5f,1000.0f);
+		sceGumMatrixMode(GU_PROJECTION);
+		sceGumLoadIdentity();
+		sceGumPerspective(75.0f,16.0f/9.0f,0.5f,1000.0f);
 
-	sceGumMatrixMode(GU_VIEW);
-	sceGumLoadIdentity();
+		sceGumMatrixMode(GU_VIEW);
+		sceGumLoadIdentity();
 
-	sceGuAmbient(0xFFFFFFFF);
-	sceGuColor(0xFFFFFFFF);
-	sceGuTexEnvColor(0xFF000000);
+		sceGuAmbient(0xFFFFFFFF);
+		sceGuColor(0xFFFFFFFF);
+		sceGuTexEnvColor(0xFF000000);
 
-	sceGuDisable(GU_CULL_FACE);
-	sceGuAlphaFunc(GU_GREATER,0x0,0xff);
-	sceGuEnable(GU_ALPHA_TEST);
-	sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-	sceGuTexWrap(GU_CLAMP, GU_CLAMP);
-	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
-	sceGuEnable( GU_BLEND );
+		sceGuDisable(GU_CULL_FACE);
+		sceGuAlphaFunc(GU_GREATER,0x0,0xff);
+		sceGuEnable(GU_ALPHA_TEST);
+		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+		sceGuTexWrap(GU_CLAMP, GU_CLAMP);
+		sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
+		sceGuEnable( GU_BLEND );
 
-	PSPTris_intro_render_brick(false);
-	PSPTris_intro_logo();
-	PSPTris_intro_render_brick(true);
+		PSPTris_intro_render_brick(false);
+		PSPTris_intro_logo();
+		PSPTris_intro_render_brick(true);
 
-	sceGuDisable(GU_BLEND);
-	sceGuDisable(GU_ALPHA_TEST);
-	sceGuEnable(GU_CULL_FACE);
+		sceGuDisable(GU_BLEND);
+		sceGuDisable(GU_ALPHA_TEST);
+		sceGuEnable(GU_CULL_FACE);
+#if defined(INTRO_LOGO)
+		}
+	else
+		{
+		PSPTris_intro_render_logo();
+		}
+#endif /*defined(INTRO_LOGO)*/
 
 	sceGuFinish();
 	sceGuSync(0,0);
 
+#if defined(INTRO_LOGO)
+	framebuffer = sceGuSwapBuffers();
+#else
 	sceGuSwapBuffers();
+#endif /*defined(INTRO_LOGO)*/
+
 	sceDisplayWaitVblankStart();
 }

@@ -468,7 +468,7 @@ bool	exit_game = false;
 		{
 		PSPTris_render_playfield(0xFFFFFFFF);
 		PSPTris_game_update_cursor();
-		PSPTris_game_render_moving_brick();
+		PSPTris_game_render_moving_brick(false);
 
 		PSPTris_game_clear_markings();
 		PSPTris_game_mark_equal(cursor_pf_x, cursor_pf_y);

@@ -360,7 +360,23 @@ moving_brick	*previous = NULL;
 		}
 }
 
-void PSPTris_game_update_moving_brick()
+void PSPTris_game_clear_moving_bricks()
+{
+moving_brick	*temp = NULL;
+
+	while (dynamic_brick_list != NULL)
+		{
+		/* store next pointer */
+		temp = dynamic_brick_list->next;
+		/* deallocate */
+		free(dynamic_brick_list);
+		dynamic_brick_list = temp->next;
+		}
+
+	last_in_list = NULL;
+}
+
+void PSPTris_game_update_moving_brick(bool rotated)
 {
 moving_brick	*temp = dynamic_brick_list;
 
@@ -389,7 +405,14 @@ moving_brick	*temp = dynamic_brick_list;
 		temp->y += temp->vy;
 		temp->z += temp->vz;
 		/* add gravity to y position */
-		temp->vy += temp->g;
+		if (!rotated)
+			{
+			temp->vy += temp->g;
+			}
+		else
+			{
+			temp->vx -= temp->g;
+			}
 
 		/* Update color / opacity */
 		if (temp->opacity > 0x00)
@@ -401,7 +424,7 @@ moving_brick	*temp = dynamic_brick_list;
 		}
 }
 
-void PSPTris_game_render_moving_brick()
+void PSPTris_game_render_moving_brick(bool rotated)
 {
 moving_brick	*temp = dynamic_brick_list;
 
@@ -417,7 +440,7 @@ moving_brick	*temp = dynamic_brick_list;
 		}
 	sceGuDisable( GU_BLEND );
 	/* Update positions */
-	PSPTris_game_update_moving_brick();
+	PSPTris_game_update_moving_brick(rotated);
 }
 
 void PSPTris_game_start_level(int level)
@@ -506,5 +529,11 @@ static	bool game_pause = false;
 		PSPTris_render_text("X TO CONTINUE",	128 + 0 * 16 + 1 * 8,  142);
 		PSPTris_render_text("O TO EXIT",	128 + 2 * 16 + 1 * 8,  182);
 		}
+
+	if (exit_game)
+		{
+		PSPTris_game_clear_moving_bricks();
+		}
+
 	return exit_game;
 }

@@ -670,7 +670,7 @@ bool	exit_game = false;
 		if (!game_over)
 			{
 			PSPTris_render_current_brick();
-			PSPTris_game_render_moving_brick();
+			PSPTris_game_render_moving_brick(false);
 			}
 		}
 	/* Game over */
@@ -781,6 +781,7 @@ bool	exit_game = false;
 
 	if (exit_game)
 		{
+		free(NULL);
 		PSPTris_game_stop_classic();
 		}
 

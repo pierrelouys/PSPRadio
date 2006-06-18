@@ -1,5 +1,5 @@
 PSPTris version 0.9a by Sandberg
--------------------------------
+--------------------------------
 
 
 Post comments, ideas, bugs etc. to : sandbergpsp@gmail.com
