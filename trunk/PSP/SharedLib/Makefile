@@ -7,6 +7,7 @@ all:
 	cd libpthread && make
 	cd danzeff && make -f Makefile.gu
 	cd danzeff && make -f Makefile.sdl
+	cd danzeff && make -f Makefile.vram
 	cd danzeff/puresdl && make -f Makefile.pspradio
 
 clean:
@@ -17,5 +18,6 @@ clean:
 	cd PSPApp && make clean 
 	cd libpthread && make clean
 	cd danzeff && make -f Makefile.gu  clean
+	cd danzeff && make -f Makefile.vram  clean
 	cd danzeff && make -f Makefile.sdl clean
 

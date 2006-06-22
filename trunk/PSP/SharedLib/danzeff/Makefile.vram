@@ -1,0 +1,19 @@
+BASE_DIR = ../..
+include $(BASE_DIR)/include.mak
+
+TARGET_LIB = ../lib/libdanzeffvram.a
+OBJS = danzeffvram.o
+
+INCDIR =
+CFLAGS = $(GLOBAL_CFLAGS) -G0 -mno-explicit-relocs -Wall -g -DDANZEFF_VRAM
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+
+LDFLAGS =
+LIBS =
+
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak
+
+danzeffvram.o: danzeff.c
+	psp-gcc $(CFLAGS) -c -o danzeffvram.o danzeff.c

@@ -12,9 +12,6 @@
 extern "C" {
 #endif
 
-#define	DANZEFF_RENDER_SDL		1
-#define DANZEFF_RENDER_SCEGU	2
-
 //Initialization and de-init of the keyboard, provided as the keyboard uses alot of images, so if you aren't going to use it for a while, I'd recommend unloading it.
 void danzeff_load();
 //Loads the danzeff keyboard without the transparent images (_t images) (NO DIFFERENCE IN GU IMPLEMENTATION)
@@ -61,6 +58,10 @@ void danzeff_render();
 void danzeff_set_screen(SDL_Surface* screen);
 #endif //DANZEFF_SDL
 
+#ifdef DANZEFF_VRAM ///Functions only for direct VRAM Renderer
+//set the VRAM pointer for rendering.
+void danzeff_set_screen(void* vram_ptr, int width, int height, int bbp);
+#endif //DANZEFF_VRAM
 
 #ifdef __cplusplus
 }
