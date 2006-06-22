@@ -1,6 +1,11 @@
  What's New for Links2 PSP Port
 ================================
 
+links-2.1pre22 PSP rxxxx (2006-xx-xx)
+NEW FEATURES
+(sandberg) Using direct VRAM version of Danzeff to free up the memory used by the previous SDL version.
+BUG FIXES
+
 links-2.1pre22 PSP r1195 (2006-06-13)
 NEW FEATURES
 (raf) StandAlone: New connection selection: "None" allows the user to continue initialization without having to connect.

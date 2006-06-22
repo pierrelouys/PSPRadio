@@ -1,5 +1,9 @@
 What's New for PSPRadio
 ========================
+0.38.12 (rxxxx) (2006-xx-xx)
+NEW FEATURES
+(sandberg) Core: Implemented a direct VRAM version of Danzeff for use in Links2.
+BUG FIXES
 
 0.38.11 (r1184) (2006-05-28)
 NEW FEATURES

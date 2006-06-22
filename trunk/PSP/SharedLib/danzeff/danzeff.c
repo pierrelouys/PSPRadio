@@ -1027,6 +1027,7 @@ void danzeff_moveTo(const int newX, const int newY)
 {
 	moved_x = newX;
 	moved_y = newY;
+	dirty = true;
 }
 
 void danzeff_set_orientation(const int new_orientation)

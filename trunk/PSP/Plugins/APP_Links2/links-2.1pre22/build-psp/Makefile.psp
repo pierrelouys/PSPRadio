@@ -3,7 +3,7 @@ include $(BASE_DIR)/include.mak
 
 #TARGET = APP_Links2
 
-EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
+EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o
 COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
 PSP_OBJECTS = psp.o plugin_main.o $(COMMON_OBJS) $(EXPORTED_OBJS)
 
@@ -20,7 +20,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DI
 		 -I$(SHAREDLIB_DIR)/libpthread \
 		 -I/usr/local/pspdev/psp/sdk/include/  -I/usr/local/pspdev/psp/include/ \
 		 -I/usr/local/pspdev/psp/include/SDL/ -I$(SHAREDLIB_DIR)/danzeff
-		 
+
 CFLAGS = $(EXTRA_FLAGS) -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSP -g $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
@@ -29,9 +29,9 @@ LIBDIR =
 
 OPENSSL_LIBS= -lssl -lcrypto
 
-LIBS =  -ldanzeffsdl -lSDL_image -lSDL -lpspgu -lpspge -lpspaudio -lpng -ljpeg -lz -lm -lpthread -lpsphprm $(OPENSSL_LIBS)
+LIBS =  -ldanzeffvram -lpspgu -lpspge -lpspaudio -lpng -ljpeg -lz -lm -lpthread -lpsphprm $(OPENSSL_LIBS)
 
-the_prx: $(OBJS) $(TARGET).prx 
+the_prx: $(OBJS) $(TARGET).prx
 
 the_pbp: $(OBJS) EBOOT.PBP
 
@@ -77,7 +77,7 @@ release_plugin:
 	make prepare
 	make prx
 	cp ../ChangeLog ChangeLog.orig
-	zip -r plugin_release.zip whatsnew.txt ChangeLog.orig APP_Links2.prx 
+	zip -r plugin_release.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
 
 release:
 	rm *.zip

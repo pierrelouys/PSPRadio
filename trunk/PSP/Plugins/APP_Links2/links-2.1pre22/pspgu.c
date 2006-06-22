@@ -32,6 +32,7 @@
 
 #include <pthread.h>
 #include <pspctrl.h>
+#include <pspgu.h>
 static int sf_danzeffOn = 0;
 
 #define PSP_SCREEN_WIDTH 480
@@ -178,7 +179,7 @@ static int global_mouse_hidden;
 	if (bottom>dev->clip.y2) bottom=dev->clip.y2;\
 	START_GR\
 	TEST_MOUSE(left,right,top,bottom)
-	
+
 
 #define HLINE_CLIP_PREFACE \
 	int mouse_hidden;\
@@ -189,7 +190,7 @@ static int global_mouse_hidden;
 	if (left>=right) return;\
 	START_GR\
 	TEST_MOUSE (left,right,y,y+1)
-	
+
 #define VLINE_CLIP_PREFACE \
 	int mouse_hidden;\
 	TEST_INACTIVITY\
@@ -208,7 +209,7 @@ static int global_mouse_hidden;
 		return 1;\
 	START_GR\
 	TEST_MOUSE (dev->clip.x1,dev->clip.x2,dev->clip.y1,dev->clip.y2)
-		
+
 #define VSCROLL_CLIP_PREFACE \
 	int mouse_hidden;\
 	TEST_INACTIVITY_0\
@@ -216,8 +217,8 @@ static int global_mouse_hidden;
 	if (sc>dev->clip.y2-dev->clip.y1||-sc>dev->clip.y2-dev->clip.y1) return 1;\
 	START_GR\
 	TEST_MOUSE (dev->clip.x1, dev->clip.x2, dev->clip.y1, dev->clip.y2)\
-	
-	
+
+
 /* n is in bytes. dest must begin on pixel boundary. If n is not a whole number of pixels, rounding is
  * performed downwards.
  */
@@ -236,12 +237,12 @@ static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 #ifdef t2c
 			short v=*(t2c *)pattern;
 			int a;
-			
+
 			for (a=0;a<(n>>1);a++) ((t2c *)dest)[a]=v;
 #else
 			unsigned char a,b;
 			int i;
-			
+
 			a=*(char*)pattern;
 			b=((char*)pattern)[1];
 			for (i=0;i<=n-2;i+=2){
@@ -256,7 +257,7 @@ static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 		{
 			unsigned char a,b,c;
 			int i;
-			
+
 			a=*(char*)pattern;
 			b=((char*)pattern)[1];
 			c=((char*)pattern)[2];
@@ -273,12 +274,12 @@ static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 #ifdef t4c
 			long v=*(t4c *)pattern;
 			int a;
-			
+
 			for (a=0;a<(n>>2);a++) ((t4c *)dest)[a]=v;
 #else
 			unsigned char a,b,c,d;
 			int i;
-			
+
 			a=*(char*)pattern;
 			b=((char*)pattern)[1];
 			c=((char*)pattern)[2];
@@ -332,7 +333,7 @@ static void pspgu_key_in(void *p, struct event *ev, int size)
 	else if (!ev->y && ev->x == KBD_F6) pspgu_mouse_move(0, 3);
 	else if (!ev->y && ev->x == KBD_F7) pspgu_mouse_move(0, -3);
 	else if (!ev->y && ev->x == KBD_F8) pspgu_mouse_move(3, 0);
-	else 
+	else
 	{
 		if (pspgu_driver.codepage!=utf8_table&&(ev->x)>=128&&(ev->x)<=255)
 			if ((ev->x=cp2u(ev->x,pspgu_driver.codepage)) == -1) return;
@@ -434,7 +435,7 @@ static void place_mouse(void)
 	bmp.x=arrow_width;
 	bmp.y=arrow_height;
 	bmp.skip=arrow_width*pspgu_pixelsize;
-	bmp.data=mouse_buffer;	
+	bmp.data=mouse_buffer;
 	{
 		struct graphics_device * current_graphics_device_backup;
 		current_graphics_device_backup=current_virtual_device;
@@ -525,7 +526,7 @@ static inline void place_mouse_composite(void)
 				,background_top,background_length*pspgu_pixelsize);
 			background_ptr+=skip;
 		}
-			
+
 	}else if (background_top>mouse_top){
 		/* Draw the mouse */
 		mouse_length=mouse_right>pspgu_xsize
@@ -548,10 +549,10 @@ static inline void place_mouse_composite(void)
 			mouse_ptr+=skip;
 			background_ptr+=skip;
 		}
-			
+
 	}else{
 		int l1, l2, l3;
-		
+
 		/* Draw mouse, background */
 		mouse_length=mouse_right>pspgu_xsize?pspgu_xsize-mouse_left:arrow_width;
 		background_length=background_right-mouse_right;
@@ -613,7 +614,7 @@ static inline void redraw_mouse_sophisticated(void)
 }
 
 static void redraw_mouse(void){
-	
+
 	if (!pspgu_active) return; /* We are not drawing */
 	if (mouse_x!=background_x||mouse_y!=background_y){
 		if (RECTANGLES_INTERSECT(
@@ -642,7 +643,7 @@ static void redraw_mouse(void){
  * Good white purity
  * Correct rounding and dithering prediction
  * And this is the cabbala:
- * 063 021 063 
+ * 063 021 063
  * 009 009 021
  * 255 085 255
  * 036 036 084
@@ -770,33 +771,33 @@ void pspInputThread()
 		int deltax = 0, deltay = 0;
 		static int danzeff_x = PSP_SCREEN_WIDTH/2-(64*3/2), danzeff_y = PSP_SCREEN_HEIGHT/2-(64*3/2);
 		SceCtrlData pad;
-		SceCtrlLatch latch; 
+		SceCtrlLatch latch;
 		unsigned short	fl	= 0;
-				
+
 		if ( g_PSPEnableInput == truE )
 		{
-			
+
 			if (g_PSPEnableRendering == falsE)
 			{
 				g_PSPEnableRendering = truE;
 				cls_redraw_all_terminals();
 			}
-			
+
 			sceCtrlReadBufferPositive(&pad, 1);
 			sceCtrlReadLatch(&latch);
-			
+
 			RAND_add(&pad, sizeof(pad), sizeof(pad)); /** Add more randomness to SSL */
-				
+
 			if (sf_danzeffOn)
 			{
 				if (danzeff_dirty())
 				{
-					///??sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
+					danzeff_render();
 				}
-				
+
 				if (latch.uiMake)
 				{
-					// Button Pressed 
+					// Button Pressed
 					oldButtonMask = latch.uiPress;
 				}
 				else if (latch.uiBreak) /** Button Released */
@@ -805,6 +806,7 @@ void pspInputThread()
 					{
 						/* Enter input */
 						sf_danzeffOn = 0;
+						danzeff_free();
 						cls_redraw_all_terminals();
 					}
 					else if (oldButtonMask & PSP_CTRL_SELECT)
@@ -815,22 +817,24 @@ void pspInputThread()
 					}
 					oldButtonMask = 0;
 				}
-				
+
 				if (pad.Buttons & PSP_CTRL_LEFT)
 				{
 					danzeff_x-=5;
+					danzeff_moveTo(danzeff_x, danzeff_y);
 					cls_redraw_all_terminals();
 				}
 				else if (pad.Buttons & PSP_CTRL_RIGHT)
 				{
 					danzeff_x+=5;
+					danzeff_moveTo(danzeff_x, danzeff_y);
 					cls_redraw_all_terminals();
 				}
 				else
 				{
 					int key = 0;
 					key = danzeff_readInput(pad);
-					if (key) 
+					if (key)
 					{
 						switch (key)
 						{
@@ -844,8 +848,7 @@ void pspInputThread()
 						current_virtual_device->keyboard_handler(current_virtual_device, key, 0);
 					}
 				}
-				danzeff_moveTo(danzeff_x, danzeff_y);
-				
+
 			}
 			else
 			{
@@ -857,7 +860,7 @@ void pspInputThread()
 				{
 					deltax = (pad.Lx - 128)/30;
 				}
-			
+
 				if  (pad.Ly < 128)
 				{
 					deltay = - (128 - pad.Ly)/30;
@@ -866,8 +869,8 @@ void pspInputThread()
 				{
 					deltay = (pad.Ly - 128)/30;
 				}
-	
-				
+
+
 				fl	= B_MOVE;
 				if (pad.Buttons & PSP_CTRL_CROSS)
 				{
@@ -877,13 +880,13 @@ void pspInputThread()
 				{
 					fl = B_DRAG | B_RIGHT;
 				}
-					
+
 				/* calls handler */
 				pspgu_mouse_move(deltax, deltay, fl);
-				
+
 				if (latch.uiMake)
 				{
-					// Button Pressed 
+					// Button Pressed
 					oldButtonMask = latch.uiPress;
 					if (oldButtonMask & PSP_CTRL_CROSS)
 					{
@@ -982,13 +985,15 @@ void pspInputThread()
 					}
 					else if (oldButtonMask & PSP_CTRL_START)
 					{
+						if (!danzeff_isinitialized())
+							{
+							danzeff_load();
+							}
 						//current_virtual_device->keyboard_handler(current_virtual_device, 'g', fl);
 						if (danzeff_isinitialized())
 						{
-							///???danzeff_set_screen(sdl_SURFACE(dev));
 							danzeff_moveTo(danzeff_x, danzeff_y);
 							danzeff_render();
-							///???sdl_register_update(dev, 0, 0, sdl_VIDEO_WIDTH, sdl_VIDEO_HEIGHT, 0);
 							sf_danzeffOn = 1;
 						}
 						else
@@ -1040,7 +1045,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 
 	alloc_palette(&global_pal);
 	generate_palette(&global_pal);
-	
+
 	pspgu_linesize=PSP_LINE_SIZE*pspgu_pixelsize;
 	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
 
@@ -1052,7 +1057,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 #ifndef PSP
 	pspgu_kbd = handle_svgalib_keyboard((void (*)(void *, unsigned char *, int))pspgu_key_in);
 #else
-	
+
 	if (0)
 	{
 		pthread_t pthid;
@@ -1077,7 +1082,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
 		return stracpy("Nonlinear mapping of graphics memory not supported.\n");
 	}
-		
+
 	/* Place vram in uncached memory */
 	pspgu_mem = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
@@ -1089,8 +1094,11 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_driver.depth=pspgu_pixelsize&7;
 	pspgu_driver.depth|=(24/*pspgu_bits_pp*/&31)<<3;
 	if (htons (0x1234) == 0x1234) pspgu_driver.depth |= 0x100;
-	
+
 	pspgu_driver.get_color=get_color_fn(pspgu_driver.depth);
+
+	/* Pass VRAM info to Danzeff */
+	danzeff_set_screen(pspgu_vmem, PSP_LINE_SIZE, pspgu_ysize, pspgu_pixelsize);
 
 	/* mouse */
 	mouse_buffer=mem_alloc(pspgu_pixelsize*arrow_area);
@@ -1105,7 +1113,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	global_mouse_hidden=1;
 
 	if (border_left | border_top | border_right | border_bottom) memset(pspgu_mem,0,pspgu_mem_size);
-		
+
 	show_mouse();
 	return NULL;
 }
@@ -1151,7 +1159,7 @@ static int pspgu_get_empty_bitmap(struct bitmap *dest)
 static int pspgu_get_filled_bitmap(struct bitmap *dest, long color)
 {
 	int n;
-	
+
 	if (dest->x && (unsigned)dest->x * (unsigned)dest->y / (unsigned)dest->x != (unsigned)dest->y) overalloc();
 	if ((unsigned)dest->x * (unsigned)dest->y > MAXINT / pspgu_pixelsize) overalloc();
 	n=dest->x*dest->y*pspgu_pixelsize;
@@ -1234,7 +1242,7 @@ static void pspgu_draw_hline(struct graphics_device *dev, int left, int y, int r
 {
 	unsigned char *dest;
 	HLINE_CLIP_PREFACE
-	
+
 	dest=pspgu_vmem+y*pspgu_linesize+left*pspgu_pixelsize;
 	pixel_set(dest,(right-left)*pspgu_pixelsize,&color);
 	END_GR
@@ -1260,7 +1268,7 @@ static int pspgu_hscroll(struct graphics_device *dev, struct rect_set **ignore, 
 	int y;
 	int len;
 	HSCROLL_CLIP_PREFACE
-	
+
 	ignore=NULL;
 	if (sc>0){
 		len=(dev->clip.x2-dev->clip.x1-sc)*pspgu_pixelsize;
