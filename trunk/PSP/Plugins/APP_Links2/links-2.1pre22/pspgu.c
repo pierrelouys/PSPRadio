@@ -8,18 +8,6 @@
 
 #ifdef GRDRV_PSPGU
 
-#define pspgu_VISUAL_DIRECTCOLOR 10
-#define pspgu_VISUAL_PSEUDOCOLOR 20
-
-/* #define pspgu_DEBUG */
-/* #define SC_DEBUG */
-
-/* note: SIGUSR1 is used by libpthread and is disabled even if no thread
-   functions are called --- do not use */
-
-#define SIG_REL	SIGUSR2
-#define SIG_ACQ	SIGVTALRM
-
 #if defined(pspgu_DEBUG) || defined(SC_DEBUG)
 	#define MESSAGE(a) fprintf(stderr,"%s",a);
 #endif
@@ -52,6 +40,8 @@ static int sf_danzeffOn = 0;
 
 #define TTY 0
 
+#define printf pspDebugScreenPrintf
+
 #ifndef USE_GPM_DX
 int pspgu_txt_xsize, pspgu_txt_ysize;
 int pspgu_old_ws_v;
@@ -69,25 +59,13 @@ char *pspgu_mem, *pspgu_vmem;
 int pspgu_mem_size,pspgu_linesize,pspgu_bits_pp,pspgu_pixelsize;
 int pspgu_xsize,pspgu_ysize;
 int border_left, border_right, border_top, border_bottom;
-int pspgu_colors, pspgu_palette_colors;
+int pspgu_colors;
 
 void pspgu_draw_bitmap(struct graphics_device *dev,struct bitmap* hndl, int x, int y);
 
 static unsigned char *pspgu_driver_param;
 struct graphics_driver pspgu_driver;
-int have_cmap=0;
 volatile int pspgu_active=1;
-
-struct palette
-{
-	unsigned char *alpha;
-	unsigned char *blue;
-	unsigned char *green;
-	unsigned char *red;
-};
-
-struct palette old_palette;
-struct palette global_pal;
 
 static volatile int in_gr_operation;
 
@@ -224,79 +202,18 @@ static int global_mouse_hidden;
  */
 static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 {
-	int a;
+	unsigned char a,b,c,d;
+	int i;
 
-	switch(pspgu_pixelsize)
-	{
-		case 1:
-		memset(dest,*(char *)pattern,n);
-		break;
-
-		case 2:
-		{
-#ifdef t2c
-			short v=*(t2c *)pattern;
-			int a;
-
-			for (a=0;a<(n>>1);a++) ((t2c *)dest)[a]=v;
-#else
-			unsigned char a,b;
-			int i;
-
-			a=*(char*)pattern;
-			b=((char*)pattern)[1];
-			for (i=0;i<=n-2;i+=2){
-				dest[i]=a;
-				dest[i+1]=b;
-			}
-#endif
-		}
-		break;
-
-		case 3:
-		{
-			unsigned char a,b,c;
-			int i;
-
-			a=*(char*)pattern;
-			b=((char*)pattern)[1];
-			c=((char*)pattern)[2];
-			for (i=0;i<=n-3;i+=3){
-				dest[i]=a;
-				dest[i+1]=b;
-				dest[i+2]=c;
-			}
-		}
-		break;
-
-		case 4:
-		{
-#ifdef t4c
-			long v=*(t4c *)pattern;
-			int a;
-
-			for (a=0;a<(n>>2);a++) ((t4c *)dest)[a]=v;
-#else
-			unsigned char a,b,c,d;
-			int i;
-
-			a=*(char*)pattern;
-			b=((char*)pattern)[1];
-			c=((char*)pattern)[2];
-			d=((char*)pattern)[3];
-			for (i=0;i<=n-4;i+=4){
-				dest[i]=a;
-				dest[i+1]=b;
-				dest[i+2]=c;
-				dest[i+3]=d;
-			}
-#endif
-		}
-		break;
-
-		default:
-		for (a=0;a<n/pspgu_pixelsize;a++,dest+=pspgu_pixelsize) memcpy(dest,pattern,pspgu_pixelsize);
-		break;
+	a=*(char*)pattern;
+	b=((char*)pattern)[1];
+	c=((char*)pattern)[2];
+	d=((char*)pattern)[3];
+	for (i=0;i<=n-4;i+=4){
+		dest[i]=a;
+		dest[i+1]=b;
+		dest[i+2]=c;
+		dest[i+3]=d;
 	}
 }
 
@@ -319,31 +236,6 @@ static void pspgu_mouse_move(int dx, int dy, int fl)
 	if (current_virtual_device->mouse_handler) current_virtual_device->mouse_handler(current_virtual_device, ev.x, ev.y, fl/*ev.b*/);
 	redraw_mouse();
 }
-
-static void pspgu_key_in(void *p, struct event *ev, int size)
-{
-#ifndef PSP
-	if (size != sizeof(struct event) || ev->ev != EV_KBD) return;
-	if ((ev->y & KBD_ALT) && ev->x >= '0' && ev->x <= '9') {
-		switch_virtual_device((ev->x - '1' + 10) % 10);
-		return;
-	}
-	if (!current_virtual_device) return;
-	if (!ev->y && ev->x == KBD_F5) pspgu_mouse_move(-3, 0);
-	else if (!ev->y && ev->x == KBD_F6) pspgu_mouse_move(0, 3);
-	else if (!ev->y && ev->x == KBD_F7) pspgu_mouse_move(0, -3);
-	else if (!ev->y && ev->x == KBD_F8) pspgu_mouse_move(3, 0);
-	else
-	{
-		if (pspgu_driver.codepage!=utf8_table&&(ev->x)>=128&&(ev->x)<=255)
-			if ((ev->x=cp2u(ev->x,pspgu_driver.codepage)) == -1) return;
-		if (current_virtual_device->keyboard_handler) current_virtual_device->keyboard_handler(current_virtual_device, ev->x, ev->y);
-	}
-#endif
-}
-
-
-
 
 #define mouse_getscansegment(buf,x,y,w) memcpy(buf,pspgu_vmem+y*pspgu_linesize+x*pspgu_pixelsize,w)
 #define mouse_drawscansegment(ptr,x,y,w) memcpy(pspgu_vmem+y*pspgu_linesize+x*pspgu_pixelsize,ptr,w);
@@ -638,100 +530,6 @@ static void redraw_mouse(void){
 		}
 	}
 }
-
-/* This is an empiric magic that ensures
- * Good white purity
- * Correct rounding and dithering prediction
- * And this is the cabbala:
- * 063 021 063
- * 009 009 021
- * 255 085 255
- * 036 036 084
- */
-static void generate_palette(struct palette *palette)
-{
-        int a;
-
-	switch (pspgu_colors)
-	{
-		case 16:
-               	for (a=0;a<pspgu_palette_colors;a++)
-                {
-       	                palette->red[a]=(a&8)?65535:0;
-               	        palette->green[a]=((a>>1)&3)*(65535/3);
-                       	palette->blue[a]=(a&1)?65535:0;
-		}
-		break;
-		case 256:
-                for (a=0;a<pspgu_palette_colors;a++){
-                       	palette->red[a]=((a>>5)&7)*(65535/7);
-                        palette->green[a]=((a>>2)&7)*(65535/7);
-       	                palette->blue[a]=(a&3)*(65535/3);
-                }
-		break;
-		case 32768:
-                for (a=0;a<pspgu_palette_colors;a++){
-			/*
-                       	palette->red[a]=((a>>10)&31)*(65535/31);
-                        palette->green[a]=((a>>5)&31)*(65535/31);
-       	                palette->blue[a]=(a&31)*(65535/31);
-			*/
-                        palette->red[a]=
-                        palette->green[a]=
-                        palette->blue[a]=(((a&31)*255)/31)*257;
-                }
-		break;
-		case 65536:
-                for (a=0;a<pspgu_palette_colors;a++){
-			/*
-                       	palette->red[a]=((a>>11)&31)*(65535/31);
-                        palette->green[a]=((a>>5)&63)*(65535/63);
-       	                palette->blue[a]=(a&31)*(65535/31);
-			*/
-                        palette->green[a]=(((a&63)*255)/64)*257;
-                        palette->red[a]=
-                        palette->blue[a]=(((a&31)*255)/32)*257;
-                }
-		break;
-                default:
-                for (a=0;a<pspgu_palette_colors;a++){
-                        palette->red[a]=
-                        palette->green[a]=
-                        palette->blue[a]=a*257;
-                        /* stuff it in both high and low byte */
-                }
-	}
-}
-
-static void alloc_palette(struct palette *pal)
-{
-	pal->red=mem_calloc(sizeof(unsigned short)*pspgu_palette_colors);
-	pal->green=mem_calloc(sizeof(unsigned short)*pspgu_palette_colors);
-	pal->blue=mem_calloc(sizeof(unsigned short)*pspgu_palette_colors);
-
-	if (!pal->red||!pal->green||!pal->blue) {
-		/*internal("Cannot create palette.\n")*/;
-	}
-}
-
-
-static void free_palette(struct palette *pal)
-{
-	mem_free(pal->red);
-	mem_free(pal->green);
-	mem_free(pal->blue);
-}
-
-typedef unsigned short __u16;
-typedef unsigned char __u8;
-struct pspgu_cmap {
-	int start,
-	len;
-	__u8 *transp,
-	*blue,
-	*green,
-	*red;
-};
 
 static void pspgu_switch_signal(void *data)
 {
@@ -1036,15 +834,8 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_bits_pp=32;
 	pspgu_driver.x=pspgu_xsize;
 	pspgu_driver.y=pspgu_ysize;
-	pspgu_palette_colors=256;
 	pspgu_pixelsize=4;
 	pspgu_colors=1<<pspgu_bits_pp;
-
-	have_cmap=2;
-	alloc_palette(&old_palette);
-
-	alloc_palette(&global_pal);
-	generate_palette(&global_pal);
 
 	pspgu_linesize=PSP_LINE_SIZE*pspgu_pixelsize;
 	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
@@ -1054,9 +845,6 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		if(pspgu_driver_param) { mem_free(pspgu_driver_param); pspgu_driver_param=NULL; }
 		return stracpy("Allocation of virtual devices failed.\n");
 	}
-#ifndef PSP
-	pspgu_kbd = handle_svgalib_keyboard((void (*)(void *, unsigned char *, int))pspgu_key_in);
-#else
 
 	if (0)
 	{
@@ -1073,7 +861,6 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	{
 	//	install_timer(10, pspInputThread, NULL);
 	}
-#endif
 
 	/* Mikulas: nechodi to na sparcu */
 	if (pspgu_mem_size < pspgu_linesize * pspgu_ysize)
@@ -1087,7 +874,6 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_mem = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 	sceDisplaySetFrameBuf((void *) pspgu_mem, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
-	//pspgu_mem_size = PSP_SCREEN_WIDTH * PSP_SCREEN_HEIGHT * 32;
 	pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
 
 	pspgu_vmem = pspgu_mem + border_left * pspgu_pixelsize + border_top * pspgu_linesize;
@@ -1351,12 +1137,6 @@ static int pspgu_block(struct graphics_device *dev)
 
 static void pspgu_unblock(struct graphics_device *dev)
 {
-#ifdef DEBUG
-	if (current_virtual_device) {
-		/*internal("pspgu_unblock called without pspgu_block");*/
-		return;
-	}
-#endif /* #ifdef DEBUG */
 	current_virtual_device = pspgu_old_vd;
 	pspgu_old_vd = NULL;
 	if (border_left | border_top | border_right | border_bottom) memset(pspgu_mem,0,pspgu_mem_size);
