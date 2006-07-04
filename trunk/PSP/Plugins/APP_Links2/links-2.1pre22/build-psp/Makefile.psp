@@ -71,16 +71,22 @@ debug:
 release_stand_alone:
 	make prepare
 	make stand_alone
-	zip -r links-2.1pre22_psp_rXXXX.zip __SCE__Links2 %__SCE__Links2
+	./make_zip.sh .zip __SCE__Links2 %__SCE__Links2
 
 release_plugin:
 	make prepare
 	make prx
 	cp ../ChangeLog ChangeLog.orig
-	zip -r links-2.1pre22_psp_rXXXX_pspradio_plugin.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
+	./make_zip.sh _pspradio_plugin.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
+
+release_sources:
+	rm -Rf *.o
+	rm -Rf *.zip *.prx *.elf *.SFO
+	rm -Rf __SCE__Links2 %__SCE__Links2
+	./make_zip_non_recursive.sh sources.zip `find .. -name ".svn*" -prune -o -print`
 
 release:
-	rm *.zip
+	rm -Rf *.zip
 	make clean
 	make release_stand_alone
 	make clean
