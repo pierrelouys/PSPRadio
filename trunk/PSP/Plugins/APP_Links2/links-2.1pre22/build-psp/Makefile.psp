@@ -71,13 +71,13 @@ debug:
 release_stand_alone:
 	make prepare
 	make stand_alone
-	zip -r release.zip __SCE__Links2 %__SCE__Links2
+	zip -r links-2.1pre22_psp_rXXXX.zip __SCE__Links2 %__SCE__Links2
 
 release_plugin:
 	make prepare
 	make prx
 	cp ../ChangeLog ChangeLog.orig
-	zip -r plugin_release.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
+	zip -r links-2.1pre22_psp_rXXXX_pspradio_plugin.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
 
 release:
 	rm *.zip
