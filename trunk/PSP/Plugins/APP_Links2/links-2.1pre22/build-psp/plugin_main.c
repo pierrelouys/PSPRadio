@@ -25,6 +25,8 @@
 #include <PSPRadio_Exports.h>
 #include <APP_Exports.h>
 #include <Common.h>
+#include <malloc.h>
+	
 
 #include <links.h>
 
@@ -39,6 +41,7 @@
 	#endif
 	void CallbackThread(void *argp);
 	void StartNetworkThread(void *argp);
+//	PSP_HEAP_SIZE_KB(20*1024);
 #else
 	PSP_MODULE_INFO("APP_Links2", 0, 1, 1);
 	PSP_HEAP_SIZE_KB(1024*6);
@@ -209,7 +212,7 @@ int connect_to_apctl(int config)
 		}
 		if (state > stateLast)
 		{
-			printf("  connection state %d of 4\n", state);
+			printf("  connection state %d of 5\n", state + 1);
 			stateLast = state;
 		}
 		if (state == 4)
@@ -235,6 +238,7 @@ void wait_for_triangle(char *str)
 	SceCtrlData pad;
 	SceCtrlLatch latch ; 
 	int button = 0;
+	g_PSPEnableRendering = falsE;
 	for(;;) 
 	{
 		sceDisplayWaitVblankStart();
@@ -253,6 +257,15 @@ void wait_for_triangle(char *str)
 			}
 		}
 	}
+	g_PSPEnableRendering = truE;
+}
+
+
+int getfreebytes()
+{
+   	struct mallinfo mi;
+   	//mi = mallinfo();
+	//return ((20*1024*1024) - mi.arena + mi.fordblks;
 }
 
 void app_init_progress(char *str)
@@ -260,9 +273,12 @@ void app_init_progress(char *str)
 	static int step = 0;
 
 	printf("Init Step %d..%s\n", step, str);
+    //int fb = getfreebytes();
+	//printf("Available memory: %dbytes (%dKB or %dMB)\n", fb, fb/1024, fb/1024/1024);
 
 	step++;
 }
+
 
 /* Functions for a user connecting to Wifi */
 
@@ -360,6 +376,7 @@ int getWifiAPFromUser()
 /* Choose the wifi AP to connect to and connect to it */
 void wifiChooseConnect()
 {
+	g_PSPEnableRendering = falsE;
 	int iAP = 0;
 	iAP = getWifiAPFromUser();
 	
@@ -367,6 +384,7 @@ void wifiChooseConnect()
 	{
 		connect_to_apctl(iAP);
 	}
+	g_PSPEnableRendering = truE;
 }
 
 /** Stand alone code: */
@@ -376,6 +394,7 @@ void MyExceptionHandler(PspDebugRegBlock *regs)
 {
 	static int bFirstTime = 1;
 
+	g_PSPEnableRendering = falsE;
 	if (bFirstTime)
 	{
 		pspDebugScreenInit();

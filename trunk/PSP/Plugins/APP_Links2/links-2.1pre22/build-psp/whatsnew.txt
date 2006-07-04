@@ -1,6 +1,20 @@
  What's New for Links2 PSP Port
 ================================
 
+links-2.1pre22 PSP rXXXX (2006-07-XX)
+NEW FEATURES
+(raf) Updates to pspgu driver: 
+	-Default resolution is now 960x544 (Its scaled down to the PSP's 480x272)
+	-Links scaling is now disabled (as it used too much memory, and was one of the main culprits of memory errors)
+	-Font size changed from 12 to 24, so it is readable without zoom (at 960x544)
+	-Zoom (along with new virtual resolution of 960x544 implemented using a kind of double buffering).
+(raf) New button mappings: 
+	UP/DOWN = scroll up/scroll down (former R+UP/DOWN)
+	R+UP/DOWN = page up/page down
+	L (held) = zoom (while L is held). Use analog stick to move around.
+	L+CROSS = toggles zoom lock. (Once locked, the analog will control the mouse. Use L+analog to move zoom window).
+BUG FIXES
+
 links-2.1pre22 PSP r1206 (2006-07-03)
 NEW FEATURES
 (raf) Moved the "None" WiFi connection to the bottom of the list.

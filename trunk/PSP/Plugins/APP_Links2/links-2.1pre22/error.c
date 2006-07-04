@@ -144,7 +144,7 @@ void *debug_mem_alloc(unsigned char *file, int line, size_t size)
 	if (!(p = malloc(size + RED_ZONE_INC))) {
 		error("ERROR: out of memory (malloc returned NULL)");
 #ifdef PSP
-		pspDebugScreenPrintf("Out of Memory when: Allocating %ld bytes\n", size+RED_ZONE_INC);
+		pspDebugScreenPrintf("Out of Memory when: Allocating %ld bytes (called from '%s' line %d)\n", size+RED_ZONE_INC, file, line);
 		pspDebugScreenPrintf("Memory allocated = %ld bytes | JS Mem Allocated = %ld bytes\n", mem_amount, js_zaflaknuto_pameti);
 		wait_for_triangle("debug_mem_alloc() out of memory!");
 		terminate_loop = 1;
