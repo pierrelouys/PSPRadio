@@ -1,8 +1,10 @@
  What's New for Links2 PSP Port
 ================================
 
-links-2.1pre22 PSP rxxxx (2006-xx-xx)
+links-2.1pre22 PSP r1206 (2006-07-03)
 NEW FEATURES
+(raf) Moved the "None" WiFi connection to the bottom of the list.
+(raf) New driver based on the linux framebuffer driver. This new driver access video RAM directly. Most of the graphic problems with SDL seem to be gone; but theres some new problems (the menus don't clear correctly).
 (sandberg) Using direct VRAM version of Danzeff to free up the memory used by the previous SDL version.
 BUG FIXES
 
