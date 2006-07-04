@@ -36,7 +36,7 @@
 #endif
 
 #ifdef PSP
-#define LINKS_HOMEPAGE_URL	"http://pspradio.berlios.de/Links2/APP_Links2.html"
+#define LINKS_HOMEPAGE_URL	"http://pspradio.sf.net/Links2/APP_Links2.html"
 #else
 #define LINKS_HOMEPAGE_URL		(!strcmp(language_name(current_language),"Czech") || !strcmp(language_name(current_language),"Slovak")?\
 					"http://links.twibright.com/index_cz.php":\
