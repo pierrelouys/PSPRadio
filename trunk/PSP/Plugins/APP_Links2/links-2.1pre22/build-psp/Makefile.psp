@@ -71,7 +71,7 @@ debug:
 release_stand_alone:
 	make prepare
 	make stand_alone
-	./make_zip.sh .zip __SCE__Links2 %__SCE__Links2
+	./make_zip.sh _stand_alone.zip __SCE__Links2 %__SCE__Links2
 
 release_plugin:
 	make prepare

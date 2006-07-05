@@ -854,6 +854,9 @@ void render_thread()
 	int bbRow, bbCol;
 	int bbLineSize = PSP_LINE_SIZE*BB_TO_FB_FACTOR;
 	int fbLineSize = PSP_LINE_SIZE;
+	int fbMult, bbMult;
+	int bb_to_fb_factor = 1;
+	int bb_row_offset = 0, bb_col_offset = 0;
 
 	for(;;)
 	{
@@ -865,22 +868,25 @@ void render_thread()
 
 			if ((pad.Buttons & PSP_CTRL_LTRIGGER) || s_Zoom)
 			{
-				for (fbRow = 0, bbRow = s_BbRowOffset; fbRow < PSP_SCREEN_HEIGHT; fbRow++, bbRow++)
-				{
-					for (fbCol = 0, bbCol = s_BbColOffset; fbCol < PSP_SCREEN_WIDTH; fbCol++, bbCol++)
-					{
-						pFb[fbRow*fbLineSize+fbCol] = pBb[bbRow*bbLineSize+bbCol];
-					}
-				}
+				bb_to_fb_factor = 1;
+				bb_row_offset = s_BbRowOffset;
+				bb_col_offset = s_BbColOffset;
 			}
-			else /** Display the whole backbuffer (shrinking if necessary..) */
+			else
 			{
-				for (fbRow = 0, bbRow = 0; fbRow < PSP_SCREEN_HEIGHT; fbRow++, bbRow+=BB_TO_FB_FACTOR)
+				/** Display the whole backbuffer (shrinking if necessary..) */
+				bb_to_fb_factor = BB_TO_FB_FACTOR;
+				bb_row_offset = 0;
+				bb_col_offset = 0;
+			}
+
+			for (fbRow = 0, bbRow = bb_row_offset; fbRow < PSP_SCREEN_HEIGHT; fbRow++, bbRow+=bb_to_fb_factor)
+			{
+				fbMult = fbRow*fbLineSize;
+				bbMult = bbRow*bbLineSize;
+				for (fbCol = 0, bbCol = bb_col_offset; fbCol < PSP_SCREEN_WIDTH; fbCol++, bbCol+=bb_to_fb_factor)
 				{
-					for (fbCol = 0, bbCol = 0; fbCol < PSP_SCREEN_WIDTH; fbCol++, bbCol+=BB_TO_FB_FACTOR)
-					{
-						pFb[fbRow*fbLineSize+fbCol] = pBb[bbRow*bbLineSize+bbCol];
-					}
+				   pFb[fbMult+fbCol] = pBb[bbMult+bbCol];
 				}
 			}
 	
