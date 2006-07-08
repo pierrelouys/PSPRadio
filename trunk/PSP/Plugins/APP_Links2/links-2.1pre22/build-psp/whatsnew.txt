@@ -1,7 +1,7 @@
  What's New for Links2 PSP Port
 ================================
 
-links-2.1pre22 PSP rXXXX (2006-07-XX)
+links-2.1pre22 PSP r1214 (2006-07-08)
 NEW FEATURES
 (raf) Updates to pspgu driver: 
 	-Default resolution is now 960x544 (Its scaled down to the PSP's 480x272)

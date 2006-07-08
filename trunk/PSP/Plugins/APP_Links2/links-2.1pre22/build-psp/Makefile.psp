@@ -71,13 +71,13 @@ debug:
 release_stand_alone:
 	make prepare
 	make stand_alone
-	./make_zip.sh _stand_alone.zip __SCE__Links2 %__SCE__Links2
+	./make_zip.sh stand_alone.zip __SCE__Links2 %__SCE__Links2
 
 release_plugin:
 	make prepare
 	make prx
 	cp ../ChangeLog ChangeLog.orig
-	./make_zip.sh _pspradio_plugin.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
+	./make_zip.sh pspradio_plugin.zip whatsnew.txt ChangeLog.orig APP_Links2.prx
 
 release_sources:
 	rm -Rf *.o
@@ -88,6 +88,7 @@ release_sources:
 release:
 	rm -Rf *.zip
 	make clean
+	make release_sources
 	make release_stand_alone
 	make clean
 	make release_plugin
