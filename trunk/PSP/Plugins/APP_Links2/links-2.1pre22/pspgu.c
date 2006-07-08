@@ -852,7 +852,7 @@ void render_thread()
 	SceCtrlData pad;
 	int fbRow, fbCol;
 	int bbRow, bbCol;
-	int bbLineSize = PSP_LINE_SIZE*BB_TO_FB_FACTOR;
+	int bbLineSize = PSP_SCREEN_WIDTH*BB_TO_FB_FACTOR;
 	int fbLineSize = PSP_LINE_SIZE;
 	int fbMult, bbMult;
 	int bb_to_fb_factor = 1;
@@ -926,7 +926,7 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 	pspgu_pixelsize=4;
 	pspgu_colors=1<<pspgu_bits_pp;
 
-	pspgu_linesize=PSP_LINE_SIZE*pspgu_pixelsize*BB_TO_FB_FACTOR;
+	pspgu_linesize=PSP_SCREEN_WIDTH*pspgu_pixelsize*BB_TO_FB_FACTOR;
 	pspgu_mem_size=pspgu_linesize * pspgu_ysize;
 
 	if (init_virtual_devices(&pspgu_driver, NUMBER_OF_DEVICES))
