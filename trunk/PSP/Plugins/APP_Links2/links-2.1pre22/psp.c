@@ -8,9 +8,6 @@
 
 #define printf pspDebugScreenPrintf
 
-#define PSP_SCREEN_WIDTH 480
-#define PSP_SCREEN_HEIGHT 272
-
 volatile tBoolean g_PSPEnableRendering = truE;
 volatile tBoolean g_PSPEnableInput = truE;
 

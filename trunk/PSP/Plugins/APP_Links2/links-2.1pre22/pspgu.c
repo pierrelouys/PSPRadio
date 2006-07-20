@@ -24,13 +24,10 @@
 #include "arrow.inc"
 
 
-#define PSP_SCREEN_WIDTH 480
-#define PSP_SCREEN_HEIGHT 272
-#define PSP_LINE_SIZE 512
-#define PSP_PIXEL_FORMAT 3
+#include <pspdisplay.h>
 #define printf pspDebugScreenPrintf
 #define BB_TO_FB_FACTOR 2
-#define PSP_MOUSE_ACCEL_CONST 20 /* default 30 */
+#define PSP_MOUSE_ACCEL_CONST 30 /* default 30 */
 static volatile int sf_danzeffOn = 0;
 static volatile int s_BbRowOffset = 0, s_BbColOffset = 0;
 static volatile int s_bbDirty = falsE;
@@ -189,6 +186,7 @@ static int global_mouse_hidden;
  */
 static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 {
+#if PSP_PIXEL_FORMAT == PSP_DISPLAY_PIXEL_FORMAT_8888
 	unsigned char a,b,c,d;
 	int i;
 
@@ -202,6 +200,26 @@ static inline void pixel_set(unsigned char *dest, int n,void * pattern)
 		dest[i+2]=c;
 		dest[i+3]=d;
 	}
+#else
+	int a;
+	
+	#ifdef t2c
+		short v=*(t2c *)pattern;
+		int a;
+		
+		for (a=0;a<(n>>1);a++) ((t2c *)dest)[a]=v;
+	#else
+		unsigned char a,b;
+		int i;
+		
+		a=*(char*)pattern;
+		b=((char*)pattern)[1];
+		for (i=0;i<=n-2;i+=2){
+			dest[i]=a;
+			dest[i+1]=b;
+		}
+	#endif
+#endif	
 }
 
 static void redraw_mouse(void);
@@ -706,11 +724,21 @@ void pspInputThread()
 				}
 				else if (latch.uiBreak) /** Button Released */
 				{
-					if (oldButtonMask & PSP_CTRL_SELECT && oldButtonMask & PSP_CTRL_CROSS)
+					if (oldButtonMask & PSP_CTRL_SELECT)
 					{
-						pspDebugScreenInit();
-						wifiChooseConnect();
-						//cls_redraw_all_terminals();
+						if (oldButtonMask & PSP_CTRL_CROSS)
+						{
+							pspDebugScreenInit();
+							wifiChooseConnect();
+							//cls_redraw_all_terminals();
+						}
+						if (oldButtonMask & PSP_CTRL_SQUARE)
+						{
+							pspDebugScreenInit();
+							cleanup_cookies();
+							init_cookies();
+							wait_for_triangle("Cookies saved to disk");
+						}
 					}
 					else if (oldButtonMask & PSP_CTRL_DOWN)
 					{
@@ -720,8 +748,8 @@ void pspInputThread()
 						}
 						else
 						{
-							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_DEL, fl);
-							//if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_DOWN, fl);
+							//if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_DEL, fl);
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_DOWN, fl);
 						}
 					}
 					else if (oldButtonMask & PSP_CTRL_UP)
@@ -732,8 +760,8 @@ void pspInputThread()
 						}
 						else
 						{
-							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_INS, fl);
-							//if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_UP, fl);
+							//if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_INS, fl);
+							if (current_virtual_device) current_virtual_device->keyboard_handler(current_virtual_device, KBD_UP, fl);
 						}
 					}
 					else if (oldButtonMask & PSP_CTRL_LEFT)
@@ -847,8 +875,13 @@ void pspInputThread()
 
 void render_thread()
 {
+#if PSP_PIXEL_FORMAT == PSP_DISPLAY_PIXEL_FORMAT_8888
 	int *pBb = pspgu_mem; /* Back buffer */
 	int *pFb = psp_fb;    /* Front/Frame buffer */
+#else
+	short *pBb = pspgu_mem; /* Back buffer */
+	short *pFb = psp_fb;    /* Front/Frame buffer */
+#endif
 	SceCtrlData pad;
 	int fbRow, fbCol;
 	int bbRow, bbCol;
@@ -903,6 +936,12 @@ void render_thread()
 
 }
 
+void psp_reset_graphic_mode()
+{
+	/* (Re)set graphic mode */
+	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+	sceDisplaySetFrameBuf((void *) psp_fb, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
+}
 
 static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ignore)
 {
@@ -920,10 +959,16 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 
 	pspgu_xsize=PSP_SCREEN_WIDTH*BB_TO_FB_FACTOR;
 	pspgu_ysize=PSP_SCREEN_HEIGHT*BB_TO_FB_FACTOR;
+
+#if PSP_PIXEL_FORMAT == PSP_DISPLAY_PIXEL_FORMAT_8888
 	pspgu_bits_pp=32;
+	pspgu_pixelsize=4;
+#else
+	pspgu_bits_pp=16;
+	pspgu_pixelsize=2;
+#endif
 	pspgu_driver.x=pspgu_xsize;
 	pspgu_driver.y=pspgu_ysize;
-	pspgu_pixelsize=4;
 	pspgu_colors=1<<pspgu_bits_pp;
 
 	pspgu_linesize=PSP_SCREEN_WIDTH*pspgu_pixelsize*BB_TO_FB_FACTOR;
@@ -935,7 +980,6 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 		return stracpy("Allocation of virtual devices failed.\n");
 	}
 
-
 	/* Mikulas: nechodi to na sparcu */
 	if (pspgu_mem_size < pspgu_linesize * pspgu_ysize)
 	{
@@ -946,16 +990,23 @@ static unsigned char *pspgu_init_driver(unsigned char *param, unsigned char *ign
 
 	/* Place vram in uncached memory */
 	psp_fb = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
-	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
-	sceDisplaySetFrameBuf((void *) psp_fb, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
+	psp_reset_graphic_mode();
 
-	//pspgu_mem_size=pspgu_xsize * pspgu_ysize * pspgu_bits_pp;
 	pspgu_mem = (char *) malloc(pspgu_mem_size);
 
 	pspgu_vmem = pspgu_mem + border_left * pspgu_pixelsize + border_top * pspgu_linesize;
+	///pspgu_driver.depth=pspgu_pixelsize&7;
+	//pspgu_driver.depth|=(24/*pspgu_bits_pp*/&31)<<3;
+	///pspgu_driver.depth|=(16/*pspgu_bits_pp*/&31)<<3;
+	///if (htons (0x1234) == 0x1234) pspgu_driver.depth |= 0x100;
+
+#if PSP_PIXEL_FORMAT == PSP_DISPLAY_PIXEL_FORMAT_8888
 	pspgu_driver.depth=pspgu_pixelsize&7;
 	pspgu_driver.depth|=(24/*pspgu_bits_pp*/&31)<<3;
 	if (htons (0x1234) == 0x1234) pspgu_driver.depth |= 0x100;
+#else
+	pspgu_driver.depth = 131;
+#endif
 
 	pspgu_driver.get_color=get_color_fn(pspgu_driver.depth);
 

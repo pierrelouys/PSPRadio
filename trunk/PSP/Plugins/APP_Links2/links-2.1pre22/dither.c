@@ -53,11 +53,18 @@
 
 /* We assume here int holds at least 32 bits */
 #ifdef PSP
-/* Let's save some memory */
-static int dither_table[65536];
-static int *red_table   = dither_table;
-static int *green_table = dither_table;
-static int *blue_table  = dither_table;
+	#if PSP_PIXEL_FORMAT == PSP_DISPLAY_PIXEL_FORMAT_8888
+		/* Let's save some memory */
+		static int dither_table[65536];
+		static int *red_table   = dither_table;
+		static int *green_table = dither_table;
+		static int *blue_table  = dither_table;
+	#else
+		static int dither_table[65536], dither_table2[65536], dither_table3[65536];
+		static int *red_table   = dither_table;
+		static int *green_table = dither_table2;
+		static int *blue_table  = dither_table3;
+	#endif
 #else
 static int red_table[65536],green_table[65536],blue_table[65536];
 #endif
@@ -129,6 +136,7 @@ void pass_0bgr(unsigned short *, struct bitmap *);
 long color_555(int);
 long color_565be(int);
 long color_565(int);
+long color_565_bgr(int);
 void make_8_table(int *, double);
 void make_16_table(int *, int, int, double , int, int);
 void make_red_table(int, int, int, int);
@@ -477,8 +485,14 @@ void pass_bgr(unsigned short *in, struct bitmap *out)
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 long color_8888_bgr0(int rgb)
 {
-	//return RGB2BGR(rgb);
-	return rgb;
+	long ret;
+
+	((char *)&ret)[0]=rgb>>16;
+	((char *)&ret)[1]=rgb>>8;
+	((char *)&ret)[2]=rgb;
+	((char *)&ret)[3]=0;
+
+	return ret;
 }
 #else
 long color_8888_bgr0(int rgb)
@@ -628,6 +642,37 @@ long color_565(int rgb)
 
 }
 
+long color_565_bgr(int rgb)
+{
+	int r,g,b;
+	long ret;
+	int i;
+
+	b=(rgb>>16)&255;
+	g=(rgb>>8)&255;
+	/* Long live the PIN photodiode */
+	r=rgb&255;
+
+	b=(b*31+127)/255;
+	g=(g*63+127)/255;
+	r=(r*31+127)/255;
+	i=(r<<11)|(g<<5)|b;
+#ifdef C_LITTLE_ENDIAN
+#ifdef t2c
+	((t2c *)&ret)[0]=i;
+#else
+	((unsigned char *)&ret)[0]=i;
+	((unsigned char *)&ret)[1]=i>>8;
+#endif /* #ifdef t2c */
+#else
+	((unsigned char *)&ret)[0]=i;
+	((unsigned char *)&ret)[1]=i>>8;
+#endif /* #ifdef C_LITTLE_ENDIAN */
+
+	return ret;
+
+}
+
 /* rgb = r*65536+g*256+b */
 /* The selected color_fn returns a long.
  * When we have for example 2 bytes per pixel, we make them in the memory,
@@ -652,6 +697,10 @@ long (*get_color_fn(int depth))(int rgb)
 
 		case 130:
 			return color_565;
+			break;
+
+		case 131:
+			return color_565_bgr;
 			break;
 
 		case 386:
@@ -909,6 +958,18 @@ void init_dither(int depth)
 		round_fn=round_2byte;
 		break;
 
+		case 131:
+		//red_table   = dither_table3;
+		//static int *green_table = dither_table2;
+		//blue_table  = dither_table;
+		make_blue_table(5,11,1,0);
+		make_green_table(6,5,1,0);
+		make_red_table(5,0,1,0);
+		dither_fn_internal=dither_2byte;
+		round_fn=round_2byte;
+		break;
+
+
 		case 386:
 		/* 16bpp, 2Bpp, disordered */
 		make_red_table(5,11,1,1);
@@ -986,6 +1047,7 @@ void init_dither(int depth)
 		fprintf(stderr,"init_dither: unsupported depth %d\n",depth);
 		internal("Graphics driver returned unsupported \
 pixel memory organisation");
+		wait_for_triangle("Unsupported color depth %dbpp\n", depth);
 	}
 
 	make_round_tables();

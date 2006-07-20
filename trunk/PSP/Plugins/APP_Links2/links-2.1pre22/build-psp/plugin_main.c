@@ -27,6 +27,11 @@
 #include <Common.h>
 #include <malloc.h>
 	
+#define PSP_SCREEN_WIDTH 480
+#define PSP_SCREEN_HEIGHT 272
+#define PSP_LINE_SIZE 512
+//#define PSP_PIXEL_FORMAT PSP_DISPLAY_PIXEL_FORMAT_8888
+#define PSP_PIXEL_FORMAT PSP_DISPLAY_PIXEL_FORMAT_565
 
 #include <links.h>
 
@@ -258,6 +263,8 @@ void wait_for_triangle(char *str)
 		}
 	}
 	g_PSPEnableRendering = truE;
+
+	psp_reset_graphic_mode();
 }
 
 
@@ -385,6 +392,8 @@ void wifiChooseConnect()
 		connect_to_apctl(iAP);
 	}
 	g_PSPEnableRendering = truE;
+	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+	sceDisplaySetFrameBuf((u32 *) (0x40000000 | (u32) sceGeEdramGetAddr()), PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
 }
 
 /** Stand alone code: */
