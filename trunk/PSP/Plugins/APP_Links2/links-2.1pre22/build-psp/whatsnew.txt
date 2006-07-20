@@ -1,6 +1,12 @@
  What's New for Links2 PSP Port
 ================================
 
+links-2.1pre22 PSP rxxxx (2006-07-xx)
+NEW FEATURES
+(raf) Cookie save/restore patch from cvs.pld.org.pl/SOURCES/links2-cookies-save.patch?rev=1.2 applied.
+BUG FIXES
+(raf) Reverted UP/DOWN behavior (user requested). (R+UP/DOWN still does page up/down, though).
+
 links-2.1pre22 PSP r1214 (2006-07-08)
 NEW FEATURES
 (raf) Updates to pspgu driver: 
