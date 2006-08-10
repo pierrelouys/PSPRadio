@@ -854,6 +854,8 @@ int danzeff_load_png_image(const char* filename, u32 *ImageBuffer)
 	size_t x, y;
 	u32* line;
 	FILE *fp;
+	u16 color16;
+	u16 *ImageBuffer16 = (u16*)ImageBuffer;
 
 	if ((fp = fopen(filename, "rb")) == NULL) return -1;
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -878,20 +880,41 @@ int danzeff_load_png_image(const char* filename, u32 *ImageBuffer)
 	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_gray_1_2_4_to_8(png_ptr);
 	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
 	png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
-	line = (u32*) malloc(width * 4);
+	line = (u32*) malloc(width * 4); /* use 32bpp to load line  */
 	if (!line) {
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
 		return -1;
 	}
-	for (y = 0; y < height; y++)
+
+	if (private_vram_bbp == 2) /* 16bpp */
 	{
-		png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
-		for (x = 0; x < width; x++)
+		for (y = 0; y < height; y++)
 		{
-			ImageBuffer[y*width+x] = line[x];
+			png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
+			for (x = 0; x < width; x++)
+			{
+				u32 color32 = line[x];
+				int r = color32 & 0xff;
+				int g = (color32 >> 8) & 0xff;
+				int b = (color32 >> 16) & 0xff;
+				color16 = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+				ImageBuffer16[y*width+x] = color16;
+			}
 		}
 	}
+	else /* 32bpp */
+	{
+		for (y = 0; y < height; y++)
+		{
+			png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
+			for (x = 0; x < width; x++)
+			{
+				ImageBuffer[y*width+x] = line[x];
+			}
+		}
+	}
+
 	free(line);
 	png_read_end(png_ptr, info_ptr);
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
@@ -918,8 +941,7 @@ void danzeff_load()
 		}
 		if (danzeff_get_png_image_size(guiStrings[a], &width, &height) == 0)
 		{
-			// The png is always converted to PSM_8888 format when read
-			temp_texture = (u32 *)malloc(width*height*4);
+			temp_texture = (u32 *)malloc(width*height*private_vram_bbp);
 			if (danzeff_load_png_image(guiStrings[a], temp_texture) != 0)
 			{
 				// Error .. Couldn't get png info from one of the needed files
