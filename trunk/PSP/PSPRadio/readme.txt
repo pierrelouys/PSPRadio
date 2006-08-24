@@ -1,4 +1,4 @@
-PSPRadio 0.38.11 2006-05-28
+PSPRadio 0.38.12 2006-08-24
 ============================
 
 -Official blog:  http://rafpsp.blogspot.com
@@ -20,7 +20,11 @@ Use at your own risk.
 
 Quick Installation Guide:
 -------------------------
+Dynamic and Static versions:
 -Copy the folders "__SCE__PSPRadio" and "%__SCE__PSPRadio" to your PSP under "\PSP\GAME\".
+
+Firmware 2+ via devhook (devhook version):
+-Copy the folder "PSPRadio" to your PSP under "\PSP\GAME\".
 
 Credits
 -------
@@ -28,6 +32,7 @@ Development:
 Raf:       Lead, Concept, Core, Decoders, TextUI.
 Sandberg:  3D UI, Text 3D UI, PSPTris Plugin, Enchancements, bug fixes.
 Danzel:    Danzeff OSK, Links2 connection selector.
+mbf:	   Made devhook compatible
 
 Other Routines:
 echto:	SHOUTcast.com interface, zlib routines.

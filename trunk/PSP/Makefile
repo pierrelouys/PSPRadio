@@ -30,17 +30,18 @@ static:
 devhook:
 	cd $(SHAREDLIB_DIR) && make GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"
 	cd $(PSPRADIO_DIR)  && make -f Makefile_devhook GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)" \
-									KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
-									KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
-	make plugins GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"	KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
-									KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
-	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
+									KXPLOIT_PRIMARY=$(DEVHOOK_RELEASE_DIR)
+	make plugins GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"	KXPLOIT_PRIMARY=$(DEVHOOK_RELEASE_DIR)
+	cd $(DEVHOOK_RELEASE_DIR) && rm -f *.prx
 
 packages:
 	make download_shoutcast_db
 	make clean
 	make static
 	make static_zip
+	make clean_objects
+	make devhook
+	make devhook_zip
 	make clean_objects
 	make dynamic
 	make extra_plugins
@@ -54,6 +55,9 @@ dynamic_zip:
 	
 static_zip:	
 	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_Static.zip *.txt static/
+
+devhook_zip:	
+	cd $(RELEASE_DIR) && zip -r PSPRadio$(PSPRADIO_VERSION)_DH.zip *.txt dh/
 
 exports:
 	cd $(PSPRADIO_DIR) && psp-build-exports -s exports.exp
