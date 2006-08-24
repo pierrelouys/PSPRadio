@@ -3,7 +3,6 @@
 #include <pspsdk.h>
 #include <sys/select.h>
 #include <errno.h>
-#include <curl/curl.h>
 #include <pspnet.h>
 #include <pspnet_inet.h>
 #include <pspnet_apctl.h>

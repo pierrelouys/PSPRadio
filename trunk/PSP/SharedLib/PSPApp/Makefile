@@ -9,7 +9,7 @@ OBJS =  PSPApp.o PSPThread.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
 		PSPSound.o PSPSoundDecoder.o \
 		PSPSoundDecoder_MAD.o \
 		PSPSoundDecoder_OGG.o \
-		ID3Parser.o PRXLoader.o
+		ID3Parser.o PRXLoader.o wifi_user.o wifi_user_stub.o
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging
