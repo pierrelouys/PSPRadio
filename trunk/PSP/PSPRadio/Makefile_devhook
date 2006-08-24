@@ -1,0 +1,70 @@
+BASE_DIR = ..
+include $(BASE_DIR)/include.mak
+
+TARGET = PSPRadio
+EXTRA_TARGETS = EBOOT.PBP
+PSP_EBOOT_TITLE = PSPRadio DH_Static
+
+#FW2.00 needs relocate information.
+BUILD_PRX=1
+
+TEXTUI_OBJS   = $(PLUGINS_DIR)/UI_Text/TextUI.o
+TEXTUI3D_OBJS = $(PLUGINS_DIR)/UI_Text3D/TextUI3D.o $(PLUGINS_DIR)/UI_Text3D/TextUI3D_Panel.o \
+				$(PLUGINS_DIR)/UI_Text3D/TextUI3D_WindowManager_HSM.o \
+				$(PLUGINS_DIR)/UI_Text3D/jsaVRAMManager.o $(PLUGINS_DIR)/UI_Text3D/jsaTextureCache.o
+
+IMPORTED_OBJS = $(PLUGINS_DIR)/UI_Interface.o \
+				$(TEXTUI_OBJS) \
+				$(TEXTUI3D_OBJS)
+			
+
+OBJS = Main.o PSPRadio.o MetaDataContainer.o \
+		./ScreenHandler/ScreenHandler.o ./ScreenHandler/OptionsScreen.o ./ScreenHandler/SHOUTcastScreen.o  \
+		./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
+		PSPRadio_Exports.o \
+		$(IMPORTED_OBJS)
+
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -g $(INCLUDES)
+
+INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
+		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
+		 -I./ScreenHandler \
+		 -I$(PLUGINS_DIR) \
+		 -I$(PLUGINS_DIR)/UI_Text \
+		 -I$(PLUGINS_DIR)/UI_Graphics \
+		 -I$(PLUGINS_DIR)/UI_Text3D
+
+
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+
+LIBDIR = 
+LDFLAGS = 
+
+LIBS =  -lsupc++ -lstdc++ \
+		-lpspnet -lpspnet_apctl -lpspnet_inet -lpspnet_resolver \
+		-lPSPApp \
+		-lvorbisfile -lvorbis -logg \
+		-lmad \
+		-liniparser -lTools -llogging -lpspwlan -lpsputility \
+		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
+		-lpsppower -lpspgum -lpspgu -lpng -lz -lm -lTools \
+# 		-lSDLmain -lSDL_image \
+# 		-ljpeg -lSDL -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
+# 		-lpsppower -lpspgum -lpspgu -lpng -lz -lm -lTools \
+
+
+all: $(EXTRA_TARGETS) $(FINAL_TARGET)
+	mkdir -p $(KXPLOIT_PRIMARY)
+	cp -vf EBOOT.PBP $(KXPLOIT_PRIMARY)
+	cp -vf *.cfg $(KXPLOIT_PRIMARY)
+	mkdir -p $(KXPLOIT_PRIMARY)/PlayLists
+	mkdir -p $(KXPLOIT_PRIMARY)/SHOUTcast
+	cp -vf SHOUTcast/* $(KXPLOIT_PRIMARY)/SHOUTcast
+	mkdir -p $(KXPLOIT_PRIMARY)/Screenshots
+	cp -vf ./Init.png ./Shutdown.png $(KXPLOIT_PRIMARY)
+	cp -vf readme.txt whatsnew.txt $(RELEASE_DIR)
+
+PSPSDK=$(shell psp-config --pspsdk-path)
+include ./dhbuild.mak

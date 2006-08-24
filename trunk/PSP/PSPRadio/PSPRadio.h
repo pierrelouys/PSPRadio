@@ -59,7 +59,11 @@
 	#ifdef DYNAMIC_BUILD
 		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION)
 	#else
+	#ifdef DEVHOOK
+		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "dh")
+	#else
 		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "Static")
+	#endif
 	#endif	
 		{
 			/** Initialize to some sensible defaults */

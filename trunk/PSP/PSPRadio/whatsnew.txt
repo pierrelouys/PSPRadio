@@ -4,6 +4,7 @@ What's New for PSPRadio
 NEW FEATURES
 (sandberg) Core: Implemented a direct VRAM version of Danzeff for use in Links2.
 (raf) Core: Now root of /PSP/MUSIC is also used in the local files screen. (It is shown as 'MUSIC')
+(mbf) Core: Patched to run under devhook
 BUG FIXES
 
 0.38.11 (r1184) (2006-05-28)

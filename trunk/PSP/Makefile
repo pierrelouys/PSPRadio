@@ -27,6 +27,15 @@ static:
 								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
 	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
 
+devhook:
+	cd $(SHAREDLIB_DIR) && make GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"
+	cd $(PSPRADIO_DIR)  && make -f Makefile_devhook GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)" \
+									KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
+									KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
+	make plugins GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"	KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
+									KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
+	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
+
 packages:
 	make download_shoutcast_db
 	make clean
@@ -77,7 +86,7 @@ app_afkim:
 	cd $(PLUGINS_DIR)/APP_afkim/ && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) install
 app_links2:
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre21/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) prepare prx install_prx
 
 game_psptris:
@@ -113,7 +122,7 @@ clean_extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make clean
 	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
 	cd $(PLUGINS_DIR)/APP_Retawq    && make clean2
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre21/build-psp && make clean
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && make clean
 	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin clean
 
 skin_packs:

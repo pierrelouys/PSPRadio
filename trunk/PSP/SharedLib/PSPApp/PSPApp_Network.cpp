@@ -32,6 +32,10 @@
 #include <pspusbstor.h>
 #include "PSPApp.h"
 
+#ifdef DEVHOOK
+#include "wifi_user.h"
+#endif
+
 #undef ReportError
 
 #define SCE_NET_APCTL_INFO_IP_ADDRESS		8
@@ -102,9 +106,20 @@ int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t time
 int CPSPApp::InitializeNetworkDrivers()
 {
 	int iRet = 0;
-	
-	int err = pspSdkInetInit();
-	
+	int err;
+
+#ifdef DEVHOOK
+	err = pspSdkLoadInetModules();
+
+	if (err != 0) 
+	{
+		Log(LOG_ERROR, "Error Loading Network Modules -- pspSdkLoadInetModules() returned: 0x%x", err);
+		iRet = -1;
+	}
+#endif
+
+	err = pspSdkInetInit();
+
 	if (err != 0) 
 	{
 		Log(LOG_ERROR, "Error Initializing Network Drivers -- (Maybe they were initialized before PSPRadio started.) pspSdkInetInit() returned: 0x%x", err);
