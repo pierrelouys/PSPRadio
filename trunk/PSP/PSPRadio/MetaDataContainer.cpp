@@ -756,13 +756,20 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 			//Log(LOG_LOWLEVEL, "Processing '%s'", direntry.d_name)
 			if((direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a directory */
 			{
-				if (strcmp(direntry.d_name, ".") == 0)
-					continue;
-				else if (strcmp(direntry.d_name, "..") == 0)
-					continue;
 				memset(strFilename, 0, MAXPATHLEN);
-				sprintf(strFilename, "%s/%s", strPath, direntry.d_name);
- 				Log(LOG_LOWLEVEL, "LoadDirectory(): Adding '%s' to list of containers.", strFilename);
+
+				if (strcmp(direntry.d_name, "..") == 0)
+					continue;
+				else if (strcmp(direntry.d_name, ".") == 0)
+				{
+					sprintf(strFilename, "%s", strPath);
+				}
+				else
+				{
+					sprintf(strFilename, "%s/%s", strPath, direntry.d_name);
+				}
+
+	 			Log(LOG_LOWLEVEL, "LoadDirectory(): Adding '%s' to list of containers.", strFilename);
 				//mydata->iItemIndex = m_dirlist.size(); /** jpf added unique id for list item */
 				map<string, list<MetaData>* >::iterator found;
 				found = m_containerListMap.find(strFilename);
