@@ -397,3 +397,9 @@ Plugins/APP_Links2/links-2.1pre23/build-psp/make_zip.sh
 Plugins/APP_Links2/links-2.1pre23/build-psp/make_zip_non_recursive.sh
 PSPRadio/Makefile_2
 Plugins/APP_Links2/links-2.1pre23/newarrow.inc
+SharedLib/PSPApp/wifi_user.c
+SharedLib/PSPApp/wifi_user.h
+SharedLib/PSPApp/wifi_user.o
+SharedLib/PSPApp/wifi_user_stub.S
+PSPRadio/Makefile_devhook
+PSPRadio/dhbuild.mak

@@ -45,8 +45,6 @@ packages:
 	make clean_objects
 	make dynamic
 	make extra_plugins
-	make app_links2
-	make game_psptris
 	make dynamic_zip
 	echo "Ready."
 
