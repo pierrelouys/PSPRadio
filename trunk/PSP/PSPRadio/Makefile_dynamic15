@@ -2,8 +2,6 @@ BASE_DIR = ..
 include $(BASE_DIR)/include.mak
 
 TARGET = PSPRadio
-EXTRA_TARGETS = EBOOT.PBP
-PSP_EBOOT_TITLE = PSPRadio Dynamic
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
@@ -59,10 +57,9 @@ LIBS =	-lstdc++ \
 
 
 
-#all: $(TARGET).prx
-all: $(EXTRA_TARGETS) $(FINAL_TARGET)
+all: $(TARGET).prx
 	mkdir -p $(KXPLOIT_PRIMARY)
-	cp -vf EBOOT.PBP $(KXPLOIT_PRIMARY) #cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
+	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
 	cp -vf *.cfg $(KXPLOIT_PRIMARY)
 	mkdir -p $(KXPLOIT_PRIMARY)/PlayLists
 	mkdir -p $(KXPLOIT_PRIMARY)/SHOUTcast
@@ -72,7 +69,4 @@ all: $(EXTRA_TARGETS) $(FINAL_TARGET)
 	cp -vf readme.txt whatsnew.txt $(RELEASE_DIR)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
-#include ./dhbuild.mak
 include $(PSPSDK)/lib/build.mak
-
-

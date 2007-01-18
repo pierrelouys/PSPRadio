@@ -32,8 +32,10 @@
 #include <pspusbstor.h>
 #include "PSPApp.h"
 
-#ifdef DEVHOOK
-#include "wifi_user.h"
+#if defined(DYNAMIC_BUILD) || defined(DEVHOOK)
+	#if !defined(DYNAMIC_15)
+		#include "wifi_user.h"
+	#endif
 #endif
 
 #undef ReportError
@@ -108,7 +110,8 @@ int CPSPApp::InitializeNetworkDrivers()
 	int iRet = 0;
 	int err;
 
-#ifdef DEVHOOK
+#if defined(DYNAMIC_BUILD) || defined(DEVHOOK)
+	#if !defined(DYNAMIC_15)
 	err = pspSdkLoadInetModules();
 
 	if (err != 0) 
@@ -116,6 +119,7 @@ int CPSPApp::InitializeNetworkDrivers()
 		Log(LOG_ERROR, "Error Loading Network Modules -- pspSdkLoadInetModules() returned: 0x%x", err);
 		iRet = -1;
 	}
+	#endif
 #endif
 
 	err = pspSdkInetInit();

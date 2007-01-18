@@ -6,17 +6,26 @@ all:
 	@echo "Also, you need to use 'make clean' when going from 'make static' to 'make dynamic'"
 	@echo "or vice/versa."
 
+# new dynamic target builds 2.0+ Compatible PSPRadio (For OE F/W)
 dynamic:
 	make exports
-	cd $(SHAREDLIB_DIR) && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
-	cd $(BOOTSTRAP_DIR) && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) \
-								KXPLOIT_SECONDARY=$(DYNAMIC_SECONDARY_KXPLOIT_DIR)
-	cd $(PSPRADIO_DIR)  && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) \
-								KXPLOIT_SECONDARY=$(DYNAMIC_SECONDARY_KXPLOIT_DIR)
-	make plugins GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" 	KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) \
-								KXPLOIT_SECONDARY=$(DYNAMIC_SECONDARY_KXPLOIT_DIR)
+	cd $(SHAREDLIB_DIR) && $(MAKE271) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
+	cd $(PSPRADIO_DIR)  && $(MAKE271) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	$(MAKE271) plugins GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" 	KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) MAKE="$(MAKE271)"
+
+dynamicfor15:
+	make exports
+	cd $(SHAREDLIB_DIR) && make GLOBAL_CFLAGS="$(DYNAMIC15_GLOBAL_CFLAGS)"
+	cd $(BOOTSTRAP_DIR) && make GLOBAL_CFLAGS="$(DYNAMIC15_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC15_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(DYNAMIC15_SECONDARY_KXPLOIT_DIR)
+	cd $(PSPRADIO_DIR)  && make -f Makefile_dynamic15 GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC15_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(DYNAMIC15_SECONDARY_KXPLOIT_DIR)
+	make plugins GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" 	KXPLOIT_PRIMARY=$(DYNAMIC15_PRIMARY_KXPLOIT_DIR) \
+								KXPLOIT_SECONDARY=$(DYNAMIC15_SECONDARY_KXPLOIT_DIR) \
+								MAKE=make
 
 static:
 	cd $(SHAREDLIB_DIR) && make GLOBAL_CFLAGS="$(STATIC_GLOBAL_CFLAGS)"
@@ -24,14 +33,16 @@ static:
 								KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
 								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
 	make plugins GLOBAL_CFLAGS="$(STATIC_GLOBAL_CFLAGS)"	KXPLOIT_PRIMARY=$(STATIC_PRIMARY_KXPLOIT_DIR) \
-								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR)
+								KXPLOIT_SECONDARY=$(STATIC_SECONDARY_KXPLOIT_DIR) \
+								MAKE=make
 	cd $(STATIC_PRIMARY_KXPLOIT_DIR) && rm -f *.prx
 
 devhook:
 	cd $(SHAREDLIB_DIR) && make GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"
 	cd $(PSPRADIO_DIR)  && make -f Makefile_devhook GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)" \
-									KXPLOIT_PRIMARY=$(DEVHOOK_RELEASE_DIR)
-	make plugins GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"	KXPLOIT_PRIMARY=$(DEVHOOK_RELEASE_DIR)
+								KXPLOIT_PRIMARY=$(DEVHOOK_RELEASE_DIR)
+	make plugins GLOBAL_CFLAGS="-DDEVHOOK $(STATIC_GLOBAL_CFLAGS)"	KXPLOIT_PRIMARY=$(DEVHOOK_RELEASE_DIR) \
+								MAKE=make
 	cd $(DEVHOOK_RELEASE_DIR) && rm -f *.prx
 
 packages:
@@ -65,36 +76,36 @@ exports:
 	cd $(PLUGINS_DIR) && psp-build-exports -s GAME_Exports.exp
 
 plugins:
-	make clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/UI_Text && make && make install
-	make clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/UI_Text3D && make && make install
+	$(MAKE) clean_plugin_common_objects
+	cd $(PLUGINS_DIR)/UI_Text && $(MAKE) && $(MAKE) install
+	$(MAKE) clean_plugin_common_objects
+	cd $(PLUGINS_DIR)/UI_Text3D && $(MAKE) && $(MAKE) install
 
 extra_plugins:
-	make clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/FSServer_FTPD && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+	$(MAKE271) clean_plugin_common_objects
+	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE271) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	cd $(PLUGINS_DIR)/FSServer_FTPD && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	make clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/APP_NetScan   && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
-								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	cd $(PLUGINS_DIR)/APP_NetScan   && make install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	make clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/APP_Retawq    && make prx install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE271) install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	$(MAKE271) clean_plugin_common_objects
+	cd $(PLUGINS_DIR)/APP_Retawq    && $(MAKE271) prx install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 	mkdir -p $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics
 	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(DYNAMIC_PRIMARY_KXPLOIT_DIR)/graphics/.
+	$(MAKE271) clean_plugin_common_objects
+	cd $(PLUGINS_DIR)/APP_NetScan   && $(MAKE271) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/APP_NetScan   && $(MAKE271) install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 
 app_afkim:
-	cd $(PLUGINS_DIR)/APP_afkim/ && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+	cd $(PLUGINS_DIR)/APP_afkim/ && $(MAKE271) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) install
 app_links2:
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && make GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && $(MAKE271) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR) prepare prx install_prx
 
 game_psptris:
-	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
+	cd $(PLUGINS_DIR)/GAME_PSPTris && $(MAKE271) -f Makefile.plugin GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" \
 								KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
-	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
+	cd $(PLUGINS_DIR)/GAME_PSPTris && $(MAKE271) -f Makefile.plugin install KXPLOIT_PRIMARY=$(DYNAMIC_PRIMARY_KXPLOIT_DIR)
 
 download_shoutcast_db:
 	wget -O PSPRadio/SHOUTcast/newdb.xml "http://www.shoutcast.com/sbin/newxml.phtml?genre=Top500"
