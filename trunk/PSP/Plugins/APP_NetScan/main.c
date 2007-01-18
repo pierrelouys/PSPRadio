@@ -24,7 +24,7 @@
 #include <Common.h>
 
 PSP_MODULE_INFO("APP_NetScan", 0, 1, 1);
-//PSP_HEAP_SIZE_KB(64);
+PSP_HEAP_SIZE_KB(64);
 
 #define printf pspDebugScreenPrintf
 
