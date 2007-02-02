@@ -39,16 +39,6 @@ ASFLAGS = $(CFLAGS)
 LIBDIR =
 LDFLAGS =
 
-# LIBS =  -lsupc++ -lstdc++ \
-# 		-lpspnet -lpspnet_apctl -lpspnet_inet -lpspnet_resolver \
-# 		-lPSPApp \
-# 		-lvorbisfile -lvorbis -logg \
-# 		-lmad \
-# 		-liniparser -lTools -llogging -lpspwlan -lpsputility \
-# 		-lSDLmain -lSDL_image \
-# 		-ljpeg -lSDL -lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc \
-# 		-lpsppower -lpng -lz -lm -lTools \
-
 LIBS =	-lstdc++ \
 		-lPSPApp -liniparser -llogging -lTools\
  		-lmad \
@@ -57,22 +47,18 @@ LIBS =	-lstdc++ \
 		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc -lpsppower \
 		-lpng -lz -lm \
 
-
-
-#all: $(TARGET).prx
 all: $(EXTRA_TARGETS) $(FINAL_TARGET)
-	mkdir -p $(KXPLOIT_PRIMARY)
-	cp -vf EBOOT.PBP $(KXPLOIT_PRIMARY) #cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-	cp -vf *.cfg $(KXPLOIT_PRIMARY)
-	mkdir -p $(KXPLOIT_PRIMARY)/PlayLists
-	mkdir -p $(KXPLOIT_PRIMARY)/SHOUTcast
-	cp -vf SHOUTcast/* $(KXPLOIT_PRIMARY)/SHOUTcast
-	mkdir -p $(KXPLOIT_PRIMARY)/Screenshots
-	cp -vf ./Init.png ./Shutdown.png $(KXPLOIT_PRIMARY)
+	mkdir -p $(PSPRADIO_RELEASE_DIR)
+	cp -vf EBOOT.PBP $(PSPRADIO_RELEASE_DIR)
+	cp -vf *.cfg $(PSPRADIO_RELEASE_DIR)
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/PlayLists
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/SHOUTcast
+	cp -vf SHOUTcast/* $(PSPRADIO_RELEASE_DIR)/SHOUTcast
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/Screenshots
+	cp -vf ./Init.png ./Shutdown.png $(PSPRADIO_RELEASE_DIR)
 	cp -vf readme.txt whatsnew.txt $(RELEASE_DIR)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
-#include ./dhbuild.mak
 include $(PSPSDK)/lib/build.mak
 
 

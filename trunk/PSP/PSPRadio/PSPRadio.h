@@ -57,7 +57,11 @@
 	
 	public:
 	#ifdef DYNAMIC_BUILD
-		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION)
+		#ifdef DYNAMIC15
+			CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "FW1.5")
+		#else
+			CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION)
+		#endif
 	#else
 	#ifdef DEVHOOK
 		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "dh")

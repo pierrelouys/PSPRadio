@@ -1,14 +1,14 @@
 What's New for PSPRadio
 ========================
-1.0 (r) (2007-01-??)
+1.1. (2007-01-??)
 NEW FEATURES
 (raf) Core: Version number is now 1.0. Plan to include the svn rev for the build too.
-(raf) Core: Modified Makefile targets. Now dynamic builds a f/w 2.0+ (OE F/W) version of PSPRadio (that can load modules)
+(raf) Core: Modified Makefile targets. No more static/dynamic versions. Only Dynamic, for f/w 2.0+ (OE F/W).
 BUG FIXES
 KNOWN BUGS
 (raf) Core: Modules can be loaded, but unloading is not working...
 
-0.38.12 (r1237) (2006-08-24)
+0.38.12 (r1237) (2006-08-24) (I'll call this release 1.0)
 NEW FEATURES
 (sandberg) Core: Implemented a direct VRAM version of Danzeff for use in Links2.
 (raf) Core: Now root of /PSP/MUSIC is also used in the local files screen. (It is shown as 'MUSIC')

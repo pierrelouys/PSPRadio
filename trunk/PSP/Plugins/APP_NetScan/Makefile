@@ -25,18 +25,12 @@ ASFLAGS = $(CFLAGS)
 LIBDIR =
 
 LIBS =  -lpspwlan -lpspnet
-#-lstdc++  -lPSPApp -liniparser
-#-lstdc++ -lPSPApp
-# -lTools
 
 all: $(TARGET).prx
 	rm $(COMMON_OBJS)
 
 install:
-	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-#	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
-#	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-#	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf $(TARGET).prx $(PSPRADIO_RELEASE_DIR)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

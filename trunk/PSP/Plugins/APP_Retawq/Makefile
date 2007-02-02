@@ -45,10 +45,9 @@ clean2:
 	rm -f *.o *.elf *.prx *.pbp *.PBP
 
 install:
-	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
-	cp -vf tips.html $(KXPLOIT_PRIMARY)/$(TARGET)
-#	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
+	cp -vf $(TARGET).prx $(PSPRADIO_RELEASE_DIR)
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)
+	cp -vf tips.html $(PSPRADIO_RELEASE_DIR)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

@@ -403,3 +403,5 @@ SharedLib/PSPApp/wifi_user.o
 SharedLib/PSPApp/wifi_user_stub.S
 PSPRadio/Makefile_devhook
 PSPRadio/dhbuild.mak
+Plugins/APP_Links2/links-2.1pre23/build-psp/Main_standalone.c
+Plugins/APP_afkim/Makefile

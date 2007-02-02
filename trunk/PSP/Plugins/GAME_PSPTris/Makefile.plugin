@@ -32,18 +32,18 @@ LIBS = $(DANZEFF_LIBS) -lsupc++ -lstdc++ -lpspgum -lpspgu -lpsprtc -lpsppower -l
 all: $(TARGET).prx
 
 install:
-	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Music
-	cp -vf audio/*.mod $(KXPLOIT_PRIMARY)/$(TARGET)/Music
-	cp -vf audio/*.xm $(KXPLOIT_PRIMARY)/$(TARGET)/Music
-	cp $(KXPLOIT_PRIMARY)/$(TARGET)/Music/menu.mod $(KXPLOIT_PRIMARY)/$(TARGET)/Music/ingame_default.mod
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Samples
-	cp -vf audio/*.wav $(KXPLOIT_PRIMARY)/$(TARGET)/Samples
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)/Textures
-	cp -vf graphics/*.png $(KXPLOIT_PRIMARY)/$(TARGET)/Textures
-	cp -vf readme.txt $(KXPLOIT_PRIMARY)/$(TARGET)/.
-	cp -vf whatsnew.txt $(KXPLOIT_PRIMARY)/$(TARGET)/.
+	cp -vf $(TARGET).prx $(PSPRADIO_RELEASE_DIR)
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Music
+	cp -vf audio/*.mod $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Music
+	cp -vf audio/*.xm $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Music
+	cp $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Music/menu.mod $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Music/ingame_default.mod
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Samples
+	cp -vf audio/*.wav $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Samples
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Textures
+	cp -vf graphics/*.png $(PSPRADIO_RELEASE_DIR)/$(TARGET)/Textures
+	cp -vf readme.txt $(PSPRADIO_RELEASE_DIR)/$(TARGET)/.
+	cp -vf whatsnew.txt $(PSPRADIO_RELEASE_DIR)/$(TARGET)/.
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

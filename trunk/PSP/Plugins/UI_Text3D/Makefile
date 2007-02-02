@@ -30,10 +30,10 @@ all: $(TARGET).prx
 	rm $(COMMON_OBJS)
 
 install:
-	mkdir -p $(KXPLOIT_PRIMARY)/$(TARGET)
-	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)
-	cp -vf *.cfg $(KXPLOIT_PRIMARY)/$(TARGET)
-	cp -vf Graphics/*.png $(KXPLOIT_PRIMARY)/$(TARGET)
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)
+	cp -vf $(TARGET).prx $(PSPRADIO_RELEASE_DIR)
+	cp -vf *.cfg $(PSPRADIO_RELEASE_DIR)/$(TARGET)
+	cp -vf Graphics/*.png $(PSPRADIO_RELEASE_DIR)/$(TARGET)
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

@@ -33,8 +33,6 @@
 #define INADDR_NONE 0xffffffff
 #endif
 
-int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in seconds */);
-
 void writestring (int fd, char *string)
 {
 	int result, bytes = strlen(string);
@@ -492,7 +490,7 @@ int CPSPStream::http_open(char *url)
 		}
 		
         Log(LOG_LOWLEVEL, "http_connect(): Calling Connect... with port='%s', sock=%d, addr='0x%x'", myport, sock, addr);
-        int iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, sizeof(struct sockaddr_in), 5/*5 sec timeout */ );
+        int iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, 5/*5 sec timeout */ );
 		if (iCon != 0) 
 		{
 			ReportError("Error Connecting - Timeout.");

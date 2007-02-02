@@ -185,5 +185,5 @@
 
 	/** Implemented in PSPApp_Network.cpp */
 	typedef int SOCKET;
-	int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, int size, size_t timeout/* in s */);
+	int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, size_t timeout/* in s */);
 #endif

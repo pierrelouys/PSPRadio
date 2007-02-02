@@ -36,15 +36,15 @@ LIBS = -lpthread -ldanzeffpuresdl -lSDL_image  -lSDL -lfreetype -lpng -lstdc++ -
 all: $(TARGET).prx
 
 install: $(TARGET).prx
-	mkdir -p $(KXPLOIT_PRIMARY)/APP_afkim/
-	cp -vf $(TARGET).prx $(KXPLOIT_PRIMARY)/
-	mkdir -p $(KXPLOIT_PRIMARY)/APP_afkim/icons
-	cp -vf icons/*.png $(KXPLOIT_PRIMARY)/APP_afkim/icons
-	mkdir -p $(KXPLOIT_PRIMARY)/APP_afkim/pics
-	cp -vf pics/*.png $(KXPLOIT_PRIMARY)/APP_afkim/pics
-	mkdir -p $(KXPLOIT_PRIMARY)/APP_afkim/graphics
-	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(KXPLOIT_PRIMARY)/APP_afkim/graphics
-	cp font.ttf afkim.cfg README $(KXPLOIT_PRIMARY)/APP_afkim/
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/APP_afkim/
+	cp -vf $(TARGET).prx $(PSPRADIO_RELEASE_DIR)/
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/APP_afkim/icons
+	cp -vf icons/*.png $(PSPRADIO_RELEASE_DIR)/APP_afkim/icons
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/APP_afkim/pics
+	cp -vf pics/*.png $(PSPRADIO_RELEASE_DIR)/APP_afkim/pics
+	mkdir -p $(PSPRADIO_RELEASE_DIR)/APP_afkim/graphics
+	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(PSPRADIO_RELEASE_DIR)/APP_afkim/graphics
+	cp font.ttf afkim.cfg README $(PSPRADIO_RELEASE_DIR)/APP_afkim/
 	
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
