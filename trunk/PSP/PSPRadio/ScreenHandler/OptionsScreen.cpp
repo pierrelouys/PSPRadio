@@ -92,6 +92,7 @@ OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, 
 		m_WifiAutoStart = false;
 		m_USBAutoStart = false;
 		LoadFromConfig();
+		m_USBStorage = new CPSPUSBStorage(pPSPApp);
 	}
 }
 
@@ -177,7 +178,7 @@ void OptionsScreen::LoadFromConfig()
 		{
 			m_USBAutoStart = true;
 			Log(LOG_INFO, "LoadFromConfig(): USB_AUTOSTART SET: Enabling USB");
-			pPSPApp->EnableUSB();
+			m_USBStorage->EnableUSB();
 		}
 		else
 		{
@@ -302,7 +303,7 @@ void OptionsScreen::UpdateOptionsData()
 			}
 
 			case OPTION_ID_USB_ENABLE:
-				Option.iActiveState = (pPSPApp->IsUSBEnabled()==true)?2:1;
+				Option.iActiveState = (m_USBStorage->IsUSBEnabled()==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
 
@@ -427,20 +428,20 @@ void OptionsScreen::OnOptionActivation()
 		case OPTION_ID_USB_ENABLE:
 			if (iSelectionBase1 == 2) /** Enable */
 			{
-				pPSPApp->EnableUSB();
-				if (true == pPSPApp->IsUSBEnabled())
+				m_USBStorage->EnableUSB();
+				if (true == m_USBStorage->IsUSBEnabled())
 				{
 					fOptionActivated = true;
 				}
 			}
 			else /** Disable */
 			{
-				int iRet = pPSPApp->DisableUSB();
+				int iRet = m_USBStorage->DisableUSB();
 				if (-1 == iRet)
 				{
 					ReportError("USB Busy, try again later.");
 				}
-				if (false == pPSPApp->IsUSBEnabled())
+				if (false == m_USBStorage->IsUSBEnabled())
 				{
 					fOptionActivated = true;
 				}

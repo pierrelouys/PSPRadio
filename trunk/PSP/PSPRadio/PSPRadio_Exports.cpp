@@ -61,7 +61,7 @@ char *PSPRadioExport_GetProgramVersion()
 
 bool PSPRadioExport_IsUSBEnabled()
 {
-	return gPSPRadio->IsUSBEnabled();
+	return false;//gPSPRadio->IsUSBEnabled();
 }
 
 char *PSPRadioExport_GetMyIP()

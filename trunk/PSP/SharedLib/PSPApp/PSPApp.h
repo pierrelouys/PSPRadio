@@ -119,11 +119,6 @@
 		char *GetNetworkProxy() { return m_strNetworkProxy; };
 		void SetNetworkProxy(char *strProxy) { m_strNetworkProxy = strdup(strProxy); }
 
-		/** USB */
-		int  EnableUSB();
-		int  DisableUSB();
-		bool IsUSBEnabled() { return m_USBEnabled; }
-
 		/** Power */
 		virtual int OnPowerEvent(int pwrflags){return 0;};
 		virtual int OnAppExit(int arg1, int arg2, void *common);
@@ -159,7 +154,6 @@
 		int m_TimeUpdate;
 		bool m_Exit;
 		bool m_NetworkEnabled;
-		bool m_USBEnabled;
 		CPSPThread *m_thRun; /** Run Thread */
 		SceCtrlData m_pad; /** Buttons(Pad) data */
 		char m_strMyIP[64];
@@ -178,6 +172,7 @@
 	friend class CPSPSound;
 	friend class CPSPSoundBuffer;
 	friend class CPSPStream;
+	friend class PSPUSBStorage;
 
 	};
 

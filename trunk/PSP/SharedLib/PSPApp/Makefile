@@ -3,14 +3,14 @@ include $(BASE_DIR)/include.mak
 
 TARGET_LIB = ../lib/libPSPApp.a
 
-OBJS =  PSPApp.o PSPThread.o PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
+OBJS =  PSPApp.o PSPThread.o PSPUSBStorage.o \
+		PSPApp_Network.o PSPEventQ.o  PSPKeyHandler.o \
 		PSPStream.o httpget.o bstdfile.o \
 		PSPSoundBuffer.o \
 		PSPSound.o PSPSoundDecoder.o \
 		PSPSoundDecoder_MAD.o \
 		PSPSoundDecoder_OGG.o \
 		ID3Parser.o PRXLoader.o 
-#wifi_user.o wifi_user_stub.o
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging

@@ -38,7 +38,6 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionS
 	m_Exit = false;
 	m_NetworkEnabled = false;
 	m_strNetworkProxy = NULL;
-	m_USBEnabled = false;
 	m_EventToPSPApp = NULL;
 	m_thRun = NULL; /** Run Thread */
 	memset(&m_pad, 0, sizeof (SceCtrlData));
@@ -110,12 +109,6 @@ CPSPApp::~CPSPApp()
 	m_Exit = true;
 	sceKernelDelayThread(50*1000); /* Wait 50ms */
 	
-	if (true == IsUSBEnabled())
-	{
-		Log(LOG_VERYLOW, "~CPSPApp(): Disabling USB.");
-		DisableUSB();
-	}
-
 	if (true == IsNetworkEnabled())
 	{
 		Log(LOG_VERYLOW, "~CPSPApp(): Disabling Network.");

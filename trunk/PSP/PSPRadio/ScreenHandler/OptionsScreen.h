@@ -3,6 +3,8 @@
 
 	#include "ScreenHandler.h"
 
+	#include <PSPUSBStorage.h>
+	
 	class OptionsScreen : public IScreen
 	{
 		public:
@@ -48,6 +50,7 @@
 			list<Options>::iterator m_CurrentOptionIterator;
 			int m_iNetworkProfile;
 			bool m_WifiAutoStart, m_USBAutoStart;
+			CPSPUSBStorage *m_USBStorage;
 
 	};
 
