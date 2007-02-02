@@ -34,34 +34,23 @@
 #include <sys/select.h>
 #include <sys/fcntl.h>
 
+#include <netinet/in.h>
+
 #include <psputility_netmodules.h>
 #include <psputility_netparam.h>
 #include <pspwlan.h>
 #include <pspnet.h>
 #include <pspnet_apctl.h>
 
-
 #include "PSPApp.h"
-
-#if 0
-#if defined(DYNAMIC_BUILD) || defined(DEVHOOK)
-	#if !defined(DYNAMIC_15)
-		#include "wifi_user.h"
-	#endif
-#endif
-#endif
 
 #undef ReportError
 
 #define SCE_NET_APCTL_INFO_IP_ADDRESS		8
 #define apctl_state_IPObtained				4
-/** Resolver */
-#include <netinet/in.h>
 
 int CPSPApp::ResolveHostname(char *strHostname, struct in_addr *addr)
 {
-  static char buf[1024];
-  int rid = -1;
 	/* RC Let's try aton first in case the address is in dotted numerical form */
 	Log(LOG_LOWLEVEL, "ResolveHostname: Calling aton.. (host='%s')", strHostname );
 	memset(addr, 0, sizeof(in_addr));
@@ -71,12 +60,9 @@ int CPSPApp::ResolveHostname(char *strHostname, struct in_addr *addr)
 		/** That didn't work!, it must be a hostname, let's try the resolver... */
 		Log(LOG_LOWLEVEL, "ResolveHostname: Calling sceNetResolverStartNtoA() with resolverid = %d",
 			 pPSPApp->GetResolverId());
-    memset(buf, 0, 1024);
+    
     memset(addr, 0, sizeof(in_addr));
-
-    rc = sceNetResolverCreate(&rid, buf, 1024);
-
-		rc = sceNetResolverStartNtoA(rid/*GetResolverId()*/, strHostname, addr, 2, 3);
+		rc = sceNetResolverStartNtoA(GetResolverId(), strHostname, addr, 2, 3);
 
     Log(LOG_LOWLEVEL, "ResolveHostname: rc=%d. '%s' resolved to '%s'", rc, strHostname, inet_ntoa(*addr));
 	}
@@ -84,8 +70,6 @@ int CPSPApp::ResolveHostname(char *strHostname, struct in_addr *addr)
 	return rc;
 }
 	
-/** End Resolver */
-
 /*
     Connect with timeout  From: 
     VTun - Virtual Tunnel over TCP/IP network.
@@ -154,12 +138,14 @@ int connect_t(int s, struct sockaddr *svr, time_t timeout)
 /** Based on Code from VNC for PSP*/
 int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, size_t timeout/* in s */) 
 {
-	//return connect_t(sock, addr, timeout);
+	#if 0
+	return connect_t(sock, addr, timeout);
 	
-	#if 1
+	#else
 	int err = 0;
-	int zero = 0;//int one = 1, zero = 0;
-	//setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
+	int one = 1, zero = 0;
+	
+	setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&one, sizeof(one));
 	
 	err = connect(sock, addr, sizeof(struct sockaddr));
 	if (err == 0 /* No error - connected */)
@@ -191,53 +177,43 @@ int ConnectWithTimeout(SOCKET sock, struct sockaddr *addr, size_t timeout/* in s
 	setsockopt(sock, SOL_SOCKET, SO_NONBLOCK, (char *)&zero, sizeof(zero));
 	pPSPApp->SendEvent(MID_TCP_CONNECTING_FAILED);
 	Log(LOG_ERROR, "ConnectWithTimeout(): Error connecting. %s", (errno < 139)?strerror(errno):"Unknown SCE error");
-	return err;
+	return errno;
 	#endif
-}
-
-/** Network */
-int net_thread(SceSize a, void *argp)
-{
-  int err;
-  err = pspSdkInetInit();
-  if (err != 0)
-  {
-    printf("Error, could not initialise the network %08X\n", err);
-  }
-  sceKernelSleepThreadCB();
-  return 0;
 }
 
 int CPSPApp::InitializeNetworkDrivers()
 {
-  int thid;
   int iRet = 0;
   int err;
 
-  printf("load network modules...");
+	Log(LOG_LOWLEVEL, "Loading Network Drivers...");
   err = sceUtilityLoadNetModule(PSP_NET_MODULE_COMMON);
   if (err != 0)
   {
-    printf("Error, could not load PSP_NET_MODULE_COMMON %08X\n", err);
-    return 1;
+    Log(LOG_ERROR, "Error Loading Network Modules --sceUtilityLoadNetModule()=0x%04x\n", err);
+    iRet = -1;
   }
+  
   err = sceUtilityLoadNetModule(PSP_NET_MODULE_INET);
   if (err != 0)
   {
-    printf("Error, could not load PSP_NET_MODULE_INET %08X\n", err);
-    return 1;
+    Log(LOG_ERROR, "Error Loading Network Modules -- sceUtilityLoadNetModule()=0x%04x\n", err);
+    iRet = -1;
   }
-  printf("done\n");
-
-  thid = sceKernelCreateThread("net_thread", net_thread, 32, 0x10000, PSP_THREAD_ATTR_USER, NULL);
-  if (thid < 0) {
-    printf("Error! Thread could not be created!\n");
-    sceKernelSleepThread();
+  
+  err = pspSdkInetInit();
+  if (err != 0)
+  {
+    Log(LOG_ERROR, "Error Initializing Network Drivers -- err=0x%04x\n", err);
+    iRet = -1;
   }
-  sceKernelStartThread(thid, 0, NULL);
-
-  sceKernelDelayThread(500*1000);
-  if (0 == m_ResolverId)
+	else
+	{
+		Log(LOG_INFO, "Network Drivers Initialized Correctly.");
+		iRet = 0;
+	}
+	  
+  if (m_ResolverId == 0)
   {
     memset(m_ResolverBuffer, 0, sizeof(m_ResolverBuffer));
     int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
@@ -251,51 +227,6 @@ int CPSPApp::InitializeNetworkDrivers()
   return 0;
 }
 
-#if 0
-///
-	int iRet = 0;
-	int err;
-
-#if defined(DYNAMIC_BUILD) || defined(DEVHOOK)
-	#if !defined(DYNAMIC_15)
-	err = pspSdkLoadInetModules();
-
-	if (err != 0) 
-	{
-		Log(LOG_ERROR, "Error Loading Network Modules -- pspSdkLoadInetModules() returned: 0x%x", err);
-		iRet = -1;
-	}
-	#endif
-#endif
-
-	err = pspSdkInetInit();
-
-	if (err != 0) 
-	{
-		Log(LOG_ERROR, "Error Initializing Network Drivers -- (Maybe they were initialized before PSPRadio started.) pspSdkInetInit() returned: 0x%x", err);
-		iRet = -1;
-	}
-	else
-	{
-		Log(LOG_INFO, "Network Drivers Initialized Correctly.");
-		iRet = 0;
-	}
-
-	if (0 == m_ResolverId)
-	{
-    memset(m_ResolverBuffer, 0, sizeof(m_ResolverBuffer));
-		int rc = sceNetResolverCreate(&m_ResolverId, m_ResolverBuffer, sizeof(m_ResolverBuffer));
-		if (rc < 0)
-		{
-			Log(LOG_ERROR, "InitializeNetworkDrivers, Resolvercreate = 0x%0x rid = %d\n", rc, m_ResolverId);
-			iRet = -1;
-		}
-	}
-	return iRet;
-}
-#endif
-
-/* Exit callback */
 int CPSPApp::StopNetworkDrivers()
 {
 	pspSdkInetTerm();
@@ -340,14 +271,6 @@ void CPSPApp::DisableNetwork()
 	
 	if (true == IsNetworkEnabled())
 	{
-		if (0)//m_ResolverId)
-		{
-			err = sceNetResolverStop(m_ResolverId);
-			err = sceNetResolverDelete(m_ResolverId);
-			err = sceNetResolverTerm();
-			m_ResolverId = 0;
-		}
-		
 		err = sceNetApctlDisconnect();
 		if (err != 0) 
 		{

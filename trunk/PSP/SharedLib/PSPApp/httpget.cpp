@@ -493,8 +493,8 @@ int CPSPStream::http_open(char *url)
         int iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, 5/*5 sec timeout */ );
 		if (iCon != 0) 
 		{
-			ReportError("Error Connecting - Timeout.");
-			Log(LOG_ERROR, "Connection timeout. iCon=0x%x", iCon);
+			ReportError("Error Connecting - %s", strerror(iCon));
+			Log(LOG_ERROR, "Connection error. %s", strerror(iCon));
 			close(sock);
 			sock = -1;
 		}
