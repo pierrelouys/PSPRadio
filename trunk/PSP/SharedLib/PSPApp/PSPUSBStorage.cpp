@@ -55,9 +55,9 @@ int LoadStartModule(char *path)
 
 int thDriverLoader(SceSize args, void *argp)
 {
-  pspSdkInstallNoDeviceCheckPatch();
-  pspSdkInstallNoPlainModuleCheckPatch();
-  pspSdkInstallKernelLoadModulePatch();
+  //pspSdkInstallNoDeviceCheckPatch();
+  //pspSdkInstallNoPlainModuleCheckPatch();
+  //pspSdkInstallKernelLoadModulePatch();
 
 	sceKernelSleepThread();
 	return 0;
@@ -68,6 +68,7 @@ CPSPUSBStorage::CPSPUSBStorage(CPSPApp *pspapp)
 	m_PSPApp = pspapp;
 	m_USBEnabled = false;
 	
+#if 0
 	m_thDriverLoader = new CPSPThread("m_thDriverLoader", thDriverLoader, 
 										32, 4*1024, 0/*THREAD_ATTR_KERNEL*/);
 	if (m_thDriverLoader)
@@ -81,6 +82,7 @@ CPSPUSBStorage::CPSPUSBStorage(CPSPApp *pspapp)
 	LoadStartModule("flash0:/kd/usbstormgr.prx");
 	LoadStartModule("flash0:/kd/usbstorms.prx");
 	LoadStartModule("flash0:/kd/usbstorboot.prx");
+#endif
 }
 
 CPSPUSBStorage::~CPSPUSBStorage()
