@@ -19,7 +19,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DI
 		 
 #GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -Wall -Werror -DDYNAMIC_BUILD
 #MY_CFLAGS = -G0 -mno-explicit-relocs  -DDYNAMIC_BUILD -DSTAND_ALONE_APP
-MY_CFLAGS = -G0 -mno-explicit-relocs  -DDYNAMIC_BUILD -DUSE_DANZEFF
+MY_CFLAGS = $(GLOBAL_CFLAGS) -DUSE_DANZEFF
 
 CFLAGS = $(MY_CFLAGS) $(EXTRA_FLAGS) -g -Wall 	$(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti

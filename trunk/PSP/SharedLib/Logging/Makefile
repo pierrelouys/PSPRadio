@@ -5,7 +5,7 @@ TARGET_LIB = ../lib/liblogging.a
 OBJS = Logging.o
 
 INCDIR = ../PSPApp
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -g -D__PSP__
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g -D__PSP__
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 

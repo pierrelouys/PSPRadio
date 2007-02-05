@@ -14,7 +14,7 @@ OBJS =  PSPApp.o PSPThread.o PSPUSBStorage.o \
 
 INCDIR =
 INCLUDES= -I../libpspnet -I../Logging
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -g -D__PSP__ $(INCLUDES) -D_NO_INIT_
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g -D__PSP__ $(INCLUDES) -D_NO_INIT_
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

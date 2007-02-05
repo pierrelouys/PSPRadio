@@ -13,9 +13,9 @@ all:
 # new dynamic target builds 2.0+ Compatible PSPRadio (For OE F/W)
 pspradio:
 	$(MAKE) exports
-	cd $(SHAREDLIB_DIR) && $(MAKE) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
-	cd $(PSPRADIO_DIR)  && $(MAKE) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
-	$(MAKE) plugins GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
+	cd $(SHAREDLIB_DIR) && $(MAKE)
+	cd $(PSPRADIO_DIR)  && $(MAKE)
+	$(MAKE) plugins
 
 zip_release:
 	cd $(RELEASE_DIR) && zip -r $(ZIPFILE) *.txt PSPRadio/
@@ -35,24 +35,24 @@ plugins:
 
 extra_plugins:
 	$(MAKE) clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
+	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE)
 	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE) install
 	$(MAKE) clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/APP_Retawq    && $(MAKE) prx install
 	mkdir -p $(PSPRADIO_RELEASE_DIR)/graphics
 	cp -vf $(SHAREDLIB_DIR)/danzeff/graphics/*.png $(PSPRADIO_RELEASE_DIR)/graphics/.
 	$(MAKE) clean_plugin_common_objects
-	cd $(PLUGINS_DIR)/APP_NetScan   && $(MAKE) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
+	cd $(PLUGINS_DIR)/APP_NetScan   && $(MAKE)
 	cd $(PLUGINS_DIR)/APP_NetScan   && $(MAKE) install
 
 app_afkim:
-	cd $(PLUGINS_DIR)/APP_afkim/ && $(MAKE) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
+	cd $(PLUGINS_DIR)/APP_afkim/ && $(MAKE)
 	
 app_links2:
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && $(MAKE) GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)" prepare plugin install_plugin
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && $(MAKE) prepare plugin install_plugin
 
 game_psptris:
-	cd $(PLUGINS_DIR)/GAME_PSPTris && $(MAKE) -f Makefile.plugin GLOBAL_CFLAGS="$(DYNAMIC_GLOBAL_CFLAGS)"
+	cd $(PLUGINS_DIR)/GAME_PSPTris && $(MAKE) -f Makefile.plugin 
 	cd $(PLUGINS_DIR)/GAME_PSPTris && $(MAKE) -f Makefile.plugin install
 	
 download_shoutcast_db:

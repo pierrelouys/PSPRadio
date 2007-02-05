@@ -118,5 +118,4 @@
 	};
 #endif // __cplusplus
 
-
 #endif
