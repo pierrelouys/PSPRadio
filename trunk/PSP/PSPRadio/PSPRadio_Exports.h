@@ -20,7 +20,7 @@
 		{
 	#endif
 
-		#if defined(STAND_ALONE_APP) || defined(NEW_STAND_ALONE_APP)
+		#if defined(STAND_ALONE_APP)
 			#define ModuleLog(level, format, args...) pspDebugScreenPrintf(format, ## args)
 			#define PSPRadioExport_PluginExits(type) -1
 			#define PSPRadioExport_GetProgramVersion() "N/A"

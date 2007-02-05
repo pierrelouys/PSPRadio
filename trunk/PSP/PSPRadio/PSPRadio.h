@@ -29,8 +29,6 @@
 
 #include "PSPRadio_Exports.h"
 
-#define PSPRADIO_VERSION	"1.0"
-
 #define CFG_FILENAME		"PSPRadio.cfg"
 
 #define PLUGIN_OFF_STRING	"Off"
