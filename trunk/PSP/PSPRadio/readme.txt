@@ -1,55 +1,63 @@
-PSPRadio 0.38.12 2006-08-24
-============================
+PSPRadio 1.1.xxxx 2007
+=======================
 
--Official blog:  http://rafpsp.blogspot.com
 -Offical forums: http://pspradio.sourceforge.net/phpBB/index.php
--Official subversion repo: https://svn.sourceforge.net/svnroot/pspradio/trunk/PSP
+-Official blog:  http://rafpsp.blogspot.com (not maintained)
+-Official subversion repo: https://pspradio.svn.sourceforge.net/svnroot/pspradio/trunk/PSP
 
--No official documentation available yet.
+***************************************************************
+**********************Use at your own risk*********************
+***********This version is for F/W 2.0+ With OE ONLY***********
+***************************************************************
 
-In the meantime, go to http://pspradio.sourceforge.net/phpBB/index.php and look 
-for setup and configuration guides under Guides.
-
-The developer would like to thank BerliOS.de and SourceForge.net for providing hosting for this
-open source project.
-
-This project is protected under the GPL license.
-
-Use at your own risk.
-
-
-Quick Installation Guide:
--------------------------
-Dynamic and Static versions:
--Copy the folders "__SCE__PSPRadio" and "%__SCE__PSPRadio" to your PSP under "\PSP\GAME\".
-
-Firmware 2+ via devhook (devhook version):
--Copy the folder "PSPRadio" to your PSP under "\PSP\GAME\".
-
-Credits
--------
-Development:
+------------------------------------------------------------------------------
+**Credits**
+---------------------
+PSPRadio Development:
 Raf:       Lead, Concept, Core, Decoders, TextUI.
 Sandberg:  3D UI, Text 3D UI, PSPTris Plugin, Enchancements, bug fixes.
-Danzel:    Danzeff OSK, Links2 connection selector.
-mbf:	   Made devhook compatible
+jpfouch48: GraphicsUI.
 
 Other Routines:
-echto:	SHOUTcast.com interface, zlib routines.
+Danzel:    Danzeff OSK, Links2 connection selector.
+echto:     Initial SHOUTcast.com interface, zlib routines.
+mbf:       Patch to make devhook compatible
 
 Art:
--Semtex199:  TextUI Backgrounds, Iconset, PSPTris art, Links2 homepage art, 3D UI Art.
--HalfastII:  Iconset/Skin Tweaking/Config Tweaking/Ideas/Forum Moderation/Testing/Lots of Help.
+-Semtex199:  TextUI Backgrounds, Iconset, PSPTris art, Links2 homepage art,
+             3D UI Art.
+-HalfastII:  Iconset/Skin Tweaking/Config Tweaking/Ideas/Forum Moderation/
+             Testing/Lots of Help.
 -Albadross:  TextUI Backgrounds/Skins/Documentation/Ideas/Configurations.
 -handojinUK: Iconset
 -harbringer: Iconset, default GraphicsUI theme
+-Argandona:  Iconset for Links2
+---------------------------------------------------------------------------------------------------
+
+***-No official documentation available yet.-***
+
+In the meantime, go to http://pspradio.sourceforge.net/phpBB/index.php and
+look for setup and configuration guides under Guides.
+
+The developers would like to thank BerliOS.de and SourceForge.net for providing
+hosting for this open source project.
+
+This project is protected under the GPL license.
+
+******************************************
+***********Use at your own risk***********
+******************************************
+
+Quick Installation Guide:
+-------------------------
+-Copy the folder "PSPRadio" to your PSP under "/PSP/GAME/".
 
 Thanks
 ------
 Raf would like to thank all the users that have donated to this project.
 --You keep me going! Thank you!!--
 Raf would also like to thank (In no particular order, except the first one :) ):
--my son and wife for putting up with me :)
+-my sons and wife for putting up with me :)
 -PSPDEV Team for their incredible work on the PSPSDK, toolchain, libraries, etc!
 -libMAD and libTremor teams.
 -mpg123 team.

@@ -24,8 +24,7 @@ INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_D
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser -I$(SHAREDLIB_DIR)/libpthread \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff/puresdl
 		 
-		 #$(GLOBAL_CFLAGS) 
-CFLAGS = -O2 -g -G0 -mno-explicit-relocs -Wall $(INCLUDES) -I/usr/local/pspdev/psp/include/freetype2 -DPSP -DPSPRADIOPLUGIN -DDANZEFF_SDL
+CFLAGS = -O2 -g -G0 $(GLOBAL_CFLAGS) -Wall $(INCLUDES) -I/usr/local/pspdev/psp/include/freetype2 -DPSP -DPSPRADIOPLUGIN -DDANZEFF_SDL
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
