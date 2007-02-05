@@ -49,7 +49,7 @@ app_afkim:
 	cd $(PLUGINS_DIR)/APP_afkim/ && $(MAKE)
 	
 links2:
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && $(MAKE) -f Makefile.psp.plugin prepare all install release
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && $(MAKE) -f Makefile.psp.plugin all install release
 	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && $(MAKE) -f Makefile.psp.standalone all install release
 
 game_psptris:
