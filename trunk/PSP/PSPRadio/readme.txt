@@ -8,6 +8,7 @@ PSPRadio 1.1.xxxx 2007
 ***************************************************************
 **********************Use at your own risk*********************
 ***********This version is for F/W 2.0+ With OE ONLY***********
+************Install to your GAME303, or GAME310 dir************
 ***************************************************************
 
 ------------------------------------------------------------------------------
@@ -50,7 +51,10 @@ This project is protected under the GPL license.
 
 Quick Installation Guide:
 -------------------------
--Copy the folder "PSPRadio" to your PSP under "/PSP/GAME/".
+-If you have your OE configured to run the new firmware on the GAME directory, then just
+copy the folder "PSPRadio" to your PSP under "/PSP/GAME/".
+-If you have your OE configured to run F/W 1.5 apps in your GAME directory, then copy the
+"PSPRadio" folder to the appropriate game folder for your f/w (like GAME303 or GAME310).
 
 Thanks
 ------

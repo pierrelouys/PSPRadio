@@ -1,6 +1,6 @@
 #Note: BASE_DIR needs to be defined in the including Makefile to point to this directory.
 
-MAKE = make
+MAKE = PSP_FW_VERSION=271 make
 
 GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSPRADIO_VERSION='"$(PSPRADIO_VERSION)"'
 
