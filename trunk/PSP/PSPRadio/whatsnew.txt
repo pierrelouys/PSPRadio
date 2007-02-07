@@ -1,5 +1,15 @@
 What's New for PSPRadio
 ========================
+
+1.1.xxxx (2007-02-xx)
+NEW FEATURES
+BUG FIXES
+(raf) Plugins: Plugin unloading work-around implemented. Root cause still under investigation. This means plugins can now be loaded/unloaded.
+KNOWN BUGS
+(raf) Core: USB is not working (help is appreciated)
+(raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.
+(raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times).
+
 1.1.1258 (2007-02-05)
 NEW FEATURES
 (raf) Core: Version number is now 1.1.XXXX, where XXXX is the subversion revision at the time of the build.
