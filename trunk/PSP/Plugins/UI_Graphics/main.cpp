@@ -19,37 +19,22 @@
 #include <stdlib.h>
 #include <PSPApp.h>
 #include <PSPSound.h>
-#include <TextUI.h>
+#include <GraphicsUI.h>
 
-PSP_MODULE_INFO("TEXTUI", 0, 1, 1);
+PSP_MODULE_INFO("GRAPHICSUI", 0, 1, 1);
 PSP_NO_CREATE_MAIN_THREAD();
 PSP_HEAP_SIZE_KB(4096);
 
-extern "C" 
-{
-	int module_stop(int args, void *argp);
-}
-
-int main(int argc, char **argv)
-{
-	return 0;
-}
-
 IPSPRadio_UI *ModuleStartUI()
 {
-	ModuleLog(LOG_LOWLEVEL, "TextUI- ModuleStartUI()");
+	ModuleLog(LOG_LOWLEVEL, "GraphicsUI- ModuleStartUI()");
 
-	ModuleLog(LOG_LOWLEVEL, "TextUI- _global_impure_ptr=%p, _impure_ptr=%p", _global_impure_ptr, _impure_ptr);
+	ModuleLog(LOG_LOWLEVEL, "GraphicsUI- _global_impure_ptr=%p, _impure_ptr=%p", _global_impure_ptr, _impure_ptr);
 
-	return new CTextUI();
+	return new CGraphicsUI();
 }
 
 void* getModuleInfo(void)
 {
 	return (void *) &module_info;
-}
-
-int module_stop(int args, void *argp)
-{
-	return 0;
 }

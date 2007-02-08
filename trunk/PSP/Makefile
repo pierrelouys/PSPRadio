@@ -30,12 +30,16 @@ exports:
 
 plugins:
 	$(MAKE) clean_plugin_common_objects
+	$(MAKE) clean_plugin_common_library
+	cd $(PLUGINS_DIR)/Common && $(MAKE)
 	cd $(PLUGINS_DIR)/UI_Text && $(MAKE) && $(MAKE) install
 	$(MAKE) clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/UI_Text3D && $(MAKE) && $(MAKE) install
 
 extra_plugins:
 	$(MAKE) clean_plugin_common_objects
+	$(MAKE) clean_plugin_common_library
+	cd $(PLUGINS_DIR)/Common && $(MAKE)
 	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE)
 	cd $(PLUGINS_DIR)/FSServer_FTPD && $(MAKE) install
 	$(MAKE) clean_plugin_common_objects
@@ -64,6 +68,9 @@ download_shoutcast_db:
 
 clean_plugin_common_objects:
 	rm -fv $(PLUGINS_DIR)/*.o
+
+clean_plugin_common_library:
+	rm -fv $(PLUGINS_DIR)/Common/*.o $(PLUGINS_DIR)/Common/*.a
 
 clean:
 	make clean_objects

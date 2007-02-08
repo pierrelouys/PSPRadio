@@ -1,7 +1,7 @@
 #ifndef _PSPRADIOGRAPHICSUI_
 #define _PSPRADIOGRAPHICSUI_
 
-#include "IPSPRadio_UI.h"
+#include "UI_Interface.h"
 #include "GraphicsUITheme.h"
 
 class CGraphicsUI : public IPSPRadio_UI

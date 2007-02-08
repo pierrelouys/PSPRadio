@@ -4,8 +4,7 @@ include $(BASE_DIR)/include.mak
 TARGET = UI_Text3D
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS =	$(PLUGINS_DIR)/UI_Interface.o $(COMMON_OBJS) $(EXPORTED_OBJS) \
+OBJS =	$(PLUGINS_DIR)/UI_Interface.o $(EXPORTED_OBJS) \
 		main.o TextUI3D.o TextUI3D_Panel.o TextUI3D_WindowManager_HSM.o \
 		jsaVRAMManager.o jsaTextureCache.o
 
@@ -13,10 +12,11 @@ OBJS =	$(PLUGINS_DIR)/UI_Interface.o $(COMMON_OBJS) $(EXPORTED_OBJS) \
 BUILD_PRX=1
 PRX_EXPORTS=$(PLUGINS_DIR)/UI_Exports.exp
 
-INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
-		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
-		 -I$(PSPRADIO_DIR)/ScreenHandler 
+INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp \
+		-L$(SHAREDLIB_DIR)/lib -L$(PLUGINS_DIR)/Common\
+		-I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
+		-I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
+		-I$(PSPRADIO_DIR)/ScreenHandler 
 
 		 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES) 
@@ -24,10 +24,9 @@ CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
 LIBS =  -lstdc++ -liniparser -lTools  \
-		-lpspgum -lpspgu -lpng -lz -lm
+		-lpspgum -lpspgu -lpng -lz -lm -lPluginCommon
 
 all: $(TARGET).prx
-	rm $(COMMON_OBJS)
 
 install:
 	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)

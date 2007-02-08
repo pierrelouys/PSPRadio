@@ -4,9 +4,7 @@ include $(BASE_DIR)/include.mak
 TARGET = UI_Text
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
-OBJS = main.o TextUI.o $(PLUGINS_DIR)/UI_Interface.o \
-		 $(EXPORTED_OBJS) $(COMMON_OBJS)
+OBJS = main.o TextUI.o $(PLUGINS_DIR)/UI_Interface.o $(EXPORTED_OBJS)
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
@@ -16,7 +14,7 @@ PRX_EXPORTS=$(PLUGINS_DIR)/UI_Exports.exp
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
-		 -I$(PSPRADIO_DIR)/ScreenHandler 
+		 -I$(PSPRADIO_DIR)/ScreenHandler -L$(PLUGINS_DIR)/Common
 
 		 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES) 
@@ -25,10 +23,9 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR =
 
-LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm
+LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm -lPluginCommon
 
 all: $(TARGET).prx
-	rm $(COMMON_OBJS)
 
 install:
 	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)

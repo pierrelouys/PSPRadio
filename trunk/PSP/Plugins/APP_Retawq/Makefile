@@ -4,9 +4,8 @@ include $(BASE_DIR)/include.mak
 TARGET = APP_Retawq
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-COMMON_OBJS   = $(PLUGINS_DIR)/Common.o
 OBJS = plugin_main.o init.o main.o parser.o resource.o stuff.o pspcurses.o psp.o \
-		$(COMMON_OBJS) $(EXPORTED_OBJS)
+		$(EXPORTED_OBJS)
 
 USE_PSPSDK_LIBC = 0
 # Define the name of our custom exports (minus the .exp extension)
@@ -15,10 +14,9 @@ PRX_EXPORTS=$(PLUGINS_DIR)/APP_Exports.exp
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DIR)/ScreenHandler \
 		   -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		   -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		   -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff
-		 
-#GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -Wall -Werror -DDYNAMIC_BUILD
-#MY_CFLAGS = -G0 -mno-explicit-relocs  -DDYNAMIC_BUILD -DSTAND_ALONE_APP
+		   -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff \
+		   -I$(PLUGINS_DIR)/Common -L$(PLUGINS_DIR)/Common
+
 MY_CFLAGS = $(GLOBAL_CFLAGS) -DUSE_DANZEFF
 
 CFLAGS = $(MY_CFLAGS) $(EXTRA_FLAGS) -g -Wall 	$(INCLUDES)
@@ -29,7 +27,7 @@ LIBDIR =
 
 DANZEFF_LIBS = -ldanzeffgu -lpng -lz -lm  -lpspgu -lpspaudio -ljpeg -lpsphprm
 
-LIBS =    $(DANZEFF_LIBS) -lpspsdk -lpspwlan -lpspnet
+LIBS =    $(DANZEFF_LIBS) -lpspsdk -lpspwlan -lpspnet -lPluginCommon
 
 the_pbp: $(OBJS) EBOOT.PBP
 

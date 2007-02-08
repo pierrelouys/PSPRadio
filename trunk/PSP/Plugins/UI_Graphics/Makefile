@@ -13,7 +13,7 @@ BUILD_PRX=1
 # Define the name of our custom exports (minus the .exp extension)
 PRX_EXPORTS=$(PLUGINS_DIR)/UI_Exports.exp
 
-INCLUDES = -I./ -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
+INCLUDES = -I./ -I../ -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
 		 -I$(PSPRADIO_DIR)/ScreenHandler 
