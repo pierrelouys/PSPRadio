@@ -54,19 +54,7 @@
 		char 			*m_strCWD;
 	
 	public:
-	#ifdef DYNAMIC_BUILD
-		#ifdef DYNAMIC15
-			CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "FW1.5")
-		#else
-			CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION)
-		#endif
-	#else
-	#ifdef DEVHOOK
-		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "dh")
-	#else
-		CPSPRadio(): CPSPApp("PSPRadio", PSPRADIO_VERSION, "Static")
-	#endif
-	#endif	
+		CPSPRadio(): CPSPApp("PSPRadio", IF_VERSION, REPO_VERSION)
 		{
 			/** Initialize to some sensible defaults */
 			m_Config = NULL;
@@ -74,9 +62,7 @@
 			m_UI = NULL;
 			m_ScreenHandler = NULL;
 			m_strCWD = NULL;
-			#ifdef DYNAMIC_BUILD
-				m_ExclusiveAccessPluginType = (plugin_type)-1;
-			#endif
+			m_ExclusiveAccessPluginType = (plugin_type)-1;
 		};
 		
 		int Main(int argc, char **argv);
@@ -94,7 +80,6 @@
 		char *ScreenshotName(char *path);
 		void  ScreenshotStore(char *filename);
 	
-	#ifdef DYNAMIC_BUILD
 	public:
 		int LoadPlugin(char *strPlugin, plugin_type type);
 		char *GetActivePluginName(plugin_type type);
@@ -103,7 +88,6 @@
 	private:
 		CPRXLoader *m_ModuleLoader[NUMBER_OF_PLUGIN_TYPES];
 		plugin_type m_ExclusiveAccessPluginType;
-	#endif
 	
 	private:
 		/** Setup */

@@ -77,7 +77,7 @@
 	class CPSPApp
 	{
 	public:
-		CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionSuffix = "");
+		CPSPApp(char *strProgramName, char *strInterfaceVersion, char *strBuildVersion);
 		virtual ~CPSPApp();
 
 		virtual int ProcessMessages(){return 0;};

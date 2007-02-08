@@ -33,7 +33,7 @@
 
 class CPSPApp *pPSPApp = NULL; /** Do not access / Internal Use. */
 
-CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionSuffix)
+CPSPApp::CPSPApp(char *strProgramName, char *strInterfaceVersion, char *strBuildVersion)
 {
 	m_Exit = false;
 	m_NetworkEnabled = false;
@@ -44,10 +44,10 @@ CPSPApp::CPSPApp(char *strProgramName, char *strVersionNumber, char *strVersionS
 	strcpy(m_strMyIP, "0.0.0.0");
 	m_ResolverId = 0;
 	m_strProgramName = strdup(strProgramName);
-	m_strVersionNumber = (char *)malloc(strlen(strVersionNumber) + strlen(strVersionSuffix) + 1);
+	m_strVersionNumber = (char *)malloc(strlen(strInterfaceVersion) + strlen(strBuildVersion) + 2);
 	if (m_strVersionNumber)
 	{
-		sprintf(m_strVersionNumber, "%s%s", strVersionNumber, strVersionSuffix);
+		sprintf(m_strVersionNumber, "%s.%s", strInterfaceVersion, strBuildVersion);
 	}
 	else
 	{

@@ -2,13 +2,14 @@ BASE_DIR = $(shell pwd)
 include $(BASE_DIR)/include.mak
 
 all:
+	svn update .
 	make download_shoutcast_db
-	make clean
+	make clean clobber
 	make pspradio
-	make ZIPFILE="PSPRadio$(PSPRADIO_VERSION).zip" zip_release
 	make extra_plugins
-	make ZIPFILE="PSPRadio$(PSPRADIO_VERSION)_with_extras.zip" zip_release
+	make ZIPFILE="PSPRadio$(IF_VERSION).$(REPO_VERSION).zip" zip_release
 	echo "Ready."
+#	make ZIPFILE="PSPRadio$(IF_VERSION).$(REPO_VERSION)_with_extras.zip" zip_release
 
 # new dynamic target builds 2.0+ Compatible PSPRadio (For OE F/W)
 pspradio:
