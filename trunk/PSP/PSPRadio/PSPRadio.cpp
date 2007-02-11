@@ -162,28 +162,13 @@ int CPSPRadio::Setup_Logging(char *strCurrentDir)
 
 int CPSPRadio::Setup_UI(char *strCurrentDir)
 {
-#ifdef DYNAMIC_BUILD
-	Log(LOG_LOWLEVEL, "Dynamic Build: UI Module = %s", m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE));
+	Log(LOG_LOWLEVEL, "Dynamic Build: UI Module = %s, Skin = %s", 
+		m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE),
+		m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
 
-	m_UI = m_ScreenHandler->StartUI(m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE));
-#else /** Static Build */
-	Log(LOG_LOWLEVEL, "Static Build: UI Mode = %s", m_Config->GetStr("UI:MODE"));
-
-	#ifdef GRAPHICS_UI
-	if (0 == strcmp(m_Config->GetStr("UI:MODE"), "Graphics"))
-	{
-		m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_GRAPHICS);
-	}
-	#endif
-	if (0 == strcmp(m_Config->GetStr("UI:MODE"), "3D"))
-	{
-		m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_3D);
-	}
-	else
-	{
-		m_UI = m_ScreenHandler->StartUI(CScreenHandler::UI_TEXT);
-	}
-#endif
+	m_UI = m_ScreenHandler->StartUI(m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE), 
+									m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
+	
 	return 0;
 }
 

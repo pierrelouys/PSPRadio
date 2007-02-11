@@ -56,7 +56,7 @@ char *CPRXLoader::GetName()
 }
 
 
-int CPRXLoader::Load(char *filename)
+int CPRXLoader::Load(const char *filename)
 {
 	SceKernelLMOption option;
 	SceUID mpid = PSP_MEMORY_PARTITION_USER;

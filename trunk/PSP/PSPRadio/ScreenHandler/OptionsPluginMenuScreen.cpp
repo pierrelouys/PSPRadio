@@ -135,7 +135,7 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 		{
 			case OPTION_ID_UI:
 				RetrievePlugins(/*option*/Option, /*prefix*/"UI_",
-								m_ScreenHandler->GetCurrentUI());
+								m_ScreenHandler->GetCurrentUIName());
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			case OPTION_ID_FSS:
@@ -259,7 +259,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				Log(LOG_INFO, "User selected to load '%s'", strPluginRealName);
 				m_UI->DisplayMessage("Starting Plugin . . .");
 
-				m_ScreenHandler->StartUI(strPluginRealName);
+				m_ScreenHandler->StartUI(strPluginRealName, DEFAULT_SKIN);
 
 				m_UI->DisplayMessage("Plugin Started");
 				fOptionActivated = true;

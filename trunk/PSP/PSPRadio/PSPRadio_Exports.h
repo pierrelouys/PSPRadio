@@ -53,6 +53,15 @@
 			char *PSPRadioExport_GetVersion();
 			void  PSPRadioExport_TakeScreenShot();
 			DeviceBuffer *PSPRadioExport_GetPCMBuffer();
+			
+			typedef enum
+			{
+				PSPRADIOIF_VERSION,
+				PSPRADIOIF_IP,
+				PSPRADIOIF_LOG_FUNCTION
+			}pspradioexport_gettypes;
+			
+			bool PSPRadioIF_Get(pspradioexport_gettypes type, void *pResult);
 
 		#endif // #ifdef STAND_ALONE_APP
 	#ifdef __cplusplus

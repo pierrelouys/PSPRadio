@@ -24,7 +24,7 @@
 	public:
 		CPRXLoader();
 		~CPRXLoader();
-		int Load(char *filename);
+		int Load(const char *filename);
 		int Unload();
 		int Start(int argc = 0, char * const argv[] = NULL);
 		bool IsLoaded()  { return m_IsLoaded; }

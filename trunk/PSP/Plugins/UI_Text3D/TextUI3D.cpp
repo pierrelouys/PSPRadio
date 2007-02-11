@@ -81,16 +81,11 @@ CTextUI3D::~CTextUI3D()
 	ModuleLog(LOG_VERYLOW, "CTextUI3D: destroyed.");
 }
 
-int CTextUI3D::Initialize(char *strCWD, char *strName)
+int CTextUI3D::Initialize(char *strCWD, char *strSkinDir)
 {
 	char *strCfgFile = NULL;	
 
-	m_strConfigDir = strdup(strName);
-	/* strName is like 'UI_Text.prx', so we remove the extension */
-	if (strrchr(m_strConfigDir, '.'))
-	{
-		*strrchr(m_strConfigDir, '.') = 0;
-	}
+	m_strConfigDir = strdup(strSkinDir);
 
 	/* Load settings from config file */
 	strCfgFile = (char *)malloc(strlen(strCWD) + strlen(m_strConfigDir) + strlen("/TextUI3D.cfg") + 10);

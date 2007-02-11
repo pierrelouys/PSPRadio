@@ -44,6 +44,7 @@
 		private:
 			int  Stop_Network();
 			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
+			int  RetrieveSkins(Options &Option, const char *strCurrentUI, const char *strCurrentSkin);
 		
 		protected:
 			list<Options> m_OptionsList;

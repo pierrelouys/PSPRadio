@@ -10,9 +10,8 @@
 	using namespace std;
 #endif
 
-	#ifdef DYNAMIC_BUILD
-		#define DEFAULT_UI_MODULE "UI_Text.prx"
-	#endif
+	#define DEFAULT_UI_MODULE "UI_Text.prx"
+	#define DEFAULT_SKIN	  "Default"
 
 	/** Messages from PSPSound to decode thread */
 	typedef enum 
@@ -82,29 +81,14 @@
 				/** Add more elements here **/
 	
 				PSPRADIO_SCREEN_OPTIONS /* Leave this as the last one */
-	#ifdef DYNAMIC_BUILD
 				,PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU /** Or this one for dynamic builds */
-	#endif
 			};
 			/** These point to the first and one-beyond the last elements of the
 				list; just like in a sdl list. This to allow for easy iteration
 				though the list with a for loop/etc.
 			*/
 			#define PSPRADIO_SCREEN_LIST_BEGIN  PSPRADIO_SCREEN_LOCALFILES
-	#ifdef DYNAMIC_BUILD
 			#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU+1)
-	#else // static build
-			#define PSPRADIO_SCREEN_LIST_END	(PSPRADIO_SCREEN_OPTIONS+1)
-	#endif
-	
-	#ifndef DYNAMIC_BUILD /** Static Build */
-			enum UIs
-			{
-				UI_TEXT = 0,
-				UI_3D = 1,
-				UI_GRAPHICS = 99,
-			};
-	#endif
 	
 			enum request_on_play_stop
 			{
@@ -116,11 +100,7 @@
 	
 			CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen = PSPRADIO_SCREEN_PLAYLIST);
 			~CScreenHandler();
-	#ifdef DYNAMIC_BUILD
-			IPSPRadio_UI *StartUI(char *strUIModule);
-	#else /** Static Build */
-			IPSPRadio_UI *StartUI(UIs UI);
-	#endif
+			IPSPRadio_UI *StartUI(const char *strUIModule, const char *strSkinName);
 			void PrepareShutdown();
 	
 			void CommonInputHandler(int iButtonMask, u32 iEventType); /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
@@ -130,11 +110,10 @@
 			bool DownloadNewSHOUTcastDB();
 	
 			IScreen *GetCurrentScreen(){return m_CurrentScreen;}
-	#ifdef DYNAMIC_BUILD
-			char *GetCurrentUI(){return m_CurrentUI;}
-	#else
-			UIs GetCurrentUI(){return m_CurrentUI;}
-	#endif
+			char *GetCurrentUIName(){return m_strCurrentUIName;}
+			char *GetCurrentSkin(){return m_strCurrentSkin;}
+      bool  SetCurrentUIName(const char *strNewName);
+      bool  SetCurrentSkinName(const char *strNewName);
 			IPSPRadio_UI *GetCurrentUIPtr(){ return m_UI; }
 			char *GetCWD(){return m_strCWD;}
 			CPSPSound *GetSound(){return m_Sound;}
@@ -180,11 +159,8 @@
 			IScreen *m_StreamOwnerScreen;
 			Screen   m_InitialScreen;
 			CPRXLoader *m_UIModuleLoader;
-	#ifdef DYNAMIC_BUILD
-			char *m_CurrentUI;
-	#else
-			UIs m_CurrentUI;
-	#endif
+			char *m_strCurrentUIName;
+			char *m_strCurrentSkin;
 			IPSPRadio_UI *m_UI;
 			CIniParser *m_Config;
 			CPSPSound *m_Sound;

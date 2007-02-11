@@ -37,24 +37,25 @@
 
 #define ReportError pPSPApp->ReportError
 
+//#define USB_ENABLED
+
+
 enum OptionIDs
 {
 	OPTION_ID_NETWORK_PROFILES,
 	OPTION_ID_WIFI_AUTOSTART,
+#if USB_ENABLED	
 	OPTION_ID_USB_ENABLE,
 	OPTION_ID_USB_AUTOSTART,
+#endif	
 	OPTION_ID_PLAYMODE,
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
-#ifndef DYNAMIC_BUILD
-	OPTION_ID_UI,
-#endif
+	OPTION_ID_SKIN,
 	OPTION_ID_INITIAL_SCREEN,
 	OPTION_ID_REFRESH_PLAYLISTS,
 	OPTION_ID_SHOUTCAST_DN,
-#ifdef DYNAMIC_BUILD
 	OPTION_ID_PLUGINS_MENU,
-#endif
 	OPTION_ID_SAVE_CONFIG,
 	OPTION_ID_EXIT,
 };
@@ -64,20 +65,18 @@ OptionsScreen::Options OptionsScreenData[] =
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
 	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},		1,1,5		},
 	{	OPTION_ID_WIFI_AUTOSTART,	"WiFi AutoStart",			{"No", "Yes"},					1,1,2		},
+#if USB_ENABLED	
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
 	{	OPTION_ID_USB_AUTOSTART,	"USB AutoStart",			{"No", "Yes"},					1,1,2		},
+#endif	
 	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat", "Global"},	1,1,4		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
-#ifndef DYNAMIC_BUILD
-	{	OPTION_ID_UI,				"User Interface",			{"Text", "3D"},					1,1,2		},
-#endif
+	{	OPTION_ID_SKIN,				"Skin",						{""},							0,0,0		},
 	{	OPTION_ID_INITIAL_SCREEN,	"Initial Screen",			{"Files", "Playlist","SHOUT","Options"}, 1,1,4 },
 	{	OPTION_ID_REFRESH_PLAYLISTS,"Refresh Playlists",		{""},							0,0,0		},
 	{	OPTION_ID_SHOUTCAST_DN,		"Get Latest SHOUTcast DB",	{""},							0,0,0		},
-#ifdef DYNAMIC_BUILD
 	{	OPTION_ID_PLUGINS_MENU,		"Plugins Menu",				{""},							0,0,0		},
-#endif
 	{	OPTION_ID_SAVE_CONFIG,		"Save Options",				{""},							0,0,0		},
 	{	OPTION_ID_EXIT,				"Exit PSPRadio",			{""},							0,0,0		},
 
@@ -209,22 +208,7 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetInteger("DEBUGGING:LOGLEVEL", pLogging->GetLevel());
 		pConfig->SetInteger("SYSTEM:CPUFREQ", scePowerGetCpuClockFrequency());
 		pConfig->SetInteger("WIFI:PROFILE", m_iNetworkProfile);
-#ifdef DYNAMIC_BUILD
-		pConfig->SetString("PLUGINS:UI", m_ScreenHandler->GetCurrentUI());
-#else /**Static Build */
-		switch(m_ScreenHandler->GetCurrentUI())
-		{
-			case CScreenHandler::UI_TEXT:
-				pConfig->SetString("UI:MODE", "Text");
-				break;
-			case CScreenHandler::UI_GRAPHICS:
-				pConfig->SetString("UI:MODE", "Graphics");
-				break;
-			case CScreenHandler::UI_3D:
-				pConfig->SetString("UI:MODE", "3D");
-				break;
-		}
-#endif
+		pConfig->SetString("PLUGINS:UI", m_ScreenHandler->GetCurrentUIName());
 		/** OPTION_ID_INITIAL_SCREEN */
 		pConfig->SetInteger("SYSTEM:INITIAL_SCREEN", m_ScreenHandler->GetInitialScreen());
 		/** OPTION_ID_INITIAL_SCREEN */
@@ -301,12 +285,12 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			}
-
+#if defined USB_ENABLED
 			case OPTION_ID_USB_ENABLE:
 				Option.iActiveState = (m_USBStorage->IsUSBEnabled()==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-
+#endif
 			case OPTION_ID_PLAYMODE:
 				Log(LOG_LOWLEVEL, "Table playmode=%d. New playmode = %d(+1).",
 					Option.iActiveState, m_ScreenHandler->GetPlayMode());
@@ -362,12 +346,11 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iSelectedState = Option.iActiveState;
 				break;
 
-#ifndef DYNAMIC_BUILD
-			case OPTION_ID_UI:
-				Option.iActiveState = m_ScreenHandler->GetCurrentUI() + 1;
+			case OPTION_ID_SKIN:
+				RetrieveSkins(/*option*/Option, /*currentUI*/m_ScreenHandler->GetCurrentUIName(), m_ScreenHandler->GetCurrentSkin());
 				Option.iSelectedState = Option.iActiveState;
 				break;
-#endif
+						
 			case OPTION_ID_INITIAL_SCREEN:
 				Option.iActiveState = m_ScreenHandler->GetInitialScreen() + 1;
 				Option.iSelectedState = Option.iActiveState;
@@ -377,12 +360,12 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iActiveState = (m_WifiAutoStart==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-
+#if defined USB_ENABLED
 			case OPTION_ID_USB_AUTOSTART:
 				Option.iActiveState = (m_USBAutoStart==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-
+#endif
 		}
 
 		m_OptionsList.push_back(Option);
@@ -399,6 +382,7 @@ void OptionsScreen::OnOptionActivation()
 	time_t timeNow = clock() / (1000*1000); /** clock is in microseconds */
 	int iSelectionBase0 = (*m_CurrentOptionIterator).iSelectedState - 1;
 	int iSelectionBase1 = (*m_CurrentOptionIterator).iSelectedState;
+	char *strSelection  = (*m_CurrentOptionIterator).strStates[iSelectionBase0];
 
 	switch ((*m_CurrentOptionIterator).Id)
 	{
@@ -425,6 +409,7 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = true;
 			break;
 
+#if defined USB_ENABLED
 		case OPTION_ID_USB_ENABLE:
 			if (iSelectionBase1 == 2) /** Enable */
 			{
@@ -452,6 +437,7 @@ void OptionsScreen::OnOptionActivation()
 			m_USBAutoStart = (iSelectionBase1 == 2)?true:false;
 			fOptionActivated = true;
 			break;
+#endif
 
 		case OPTION_ID_PLAYMODE:
 			m_ScreenHandler->SetPlayMode((playmodes)iSelectionBase0);
@@ -511,12 +497,11 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = true;
 			break;
 
-#ifndef DYNAMIC_BUILD
-		case OPTION_ID_UI:
-			m_ScreenHandler->StartUI((CScreenHandler::UIs)iSelectionBase0);
+		case OPTION_ID_SKIN:
+			m_ScreenHandler->StartUI(m_ScreenHandler->GetCurrentUIName(), strSelection);
 			fOptionActivated = true;
 			break;
-#endif
+
 		case OPTION_ID_INITIAL_SCREEN:
 			m_ScreenHandler->SetInitialScreen((CScreenHandler::Screen)iSelectionBase0);
 			fOptionActivated = true;
@@ -715,3 +700,86 @@ void OptionsScreen::InputHandler(int iButtonMask)
 	}
 }
 
+int OptionsScreen::RetrieveSkins(Options &Option, const char *strCurrentUI, const char *strActiveSkin)
+{
+	int dfd = 0;
+	char *strPath = m_ScreenHandler->GetCWD();
+	int iNumberOfSkinsFound = 0;
+	char *strSkin = NULL;
+	SceIoDirent direntry;
+	char strPrefix[MAXPATHLEN];
+	
+	strlcpy(strPrefix, strCurrentUI, MAXPATHLEN);
+	strPrefix[MAXPATHLEN-1] = 0;
+	if (strrchr(strPrefix, '.'))
+	{
+		*strrchr(strPrefix, '.') = 0;
+	}
+	strcat(strPrefix, ".");
+
+	Option.strStates[0] = strdup(DEFAULT_SKIN);
+	iNumberOfSkinsFound++;
+
+	Log(LOG_LOWLEVEL, "RetrieveSkins: Reading '%s' Directory, looking for '%s' directories (strCurrentUI='%s', GetCurrentUIName='%s')...", strPath, strPrefix, strCurrentUI, m_ScreenHandler->GetCurrentUIName());
+	
+	dfd = sceIoDopen(strPath);
+
+	Option.iActiveState = 1; /* Initial value */
+
+	/** Get all files */
+	if (dfd >= 0)
+	{
+		/** RC 10-10-2005: The direntry has to be memset! Or else the app will/may crash! */
+		memset(&direntry, 0, sizeof(SceIoDirent));
+		while(sceIoDread(dfd, &direntry) > 0)
+		{
+			if(direntry.d_stat.st_attr & FIO_SO_IFDIR) /** It's a directory */
+			{
+				if (strcmp(direntry.d_name, ".") == 0)
+					continue;
+				else if (strcmp(direntry.d_name, "..") == 0)
+					continue;
+
+				Log(LOG_LOWLEVEL, "RetrieveSkins: Processing '%s'", direntry.d_name);
+				if (strncmp(direntry.d_name, strPrefix, strlen(strPrefix)) == 0)
+				{
+					Log(LOG_LOWLEVEL, "RetrieveSkins(): Adding '%s' to list. Found %d elements",
+						direntry.d_name, iNumberOfSkinsFound+1);
+
+					strSkin = (char*)malloc(128);
+					if (strSkin)
+					{
+						char strFormat[64];
+						sprintf(strFormat, "%s%%s", strPrefix);
+
+						sscanf(direntry.d_name, strFormat, strSkin);
+
+						Log(LOG_LOWLEVEL, "RetrieveSkins: direntry='%s' strSkin='%s'", direntry.d_name, strSkin, strActiveSkin);
+
+						Option.strStates[iNumberOfSkinsFound] = strSkin;
+
+						if (strcmp(strSkin, strActiveSkin) == 0)
+						{
+							Option.iActiveState = iNumberOfSkinsFound + 1;
+						}
+
+						iNumberOfSkinsFound++;
+					}
+					else
+					{
+						Log(LOG_ERROR, "RetrieveSkins: Memory error!");
+						break;
+					}
+				}
+			}
+		}
+		Option.iNumberOfStates = iNumberOfSkinsFound;
+		sceIoDclose(dfd);
+	}
+	else
+	{
+		Log(LOG_ERROR, "RetrieveSkins: Unable to open '%s' Directory! (Error=0x%x)", strPath, dfd);
+	}
+
+	return iNumberOfSkinsFound;
+}

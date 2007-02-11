@@ -98,18 +98,16 @@ CTextUI::~CTextUI()
 	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
 
-int CTextUI::Initialize(char *strCWD, char *strName)
+int CTextUI::Initialize(char *strCWD, char *strSkinDir)
 {
 	TextUILog(LOG_VERYLOW, "CTextUI::Initialize Start");
+	
+	free(m_strCWD);
 	m_strCWD = strdup(strCWD);
 	//m_Screen->Init();
-	m_strConfigDir = strdup(strName);
-	/* strName is like 'UI_Text.prx', so we remove the extension */
-	if (strrchr(m_strConfigDir, '.'))
-	{
-		*strrchr(m_strConfigDir, '.') = 0;
-	}
-	
+	free(m_strConfigDir);
+	m_strConfigDir = strdup(strSkinDir);
+
 	TextUILog(LOG_VERYLOW, "CTextUI::Initialize End");
 	
 	return 0;
