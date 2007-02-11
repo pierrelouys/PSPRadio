@@ -5,6 +5,7 @@ What's New for PSPRadio
 NEW FEATURES
 BUG FIXES
 (raf) Plugins: Plugin unloading work-around implemented. Root cause still under investigation. This means plugins can now be loaded/unloaded, switching between user interfaces works, etc.
+(raf) Core+UI Plugins: Added Skin selection support to PSPRadio (finally). This can be accessed via the Options menu (skin option). 
 KNOWN BUGS
 (raf) Core: USB is not working (help is appreciated)
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.
