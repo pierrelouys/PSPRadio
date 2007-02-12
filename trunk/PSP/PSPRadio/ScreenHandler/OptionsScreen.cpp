@@ -503,9 +503,9 @@ void OptionsScreen::OnOptionActivation()
 
 		case OPTION_ID_SKIN:
       /* Have UI Stop updating */
-      m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
+			m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
 			m_ScreenHandler->StartUI(m_ScreenHandler->GetCurrentUIName(), strSelection, true);
-      pPSPApp->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
+			pPSPApp->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
 
 			fOptionActivated = true;
 			break;

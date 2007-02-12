@@ -18,6 +18,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <PSPApp.h>
+#define PLUGIN_TYPE 0
 #include "PSPRadio_Exports.h"
 #include "PSPRadio.h"
 
@@ -747,6 +748,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 	{
 		char strModulePath[MAXPATHLEN+1];
 		char cwd[MAXPATHLEN+1];
+		//char strPluginVersion[64];
 
 		if (type < NUMBER_OF_PLUGIN_TYPES)
 		{
@@ -783,15 +785,17 @@ void CPSPRadio::ScreenshotStore(char *filename)
 
 				Log(LOG_INFO, "Module start returned: 0x%x", iRet);
 
-	/*			if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
+/*
+				if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
 				{
 					Log(LOG_ERROR, "WARNING: Plugin '%' was compiled against PSPRadio '%s' (this is '%s')",
 						getPSPRadioVersionForPlugin(), PSPRADIO_VERSION);
-				}*/
-
+				}
+*/
 				switch(type)
 				{
 					case PLUGIN_UI:
+						//strlcpy(strPluginVersion, GetPluginVersionUI());
 						break;
 					case PLUGIN_FSS:
 						ModuleStartFSS();
@@ -802,8 +806,10 @@ void CPSPRadio::ScreenshotStore(char *filename)
 					case PLUGIN_GAME:
 						ModuleStartGAME();
 						break;
-					case NUMBER_OF_PLUGIN_TYPES: /**Not a real case */
-						break;
+					case NUMBER_OF_PLUGIN_TYPES: 
+					case PLUGIN_NA:
+					default:
+						Log(LOG_INFO, "LoadPlugin: Unknown plugin type: ", (int)type);
 				}
 
 				return 0;

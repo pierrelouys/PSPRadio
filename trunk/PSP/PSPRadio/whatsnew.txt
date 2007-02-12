@@ -1,13 +1,13 @@
 What's New for PSPRadio
 ========================
 
-1.1.xxxx (2007-02-xx)
+1.1.1269 (2007-02-12)
 NEW FEATURES
+(raf) Core+UI Plugins: Added Skin selection support to PSPRadio (finally). This can be accessed via the Options menu (skin option). -Optimized.
 BUG FIXES
 (raf) Plugins: Plugin unloading work-around implemented. Root cause still under investigation. This means plugins can now be loaded/unloaded, switching between user interfaces works, etc.
-(raf) Core+UI Plugins: Added Skin selection support to PSPRadio (finally). This can be accessed via the Options menu (skin option). 
 KNOWN BUGS
-(raf) Core: USB is not working (help is appreciated)
+(raf) Core: USB is not working, menu option removed for now (With AhMan's help this will hopefully be working again on the next version)
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.
 (raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).
 

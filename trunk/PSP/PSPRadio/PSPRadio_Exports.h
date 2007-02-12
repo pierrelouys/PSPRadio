@@ -6,6 +6,7 @@
 
 		typedef enum
 		{
+			PLUGIN_NA = 0,
 			PLUGIN_UI,
 			PLUGIN_FSS,
 			PLUGIN_APP,
