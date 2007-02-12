@@ -303,10 +303,13 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 			m_Screen->SetBackgroundImage(strPath);
 		}
 	}
-	TextUILog(LOG_LOWLEVEL, "Calling m_Screen->Clear");
-	m_Screen->Clear(); 
-	
-	TextUILog(LOG_LOWLEVEL, "Cleared");
+	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
+	{
+		TextUILog(LOG_LOWLEVEL, "Calling m_Screen->Clear");
+		m_Screen->Clear(); 
+		
+		TextUILog(LOG_LOWLEVEL, "Cleared");
+	}
 	
 	uiPrintf(m_ScreenConfig.ProgramVersionX, m_ScreenConfig.ProgramVersionY, 
 			m_ScreenConfig.ProgramVersionColor, PSPRadioExport_GetProgramVersion());

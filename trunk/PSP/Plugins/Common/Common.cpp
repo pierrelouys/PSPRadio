@@ -28,8 +28,8 @@ int main(int argc, char **argv)
 	/** PSPRadio version is different than the version this plugin was compiled against: */
 	if (strcmp(PSPRadioExport_GetVersion(), IF_VERSION) != 0)
 	{
-		ModuleLog(LOG_ALWAYS, "**WARNING**: VERSION ERROR: Plugin: %s is for PSPRadio I/F %s, but this PSPRadio complies to I/F %s", module_info.modname, IF_VERSION, PSPRadioExport_GetVersion());
-		
+		ModuleLog(LOG_ALWAYS, "**ERROR**: VERSION ERROR: Plugin: %s is for PSPRadio I/F %s, but this PSPRadio complies to I/F %s", module_info.modname, IF_VERSION, PSPRadioExport_GetVersion());
+		PSPRadioExport_PluginExits(PLUGIN_TYPE);
 	}
 
 	BLOCKER_CREATE_AND_BLOCK(g_blocker, module_info.modname);

@@ -8,8 +8,9 @@ all:
 	make pspradio
 	make extra_plugins
 	make ZIPFILE="PSPRadio$(IF_VERSION).$(REPO_VERSION).zip" zip_release
+	make skin_packs	
+	make ZIPFILE="PSPRadio$(IF_VERSION).$(REPO_VERSION)_with_extra_skins.zip" zip_release
 	echo "Ready."
-#	make ZIPFILE="PSPRadio$(IF_VERSION).$(REPO_VERSION)_with_extras.zip" zip_release
 
 # new dynamic target builds 2.0+ Compatible PSPRadio (For OE F/W)
 pspradio:
@@ -100,13 +101,3 @@ skin_packs:
 
 albadross_skin_pack:
 	cp -R Resources/AlbaSkins/*					$(PSPRADIO_RELEASE_DIR)
-	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(PSPRADIO_RELEASE_DIR)/UI_PSPRadio.prx
-	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(PSPRADIO_RELEASE_DIR)/UI_Metalle.prx
-	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(PSPRADIO_RELEASE_DIR)/UI_Premiere.prx
-	cp $(PLUGINS_DIR)/UI_Text/UI_Text.prx 		$(PSPRADIO_RELEASE_DIR)/UI_Selector.prx
-	cp $(PLUGINS_DIR)/UI_Text3D/UI_Text3D.prx 	$(PSPRADIO_RELEASE_DIR)/UI_3D_Radio.prx
-	cp $(PLUGINS_DIR)/UI_Text3D/UI_Text3D.prx 	$(PSPRADIO_RELEASE_DIR)/UI_3D_Blue.prx
-	cp $(PLUGINS_DIR)/UI_Text3D/UI_Text3D.prx 	$(PSPRADIO_RELEASE_DIR)/UI_3D_Mario.prx
-	rm $(PSPRADIO_RELEASE_DIR)/UI_Text.prx
-	rm $(PSPRADIO_RELEASE_DIR)/UI_Text3D.prx
-	sed -e 's/UI=UI_Text/UI=UI_PSPRadio/g' PSPRadio/PSPRadio.cfg > $(PSPRADIO_RELEASE_DIR)/PSPRadio.cfg

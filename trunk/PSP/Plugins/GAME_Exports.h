@@ -6,6 +6,10 @@
 	{
 	#endif
 
+		#ifndef PLUGIN_TYPE
+			#define PLUGIN_TYPE PLUGIN_GAME
+		#endif
+
 		int module_stop(int args, void *argp);
 		int ModuleStartGAME();
 

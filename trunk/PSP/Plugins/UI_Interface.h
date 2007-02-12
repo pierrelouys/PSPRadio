@@ -8,6 +8,10 @@
 	#include "MetaDataContainer.h"
 	#include <psprtc.h>
 
+	#ifndef PLUGIN_TYPE
+		#define PLUGIN_TYPE PLUGIN_UI
+	#endif
+
 	/** UI class interface */
 	class IPSPRadio_UI
 	{
