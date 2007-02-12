@@ -142,82 +142,89 @@ CScreenHandler::~CScreenHandler()
 	Log(LOG_LOWLEVEL, "~CScreenHandler() End.");
 }
 
-IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSkinName)
+IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSkinName, bool bJustChangeSkin)
 {
  	char strSkinDirectory[MAXPATHLEN];
 	
-	bool wasPolling = pPSPApp->IsPolling();
-	if (m_UI)
-	{
-		if (wasPolling)
-		{
-			/** If PSPRadio was running, then notify it that we're switching UIs */
-			Log(LOG_LOWLEVEL, "Notifying PSPRadio That we're switching UIs: From '%s' to '%s'. Skin From '%s' to '%s'",
-				GetCurrentUIName(), strUIModule,
-				GetCurrentSkin(), strSkinName);
-			pPSPApp->SendEvent(EID_NEW_UI_POINTER, NULL, SID_SCREENHANDLER);
-			pPSPApp->StopPolling();
-		}
+	bool wasPolling = false;
 
-		Log(LOG_INFO, "StartUI: Destroying current UI");
-		m_UI->Terminate();
-		delete(m_UI), m_UI = NULL;
-		Log(LOG_INFO, "Unloading Module");
-		m_UIModuleLoader->Unload();
-		Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
-	}
-	
-	/* strSkinDirectory = prxname without extension */
-	strlcpy(strSkinDirectory, strUIModule, MAXPATHLEN);
-	strSkinDirectory[MAXPATHLEN - 1] = 0;
-	if (strrchr(strSkinDirectory, '.'))
-	{
-		*strrchr(strSkinDirectory, '.') = 0;
-	}
-	
-	/* If skin name is passed defined, it is added */
-	if (strcmp(strSkinName, DEFAULT_SKIN) != 0)
-	{
-		strcat(strSkinDirectory, ".");
-		strcat(strSkinDirectory, strSkinName);
-	}
-	
-	Log(LOG_LOWLEVEL, "StartUI: Starting UI '%s' using skin: '%s' (%s)", 
-					strUIModule, 
-					strSkinName,
-					strSkinDirectory );
+  /* strSkinDirectory = prxname without extension */
+  strlcpy(strSkinDirectory, strUIModule, MAXPATHLEN);
+  strSkinDirectory[MAXPATHLEN - 1] = 0;
+  if (strrchr(strSkinDirectory, '.'))
+  {
+    *strrchr(strSkinDirectory, '.') = 0;
+  }
+  
+  /* If skin name is passed defined, it is added */
+  if (strcmp(strSkinName, DEFAULT_SKIN) != 0)
+  {
+    strcat(strSkinDirectory, ".");
+    strcat(strSkinDirectory, strSkinName);
+  }
+
+  if (bJustChangeSkin == false)
+  {
+	  if (m_UI)
+	  {
+      wasPolling = pPSPApp->IsPolling();
+		  if (wasPolling)
+		  {
+			  /** If PSPRadio was running, then notify it that we're switching UIs */
+			  Log(LOG_LOWLEVEL, "Notifying PSPRadio That we're switching UIs: From '%s' to '%s'. Skin From '%s' to '%s'",
+				  GetCurrentUIName(), strUIModule,
+				  GetCurrentSkin(), strSkinName);
+			  pPSPApp->SendEvent(EID_NEW_UI_POINTER, NULL, SID_SCREENHANDLER);
+			  pPSPApp->StopPolling();
+		  }
+  
+		  Log(LOG_INFO, "StartUI: Destroying current UI");
+		  m_UI->Terminate();
+		  delete(m_UI), m_UI = NULL;
+		  Log(LOG_INFO, "Unloading Module");
+		  m_UIModuleLoader->Unload();
+		  Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
+	  }
+	  
+	  Log(LOG_LOWLEVEL, "StartUI: Starting UI '%s' using skin: '%s' (%s)", 
+					  strUIModule, 
+					  strSkinName,
+					  strSkinDirectory );
+
+    int id = m_UIModuleLoader->Load(strUIModule);
+    
+    if (m_UIModuleLoader->IsLoaded() == true)
+    {
+      SceKernelModuleInfo modinfo;
+      memset(&modinfo, 0, sizeof(modinfo));
+      modinfo.size = sizeof(modinfo);
+      sceKernelQueryModuleInfo(id, &modinfo);
+      Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
+        strUIModule, modinfo.text_addr);
+    
+      int iRet = m_UIModuleLoader->Start();
+      
+      Log(LOG_LOWLEVEL, "Module start returned: 0x%x", iRet);
+      
+    }
+    else
+    {
+      Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strUIModule, m_UIModuleLoader->GetError());
+    }
+    Log(LOG_INFO, "Calling ModuleStartUI() (at addr %p)", &ModuleStartUI);
+    m_UI = ModuleStartUI();
+
+    SetCurrentUIName(strUIModule);
+  }
 	
 	
 	//Log(LOG_LOWLEVEL, "In PSPRadioPRX: _global_impure_ptr=%p, _impure_ptr=%p", _global_impure_ptr, _impure_ptr);
 	
-	int id = m_UIModuleLoader->Load(strUIModule);
-	
-	if (m_UIModuleLoader->IsLoaded() == true)
-	{
-		SceKernelModuleInfo modinfo;
-		memset(&modinfo, 0, sizeof(modinfo));
-		modinfo.size = sizeof(modinfo);
-		sceKernelQueryModuleInfo(id, &modinfo);
-		Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
-			strUIModule, modinfo.text_addr);
-	
-		int iRet = m_UIModuleLoader->Start();
-		
-		Log(LOG_LOWLEVEL, "Module start returned: 0x%x", iRet);
-		
-	}
-	else
-	{
-		Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strUIModule, m_UIModuleLoader->GetError());
-	}
-	
-  SetCurrentUIName(strUIModule);
   SetCurrentSkinName(strSkinName);
-	
-	Log(LOG_INFO, "Calling ModuleStartUI() (at addr %p)", &ModuleStartUI);
-	m_UI = ModuleStartUI();
-	
-	Log(LOG_INFO, "UI Started, m_UI = %p, name='%s', skin='%s'", m_UI, GetCurrentUIName(), GetCurrentSkin());
+
+	Log(LOG_INFO, "%s m_UI = %p, name='%s', skin='%s'", 
+     bJustChangeSkin?"Skin Changed:":"UI Started:",
+     m_UI, GetCurrentUIName(), GetCurrentSkin());
 	
 	Log(LOG_LOWLEVEL, "Calling m_UI->Initialize");
 	m_UI->Initialize(GetCWD(), strSkinDirectory);

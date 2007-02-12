@@ -225,6 +225,10 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetInteger("PLAYBACK:MODE",m_ScreenHandler->GetPlayMode());
 		/** OPTION_ID_PLAYMODE */
 
+    /** OPTION_ID_SKIN */
+    pConfig->SetString("PLUGINS:UI_SKIN", m_ScreenHandler->GetCurrentSkin());
+    /** OPTION_ID_SKIN */
+
 		pConfig->Save();
 	}
 	else
@@ -498,7 +502,11 @@ void OptionsScreen::OnOptionActivation()
 			break;
 
 		case OPTION_ID_SKIN:
-			m_ScreenHandler->StartUI(m_ScreenHandler->GetCurrentUIName(), strSelection);
+      /* Have UI Stop updating */
+      m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
+			m_ScreenHandler->StartUI(m_ScreenHandler->GetCurrentUIName(), strSelection, true);
+      pPSPApp->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
+
 			fOptionActivated = true;
 			break;
 

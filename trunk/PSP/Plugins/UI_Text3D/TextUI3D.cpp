@@ -63,6 +63,7 @@ CTextUI3D::CTextUI3D()
 	m_list_list = m_list_list_tail = NULL;
 	m_entry_list = m_entry_list_tail = NULL;
 	m_strConfigDir = NULL;
+	m_Settings = NULL;
 }
 
 CTextUI3D::~CTextUI3D()
@@ -85,12 +86,19 @@ int CTextUI3D::Initialize(char *strCWD, char *strSkinDir)
 {
 	char *strCfgFile = NULL;	
 
+	free(m_strConfigDir);
 	m_strConfigDir = strdup(strSkinDir);
 
 	/* Load settings from config file */
 	strCfgFile = (char *)malloc(strlen(strCWD) + strlen(m_strConfigDir) + strlen("/TextUI3D.cfg") + 10);
 	sprintf(strCfgFile, "%s/%s/%s", strCWD, m_strConfigDir, "TextUI3D.cfg");
+
+	if (m_Settings)
+	{
+		delete(m_Settings);
+	}
 	m_Settings = new CIniParser(strCfgFile);
+
 	free (strCfgFile), strCfgFile = NULL;
 	memset(&LocalSettings, 0, sizeof(LocalSettings));
 	GetSettings();
@@ -98,10 +106,9 @@ int CTextUI3D::Initialize(char *strCWD, char *strSkinDir)
 
 	/* Allocate space in VRAM for 2 displaybuffer and the Zbuffer */
 	jsaVRAMManager::jsaVRAMManagerInit((unsigned long)0x154000);
-
+	 
 	/* Initialize WindowManager */
 	m_wmanager.Initialize(strCWD, m_strConfigDir);
-
 
 	sceKernelDcacheWritebackAll();
 

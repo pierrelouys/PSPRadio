@@ -100,7 +100,7 @@
 	
 			CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Sound, Screen InitialScreen = PSPRADIO_SCREEN_PLAYLIST);
 			~CScreenHandler();
-			IPSPRadio_UI *StartUI(const char *strUIModule, const char *strSkinName);
+			IPSPRadio_UI *StartUI(const char *strUIModule, const char *strSkinName, bool bJustChangeSkin = false);
 			void PrepareShutdown();
 	
 			void CommonInputHandler(int iButtonMask, u32 iEventType); /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
