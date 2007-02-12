@@ -98,6 +98,7 @@ clean_extra_plugins:
 
 skin_packs:
 	make albadross_skin_pack
+	cd $(PSPRADIO_RELEASE_DIR) && find . -type d -name ".svn" -exec rm -Rf {} \; ; echo "Done"
 
 albadross_skin_pack:
 	cp -R Resources/AlbaSkins/*					$(PSPRADIO_RELEASE_DIR)
