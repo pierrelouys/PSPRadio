@@ -37,15 +37,15 @@
 
 #define ReportError pPSPApp->ReportError
 
-//#define USB_ENABLED
+//#define USB_AUTOSTART_ENABLED
 
 
 enum OptionIDs
 {
 	OPTION_ID_NETWORK_PROFILES,
 	OPTION_ID_WIFI_AUTOSTART,
-#if USB_ENABLED	
 	OPTION_ID_USB_ENABLE,
+#if USB_AUTOSTART_ENABLED	
 	OPTION_ID_USB_AUTOSTART,
 #endif	
 	OPTION_ID_PLAYMODE,
@@ -65,8 +65,9 @@ OptionsScreen::Options OptionsScreenData[] =
 		/* ID						Option Name					Option State List			(active,selected,number-of)-states */
 	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},		1,1,5		},
 	{	OPTION_ID_WIFI_AUTOSTART,	"WiFi AutoStart",			{"No", "Yes"},					1,1,2		},
-#if USB_ENABLED	
+	
 	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
+#if USB_AUTOSTART_ENABLED	
 	{	OPTION_ID_USB_AUTOSTART,	"USB AutoStart",			{"No", "Yes"},					1,1,2		},
 #endif	
 	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat", "Global"},	1,1,4		},
@@ -289,12 +290,12 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			}
-#if defined USB_ENABLED
+			
 			case OPTION_ID_USB_ENABLE:
 				Option.iActiveState = (m_USBStorage->IsUSBEnabled()==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-#endif
+			
 			case OPTION_ID_PLAYMODE:
 				Log(LOG_LOWLEVEL, "Table playmode=%d. New playmode = %d(+1).",
 					Option.iActiveState, m_ScreenHandler->GetPlayMode());
@@ -364,7 +365,7 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iActiveState = (m_WifiAutoStart==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-#if defined USB_ENABLED
+#if USB_AUTOSTART_ENABLED	
 			case OPTION_ID_USB_AUTOSTART:
 				Option.iActiveState = (m_USBAutoStart==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
@@ -413,7 +414,6 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = true;
 			break;
 
-#if defined USB_ENABLED
 		case OPTION_ID_USB_ENABLE:
 			if (iSelectionBase1 == 2) /** Enable */
 			{
@@ -437,6 +437,7 @@ void OptionsScreen::OnOptionActivation()
 			}
 			break;
 
+#if USB_AUTOSTART_ENABLED	
 		case OPTION_ID_USB_AUTOSTART:
 			m_USBAutoStart = (iSelectionBase1 == 2)?true:false;
 			fOptionActivated = true;

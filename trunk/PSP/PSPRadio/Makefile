@@ -23,14 +23,15 @@ OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES)
 
-INCLUDES = -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
-		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
-		 -I./ScreenHandler \
-		 -I$(PLUGINS_DIR) \
-		 -I$(PLUGINS_DIR)/TextUI \
-		 -I$(PLUGINS_DIR)/GraphicsUI \
-		 -I$(PLUGINS_DIR)/TextUI3D
+INCDIR = $(SHAREDLIB_DIR)/PSPApp \
+		 $(SHAREDLIB_DIR)/libpspnet $(SHAREDLIB_DIR)/libiniparser \
+		 $(SHAREDLIB_DIR)/Tools $(SHAREDLIB_DIR)/Logging \
+		 ./ScreenHandler \
+		 $(PLUGINS_DIR) \
+		 $(PLUGINS_DIR)/TextUI \
+		 $(PLUGINS_DIR)/GraphicsUI \
+		 $(PLUGINS_DIR)/TextUI3D
+INCLUDES = -L$(SHAREDLIB_DIR)/lib -L$(BASE_DIR)/OE_SDK/lib
 
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
@@ -46,6 +47,7 @@ LIBS =	-lstdc++ \
 		-lpspwlan \
 		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc -lpsppower \
 		-lpng -lz -lm \
+		-lpspkubridge
 
 all: $(EXTRA_TARGETS) $(FINAL_TARGET)
 	mkdir -p $(PSPRADIO_RELEASE_DIR)

@@ -12,9 +12,9 @@ OBJS =  PSPApp.o PSPThread.o PSPUSBStorage.o \
 		PSPSoundDecoder_OGG.o \
 		ID3Parser.o PRXLoader.o 
 
-INCDIR =
-INCLUDES= -I../libpspnet -I../Logging
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g -D__PSP__ $(INCLUDES) -D_NO_INIT_
+INCDIR = ../libpspnet ../Logging $(BASE_DIR)/OE_SDK/include
+
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g -D__PSP__ -D_NO_INIT_
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

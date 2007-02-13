@@ -2,6 +2,10 @@
 
 #define __KULIBRARY__
 
+#ifdef __cplusplus
+	extern "C" {
+#endif
+
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <pspsysmem_kernel.h>
@@ -84,6 +88,9 @@ int kuKernelGetUserLevel(void);
  */
 int kuKernelSetDdrMemoryProtection(void *addr, int size, int prot);
 
+#ifdef __cplusplus
+	};
+#endif
 
 #endif
 

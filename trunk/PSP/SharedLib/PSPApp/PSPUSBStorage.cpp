@@ -27,6 +27,8 @@
 #include <pspusb.h>
 #include <pspusbstor.h>
 
+#include <kubridge.h>
+
 #include "PSPApp.h"
 #include "PSPUSBStorage.h"
 #include "PSPThread.h"
@@ -40,7 +42,7 @@ int LoadStartModule(char *path)
     u32 startResult;
     int status;
 
-    loadResult = sceKernelLoadModule(path, 0, NULL);
+    loadResult = kuKernelLoadModule(path, 0, NULL);
     if (loadResult & 0x80000000)
         return -1;
     else
@@ -53,36 +55,16 @@ int LoadStartModule(char *path)
     return 0;
 }
 
-int thDriverLoader(SceSize args, void *argp)
-{
-  //pspSdkInstallNoDeviceCheckPatch();
-  //pspSdkInstallNoPlainModuleCheckPatch();
-  //pspSdkInstallKernelLoadModulePatch();
-
-	sceKernelSleepThread();
-	return 0;
-}
-
 CPSPUSBStorage::CPSPUSBStorage(CPSPApp *pspapp)
 {
 	m_PSPApp = pspapp;
 	m_USBEnabled = false;
 	
-#if 0
-	m_thDriverLoader = new CPSPThread("m_thDriverLoader", thDriverLoader, 
-										32, 4*1024, 0/*THREAD_ATTR_KERNEL*/);
-	if (m_thDriverLoader)
-	{
-		m_thDriverLoader->Start();
-	}
-	sceKernelDelayThread(50*1000); /* Wait 50ms */
-	
-  LoadStartModule("flash0:/kd/semawm.prx");
+	LoadStartModule("flash0:/kd/semawm.prx");
 	LoadStartModule("flash0:/kd/usbstor.prx");
 	LoadStartModule("flash0:/kd/usbstormgr.prx");
 	LoadStartModule("flash0:/kd/usbstorms.prx");
-	LoadStartModule("flash0:/kd/usbstorboot.prx");
-#endif
+	//LoadStartModule("flash0:/kd/usbstorboot.prx");
 }
 
 CPSPUSBStorage::~CPSPUSBStorage()
@@ -110,7 +92,7 @@ int CPSPUSBStorage::EnableUSB()
 			retVal = sceUsbStart(PSP_USBSTOR_DRIVERNAME, 0, 0);
 			if (retVal == 0) 
 			{
-				retVal = sceUsbstorBootSetCapacity(0x800000);
+				//retVal = sceUsbstorBootSetCapacity(0x800000);
 				if (retVal == 0) 
 				{
 					retVal = sceUsbActivate(0x1c8);
