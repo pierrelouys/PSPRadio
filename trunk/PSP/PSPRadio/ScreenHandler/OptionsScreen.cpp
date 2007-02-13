@@ -37,17 +37,11 @@
 
 #define ReportError pPSPApp->ReportError
 
-//#define USB_AUTOSTART_ENABLED
-
-
 enum OptionIDs
 {
 	OPTION_ID_NETWORK_PROFILES,
 	OPTION_ID_WIFI_AUTOSTART,
 	OPTION_ID_USB_ENABLE,
-#if USB_AUTOSTART_ENABLED	
-	OPTION_ID_USB_AUTOSTART,
-#endif	
 	OPTION_ID_PLAYMODE,
 	OPTION_ID_CPU_SPEED,
 	OPTION_ID_LOG_LEVEL,
@@ -66,10 +60,7 @@ OptionsScreen::Options OptionsScreenData[] =
 	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},		1,1,5		},
 	{	OPTION_ID_WIFI_AUTOSTART,	"WiFi AutoStart",			{"No", "Yes"},					1,1,2		},
 	
-	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON"},					1,1,2		},
-#if USB_AUTOSTART_ENABLED	
-	{	OPTION_ID_USB_AUTOSTART,	"USB AutoStart",			{"No", "Yes"},					1,1,2		},
-#endif	
+	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON","AUTOSTART"},					1,1,3		},
 	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat", "Global"},	1,1,4		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
@@ -91,8 +82,8 @@ OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, 
 		m_iNetworkProfile = 1;
 		m_WifiAutoStart = false;
 		m_USBAutoStart = false;
-		LoadFromConfig();
 		m_USBStorage = new CPSPUSBStorage(pPSPApp);
+		LoadFromConfig();
 	}
 }
 
@@ -226,9 +217,9 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetInteger("PLAYBACK:MODE",m_ScreenHandler->GetPlayMode());
 		/** OPTION_ID_PLAYMODE */
 
-    /** OPTION_ID_SKIN */
-    pConfig->SetString("PLUGINS:UI_SKIN", m_ScreenHandler->GetCurrentSkin());
-    /** OPTION_ID_SKIN */
+		/** OPTION_ID_SKIN */
+		pConfig->SetString("PLUGINS:UI_SKIN", m_ScreenHandler->GetCurrentSkin());
+		/** OPTION_ID_SKIN */
 
 		pConfig->Save();
 	}
@@ -292,7 +283,14 @@ void OptionsScreen::UpdateOptionsData()
 			}
 			
 			case OPTION_ID_USB_ENABLE:
-				Option.iActiveState = (m_USBStorage->IsUSBEnabled()==true)?2:1;
+				if (m_USBAutoStart==true)
+				{
+					Option.iActiveState = 3;
+				}
+				else
+				{
+					Option.iActiveState = (m_USBStorage->IsUSBEnabled()==true)?2:1;
+				}
 				Option.iSelectedState = Option.iActiveState;
 				break;
 			
@@ -365,12 +363,6 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iActiveState = (m_WifiAutoStart==true)?2:1;
 				Option.iSelectedState = Option.iActiveState;
 				break;
-#if USB_AUTOSTART_ENABLED	
-			case OPTION_ID_USB_AUTOSTART:
-				Option.iActiveState = (m_USBAutoStart==true)?2:1;
-				Option.iSelectedState = Option.iActiveState;
-				break;
-#endif
 		}
 
 		m_OptionsList.push_back(Option);
@@ -415,35 +407,39 @@ void OptionsScreen::OnOptionActivation()
 			break;
 
 		case OPTION_ID_USB_ENABLE:
-			if (iSelectionBase1 == 2) /** Enable */
+			switch (iSelectionBase1)
 			{
-				m_USBStorage->EnableUSB();
-				if (true == m_USBStorage->IsUSBEnabled())
-				{
-					fOptionActivated = true;
-				}
-			}
-			else /** Disable */
-			{
-				int iRet = m_USBStorage->DisableUSB();
-				if (-1 == iRet)
-				{
-					ReportError("USB Busy, try again later.");
-				}
-				if (false == m_USBStorage->IsUSBEnabled())
-				{
-					fOptionActivated = true;
-				}
+				case 1: /* OFF */
+					int iRet = m_USBStorage->DisableUSB();
+					if (-1 == iRet)
+					{
+						ReportError("USB Busy, try again later.");
+					}
+					if (false == m_USBStorage->IsUSBEnabled())
+					{
+						fOptionActivated = true;
+					}
+					m_USBAutoStart = false;
+					break;
+				case 2: /* ON  */
+					m_USBStorage->EnableUSB();
+					if (true == m_USBStorage->IsUSBEnabled())
+					{
+						fOptionActivated = true;
+					}
+					m_USBAutoStart = false;
+					break;
+				case 3: /* AUTOSTART */
+					m_USBStorage->EnableUSB();
+					if (true == m_USBStorage->IsUSBEnabled())
+					{
+						fOptionActivated = true;
+					}
+					m_USBAutoStart = true;
+					break;
 			}
 			break;
-
-#if USB_AUTOSTART_ENABLED	
-		case OPTION_ID_USB_AUTOSTART:
-			m_USBAutoStart = (iSelectionBase1 == 2)?true:false;
-			fOptionActivated = true;
-			break;
-#endif
-
+			
 		case OPTION_ID_PLAYMODE:
 			m_ScreenHandler->SetPlayMode((playmodes)iSelectionBase0);
 			fOptionActivated = true;
@@ -503,7 +499,7 @@ void OptionsScreen::OnOptionActivation()
 			break;
 
 		case OPTION_ID_SKIN:
-      /* Have UI Stop updating */
+			/* Have UI Stop updating */
 			m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
 			m_ScreenHandler->StartUI(m_ScreenHandler->GetCurrentUIName(), strSelection, true);
 			pPSPApp->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
@@ -546,7 +542,6 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = false;
 			break;
 
-#ifdef DYNAMIC_BUILD
 		case OPTION_ID_PLUGINS_MENU:
 			//m_UI->DisplayMessage("Saving Configuration Options");
 			//Log(LOG_INFO, "User selected to save config file.");
@@ -556,7 +551,6 @@ void OptionsScreen::OnOptionActivation()
 			fOptionActivated = true;
 			return;
 			break;
-#endif
 			
 		case OPTION_ID_SAVE_CONFIG:
 			m_UI->DisplayMessage("Saving Configuration Options");
