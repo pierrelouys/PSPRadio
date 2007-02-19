@@ -59,6 +59,8 @@ extern int			BstdFileDestroy(bstdfile_t *BstdFile);
 extern int			BstdFileEofP(const bstdfile_t *BstdFile);
 extern int			BstdFileErrorP(const bstdfile_t *BstdFile);
 extern size_t		BstdRead(void *UserBuffer, size_t ElementSize, size_t ElementsCount, bstdfile_t *BstdFile);
+extern void			BstdSeek(int iNewPosition, bstdfile_t *BstdFile);
+extern int			BstdTell(bstdfile_t *BstdFile);
 
 #endif /* BSTDFILE_H */
 

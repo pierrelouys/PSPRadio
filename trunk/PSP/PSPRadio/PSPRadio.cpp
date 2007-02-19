@@ -56,7 +56,6 @@ int CPSPRadio::Setup(int argc, char **argv)
 
 	Log(LOG_VERYLOW, "Main(): this=%p", this);
 
-#ifdef DYNAMIC_BUILD
 	for (int i = 0; i < argc ; i++)
 	{
 		if (i == 3)
@@ -82,7 +81,6 @@ int CPSPRadio::Setup(int argc, char **argv)
 			m_ModuleLoader[i]->SetName(PLUGIN_OFF_STRING);
 		}
 	}
-#endif
 
 	Setup_Sound();
 
@@ -250,7 +248,6 @@ void CPSPRadio::OnExit()
 		delete(m_ScreenHandler), m_ScreenHandler = NULL;
 	}
 
-#ifdef DYNAMIC_BUILD
 	for (int i = 0 ; i < NUMBER_OF_PLUGIN_TYPES; i++)
 	{
 		if (m_ModuleLoader[i])
@@ -259,7 +256,6 @@ void CPSPRadio::OnExit()
 			delete(m_ModuleLoader[i]), m_ModuleLoader[i] = NULL;
 		}
 	}
-#endif
 
 	if (m_strCWD)
 	{
@@ -296,8 +292,8 @@ int CPSPRadio::ProcessEvents()
 			return 0;
 		}
 
+		/** Receive blocks until there is a message queued up */
 		rret = m_EventToPSPApp->Receive(event);
-
 
 		CurrentScreen 		= m_ScreenHandler->GetCurrentScreen();
 		StreamOwnerScreen	= m_ScreenHandler->GetStreamOwnerScreen();
@@ -551,12 +547,30 @@ void CPSPRadio::OnVBlank()
 
 int CPSPRadio::OnPowerEvent(int pwrflags)
 {
+	static bool bPlayAfterResume = false;
+	static bool bEnableNetworkAfterResume = false;
+	static int iCurrentStreamPosition = 0;
+	
 	/* check for power switch and suspending as one is manual and the other automatic */
 	Log(LOG_INFO, "OnPowerEvent() flags: 0x%08X", pwrflags);
 
 	if (pwrflags & PSP_POWER_CB_POWER_SWITCH || pwrflags & PSP_POWER_CB_SUSPENDING)
 	{
 		Log(LOG_INFO, "OnPowerEvent: Suspending");
+		if (CPSPSound::PLAY == m_Sound->GetPlayState())
+		{
+			bPlayAfterResume = true;
+			iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was playing (pos=%d), so stopping...", iCurrentStreamPosition);
+			m_Sound->Stop();
+		}
+		
+		if (IsNetworkEnabled())
+		{
+			bEnableNetworkAfterResume = true;
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Network was enabled, disabling...");
+			DisableNetwork();
+		}
 	}
 	if (pwrflags & PSP_POWER_CB_RESUMING)
 	{
@@ -565,36 +579,21 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 	if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE)
 	{
 		Log(LOG_INFO, "OnPowerEvent: Resume Complete");
-
-		bool bWasPlaying = false;
-		if (CPSPSound::PLAY == m_Sound->GetPlayState())
+		if (bEnableNetworkAfterResume)
 		{
-			Log(LOG_LOWLEVEL, "OnPowerEvent: Was playing before, so stopping...");
-			m_Sound->Stop();
-			bWasPlaying = true;
-		}
-		if (IsNetworkEnabled())
-		{
-			Log(LOG_LOWLEVEL, "OnPowerEvent: Network was enabled, disabling...");
-			DisableNetwork();
-			#if 0 //test
+			bEnableNetworkAfterResume = false;
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Network was enabled, re-enabling...");
 			((OptionsScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network();
-
-			if(true == IsNetworkEnabled() && true == bWasPlaying)
-			{
-				m_Sound->Play();
-			}
-			#endif
 		}
-		else
+		
+		if (bPlayAfterResume)
 		{
-			#if 0 //test
-			if (true == bWasPlaying)
-			{
-				m_Sound->Play();
-			}
-			#endif
+			bPlayAfterResume = false;
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", iCurrentStreamPosition);
+			m_Sound->Play();
+			m_Sound->Seek(iCurrentStreamPosition);
 		}
+		
 	}
 	if (pwrflags & PSP_POWER_CB_STANDBY)
 	{

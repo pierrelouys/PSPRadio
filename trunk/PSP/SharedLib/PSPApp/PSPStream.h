@@ -27,6 +27,7 @@
 		long lCurrentTime;
 		long lTotalTime;
 		int iLength;
+		int iBytePosition;
 		int iSampleRate;
 		int iBitRate;
 		int iNumberOfChannels;
@@ -38,6 +39,7 @@
 					lCurrentTime = lTotalTime = 0;
 					iLength = iSampleRate = iBitRate = iNumberOfChannels = iMPEGLayer = 0;
 					ContentType = CONTENT_NOT_DEFINED;
+					iBytePosition = 0;
 					iItemIndex = 0;}
 	};
 			
@@ -99,6 +101,8 @@
 		long GetCurrentTime() { return m_MetaData->lCurrentTime; }
 		void SetTotalTime(long lSeconds) { m_MetaData->lTotalTime = lSeconds; }
 		long GetTotalTime() { return  m_MetaData->lTotalTime; }
+		int  GetBytePosition() { return m_MetaData->iBytePosition; }
+		void SetBytePosition(int iNewPosition) { m_MetaData->iBytePosition = iNewPosition; }
 		
 		/** Move to protected when integrated with sound stream reader */
 		void SetState(stream_states State) { m_State = State; }
@@ -122,6 +126,8 @@
 		
 		virtual void Close();
 		virtual size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
+		virtual void Seek(int iNewPosition);
+		virtual int Tell();
 		virtual bool IsEOF();
 	
 	protected:

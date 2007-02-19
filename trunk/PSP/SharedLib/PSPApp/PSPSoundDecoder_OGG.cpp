@@ -254,6 +254,7 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 					if ((OV_EINVAL != Time) && (Time != m_InputStream->GetCurrentTime()))
 					{
 						m_InputStream->SetCurrentTime(Time);
+						m_InputStream->SetBytePosition(ov_raw_tell(&m_vf));
 						pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
 					}
 
@@ -265,6 +266,13 @@ size_t COGGStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 	
 	//Log(LOG_VERYLOW, "Read. (End) bitstream=%d", bitstream);
 	return BytesRead;
+}
+
+void COGGStreamReader::Seek(int iPosition)
+{
+	m_lock->Lock(); /** Vorbis is not thread safe */
+	ov_raw_seek(&m_vf, iPosition);
+	m_lock->Unlock();
 }
 
 /** ---------------------------------------------------------------------------------- **/
@@ -342,4 +350,9 @@ bool CPSPSoundDecoder_OGG::Decode()
 	}
 	
 	return m_InputStreamReader->IsEOF();
+}
+
+void CPSPSoundDecoder_OGG::Seek(int iPosition)
+{
+	m_InputStreamReader->Seek(iPosition);
 }

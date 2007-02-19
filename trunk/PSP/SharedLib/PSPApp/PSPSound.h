@@ -33,6 +33,7 @@
 		MID_DECODER_START 			= 0x10,
 		MID_DECODER_DECODE			= 0x11,
 		MID_DECODER_PAUSE			= 0x12,
+		MID_DECODER_SEEK			= 0x13,
 		MID_DECODER_STOP_NEEDOK		= 0x20,
 		MID_DECODER_THREAD_EXIT_NEEDOK = 0x30
 	};
@@ -80,6 +81,9 @@
 		int Play();
 		int Pause();
 		int Stop();
+
+		void Seek(int ilocation);
+
 		pspsound_state GetPlayState() { return m_CurrentState; };
 		
 		CPSPStream *GetCurrentStream(){ return m_CurrentStream; }

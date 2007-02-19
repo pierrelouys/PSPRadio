@@ -297,6 +297,30 @@ size_t BstdRead(void *UserBuffer, size_t ElementSize, size_t ElementsCount, bstd
 	return(FeededSize);
 }
 
+void BstdSeek(int iNewPosition, bstdfile_t *BstdFile)
+{
+	/* Check the validity of the arguments. */
+	if(BstdFile==NULL)
+	{
+		errno=EBADF;
+		return;
+	}
+
+	fseek(BstdFile->fp, iNewPosition, SEEK_SET);
+}
+
+int	BstdTell(bstdfile_t *BstdFile)
+{
+	/* Check the validity of the arguments. */
+	if(BstdFile==NULL)
+	{
+		errno=EBADF;
+		return 0;
+	}
+
+	return ftell(BstdFile->fp);
+}
+
 /*  LocalWords:  HTAB bstdfile fread Datatypes BstdRead fp bfile BstdFile
  */
 /*

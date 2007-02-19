@@ -43,6 +43,7 @@
 		
 		void Close();
 		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
+		void Seek(int iPosition);
 		void ReadComments(); /** Retrieve/Process metadata from the stream */
 		void COGGStreamReader::ProcessInfo(); /** Get/Process Stream info */
 		
@@ -62,6 +63,8 @@
 		void Initialize();
 			
 		bool Decode();
+
+		void Seek(int iPosition);
 
 	private:
 		unsigned char	*m_pInputBuffer;

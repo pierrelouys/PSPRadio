@@ -336,6 +336,44 @@ void CPSPStreamReader::Close()
 	memset(bPrevMetaData, 0, MAX_METADATA_SIZE);
 }
 
+void CPSPStreamReader::Seek(int iNewPosition)
+{
+	if (CPSPStream::STREAM_STATE_OPEN == m_CurrentStream->GetState())
+	{
+		switch(m_CurrentStream->GetType())
+		{
+			case CPSPStream::STREAM_TYPE_FILE:
+				BstdSeek(iNewPosition, m_BstdFile);
+				m_CurrentStream->SetBytePosition(iNewPosition);
+				Log(LOG_LOWLEVEL, "CPSPStreamReader::Seek(): %d", iNewPosition);
+				break;
+			default:
+				break;
+		}
+	}
+
+}
+
+int CPSPStreamReader::Tell()
+{
+	int iCurrentPos = 0;
+	if (CPSPStream::STREAM_STATE_OPEN == m_CurrentStream->GetState())
+	{
+		switch(m_CurrentStream->GetType())
+		{
+			case CPSPStream::STREAM_TYPE_FILE:
+				iCurrentPos = BstdTell(m_BstdFile);
+				m_CurrentStream->SetBytePosition(iCurrentPos);
+				Log(LOG_LOWLEVEL, "CPSPStreamReader::Tell(): %d", iCurrentPos);
+				break;
+			default:
+				break;
+		}
+	}
+
+	return 0;
+
+}
 
 size_t CPSPStreamReader::Read(unsigned char *pBuffer, size_t SizeInBytes)
 {

@@ -241,6 +241,15 @@ int CPSPSound::Stop()
 	return m_CurrentState;
 }
 
+void CPSPSound::Seek(int iLocation)
+{
+	CPSPEventQ::QEvent event = { 0, 0x0, NULL };
+	Log(LOG_LOWLEVEL, "Seek(): Called. location=%d",iLocation);
+	event.EventId = MID_DECODER_SEEK;
+	event.pData = (void *)iLocation;
+	m_EventToDecTh->Send(event);
+}
+
 /** Threads */
 int CPSPSound::ThPlayAudio(SceSize args, void *argp)
 {
@@ -457,6 +466,16 @@ int CPSPSound::ThDecode(SceSize args, void *argp)
 				}
 				break;
 				
+			case MID_DECODER_SEEK:
+				{
+					int iPosition = (int)event.pData;
+					if (bDecoderCreated)
+					{
+						Log(LOG_VERYLOW, "ThDecode:: Seek to %d", iPosition);
+						Decoder->Seek(iPosition);
+					}
+					break;
+				}
 			case MID_DECODER_PAUSE:
 				Log(LOG_VERYLOW, "ThDecode:: Pause Decoder message received.");
 				break;

@@ -194,7 +194,11 @@ bool CPSPSoundDecoder_MAD::Decode()
 	seconds = mad_timer_count(m_Timer, MAD_UNITS_SECONDS);
 	if ( (seconds - m_LastTimeSeconds) > 0 ) /** Only update if at least one second has passed */
 	{
+		////double time = (len * 8.0) / (Header->bitrate); /* time in seconds */
 		m_InputStream->SetCurrentTime(seconds);
+		//m_InputStream->SetCurrentTime(m_InputStreamReader->Tell()*8/m_InputStream->GetBitRate());
+		/** Calling Tell() updates the input stream's current position */
+		m_InputStreamReader->Tell();
 		m_LastTimeSeconds = seconds;
 		pPSPSound->SendEvent(MID_STREAM_TIME_UPDATED);
 	}
@@ -365,6 +369,38 @@ int CPSPSoundDecoder_MAD::PrintFrameInfo(struct mad_header *Header)
 	pPSPSound->SendEvent(MID_NEW_METADATA_AVAILABLE);
 	
 	return(0);
+}
+
+void CPSPSoundDecoder_MAD::Seek(int iPosition)
+{
+	long lLen = GetStreamLength();
+	
+
+	if (lLen <= 0)
+	{
+        Log(LOG_ERROR, "CPSPSoundDecoder_MAD::Seek: %s: Not a regular file\n", m_InputStream->GetURI());
+		return;
+	}
+
+	if (iPosition > lLen)
+	{
+        Log(LOG_ERROR, "CPSPSoundDecoder_MAD::Seek: Can't seek to %d, file is only %d big\n", iPosition, lLen);
+		return;
+	}
+
+	if (m_InputStreamReader)
+		m_InputStreamReader->Seek(iPosition);
+
+	mad_timer_reset(&m_Timer);
+
+	double time = (iPosition * 8.0) / (m_InputStream->GetBitRate()); /* time in seconds */
+	double timefrac = (double)time - ((long)(time));
+	mad_timer_t duration;
+	mad_timer_set(&duration, (long)time, (long)(timefrac*100), 100);
+	//long seconds = mad_timer_count(duration, MAD_UNITS_SECONDS);
+
+	mad_timer_add(&m_Timer, duration);
+	
 }
 
 long CPSPSoundDecoder_MAD::GetStreamLength()

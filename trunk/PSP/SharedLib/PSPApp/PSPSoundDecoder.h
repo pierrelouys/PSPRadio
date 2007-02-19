@@ -33,6 +33,8 @@
 		
 		virtual bool Decode(){return true;} /** Returns true on end-of-stream or unrecoverable error */
 
+		virtual void Seek(int iPosition){return;}
+
 	protected:
 		CPSPStream *m_InputStream;
 		CPSPStreamReader *m_InputStreamReader;

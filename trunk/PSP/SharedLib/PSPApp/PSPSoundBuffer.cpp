@@ -58,6 +58,11 @@ CPSPSoundBuffer::~CPSPSoundBuffer()
 	{
 		free(m_DeviceBuffer), m_DeviceBuffer = NULL;
 	}
+	if (m_EmptyDeviceBuffer)
+	{
+		free(m_EmptyDeviceBuffer), m_EmptyDeviceBuffer = NULL;
+	}
+	
 }
 
 /*Takes the number of PSP sound buffers 20~100. If not changed, defaults to DEFAULT_NUM_BUFFERS.*/

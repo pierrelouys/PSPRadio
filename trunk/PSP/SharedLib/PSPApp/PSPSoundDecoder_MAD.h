@@ -36,6 +36,8 @@
 			
 		bool Decode();
 
+		void Seek(int iPosition);
+
 	private:
 		struct mad_frame	m_Frame;
 		struct mad_stream	m_Stream;
