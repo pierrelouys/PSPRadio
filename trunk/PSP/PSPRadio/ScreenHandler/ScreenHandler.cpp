@@ -273,7 +273,8 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 	}
 	else if (MID_ONBUTTON_LONG_PRESS == iEventType)
 	{
-		if (iButtonMask & PSP_CTRL_SELECT)
+		//if (iButtonMask & PSP_CTRL_SELECT)
+		if (iButtonMask & m_Config->GetInteger("BUTTONS:TAKE_SCREENSHOT", PSP_CTRL_SELECT))
 		{
 			GetSound()->Stop(); /** Stop stream if playing, else the event queue can back-up */
 
@@ -303,14 +304,14 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 				//pPSPApp->SendEvent(EID_EXIT_SELECTED, NULL, SID_SCREENHANDLER);
 				Log(LOG_VERYLOW, "HOME BUTTON RECEIVED");
 			}
-			else if (iButtonMask & PSP_CTRL_START)		/** Go to Options screen */
+			else if (iButtonMask & m_Config->GetInteger("BUTTONS:OPTIONS", PSP_CTRL_START))		/** Go to Options screen */
 			{
 				// Enter option menu and store the current screen
 				m_PreviousScreen = m_CurrentScreen;
 				m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
 				m_CurrentScreen->Activate(m_UI);
 			}
-			else if (iButtonMask & PSP_CTRL_TRIANGLE) /** Cycle through screens (except options) */
+			else if (iButtonMask & m_Config->GetInteger("BUTTONS:CYCLE_SCREENS", PSP_CTRL_TRIANGLE)) /** Cycle through screens (except options) */
 			{
 				m_CurrentScreen = Screens[m_CurrentScreen->GetId()+1];
 				/** Don't go to options screen with triangle;
@@ -331,7 +332,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 #ifdef DYNAMIC_BUILD
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 #endif
-			if (iButtonMask & PSP_CTRL_START)	/** Get out of Options screen */
+			if (iButtonMask & m_Config->GetInteger("BUTTONS:OPTIONS_EXIT", PSP_CTRL_START))	/** Get out of Options screen */
 			{
 				// Go back to where we were before entering the options menu
 				m_CurrentScreen = m_PreviousScreen;

@@ -351,11 +351,9 @@ int CPSPRadio::ProcessEvents()
 					StartKeyLatch();
 					break;
 				case MID_PLUGINEXITED:
-					#ifdef DYNAMIC_BUILD
-						plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
-						Log(LOG_INFO, "Plugin Exited. Unloading. type = %d", type);
-						LoadPlugin(PLUGIN_OFF_STRING, type);
-					#endif
+					plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
+					Log(LOG_INFO, "Plugin Exited. Unloading. type = %d", type);
+					LoadPlugin(PLUGIN_OFF_STRING, type);
 					break;
 				}
 			}
@@ -589,9 +587,17 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 		if (bPlayAfterResume)
 		{
 			bPlayAfterResume = false;
-			Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", iCurrentStreamPosition);
-			m_Sound->Play();
-			m_Sound->Seek(iCurrentStreamPosition);
+			
+			if (m_Sound->GetCurrentStream()->GetType() == CPSPStream::STREAM_TYPE_FILE)
+			{
+				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", iCurrentStreamPosition);
+				m_Sound->Play();
+				m_Sound->Seek(iCurrentStreamPosition);
+			}
+			else
+			{
+				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, but it was an online stream. Let the user restart it.");
+			}
 		}
 		
 	}
