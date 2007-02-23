@@ -31,6 +31,7 @@
 #include <psphprm.h>
 #include <UI_Interface.h>
 #include "PlayListScreen.h"
+#include <PSPRadio.h>
 
 PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)
 {
@@ -117,14 +118,14 @@ void PlayListScreen::InputHandler(int iButtonMask)
 
 	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 		
-	if (iButtonMask & PSP_CTRL_LEFT)
+	if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.CANCEL))
 	{
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 
 		/** tell ui of m_Lists->GetCurrentSide() change. */
 		m_UI->OnCurrentContainerSideChange(m_Lists); 
 	}
-	else if (iButtonMask & PSP_CTRL_LTRIGGER)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.PGUP))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -153,7 +154,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (iButtonMask & PSP_CTRL_RTRIGGER)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.PGDN))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -182,7 +183,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (iButtonMask & PSP_CTRL_UP)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BACK))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -199,7 +200,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (iButtonMask & PSP_CTRL_DOWN)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.FWD))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -216,7 +217,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (iButtonMask & PSP_CTRL_CROSS || iButtonMask & PSP_CTRL_CIRCLE) 
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OK))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -318,7 +319,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			
 		}
 	}
-	else if (iButtonMask & PSP_CTRL_SQUARE)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.STOP))
 	{
 		if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 		{

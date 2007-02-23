@@ -4,18 +4,40 @@
 	#include <Logging.h>
 	#include "../SharedLib/PSPApp/PSPSoundDeviceBuffer.h"
 
-		typedef enum
-		{
-			PLUGIN_NA = 0,
-			PLUGIN_UI,
-			PLUGIN_FSS,
-			PLUGIN_APP,
-			PLUGIN_GAME,
-			/** This has to be the last */
-			NUMBER_OF_PLUGIN_TYPES,
-		}plugin_type;
+	typedef enum
+	{
+		PLUGIN_NA = 0,
+		PLUGIN_UI,
+		PLUGIN_FSS,
+		PLUGIN_APP,
+		PLUGIN_GAME,
+		/** This has to be the last */
+		NUMBER_OF_PLUGIN_TYPES,
+	}plugin_type;
 
-
+	typedef struct
+	{
+		int TAKE_SCREENSHOT;
+		int OK;
+		int CANCEL;
+		int STOP;
+		int OPTIONS;
+		int OPTIONS_EXIT;
+		int CYCLE_SCREENS;
+		int CYCLE_SCREENS_BACK;
+		int BACK;
+		int FWD;
+		int PGDN;
+		int PGUP;
+		//for options screen
+		int OPT_NAMES_FWD;
+		int OPT_NAMES_BACK;
+		int OPT_OPTIONS_FWD;
+		int OPT_OPTIONS_BACK;
+		int OPT_ACTIVATE;
+		
+	}_button_mappings_struct_;
+	
 	#ifdef __cplusplus
 		extern "C"
 		{

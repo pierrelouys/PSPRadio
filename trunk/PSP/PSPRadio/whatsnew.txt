@@ -8,6 +8,7 @@ BUG FIXES
 (raf) Core: Added AUTOSTART option under USB, instead of it being its own option, and using up screenspace.
 (raf) Core: Better Suspend/Resume support.
 (raf) Core: Added Tell/Seek functions to the streams/decoding. Added support to resume to continue playing where it was before it went into suspend mode (localfiles).
+(raf) Core: Buttons can now be mapped. Look at PSPRadio.cfg for details. Changed the default mappings. SQUARE=CANCEL now. L+R cycle screens. (Button combinations are now also allowed).
 KNOWN BUGS
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.
 (raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).

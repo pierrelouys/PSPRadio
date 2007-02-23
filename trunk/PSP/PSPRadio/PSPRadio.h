@@ -33,6 +33,7 @@
 
 #define PLUGIN_OFF_STRING	"Off"
 
+extern _button_mappings_struct_ PSPRadioButtonMap;
 
 /** Sender IDs */
 #define SID_PSPRADIO				0x00000001
@@ -84,6 +85,7 @@
 		int LoadPlugin(char *strPlugin, plugin_type type);
 		char *GetActivePluginName(plugin_type type);
 		void SetExclusiveAccessPluginType(plugin_type type) { m_ExclusiveAccessPluginType = type; }
+		int Setup_ButtonMapping();
 
 	private:
 		CPRXLoader *m_ModuleLoader[NUMBER_OF_PLUGIN_TYPES];

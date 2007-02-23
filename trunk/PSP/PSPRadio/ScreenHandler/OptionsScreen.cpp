@@ -662,14 +662,14 @@ int OptionsScreen::Stop_Network()
 
 void OptionsScreen::InputHandler(int iButtonMask)
 {
-	if (iButtonMask & PSP_CTRL_UP)
+	if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPT_NAMES_BACK))
 	{
 		if(m_CurrentOptionIterator == m_OptionsList.begin())
 			m_CurrentOptionIterator = m_OptionsList.end();
 		m_CurrentOptionIterator--;
 		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
-	else if (iButtonMask & PSP_CTRL_DOWN)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPT_NAMES_FWD))
 	{
 		m_CurrentOptionIterator++;
 		if(m_CurrentOptionIterator == m_OptionsList.end())
@@ -677,7 +677,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 
 		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
-	else if (iButtonMask & PSP_CTRL_LEFT)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPT_OPTIONS_BACK))
 	{
 		if ((*m_CurrentOptionIterator).iSelectedState > 1)
 		{
@@ -687,7 +687,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
-	else if (iButtonMask & PSP_CTRL_RIGHT)
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPT_OPTIONS_FWD))
 	{
 		if ((*m_CurrentOptionIterator).iSelectedState < (*m_CurrentOptionIterator).iNumberOfStates)
 		{
@@ -697,7 +697,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
-	else if ( (iButtonMask & PSP_CTRL_CROSS) || (iButtonMask & PSP_CTRL_CIRCLE) )
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPT_ACTIVATE))
 	{
 		OnOptionActivation();
 	}

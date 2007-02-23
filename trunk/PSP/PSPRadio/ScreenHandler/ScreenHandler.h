@@ -10,6 +10,9 @@
 	using namespace std;
 #endif
 
+	//#define IS_BUTTON_PRESSED(i,b) ((i & b) == b)
+	#define IS_BUTTON_PRESSED(i,b) ((i & 0xFFFF) == b)
+	
 	#define DEFAULT_UI_MODULE "UI_Text.prx"
 	#define DEFAULT_SKIN	  "Default"
 

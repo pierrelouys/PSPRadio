@@ -22,6 +22,7 @@
 #include "PSPRadio_Exports.h"
 #include "PSPRadio.h"
 
+_button_mappings_struct_ PSPRadioButtonMap;
 CScreen *rootScreen;
 DeviceBuffer *g_PCMBuffer = NULL;
 
@@ -55,6 +56,8 @@ int CPSPRadio::Setup(int argc, char **argv)
 	Setup_Logging(m_strCWD);
 
 	Log(LOG_VERYLOW, "Main(): this=%p", this);
+
+	Setup_ButtonMapping();
 
 	for (int i = 0; i < argc ; i++)
 	{
@@ -154,6 +157,49 @@ int CPSPRadio::Setup_Logging(char *strCurrentDir)
 		Log(LOG_ALWAYS, "--------------------------------------------------------");
 		Log(LOG_ALWAYS, "%s Version %s Starting - Using Loglevel %d", GetProgramName(), GetProgramVersion(),
 			iLoglevel);
+	}
+
+	return 0;
+}
+
+int CPSPRadio::Setup_ButtonMapping()
+{
+	if ( m_Config )
+	{
+		PSPRadioButtonMap.TAKE_SCREENSHOT = 
+			m_Config->GetInteger("BUTTONS:TAKE_SCREENSHOT", PSP_CTRL_SELECT);
+		PSPRadioButtonMap.OK = 
+			m_Config->GetInteger("BUTTONS:OK", PSP_CTRL_CROSS);
+		PSPRadioButtonMap.CANCEL = 
+			m_Config->GetInteger("BUTTONS:CANCEL", PSP_CTRL_CIRCLE);
+		PSPRadioButtonMap.STOP = 
+			m_Config->GetInteger("BUTTONS:STOP", PSP_CTRL_SQUARE);
+		PSPRadioButtonMap.OPTIONS = 
+			m_Config->GetInteger("BUTTONS:OPTIONS", PSP_CTRL_START);
+		PSPRadioButtonMap.OPTIONS_EXIT = 
+			m_Config->GetInteger("BUTTONS:OPTIONS_EXIT", PSP_CTRL_START);
+		PSPRadioButtonMap.CYCLE_SCREENS = 
+			m_Config->GetInteger("BUTTONS:CYCLE_SCREENS", PSP_CTRL_TRIANGLE);
+		PSPRadioButtonMap.CYCLE_SCREENS_BACK = 
+			m_Config->GetInteger("BUTTONS:CYCLE_SCREENS_BACK", PSP_CTRL_TRIANGLE);
+		PSPRadioButtonMap.BACK = 
+			m_Config->GetInteger("BUTTONS:BACK", PSP_CTRL_UP);
+		PSPRadioButtonMap.FWD = 
+			m_Config->GetInteger("BUTTONS:FWD", PSP_CTRL_DOWN);
+		PSPRadioButtonMap.PGDN = 
+			m_Config->GetInteger("BUTTONS:PGDN", PSP_CTRL_RTRIGGER);
+		PSPRadioButtonMap.PGUP = 
+			m_Config->GetInteger("BUTTONS:PGUP", PSP_CTRL_LTRIGGER);
+		PSPRadioButtonMap.OPT_NAMES_FWD = 
+			m_Config->GetInteger("BUTTONS:OPT_NAMES_FWD", PSP_CTRL_DOWN);
+		PSPRadioButtonMap.OPT_NAMES_BACK = 
+			m_Config->GetInteger("BUTTONS:OPT_NAMES_BACK", PSP_CTRL_UP);
+		PSPRadioButtonMap.OPT_OPTIONS_FWD = 
+			m_Config->GetInteger("BUTTONS:OPT_OPTIONS_FWD", PSP_CTRL_RIGHT);
+		PSPRadioButtonMap.OPT_OPTIONS_BACK = 
+			m_Config->GetInteger("BUTTONS:OPT_OPTIONS_BACK", PSP_CTRL_LEFT);
+		PSPRadioButtonMap.OPT_ACTIVATE = 
+			m_Config->GetInteger("BUTTONS:OPT_ACTIVATE", PSP_CTRL_CROSS);
 	}
 
 	return 0;
