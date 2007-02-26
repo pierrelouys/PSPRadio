@@ -99,3 +99,24 @@ DeviceBuffer *PSPRadioExport_GetPCMBuffer()
 {
 	return g_PCMBuffer;
 }
+
+int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
+{
+	bool ret = false;
+	switch(type)
+	{
+		default:
+			ret = false; /* Not implemented */
+			break;
+		case PSPRADIOIF_SET_BUTTONMAP_CONFIG:
+			gPSPRadio->Setup_ButtonMapping((CIniParser *)Data->Pointer);
+			ret = true;
+			break;
+		case PSPRADIOIF_GET_SOUND_OBJECT:
+			Data->Pointer = gPSPRadio->GetSoundObject();
+			ret = true;
+			break;
+	}	
+	
+	return ret;
+}

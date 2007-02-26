@@ -17,24 +17,24 @@
 
 	typedef struct
 	{
-		int TAKE_SCREENSHOT;
-		int OK;
-		int CANCEL;
-		int STOP;
-		int OPTIONS;
-		int OPTIONS_EXIT;
-		int CYCLE_SCREENS;
-		int CYCLE_SCREENS_BACK;
-		int BACK;
-		int FWD;
-		int PGDN;
-		int PGUP;
+		int BTN_TAKE_SCREENSHOT;
+		int BTN_OK;
+		int BTN_CANCEL;
+		int BTN_STOP;
+		int BTN_OPTIONS;
+		int BTN_OPTIONS_EXIT;
+		int BTN_CYCLE_SCREENS;
+		int BTN_CYCLE_SCREENS_BACK;
+		int BTN_BACK;
+		int BTN_FWD;
+		int BTN_PGDN;
+		int BTN_PGUP;
 		//for options screen
-		int OPT_NAMES_FWD;
-		int OPT_NAMES_BACK;
-		int OPT_OPTIONS_FWD;
-		int OPT_OPTIONS_BACK;
-		int OPT_ACTIVATE;
+		int BTN_OPT_NAMES_FWD;
+ 		int BTN_OPT_NAMES_BACK;
+		int BTN_OPT_OPTIONS_FWD;
+		int BTN_OPT_OPTIONS_BACK;
+		int BTN_OPT_ACTIVATE;
 		
 	}_button_mappings_struct_;
 	
@@ -79,12 +79,18 @@
 			
 			typedef enum
 			{
-				PSPRADIOIF_VERSION,
-				PSPRADIOIF_IP,
-				PSPRADIOIF_LOG_FUNCTION
-			}pspradioexport_gettypes;
+				PSPRADIOIF_SET_BUTTONMAP_CONFIG,
+				PSPRADIOIF_GET_SOUND_OBJECT,
+			}pspradioexport_types;
 			
-			bool PSPRadioIF_Get(pspradioexport_gettypes type, void *pResult);
+			typedef struct
+			{
+				int   Number;
+				void *Pointer;
+			}pspradioexport_ifdata;
+				
+
+			int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data);
 
 		#endif // #ifdef STAND_ALONE_APP
 	#ifdef __cplusplus

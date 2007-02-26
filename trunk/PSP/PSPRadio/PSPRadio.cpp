@@ -57,7 +57,7 @@ int CPSPRadio::Setup(int argc, char **argv)
 
 	Log(LOG_VERYLOW, "Main(): this=%p", this);
 
-	Setup_ButtonMapping();
+	Setup_ButtonMapping(m_Config);
 
 	for (int i = 0; i < argc ; i++)
 	{
@@ -162,44 +162,49 @@ int CPSPRadio::Setup_Logging(char *strCurrentDir)
 	return 0;
 }
 
-int CPSPRadio::Setup_ButtonMapping()
+int CPSPRadio::Setup_ButtonMapping(CIniParser *pConfig)
 {
-	if ( m_Config )
+	if ( pConfig == NULL )
 	{
-		PSPRadioButtonMap.TAKE_SCREENSHOT = 
-			m_Config->GetInteger("BUTTONS:TAKE_SCREENSHOT", PSP_CTRL_SELECT);
-		PSPRadioButtonMap.OK = 
-			m_Config->GetInteger("BUTTONS:OK", PSP_CTRL_CROSS);
-		PSPRadioButtonMap.CANCEL = 
-			m_Config->GetInteger("BUTTONS:CANCEL", PSP_CTRL_CIRCLE);
-		PSPRadioButtonMap.STOP = 
-			m_Config->GetInteger("BUTTONS:STOP", PSP_CTRL_SQUARE);
-		PSPRadioButtonMap.OPTIONS = 
-			m_Config->GetInteger("BUTTONS:OPTIONS", PSP_CTRL_START);
-		PSPRadioButtonMap.OPTIONS_EXIT = 
-			m_Config->GetInteger("BUTTONS:OPTIONS_EXIT", PSP_CTRL_START);
-		PSPRadioButtonMap.CYCLE_SCREENS = 
-			m_Config->GetInteger("BUTTONS:CYCLE_SCREENS", PSP_CTRL_TRIANGLE);
-		PSPRadioButtonMap.CYCLE_SCREENS_BACK = 
-			m_Config->GetInteger("BUTTONS:CYCLE_SCREENS_BACK", PSP_CTRL_TRIANGLE);
-		PSPRadioButtonMap.BACK = 
-			m_Config->GetInteger("BUTTONS:BACK", PSP_CTRL_UP);
-		PSPRadioButtonMap.FWD = 
-			m_Config->GetInteger("BUTTONS:FWD", PSP_CTRL_DOWN);
-		PSPRadioButtonMap.PGDN = 
-			m_Config->GetInteger("BUTTONS:PGDN", PSP_CTRL_RTRIGGER);
-		PSPRadioButtonMap.PGUP = 
-			m_Config->GetInteger("BUTTONS:PGUP", PSP_CTRL_LTRIGGER);
-		PSPRadioButtonMap.OPT_NAMES_FWD = 
-			m_Config->GetInteger("BUTTONS:OPT_NAMES_FWD", PSP_CTRL_DOWN);
-		PSPRadioButtonMap.OPT_NAMES_BACK = 
-			m_Config->GetInteger("BUTTONS:OPT_NAMES_BACK", PSP_CTRL_UP);
-		PSPRadioButtonMap.OPT_OPTIONS_FWD = 
-			m_Config->GetInteger("BUTTONS:OPT_OPTIONS_FWD", PSP_CTRL_RIGHT);
-		PSPRadioButtonMap.OPT_OPTIONS_BACK = 
-			m_Config->GetInteger("BUTTONS:OPT_OPTIONS_BACK", PSP_CTRL_LEFT);
-		PSPRadioButtonMap.OPT_ACTIVATE = 
-			m_Config->GetInteger("BUTTONS:OPT_ACTIVATE", PSP_CTRL_CROSS);
+		pConfig = m_Config;
+	}
+
+	if ( pConfig )
+	{
+		PSPRadioButtonMap.BTN_TAKE_SCREENSHOT = 
+			pConfig->GetInteger("BUTTONS:BTN_TAKE_SCREENSHOT", PSP_CTRL_SELECT);
+		PSPRadioButtonMap.BTN_OK = 
+			pConfig->GetInteger("BUTTONS:BTN_OK", PSP_CTRL_CROSS);
+		PSPRadioButtonMap.BTN_CANCEL = 
+			pConfig->GetInteger("BUTTONS:BTN_CANCEL", PSP_CTRL_CIRCLE);
+		PSPRadioButtonMap.BTN_STOP = 
+			pConfig->GetInteger("BUTTONS:BTN_STOP", PSP_CTRL_SQUARE);
+		PSPRadioButtonMap.BTN_OPTIONS = 
+			pConfig->GetInteger("BUTTONS:BTN_OPTIONS", PSP_CTRL_START);
+		PSPRadioButtonMap.BTN_OPTIONS_EXIT = 
+			pConfig->GetInteger("BUTTONS:BTN_OPTIONS_EXIT", PSP_CTRL_START);
+		PSPRadioButtonMap.BTN_CYCLE_SCREENS = 
+			pConfig->GetInteger("BUTTONS:BTN_CYCLE_SCREENS", PSP_CTRL_TRIANGLE);
+		PSPRadioButtonMap.BTN_CYCLE_SCREENS_BACK = 
+			pConfig->GetInteger("BUTTONS:BTN_CYCLE_SCREENS_BACK", PSP_CTRL_TRIANGLE);
+		PSPRadioButtonMap.BTN_BACK = 
+			pConfig->GetInteger("BUTTONS:BTN_BACK", PSP_CTRL_UP);
+		PSPRadioButtonMap.BTN_FWD = 
+			pConfig->GetInteger("BUTTONS:BTN_FWD", PSP_CTRL_DOWN);
+		PSPRadioButtonMap.BTN_PGDN = 
+			pConfig->GetInteger("BUTTONS:BTN_PGDN", PSP_CTRL_RTRIGGER);
+		PSPRadioButtonMap.BTN_PGUP = 
+			pConfig->GetInteger("BUTTONS:BTN_PGUP", PSP_CTRL_LTRIGGER);
+		PSPRadioButtonMap.BTN_OPT_NAMES_FWD = 
+			pConfig->GetInteger("BUTTONS:BTN_OPT_NAMES_FWD", PSP_CTRL_DOWN);
+		PSPRadioButtonMap.BTN_OPT_NAMES_BACK = 
+			pConfig->GetInteger("BUTTONS:BTN_OPT_NAMES_BACK", PSP_CTRL_UP);
+		PSPRadioButtonMap.BTN_OPT_OPTIONS_FWD = 
+			pConfig->GetInteger("BUTTONS:BTN_OPT_OPTIONS_FWD", PSP_CTRL_RIGHT);
+		PSPRadioButtonMap.BTN_OPT_OPTIONS_BACK = 
+			pConfig->GetInteger("BUTTONS:BTN_OPT_OPTIONS_BACK", PSP_CTRL_LEFT);
+		PSPRadioButtonMap.BTN_OPT_ACTIVATE = 
+			pConfig->GetInteger("BUTTONS:BTN_OPT_ACTIVATE", PSP_CTRL_CROSS);
 	}
 
 	return 0;

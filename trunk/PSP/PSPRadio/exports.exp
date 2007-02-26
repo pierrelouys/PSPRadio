@@ -11,6 +11,7 @@ PSP_BEGIN_EXPORTS
 	
 	# Functions used from Plugins
 	PSP_EXPORT_START(PSPRadioExports, 0, 0x0001)
+		PSP_EXPORT_FUNC(PSPRadioIF)
 		PSP_EXPORT_FUNC(PSPRadioExport_PluginExits)
 		PSP_EXPORT_FUNC(PSPRadioExport_Log)
 		PSP_EXPORT_FUNC(PSPRadioExport_GetProgramVersion)

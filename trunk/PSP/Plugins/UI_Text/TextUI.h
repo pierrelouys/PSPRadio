@@ -99,6 +99,7 @@ private:
 	char *m_strCWD;
 	char *m_strConfigDir;
 	CScreenHandler::ScreenShotState m_ScreenShotState;
+	CPSPSound *m_Sound;
 	//helpers
 	enum uicolors
 	{

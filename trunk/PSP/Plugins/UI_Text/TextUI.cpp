@@ -63,7 +63,15 @@ CTextUI::CTextUI()
 	m_isdirty = false;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
-	
+
+	/* Get some PSPRadio objects */
+	pspradioexport_ifdata ifdata;
+	memset(&ifdata, 0, sizeof(ifdata));
+	ifdata.Pointer = m_Config;
+
+	PSPRadioIF(PSPRADIOIF_GET_SOUND_OBJECT, &ifdata);
+	m_Sound = (CPSPSound*)ifdata.Pointer;
+
 	TextUILog(LOG_VERYLOW, "CtextUI: Constructor end.");
 }
 
@@ -264,6 +272,20 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));
 		m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 
 													strlen(m_ScreenConfig.strEntriesListTitleUnselected));
+													
+
+		pspradioexport_ifdata ifdata;
+		memset(&ifdata, 0, sizeof(ifdata));
+		if (m_Config->GetInteger("BUTTONS:USE_CUSTOMIZED_BUTTONS", 0) == 1)
+		{
+			ifdata.Pointer = m_Config;
+			PSPRadioIF(PSPRADIOIF_SET_BUTTONMAP_CONFIG, &ifdata);
+		}
+		else /* Tell it to restore defaults from PSPRadio.cfg */
+		{
+			ifdata.Pointer = NULL;
+			PSPRadioIF(PSPRADIOIF_SET_BUTTONMAP_CONFIG, &ifdata);
+		}
 	}
 	
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() end");
@@ -773,6 +795,7 @@ int CTextUI::OnStreamOpeningSuccess()
 int CTextUI::OnNewSongData(MetaData *pData)
 {
 	//int r1,r2,x1;
+	pData = m_Sound->GetCurrentStream()->GetMetaData();
 
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{

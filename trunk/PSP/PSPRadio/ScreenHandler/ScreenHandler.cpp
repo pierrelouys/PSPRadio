@@ -266,14 +266,14 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 	/** Only do UP and DOWN repeats */
 	if (MID_ONBUTTON_REPEAT == iEventType)
 	{
-		if(IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.FWD) || IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BACK))
+		if(IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_FWD) || IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_BACK))
 		{
 			return;
 		}
 	}
 	else if (MID_ONBUTTON_LONG_PRESS == iEventType)
 	{
-		if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.TAKE_SCREENSHOT))
+		if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_TAKE_SCREENSHOT))
 		{
 			GetSound()->Stop(); /** Stop stream if playing, else the event queue can back-up */
 
@@ -298,14 +298,14 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
-			if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPTIONS))		/** Go to Options screen */
+			if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OPTIONS))		/** Go to Options screen */
 			{
 				// Enter option menu and store the current screen
 				m_PreviousScreen = m_CurrentScreen;
 				m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
 				m_CurrentScreen->Activate(m_UI);
 			}
-			else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.CYCLE_SCREENS)) /** Cycle through screens (except options) */
+			else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_CYCLE_SCREENS)) /** Cycle through screens (except options) */
 			{
 				m_CurrentScreen = Screens[m_CurrentScreen->GetId()+1];
 				/** Don't go to options screen with triangle;
@@ -317,7 +317,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 				}
 				m_CurrentScreen->Activate(m_UI);
 			}
-			else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.CYCLE_SCREENS_BACK)) /** Cycle through screens (except options) */
+			else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_CYCLE_SCREENS_BACK)) /** Cycle through screens (except options) */
 			{
 				int newscreenindex = m_CurrentScreen->GetId() - 1;
 				if (newscreenindex < PSPRADIO_SCREEN_LIST_BEGIN)
@@ -340,7 +340,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 #ifdef DYNAMIC_BUILD
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 #endif
-			if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OPTIONS_EXIT))	/** Get out of Options screen */
+			if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OPTIONS_EXIT))	/** Get out of Options screen */
 			{
 				// Go back to where we were before entering the options menu
 				m_CurrentScreen = m_PreviousScreen;

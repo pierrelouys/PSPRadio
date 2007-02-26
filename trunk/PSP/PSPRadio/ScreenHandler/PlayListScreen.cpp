@@ -118,14 +118,14 @@ void PlayListScreen::InputHandler(int iButtonMask)
 
 	Log(LOG_VERYLOW, "OnButtonReleased(): iButtonMask=0x%x", iButtonMask);
 		
-	if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.CANCEL))
+	if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_CANCEL))
 	{
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 
 		/** tell ui of m_Lists->GetCurrentSide() change. */
 		m_UI->OnCurrentContainerSideChange(m_Lists); 
 	}
-	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.PGUP))
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_PGUP))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -154,7 +154,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.PGDN))
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_PGDN))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -183,7 +183,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BACK))
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_BACK))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -200,7 +200,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.FWD))
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_FWD))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -217,7 +217,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				break;
 		}
 	}
-	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.OK))
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OK))
 	{
 		switch(m_Lists->GetCurrentSide())
 		{
@@ -319,7 +319,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			
 		}
 	}
-	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.STOP))
+	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_STOP))
 	{
 		if (playingstate == CPSPSound::PLAY || playingstate == CPSPSound::PAUSE)
 		{

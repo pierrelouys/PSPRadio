@@ -85,7 +85,8 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		int LoadPlugin(char *strPlugin, plugin_type type);
 		char *GetActivePluginName(plugin_type type);
 		void SetExclusiveAccessPluginType(plugin_type type) { m_ExclusiveAccessPluginType = type; }
-		int Setup_ButtonMapping();
+		int Setup_ButtonMapping(CIniParser *pConfig);
+		CPSPSound *GetSoundObject(){ return m_Sound; }
 
 	private:
 		CPRXLoader *m_ModuleLoader[NUMBER_OF_PLUGIN_TYPES];
