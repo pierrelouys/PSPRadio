@@ -1,4 +1,4 @@
-PSPRadio 1.1.xxxx 2007
+PSPRadio 1.xx.xxxx 2007
 =======================
 
 -Offical forums: http://pspradio.sourceforge.net/phpBB/index.php
