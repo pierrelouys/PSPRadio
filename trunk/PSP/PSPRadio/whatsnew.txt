@@ -1,7 +1,7 @@
 What's New for PSPRadio
 ========================
 
-1.15.xxxx (2007-02-xx)
+1.15.1283 (2007-02-26)
 NEW FEATURES
 BUG FIXES
 (raf) Core: USB is now working again, thanks to AhMan's for the help.
