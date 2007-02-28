@@ -30,14 +30,10 @@
 		size_t GetNumberOfTextColumns(){ return PSP_SCREEN_WIDTH/m_FontWidth; }
 		size_t GetNumberOfTextRows(){ return PSP_SCREEN_HEIGHT/m_FontHeight; }
 		void Printf(const char *format, ...);
-		void PrintText(int pixel_x, int pixel_y, int color, char *string);
 		void Clear();
 		void SetXY(int x, int y);
 		int  GetX();
 		int  GetY();
-		void ClearNChars(int X, int Y, int N);
-		void ClearLine(int Y);
-		void ClearCharsAtYFromX1ToX2(int pixel_y, int pixel_x1, int pixel_x2);
 		
 	private:
 		int X, Y;
@@ -51,14 +47,24 @@
 		int m_FontWidth, m_FontHeight;
 
 		void Init();
-		void PutChar( int x, int y, u32 color, u8 ch, bool do_background = true);
 		int  PrintData(const char *buff, int size);
 		void LoadImage(const char* filename, u32 *ImageBuffer);
 		void clear_screen(u32 color);
 		void PutEraseChar( int x, int y, u32 color);
-		void PutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch);
-		void PutCharWithShadow(int x, int y, u32 bg_color, u32 fg_color, u8 ch);
 		void ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2);
+		
+		
+		//NEW:
+	public:
+		void DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2);
+		void SetFrameBuffer(int iBuffer);
+		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
+				
+	private:
+		int FRAMESIZE;
+		void PutChar(int iBuffer, int x, int y, u32 color, u8 ch, bool do_background = true);
+		void PutCharWithOutline(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
+		void PutCharWithShadow(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
 
 	};
 		

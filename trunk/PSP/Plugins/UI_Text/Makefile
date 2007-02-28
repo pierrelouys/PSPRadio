@@ -23,7 +23,8 @@ ASFLAGS = $(CFLAGS)
 
 LIBDIR =
 
-LIBS =  -lstdc++ -liniparser -lTools -lpng -lz -lm -lPluginCommon
+
+LIBS = -lstdc++ -lTools -liniparser -lPluginCommon  -lpng -lz -lm
 
 all: $(TARGET).prx
 

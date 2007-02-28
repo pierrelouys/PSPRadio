@@ -155,8 +155,60 @@ void CScreen::Init()
 	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 	sceDisplaySetFrameBuf((void *) g_vram_base, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
 	//clear_screen(bg_col);
+	FRAMESIZE = PSP_LINE_SIZE * PSP_SCREEN_HEIGHT * 4;
 	init = true;
 }
+
+void CScreen::DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
+{
+	u16* vram16;
+	int bufferwidth;
+	int pixelformat;
+	u32 x,y;
+	u32 *vram32 = NULL;
+	//int unknown;
+	//sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
+	//sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, &unknown); 
+	bufferwidth = PSP_LINE_SIZE;
+	pixelformat = PSP_PIXEL_FORMAT;
+	//vram32 = g_vram_base;//
+	vram32 = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
+	
+	vram16 = (u16*) vram32;
+	for (y = y1; y < y2; y++) {
+		for (x = x1; x < x2; x++) {
+			u32 color32 = m_ImageBuffer[y*PSP_SCREEN_WIDTH+x];
+			u16 color16;
+			int r = color32 & 0xff;
+			int g = (color32 >> 8) & 0xff;
+			int b = (color32 >> 16) & 0xff;
+			switch (pixelformat) {
+				case PSP_DISPLAY_PIXEL_FORMAT_565:
+					color16 = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+					vram16[x + y * bufferwidth] = color16;
+					break;
+				case PSP_DISPLAY_PIXEL_FORMAT_5551:
+					color16 = (r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10);
+					vram16[x + y * bufferwidth] = color16;
+					break;
+				case PSP_DISPLAY_PIXEL_FORMAT_4444:
+					color16 = (r >> 4) | ((g >> 4) << 4) | ((b >> 4) << 8);
+					vram16[x + y * bufferwidth] = color16;
+					break;
+				case PSP_DISPLAY_PIXEL_FORMAT_8888:
+					color32 = r | (g << 8) | (b << 16);
+					vram32[x + y * bufferwidth] = color32;
+					break;
+			}
+		}
+	}
+}
+
+void CScreen::SetFrameBuffer(int iBuffer)
+{
+	sceDisplaySetFrameBuf((u32*)((char*)g_vram_base+FRAMESIZE*iBuffer), PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
+}
+
 
 void CScreen::SetBackgroundImage(char *strImage)
 {
@@ -195,7 +247,7 @@ void CScreen::SetTextColor(u32 color)
 
 extern u8 msx[];
 
-void CScreen::PutChar( int x, int y, u32 color, u8 ch, bool do_background)
+void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch, bool do_background)
 {
 	int 	i,j;
 	u8	*font;
@@ -208,7 +260,7 @@ void CScreen::PutChar( int x, int y, u32 color, u8 ch, bool do_background)
 	   return;
 	}
 	
-	vram = g_vram_base + x;
+	vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer) + x;
 	vram += (y * PSP_LINE_SIZE);
 	
 	font = &msx[ (int)ch * 8];
@@ -247,177 +299,32 @@ void CScreen::PutChar( int x, int y, u32 color, u8 ch, bool do_background)
 	}
 }
 
-void CScreen::PutEraseChar( int x, int y, u32 color)
+void CScreen::PutCharWithOutline(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
-	int 	i,j;
-	u32 *vram_ptr;
-	u32 *vram;
-	int iCharHeight = m_FontHeight, iCharWidth = m_FontWidth;
-	
-	if(false == init)
-	{
-	   return;
-	}
-	
-	#if 0
-	switch(m_TextMode)
-	{
-		case TEXTMODE_NORMAL:
-			iCharHeight = 8;
-			iCharWidth  = 8;
-			break;
-		case TEXTMODE_OUTLINED:
-			iCharHeight = 9;
-			iCharWidth  = 9;
-			break;
-		case TEXTMODE_SHADOWED:
-			iCharHeight = 9;
-			iCharWidth  = 9;
-			break;
-	}
-	#endif
-	
-	if (NULL == m_ImageBuffer)
-	{
-		PutChar( x, y, bg_col, 219);
-	}
-	else
-	{
-		vram = g_vram_base + x;
-		vram += (y * PSP_LINE_SIZE);
-		
-		for (i=0; i < iCharHeight; i++)
-		{
-			vram_ptr  = vram;
-			for (j=0; j < iCharWidth; j++)
-			{
-				*vram_ptr++ = m_ImageBuffer[(y+i)*PSP_SCREEN_WIDTH+(x+j)]; /** If bg image buffer exists, we use that as bg */
-			}
-			vram += PSP_LINE_SIZE;
-		}
-	}
-}
-
-void CScreen::PutCharWithOutline(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
-{
-	PutEraseChar(x,y, 0);
-
 	/** y */	
-	PutChar(x,   y, bg_color, ch, false);
-	PutChar(x+1, y, bg_color, ch, false);	
-	PutChar(x+2, y, bg_color, ch, false);
+	PutChar(iBuffer, x,   y, bg_color, ch, false);
+	PutChar(iBuffer, x+1, y, bg_color, ch, false);	
+	PutChar(iBuffer, x+2, y, bg_color, ch, false);
 	/** y + 2 */
-	PutChar(x,   y+2, bg_color, ch, false);
-	PutChar(x+1, y+2, bg_color, ch, false);	
-	PutChar(x+2, y+2, bg_color, ch, false);
+	PutChar(iBuffer, x,   y+2, bg_color, ch, false);
+	PutChar(iBuffer, x+1, y+2, bg_color, ch, false);	
+	PutChar(iBuffer, x+2, y+2, bg_color, ch, false);
 	/** y + 1 */
-	PutChar(x,   y+1, bg_color, ch, false);
-	PutChar(x+2, y+1, bg_color, ch, false);
-	PutChar(x+1, y+1, fg_color, ch, false);	
+	PutChar(iBuffer, x,   y+1, bg_color, ch, false);
+	PutChar(iBuffer, x+2, y+1, bg_color, ch, false);
+	PutChar(iBuffer, x+1, y+1, fg_color, ch, false);	
 }
 
-void CScreen::PutCharWithShadow(int x, int y, u32 bg_color, u32 fg_color, u8 ch)
+void CScreen::PutCharWithShadow(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
-//	PutEraseChar(x+1,y+1, 0);
-	PutEraseChar(x,y, 0);
-
 	/** x+1,y+1 */
-	PutChar(x+1, y+1, bg_color, ch, false);
+	PutChar(iBuffer, x+1, y+1, bg_color, ch, false);
 	/** x,y */
-	PutChar(x, y, fg_color, ch, false);	
+	PutChar(iBuffer, x, y, fg_color, ch, false);	
 }
 
-void CScreen::ClearLine(int Y)
-{
-	ClearNChars(0, Y, MX);
-}
 
-void CScreen::ClearNChars(int X, int Y, int N)
-{
-	for (int i=X; i < X+N; i++)
-	{
-		PutEraseChar( i * m_FontWidth , Y * m_FontHeight, bg_col);
-	}
-}
-
-void CScreen::ClearCharsAtYFromX1ToX2(int pixel_y, int pixel_x1, int pixel_x2)
-{
-	for (int i=pixel_x1; i <= pixel_x2; i+=m_FontWidth)
-	{
-		PutEraseChar( i, pixel_y, bg_col);
-	}
-}
-
-/* Print non-nul terminated strings */
-int CScreen::PrintData(const char *buff, int size)
-{
-	int i;
-	int j;
-	char c;
-
-	for (i = 0; i < size; i++)
-	{
-		c = buff[i];
-		switch (c)
-		{
-			case '\n':
-				X = 0;
-				Y ++;
-				if (Y == MY)
-					Y = 0;
-				ClearLine(Y);
-				break;
-			case '\t':
-				for (j = 0; j < 5; j++) {
-					PutChar( X * m_FontWidth , Y * m_FontHeight, fg_col, ' ' );
-					X++;
-				}
-				break;
-			default: 
-				switch(m_TextMode)
-				{
-					case TEXTMODE_NORMAL:
-						PutChar( X * m_FontWidth , Y * m_FontHeight, fg_col, c );
-						break;
-					case TEXTMODE_OUTLINED:
-						PutCharWithOutline( X * m_FontWidth , Y * m_FontHeight, 0, fg_col, c );
-						break;
-					case TEXTMODE_SHADOWED:
-						PutCharWithShadow( X * m_FontWidth , Y * m_FontHeight, 0, fg_col, c );
-						break;
-				}
-				X++;
-				if (X == MX)
-				{
-					X = 0;
-					Y++;
-					if (Y == MY)
-						Y = 0;
-					ClearLine(Y);
-				}
-		}
-	}
-
-	return i;
-}
-
-void CScreen::Printf(const char *format, ...)
-{
-   va_list	opt;
-   char     buff[2048];
-   int		bufsz;
-   
-   if(!init)
-   {
-	   return;
-   }
-   
-   va_start(opt, format);
-   bufsz = vsnprintf( buff, (size_t) sizeof(buff), format, opt);
-   PrintData(buff, bufsz);
-}
-
-void CScreen::PrintText(int pixel_x, int pixel_y, int color, char *string)
+void CScreen::PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string)
 {
 	int i = 0;
 	char c;
@@ -432,20 +339,20 @@ void CScreen::PrintText(int pixel_x, int pixel_y, int color, char *string)
 		{
 			case '\n':
 			case '\t':
-				PutChar( pixel_x, pixel_y, color, ' ' );
+				PutChar(iBuffer, pixel_x, pixel_y, color, ' ' );
 				pixel_x+=m_FontWidth;
 				break;
 			default: 
 				switch(m_TextMode)
 				{
 					case TEXTMODE_NORMAL:
-						PutChar( pixel_x, pixel_y, color, c );
+						PutChar(iBuffer, pixel_x, pixel_y, color, c );
 						break;
 					case TEXTMODE_OUTLINED:
-						PutCharWithOutline( pixel_x, pixel_y, 0, color, c );
+						PutCharWithOutline(iBuffer, pixel_x, pixel_y, 0, color, c );
 						break;
 					case TEXTMODE_SHADOWED:
-						PutCharWithShadow( pixel_x, pixel_y, 0, color, c );
+						PutCharWithShadow(iBuffer, pixel_x, pixel_y, 0, color, c );
 						break;
 				}
 				pixel_x+=m_FontWidth;
@@ -512,6 +419,7 @@ void CScreen::ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2)
 
 void CScreen::Clear()
 {
+#if 0	
 	int y;
 
 	if(!init)
@@ -531,4 +439,5 @@ void CScreen::Clear()
 		SetXY(0,0);
 		clear_screen(bg_col);
 	}
+#endif
 }

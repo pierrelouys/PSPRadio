@@ -111,7 +111,7 @@ private:
 		COLOR_CYAN  = 0x00AABB00,
 		COLOR_YELLOW= 0x00559999
 	};
-	void uiPrintf(int x, int y, int color, char *strFormat, ...);
+	void uiPrintf(int iBuffer, int x, int y, int color, char *strFormat, ...);
 	void ClearRows(int iRowStart, int iRowEnd = -1);
 	void ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowEnd = -1);
 
@@ -122,6 +122,18 @@ private:
 	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
 					int iActiveState);
 	void LoadConfigSettings(IScreen *Screen);
+	
+	//NEW:
+	void PrintTime(int iBuffer);
+	void CTextUI::PrintBattery(int iBuffer);
+	int CTextUI::PrintBufferPercentage(int iBuffer);
+	int m_iBufferPercentage;
+	CMetaDataContainer *m_Container;
+	int CTextUI::PrintSongData(int iBuffer);
+	int CTextUI::PrintStreamTime(int iBuffer);
+	void CTextUI::PrintContainers(int iBuffer);
+	void CTextUI::PrintElements(int iBuffer);
+
 };
 
 
