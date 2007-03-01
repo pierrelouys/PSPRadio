@@ -245,6 +245,47 @@ void CScreen::SetTextColor(u32 color)
    fg_col = color;
 }
 
+void CScreen::Effect(int iBuffer)
+{
+	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
+	u32 *pixel = NULL;
+	for (int y = 0; y < 100; y++)
+	{
+		for (int x = 0; x < 100 /*PSP_LINE_SIZE*/; x++)
+		{
+			pixel = vram + PSP_LINE_SIZE*y + x;
+			*pixel = *pixel * 2;
+		}
+	}
+	
+}
+
+void CScreen::Plot(int iBuffer, int x, int y, int color)
+{
+	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
+	u32 *pixel = vram + PSP_LINE_SIZE*y + x;
+	//*pixel = color;//*pixel & 0xAAAAAAAA;//color;
+	*pixel = *pixel & 0xAAAAAAAA;//color;
+}
+
+int CScreen::Peek(int iBuffer, int x, int y)
+{
+	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
+	u32 *pixel = vram + PSP_LINE_SIZE*y + x;
+	return *pixel;
+}
+
+void CScreen::Line(int iBuffer, int x1, int y1, int x2, int y2)
+{
+	for (int x = x1;x < x2; x++)
+	{
+		for (int y = y1;y < y2; y++)
+		{
+			Plot(iBuffer, x, y, 0xFFFFFFFF);
+		}
+	}
+}
+
 extern u8 msx[];
 
 void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch, bool do_background)

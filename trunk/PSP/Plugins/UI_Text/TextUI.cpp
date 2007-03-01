@@ -60,7 +60,7 @@ CTextUI::CTextUI()
 	m_lockprint = new CLock("Print_Lock");
 	m_lockclear = new CLock("Clear_Lock");
 
-	m_isdirty = false;
+	m_isdirty = 0;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
 
@@ -107,30 +107,71 @@ CTextUI::~CTextUI()
 	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
 
+short *pcmbuffer = NULL;
+void CTextUI::NewPCMBuffer(short *PCMBuffer)
+{
+	pcmbuffer = PCMBuffer;
+	m_isdirty |= DIRTY_PCM;
+}
+
 int CTextUI::OnVBlank()
 {
 	static int iBuffer = 0;
 	if (m_isdirty)
 	{
+
 		//draw to buffer
 		//sceDisplayWaitVblankStart();
 		m_Screen->DrawBackground(iBuffer, 0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
 		
+		//if ((m_isdirty & DIRTY_PCM) == 0)
+		{
 		//time
-		PrintTime(iBuffer);
-		PrintBattery(iBuffer);
-		PrintBufferPercentage(iBuffer);
-		PrintSongData(iBuffer);
-		PrintStreamTime(iBuffer);
-		PrintContainers(iBuffer);
-		PrintElements(iBuffer);
-		
+		//if (m_isdirty & DIRTY_TIME)
+			PrintTime(iBuffer);
+		//if (m_isdirty & DIRTY_BATTERY)
+			PrintBattery(iBuffer);
+		//if (m_isdirty & DIRTY_BUFFER_PERCENTAGE)
+			PrintBufferPercentage(iBuffer);
+		//if (m_isdirty & DIRTY_SONG_DATA)
+			PrintSongData(iBuffer);
+		//if (m_isdirty & DIRTY_STREAM_TIME)
+			PrintStreamTime(iBuffer);
+		//if (m_isdirty & DIRTY_CONTAINERS)
+			PrintContainers(iBuffer);
+		//if (m_isdirty & DIRTY_ELEMENTS)
+			PrintElements(iBuffer);
+		}
+
+		//if (m_isdirty & DIRTY_PCM)
+		{
+			if (pcmbuffer)
+			{
+				//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
+				for (int i = 0; i < 10; i++)
+				{
+					//convert fixed point int to int (/256)
+					m_Screen->Line(iBuffer, i*10, 0, i*10+8, pcmbuffer[i*200] >> 8);
+				}
+			}
+		}
+	
+
+		//m_Screen->Effect(iBuffer);
+#if 0
+		for (int x = 0; x < 100; x++)
+		{
+			m_Screen->Line(iBuffer, x, 50, x, data - x);
+		}
+#endif
 		//flip
 		m_Screen->SetFrameBuffer(iBuffer);//sceDisplaySetFrameBuf
-		
 		iBuffer = (iBuffer+1)%2;
-		m_isdirty = false;
+		m_isdirty = 0;
 	}
+
+
+	
 	return 0;
 }
 
@@ -575,7 +616,7 @@ int CTextUI::SetTitle(char *strTitle)
 void CTextUI::OnBatteryChange(int Percentage)
 {
 	m_LastBatteryPercentage = Percentage;
-	m_isdirty = true;
+	m_isdirty |= DIRTY_BATTERY;
 }
 
 void CTextUI::PrintBattery(int iBuffer)
@@ -587,7 +628,7 @@ void CTextUI::PrintBattery(int iBuffer)
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
 	m_LastLocalTime = *LocalTime;
-	m_isdirty = true;
+	m_isdirty |= DIRTY_TIME;
 }
 
 void CTextUI::PrintTime(int iBuffer)
@@ -727,7 +768,7 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 		m_iBufferPercentage = 100;
 	if (m_iBufferPercentage < 2)
 		m_iBufferPercentage = 0;
-	m_isdirty = true;
+	m_isdirty |= DIRTY_BUFFER_PERCENTAGE;
 	return 0;
 }
 
@@ -810,7 +851,7 @@ int CTextUI::OnStreamOpeningSuccess()
 
 int CTextUI::OnNewSongData(MetaData *pData)
 {
-	m_isdirty = true;
+	m_isdirty |= DIRTY_SONG_DATA;
 	return 0;
 }
 
@@ -877,7 +918,7 @@ int CTextUI::PrintSongData(int iBuffer)
 
 int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 {
-	m_isdirty = true;
+	m_isdirty |= DIRTY_STREAM_TIME;
 	return 0;
 }
 	
@@ -906,7 +947,7 @@ int CTextUI::PrintStreamTime(int iBuffer)
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
 	m_Container = Container;
-	m_isdirty = true;
+	m_isdirty |= DIRTY_CONTAINERS;
 }
 
 void CTextUI::PrintContainers(int iBuffer)
@@ -1001,7 +1042,7 @@ void CTextUI::PrintContainers(int iBuffer)
 
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
-	m_isdirty = true;
+	m_isdirty |= DIRTY_ELEMENTS;
 }
 
 void CTextUI::PrintElements(int iBuffer)

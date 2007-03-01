@@ -59,6 +59,10 @@
 		void DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2);
 		void SetFrameBuffer(int iBuffer);
 		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
+		void Effect(int iBuffer);
+		void Plot(int iBuffer, int x, int y, int color);
+		int  Peek(int iBuffer, int x, int y);
+		void Line(int iBuffer, int x1, int y1, int x2, int y2);
 				
 	private:
 		int FRAMESIZE;

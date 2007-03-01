@@ -5,6 +5,16 @@
 #include "PSPRadio_Exports.h"
 #include "Screen.h"
 
+#define DIRTY_PCM	1
+#define DIRTY_TIME	2
+#define DIRTY_BATTERY 4
+#define DIRTY_BUFFER_PERCENTAGE 8
+#define DIRTY_SONG_DATA 16
+#define DIRTY_STREAM_TIME 32
+#define DIRTY_CONTAINERS 64
+#define DIRTY_ELEMENTS 128
+
+
 struct screenconfig
 {
 	CScreen::textmode FontMode;
@@ -86,7 +96,7 @@ public:
 	void OnTimeChange(pspTime *LocalTime);
 	
 private:
-	bool  m_isdirty;
+	int  m_isdirty;
 	CLock *m_lockprint;
 	CLock *m_lockclear;
 	CIniParser *m_Config;
@@ -133,7 +143,7 @@ private:
 	int CTextUI::PrintStreamTime(int iBuffer);
 	void CTextUI::PrintContainers(int iBuffer);
 	void CTextUI::PrintElements(int iBuffer);
-
+	void CTextUI::NewPCMBuffer(short *PCMBuffer);
 };
 
 
