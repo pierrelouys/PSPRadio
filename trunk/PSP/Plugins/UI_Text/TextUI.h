@@ -95,13 +95,14 @@ public:
 	void OnBatteryChange(int Percentage);
 	void OnTimeChange(pspTime *LocalTime);
 	
-private:
+public:
 	int  m_isdirty;
+private:
 	CLock *m_lockprint;
 	CLock *m_lockclear;
 	CIniParser *m_Config;
 	char  *m_strTitle;
-	CScreen *m_Screen;
+	//CScreen *m_Screen;
 	CScreenHandler::Screen m_CurrentScreen;
 	screenconfig m_ScreenConfig;
 	int 	m_LastBatteryPercentage;
@@ -134,6 +135,7 @@ private:
 	void LoadConfigSettings(IScreen *Screen);
 	
 	//NEW:
+	public:
 	void PrintTime(int iBuffer);
 	void CTextUI::PrintBattery(int iBuffer);
 	int CTextUI::PrintBufferPercentage(int iBuffer);

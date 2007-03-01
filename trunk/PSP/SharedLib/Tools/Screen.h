@@ -62,11 +62,12 @@
 		void Effect(int iBuffer);
 		void Plot(int iBuffer, int x, int y, int color);
 		int  Peek(int iBuffer, int x, int y);
-		void Line(int iBuffer, int x1, int y1, int x2, int y2);
+		void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color);
+		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);
 				
 	private:
 		int FRAMESIZE;
-		void PutChar(int iBuffer, int x, int y, u32 color, u8 ch, bool do_background = true);
+		void PutChar(int iBuffer, int x, int y, u32 color, u8 ch);
 		void PutCharWithOutline(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
 		void PutCharWithShadow(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
 

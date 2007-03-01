@@ -30,6 +30,7 @@
 #include <Tools.h>
 #include <stdarg.h>
 #include <Screen.h>
+#include <pthread.h>
 #include "TextUI.h"
 #include <psputility_sysparam.h>
 
@@ -43,6 +44,12 @@
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 
 #define TextUILog ModuleLog
+
+CScreen *m_Screen;
+CTextUI *ui;
+bool s_exit = false;
+//m_Screen = new CScreen;
+void render_thread(void *);
 
 CTextUI::CTextUI()
 {
@@ -59,7 +66,7 @@ CTextUI::CTextUI()
 	
 	m_lockprint = new CLock("Print_Lock");
 	m_lockclear = new CLock("Clear_Lock");
-
+ui = this;
 	m_isdirty = 0;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
@@ -73,12 +80,27 @@ CTextUI::CTextUI()
 	m_Sound = (CPSPSound*)ifdata.Pointer;
 	m_Container = NULL;
 
+	/* Start Render Thread */
+	{
+		pthread_t pthid;
+		pthread_attr_t pthattr;
+		struct sched_param shdparam;
+		pthread_attr_init(&pthattr);
+		shdparam.sched_policy = SCHED_OTHER;
+		shdparam.sched_priority = 45;
+		pthread_attr_setschedparam(&pthattr, &shdparam);
+		s_exit = false;
+		pthread_create(&pthid, &pthattr, render_thread, NULL);
+	}
+
+
 	TextUILog(LOG_VERYLOW, "CtextUI: Constructor end.");
 }
 
 CTextUI::~CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
+	s_exit = true;
 	if (m_lockprint)
 	{
 		delete(m_lockprint);
@@ -116,63 +138,91 @@ void CTextUI::NewPCMBuffer(short *PCMBuffer)
 
 int CTextUI::OnVBlank()
 {
-	static int iBuffer = 0;
-	if (m_isdirty)
+	return 0;
+}
+
+#define draw_pcm draw_pcm_osc
+
+void draw_pcm_bars(int iBuffer)
+{
+	//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
+	//m_Screen->Rectangle(iBuffer, 0,0, 128, 128, 0);
+	for (int i = 0; i < 10; i++)
 	{
+		//convert fixed point int to int (/256)
+		m_Screen->Rectangle(iBuffer, i*10, 0, i*10+4, pcmbuffer[i*200] >> 8, 0xFFFFFFFF);
+	}
+}
 
-		//draw to buffer
-		//sceDisplayWaitVblankStart();
-		m_Screen->DrawBackground(iBuffer, 0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
-		
-		//if ((m_isdirty & DIRTY_PCM) == 0)
-		{
-		//time
-		//if (m_isdirty & DIRTY_TIME)
-			PrintTime(iBuffer);
-		//if (m_isdirty & DIRTY_BATTERY)
-			PrintBattery(iBuffer);
-		//if (m_isdirty & DIRTY_BUFFER_PERCENTAGE)
-			PrintBufferPercentage(iBuffer);
-		//if (m_isdirty & DIRTY_SONG_DATA)
-			PrintSongData(iBuffer);
-		//if (m_isdirty & DIRTY_STREAM_TIME)
-			PrintStreamTime(iBuffer);
-		//if (m_isdirty & DIRTY_CONTAINERS)
-			PrintContainers(iBuffer);
-		//if (m_isdirty & DIRTY_ELEMENTS)
-			PrintElements(iBuffer);
-		}
+void draw_pcm_osc(int iBuffer)
+{
+	//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
+	//m_Screen->Rectangle(iBuffer, 0,0, 128, 128, 0);
+	int y1, y2;
+	for (int x = 0; x < 100; x++)
+	{
+		//convert fixed point int to int (/256)
+		//m_Screen->Rectangle(iBuffer, i*10, 0, i*10+4, pcmbuffer[i*200] >> 8, 0xFFFFFFFF);
+		y1 = 128 + (pcmbuffer[x*20] >> 8);
+		y2 = 128 - (pcmbuffer[x*20+1] >> 8);
+		m_Screen->Plot(iBuffer, x, (y1 >= 0 && y1 < 256)?y1:128, 0xFFFFFFFF);
+		m_Screen->Plot(iBuffer, x, (y2 >= 0 && y2 < 256)?y2:128, 0xFFFFFFFF);
+	}
+}
 
-		//if (m_isdirty & DIRTY_PCM)
+void render_thread(void *)
+{
+	static int iBuffer = 0;
+	for (;;)
+	{
+		if (ui->m_isdirty)
 		{
-			if (pcmbuffer)
+			//draw to buffer
+			//sceDisplayWaitVblankStart();
+			//m_Screen->DrawBackground(2, 0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+			
+			//if ((m_isdirty & DIRTY_PCM) == 0)
 			{
-				//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
-				for (int i = 0; i < 10; i++)
-				{
-					//convert fixed point int to int (/256)
-					m_Screen->Line(iBuffer, i*10, 0, i*10+8, pcmbuffer[i*200] >> 8);
-				}
+			//time
+			if (ui->m_isdirty & DIRTY_TIME)
+				ui->PrintTime(2);
+			if (ui->m_isdirty & DIRTY_BATTERY)
+				ui->PrintBattery(2);
+			if (ui->m_isdirty & DIRTY_BUFFER_PERCENTAGE)
+				ui->PrintBufferPercentage(2);
+			if (ui->m_isdirty & DIRTY_SONG_DATA)
+				ui->PrintSongData(2);
+			if (ui->m_isdirty & DIRTY_STREAM_TIME)
+				ui->PrintStreamTime(2);
+			if (ui->m_isdirty & DIRTY_CONTAINERS)
+				ui->PrintContainers(2);
+			if (ui->m_isdirty & DIRTY_ELEMENTS)
+				ui->PrintElements(2);
 			}
-		}
+			
+			/* Copy buffer 2 to back-buffer */
+			m_Screen->CopyFromToBuffer(2, iBuffer);
 	
-
-		//m_Screen->Effect(iBuffer);
-#if 0
-		for (int x = 0; x < 100; x++)
-		{
-			m_Screen->Line(iBuffer, x, 50, x, data - x);
+			/* Do effects to back-buffer */
+			if ((ui->m_isdirty & DIRTY_PCM) && pcmbuffer)
+			{
+				draw_pcm(iBuffer);
+			}
+			
+			//flip
+			sceDisplayWaitVblankStart();
+			m_Screen->SetFrameBuffer(iBuffer);//sceDisplaySetFrameBuf
+			iBuffer = (iBuffer+1)%2;
+			ui->m_isdirty = 0;
 		}
-#endif
-		//flip
-		m_Screen->SetFrameBuffer(iBuffer);//sceDisplaySetFrameBuf
-		iBuffer = (iBuffer+1)%2;
-		m_isdirty = 0;
+		else
+		{
+			sceKernelDelayThread(1); /* yield */
+			if (s_exit)
+				break;
+		}
 	}
 
-
-	
-	return 0;
 }
 
 int CTextUI::Initialize(char *strCWD, char *strSkinDir)
