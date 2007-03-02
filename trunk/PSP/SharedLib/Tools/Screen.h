@@ -61,6 +61,7 @@
 		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
 		void Effect(int iBuffer);
 		void Plot(int iBuffer, int x, int y, int color);
+		void VertLine(int iBuffer, int x, int y1, int y2, int color);
 		int  Peek(int iBuffer, int x, int y);
 		void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color);
 		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);

@@ -272,8 +272,20 @@ void CScreen::Plot(int iBuffer, int x, int y, int color)
 {
 	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
 	u32 *pixel = vram + PSP_LINE_SIZE*y + x;
-	*pixel = color;//*pixel & 0xAAAAAAAA;//color;
+	//*pixel = color;//*pixel & 0xAAAAAAAA;//color;
 	//*pixel = *pixel & 0xAAAAAAAA;//color;
+	*pixel = *pixel | 0xAAAAAAAA;//color;
+}
+
+void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
+{
+	if (y1 < 0)
+		y1 = 0;
+	y2++;
+	for (int y = y1; y < y2; y++)
+	{
+		Plot(iBuffer, x, y, color);
+	}
 }
 
 void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)

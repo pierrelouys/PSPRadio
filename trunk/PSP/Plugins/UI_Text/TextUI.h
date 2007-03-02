@@ -13,6 +13,7 @@
 #define DIRTY_STREAM_TIME 32
 #define DIRTY_CONTAINERS 64
 #define DIRTY_ELEMENTS 128
+#define DIRTY_BACKGROUND  256
 
 
 struct screenconfig
@@ -136,15 +137,15 @@ private:
 	
 	//NEW:
 	public:
-	void PrintTime(int iBuffer);
-	void CTextUI::PrintBattery(int iBuffer);
-	int CTextUI::PrintBufferPercentage(int iBuffer);
 	int m_iBufferPercentage;
 	CMetaDataContainer *m_Container;
-	int CTextUI::PrintSongData(int iBuffer);
-	int CTextUI::PrintStreamTime(int iBuffer);
-	void CTextUI::PrintContainers(int iBuffer);
-	void CTextUI::PrintElements(int iBuffer);
+	void PrintTime(int iBuffer, bool draw_background);
+	void CTextUI::PrintBattery(int iBuffer, bool draw_background);
+	int CTextUI::PrintBufferPercentage(int iBuffer, bool draw_background);
+	int CTextUI::PrintSongData(int iBuffer, bool draw_background);
+	int CTextUI::PrintStreamTime(int iBuffer, bool draw_background);
+	void CTextUI::PrintContainers(int iBuffer, bool draw_background);
+	void CTextUI::PrintElements(int iBuffer, bool draw_background);
 	void CTextUI::NewPCMBuffer(short *PCMBuffer);
 };
 
