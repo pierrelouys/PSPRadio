@@ -1,13 +1,7 @@
 #ifndef __CSCREEN__
 	#define __CSCREEN__
 
-	#define PSP_SCREEN_WIDTH 480
-	#define PSP_SCREEN_HEIGHT 272
-	#define PSP_LINE_SIZE 512
-	#define PSP_PIXEL_FORMAT 3
-	
-	
-
+	#include <pspdisplay.h>
 	class CScreen
 	{
 	public:
@@ -18,7 +12,8 @@
 			TEXTMODE_SHADOWED
 		};
 				
-		CScreen();
+		CScreen(int width = 480, int height = 272, 
+				int pitch = 512, int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
 		~CScreen();
 		void SetBackColor(u32 colour);
 		void SetTextColor(u32 colour);
@@ -27,8 +22,8 @@
 		void SetFontSize(int iWidth, int iHeight);
 		int  GetFontHeight(){return m_FontHeight;}
 		int  GetFontWidth(){return m_FontWidth;}
-		size_t GetNumberOfTextColumns(){ return PSP_SCREEN_WIDTH/m_FontWidth; }
-		size_t GetNumberOfTextRows(){ return PSP_SCREEN_HEIGHT/m_FontHeight; }
+		size_t GetNumberOfTextColumns(){ return m_Width/m_FontWidth; }
+		size_t GetNumberOfTextRows(){ return m_Height/m_FontHeight; }
 		void Printf(const char *format, ...);
 		void Clear();
 		void SetXY(int x, int y);
@@ -66,8 +61,14 @@
 		void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color);
 		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);
 				
-	private:
+	public:
 		int FRAMESIZE;
+		int m_Width;// 480
+		int m_Height;// 272
+		int m_Pitch;// 512
+		int m_PixelFormat;// 3
+		
+	private:
 		void PutChar(int iBuffer, int x, int y, u32 color, u8 ch);
 		void PutCharWithOutline(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
 		void PutCharWithShadow(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);

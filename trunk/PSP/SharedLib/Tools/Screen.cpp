@@ -28,11 +28,32 @@
 
 u32 *third = NULL;
 
-CScreen::CScreen()
+CScreen::CScreen(int width, int height, int pitch, int pixel_format)
 {
 	
 	X = 0; 
 	Y = 0; 
+	
+	m_Width = width;
+	m_Height = height;
+	m_Pitch = pitch;
+	m_PixelFormat = pixel_format;
+	switch(m_PixelFormat)
+	{
+	case PSP_DISPLAY_PIXEL_FORMAT_565:
+		FRAMESIZE = m_Pitch * m_Height * 2;
+		break;
+	case PSP_DISPLAY_PIXEL_FORMAT_5551:
+		FRAMESIZE = m_Pitch * m_Height * 2;
+		break;
+	case PSP_DISPLAY_PIXEL_FORMAT_4444:
+		FRAMESIZE = m_Pitch * m_Height * 2;
+		break;
+	case PSP_DISPLAY_PIXEL_FORMAT_8888:
+		FRAMESIZE = m_Pitch * m_Height * 4;
+		break;
+	};
+	
 	bg_col = 0; 
 	fg_col = 0xFFFFFFFF;
 	g_vram_base = (u32 *)0x04000000;
@@ -61,6 +82,83 @@ CScreen::~CScreen()
 		free (m_ImageBuffer), m_ImageBuffer = NULL;
 	}
 
+}
+
+void CScreen::Init()
+{
+	X = Y = 0;
+	
+	/* Place vram in uncached memory */
+	//g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
+	// let's use cached memory better
+	g_vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
+	sceDisplaySetMode(0, m_Width, m_Height);
+	sceDisplaySetFrameBuf((void *) g_vram_base, 
+		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
+	//clear_screen(bg_col);
+	
+	//third = (u32*)malloc(FRAMESIZE);
+	//third = (u32*)memalign(16, FRAMESIZE);
+	//Let's use VRAM, now that it is set to cached mode
+	third = (u32*)((char*)g_vram_base+FRAMESIZE*2);
+
+	init = true;
+}
+
+void CScreen::SetFrameBuffer(int iBuffer)
+{
+	sceDisplaySetFrameBuf((u32*)((char*)g_vram_base+FRAMESIZE*iBuffer), 
+		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
+}
+
+void CScreen::Plot(int iBuffer, int x, int y, int color)
+{
+	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
+	u32 *pixel = vram + m_Pitch*y + x;
+	//*pixel = color;//*pixel & 0xAAAAAAAA;//color;
+	//*pixel = *pixel & 0xAAAAAAAA;//color;
+	*pixel = *pixel | 0xAAAAAAAA;//color;
+}
+
+void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
+{
+	if (y1 < 0)
+		y1 = 0;
+	y2++;
+	for (int y = y1; y < y2; y++)
+	{
+		Plot(iBuffer, x, y, color);
+	}
+}
+
+void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
+{
+	u32 *from = (u32*)((char*)g_vram_base+FRAMESIZE*iBufferFrom);
+	u32 *to   = (u32*)((char*)g_vram_base+FRAMESIZE*iBufferTo);
+	if (iBufferFrom == 2)
+		from = third;
+	if (iBufferTo == 2)
+		to = third;
+
+	memcpy(to, from, FRAMESIZE);
+}
+
+int CScreen::Peek(int iBuffer, int x, int y)
+{
+	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
+	u32 *pixel = vram + m_Pitch*y + x;
+	return *pixel;
+}
+
+void CScreen::Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color)
+{
+	for (int x = x1;x < x2; x++)
+	{
+		for (int y = y1;y < y2; y++)
+		{
+			Plot(iBuffer, x, y, color);
+		}
+	}
 }
 
 void CScreen::SetFontSize(int iWidth, int iHeight) 
@@ -143,25 +241,10 @@ void CScreen::clear_screen(u32 color)
     int x;
     u32 *vram = g_vram_base;
 
-    for(x = 0; x < (PSP_LINE_SIZE * PSP_SCREEN_HEIGHT); x++)
+    for(x = 0; x < (m_Pitch * m_Height); x++)
     {
 		*vram++ = color; 
     }
-}
-
-void CScreen::Init()
-{
-	X = Y = 0;
-	/* Place vram in uncached memory */
-	g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
-	sceDisplaySetMode(0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
-	sceDisplaySetFrameBuf((void *) g_vram_base, PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
-	//clear_screen(bg_col);
-	FRAMESIZE = PSP_LINE_SIZE * PSP_SCREEN_HEIGHT * 4;
-	third = (u32*)malloc(FRAMESIZE);
-	
-
-	init = true;
 }
 
 void CScreen::DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
@@ -174,8 +257,8 @@ void CScreen::DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
 	//int unknown;
 	//sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
 	//sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, &unknown); 
-	bufferwidth = PSP_LINE_SIZE;
-	pixelformat = PSP_PIXEL_FORMAT;
+	bufferwidth = m_Pitch;
+	pixelformat = m_PixelFormat;
 	//vram32 = g_vram_base;//
 	if (iBuffer == 2)
 		vram32 = (u32*)((char*)third);
@@ -185,7 +268,7 @@ void CScreen::DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
 	vram16 = (u16*) vram32;
 	for (y = y1; y < y2; y++) {
 		for (x = x1; x < x2; x++) {
-			u32 color32 = m_ImageBuffer[y*PSP_SCREEN_WIDTH+x];
+			u32 color32 = m_ImageBuffer[y*m_Width+x];
 			u16 color16;
 			int r = color32 & 0xff;
 			int g = (color32 >> 8) & 0xff;
@@ -212,12 +295,6 @@ void CScreen::DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
 	}
 }
 
-void CScreen::SetFrameBuffer(int iBuffer)
-{
-	sceDisplaySetFrameBuf((u32*)((char*)g_vram_base+FRAMESIZE*iBuffer), PSP_LINE_SIZE, PSP_PIXEL_FORMAT, 1);
-}
-
-
 void CScreen::SetBackgroundImage(char *strImage)
 {
 	
@@ -225,7 +302,7 @@ void CScreen::SetBackgroundImage(char *strImage)
 	{
 		if (m_ImageBuffer == NULL)
 		{
-			m_ImageBuffer = (u32*)malloc(PSP_SCREEN_WIDTH*PSP_SCREEN_WIDTH*sizeof(u32));
+			m_ImageBuffer = (u32*)malloc(m_Width*m_Width*sizeof(u32));
 		}
 		
 		if (m_ImageBuffer)
@@ -259,63 +336,13 @@ void CScreen::Effect(int iBuffer)
 	u32 *pixel = NULL;
 	for (int y = 0; y < 100; y++)
 	{
-		for (int x = 0; x < 100 /*PSP_LINE_SIZE*/; x++)
+		for (int x = 0; x < 100 /*m_Pitch*/; x++)
 		{
-			pixel = vram + PSP_LINE_SIZE*y + x;
+			pixel = vram + m_Pitch*y + x;
 			*pixel = *pixel * 2;
 		}
 	}
 	
-}
-
-void CScreen::Plot(int iBuffer, int x, int y, int color)
-{
-	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
-	u32 *pixel = vram + PSP_LINE_SIZE*y + x;
-	//*pixel = color;//*pixel & 0xAAAAAAAA;//color;
-	//*pixel = *pixel & 0xAAAAAAAA;//color;
-	*pixel = *pixel | 0xAAAAAAAA;//color;
-}
-
-void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
-{
-	if (y1 < 0)
-		y1 = 0;
-	y2++;
-	for (int y = y1; y < y2; y++)
-	{
-		Plot(iBuffer, x, y, color);
-	}
-}
-
-void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
-{
-	u32 *from = (u32*)((char*)g_vram_base+FRAMESIZE*iBufferFrom);
-	u32 *to   = (u32*)((char*)g_vram_base+FRAMESIZE*iBufferTo);
-	if (iBufferFrom == 2)
-		from = third;
-	if (iBufferTo == 2)
-		to = third;
-
-	memcpy(to, from, FRAMESIZE);
-}
-
-int CScreen::Peek(int iBuffer, int x, int y)
-{
-	u32 *vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer);
-	u32 *pixel = vram + PSP_LINE_SIZE*y + x;
-	return *pixel;
-}
-
-void CScreen::Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color)
-{
-	for (int x = x1;x < x2; x++)
-	{
-		for (int y = y1;y < y2; y++)
-		{
-			Plot(iBuffer, x, y, color);
-		}
-	}
 }
 
 extern u8 msx[];
@@ -337,7 +364,7 @@ void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch)
 		vram = (u32*)((char*)third) + x;
 	else
 		vram = (u32*)((char*)g_vram_base+FRAMESIZE*iBuffer) + x;
-	vram += (y * PSP_LINE_SIZE);
+	vram += (y * m_Pitch);
 	
 	font = &msx[ (int)ch * 8];
 	for (i=0; i < 8; i++, font++)
@@ -350,7 +377,7 @@ void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch)
 			else
 				vram_ptr++;
 		}
-		vram += PSP_LINE_SIZE;
+		vram += m_Pitch;
 	}
 }
 
@@ -387,7 +414,7 @@ void CScreen::PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *
 	for (;;i++)
 	{
 		c = string[i];
-		if (0 == c || pixel_x > PSP_SCREEN_WIDTH || pixel_y > PSP_SCREEN_HEIGHT)
+		if (0 == c || pixel_x > m_Width || pixel_y > m_Height)
 			break;
 			
 		switch (c)
@@ -448,7 +475,7 @@ void CScreen::ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2)
 	vram16 = (u16*) vram32;
 	for (y = y1; y < y2; y++) {
 		for (x = x1; x < x2; x++) {
-			u32 color32 = m_ImageBuffer[y*PSP_SCREEN_WIDTH+x];
+			u32 color32 = m_ImageBuffer[y*m_Width+x];
 			u16 color16;
 			int r = color32 & 0xff;
 			int g = (color32 >> 8) & 0xff;
@@ -487,7 +514,7 @@ void CScreen::Clear()
 
 	if (m_strImage && m_ImageBuffer)
 	{
-		ShowBackgroundPng(0,0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+		ShowBackgroundPng(0,0, m_Width, m_Height);
 		SetXY(0,0);
 	}
 	else

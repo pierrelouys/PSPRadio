@@ -45,11 +45,9 @@
 
 #define TextUILog ModuleLog
 
-CScreen *m_Screen;
-CTextUI *ui;
+CTextUI *s_ui = NULL;
+short *s_pcmbuffer = NULL;
 bool s_exit = false;
-//m_Screen = new CScreen;
-void render_thread(void *);
 
 CTextUI::CTextUI()
 {
@@ -66,7 +64,7 @@ CTextUI::CTextUI()
 	
 	m_lockprint = new CLock("Print_Lock");
 	m_lockclear = new CLock("Clear_Lock");
-ui = this;
+	s_ui = this;
 	m_isdirty = 0;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
@@ -129,10 +127,9 @@ CTextUI::~CTextUI()
 	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
 
-short *pcmbuffer = NULL;
-void CTextUI::NewPCMBuffer(short *PCMBuffer)
+void CTextUI::News_pcmbuffer(short *s_pcmbuffer)
 {
-	pcmbuffer = PCMBuffer;
+	s_pcmbuffer = s_pcmbuffer;
 	m_isdirty |= DIRTY_PCM;
 }
 
@@ -145,12 +142,11 @@ int CTextUI::OnVBlank()
 
 void draw_pcm_bars(int iBuffer)
 {
-	//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
-	//m_Screen->Rectangle(iBuffer, 0,0, 128, 128, 0);
 	for (int i = 0; i < 10; i++)
 	{
-		//convert fixed point int to int (/256)
-		m_Screen->Rectangle(iBuffer, i*10, 0, i*10+4, pcmbuffer[i*200] >> 8, 0xFFFFFFFF);
+		//convert fixed point int to int (the integer part is the most significant byte)
+		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
+		s_ui->m_Screen->Rectangle(iBuffer, i*10, 0, i*10+4, s_pcmbuffer[i*200] >> 8, 0xFFFFFFFF);
 	}
 }
 
@@ -161,12 +157,12 @@ void draw_pcm_osc(int iBuffer)
 	int y1, y2;
 	for (int x = 0; x < 100; x++)
 	{
-		//convert fixed point int to int (/256)
-		//m_Screen->Rectangle(iBuffer, i*10, 0, i*10+4, pcmbuffer[i*200] >> 8, 0xFFFFFFFF);
-		y1 = 128 + (pcmbuffer[x*20] >> 8);
-		y2 = 128 - (pcmbuffer[x*20+1] >> 8);
-		m_Screen->Plot(iBuffer, x, (y1 >= 0 && y1 < 256)?y1:128, 0xFFFFFFFF);
-		m_Screen->Plot(iBuffer, x, (y2 >= 0 && y2 < 256)?y2:128, 0xFFFFFFFF);
+		//convert fixed point int to int (the integer part is the most significant byte)
+		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 256
+		y1 = 128 + (s_pcmbuffer[x*20] >> 8);
+		y2 = 128 - (s_pcmbuffer[x*20+1] >> 8);
+		s_ui->m_Screen->Plot(iBuffer, x, (y1 >= 0 && y1 < 256)?y1:128, 0xFFFFFFFF);
+		s_ui->m_Screen->Plot(iBuffer, x, (y2 >= 0 && y2 < 256)?y2:128, 0xFFFFFFFF);
 	}
 }
 
@@ -175,31 +171,29 @@ void draw_pcm_osc_vl(int iBuffer)
 	int y1, y2;
 	for (int x = 0; x < 100; x++)
 	{
-		//convert fixed point int to int (/256)
-		//m_Screen->Rectangle(iBuffer, i*10, 0, i*10+4, pcmbuffer[i*200] >> 8, 0xFFFFFFFF);
-		y1 = 128 - (pcmbuffer[x*20+1] >> 9);
-		y2 = 128 + (pcmbuffer[x*20] >> 9);
-		//m_Screen->Plot(iBuffer, x, (y1 >= 0 && y1 < 256)?y1:128, 0xFFFFFFFF);
-		//m_Screen->Plot(iBuffer, x, (y2 >= 0 && y2 < 256)?y2:128, 0xFFFFFFFF);
-		m_Screen->VertLine(iBuffer, x, y1, y2, 0xFFFFFFFF);
+		//convert fixed point int to int (the integer part is the most significant byte)
+		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
+		y1 = 128 - (s_pcmbuffer[x*20+1] >> 9); // L component
+		y2 = 128 + (s_pcmbuffer[x*20] >> 9);   // R component
+		s_ui->m_Screen->VertLine(iBuffer, x, y1, y2, 0xFFFFFFFF);
 	}
 }
 
-void render_thread(void *)
+void CTextUI::render_thread(void *) //static
 {
-#define UNSET_DIRTY(x) {ui->m_isdirty&=~x;}
+#define UNSET_DIRTY(x) {s_ui->m_isdirty&=~x;}
 	static int iBuffer = 0;
 	bool draw_background = true;
 	for (;;)
 	{
-		if (ui->m_isdirty)
+		if (s_ui->m_isdirty)
 		{
-			//draw to buffer
-			//sceDisplayWaitVblankStart();
-			if (ui->m_isdirty & DIRTY_BACKGROUND)
+			if (s_ui->m_isdirty & DIRTY_BACKGROUND)
 			{
 				UNSET_DIRTY(DIRTY_BACKGROUND);
-				m_Screen->DrawBackground(2, 0, 0, PSP_SCREEN_WIDTH, PSP_SCREEN_HEIGHT);
+				s_ui->m_Screen->DrawBackground(2, 0, 0, 
+					s_ui->m_Screen->m_Width, s_ui->m_Screen->m_Height);
+				s_ui->PrintProgramVersion(2);
 				draw_background  = false;
 			}
 			else
@@ -207,66 +201,72 @@ void render_thread(void *)
 				draw_background = true;
 			}
 			
-			if (ui->m_isdirty & DIRTY_TIME)
+			if (s_ui->m_isdirty & DIRTY_TIME)
 			{
 				UNSET_DIRTY(DIRTY_TIME);
-				ui->PrintTime(2, draw_background);
+				s_ui->PrintTime(2, draw_background);
 			}
-			if (ui->m_isdirty & DIRTY_BATTERY)
+			if (s_ui->m_isdirty & DIRTY_BATTERY)
 			{
 				UNSET_DIRTY(DIRTY_BATTERY);
-				ui->PrintBattery(2, draw_background);
+				s_ui->PrintBattery(2, draw_background);
 			}
-			if (ui->m_isdirty & DIRTY_BUFFER_PERCENTAGE)
+			if (s_ui->m_isdirty & DIRTY_BUFFER_PERCENTAGE)
 			{
 				UNSET_DIRTY(DIRTY_BUFFER_PERCENTAGE);
-				ui->PrintBufferPercentage(2, draw_background);
+				s_ui->PrintBufferPercentage(2, draw_background);
 			}
-			if (ui->m_isdirty & DIRTY_SONG_DATA)
+			if (s_ui->m_isdirty & DIRTY_SONG_DATA)
 			{
 				UNSET_DIRTY(DIRTY_SONG_DATA);
-				ui->PrintSongData(2, draw_background);
+				s_ui->PrintSongData(2, draw_background);
 			}
-			if (ui->m_isdirty & DIRTY_STREAM_TIME)
+			if (s_ui->m_isdirty & DIRTY_STREAM_TIME)
 			{
 				UNSET_DIRTY(DIRTY_STREAM_TIME);
-				ui->PrintStreamTime(2, draw_background);
+				s_ui->PrintStreamTime(2, draw_background);
 			}
-			if (ui->m_isdirty & DIRTY_CONTAINERS)
+			if (s_ui->m_isdirty & DIRTY_CONTAINERS)
 			{
 				UNSET_DIRTY(DIRTY_CONTAINERS);
-				ui->PrintContainers(2, draw_background);
+				s_ui->PrintContainers(2, draw_background);
 			}
-			if (ui->m_isdirty & DIRTY_ELEMENTS)
+			if (s_ui->m_isdirty & DIRTY_ELEMENTS)
 			{
 				UNSET_DIRTY(DIRTY_ELEMENTS);
-				ui->PrintElements(2, draw_background);
+				s_ui->PrintElements(2, draw_background);
 			}
 			
 			/* Copy buffer 2 to back-buffer */
-			m_Screen->CopyFromToBuffer(2, iBuffer);
+			s_ui->m_Screen->CopyFromToBuffer(2, iBuffer);
 	
 			/* Do effects to back-buffer */
-			if ((ui->m_isdirty & DIRTY_PCM) && pcmbuffer)
+			if ((s_ui->m_isdirty & DIRTY_PCM) && s_pcmbuffer)
 			{
 				UNSET_DIRTY(DIRTY_PCM);
 				draw_pcm(iBuffer);
 			}
 			
-			//flip
-			sceDisplayWaitVblankStart();
-			m_Screen->SetFrameBuffer(iBuffer);//sceDisplaySetFrameBuf
+			///Buffer is configured in sync mode already... 
+			//sceDisplayWaitVblankStart();
+			//Flip Buffers
+			s_ui->m_Screen->SetFrameBuffer(iBuffer);
 			iBuffer = 1 - iBuffer; //(iBuffer+1)%2;
-			//ui->m_isdirty = 0;
 		}
 		else
 		{
-			sceKernelDelayThread(1); /* yield */
 			if (s_exit)
 				break;
 		}
+		sceKernelDelayThread(0); /* yield */
 	}
 
+}
+
+void CTextUI::PrintProgramVersion(int iBuffer)
+{
+	uiPrintf(iBuffer, m_ScreenConfig.ProgramVersionX, m_ScreenConfig.ProgramVersionY, 
+				m_ScreenConfig.ProgramVersionColor, PSPRadioExport_GetProgramVersion());
 }
 
 int CTextUI::Initialize(char *strCWD, char *strSkinDir)
@@ -496,9 +496,6 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 		TextUILog(LOG_LOWLEVEL, "Cleared");
 	}
 	
-	uiPrintf(0, m_ScreenConfig.ProgramVersionX, m_ScreenConfig.ProgramVersionY, 
-			m_ScreenConfig.ProgramVersionColor, PSPRadioExport_GetProgramVersion());
-	
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
 	
@@ -634,7 +631,7 @@ void CTextUI::uiPrintf(int iBuffer, int x, int y, int color, char *strFormat, ..
 		
 			if (x == -1) /** CENTER */
 			{
-				x = PSP_SCREEN_WIDTH/2 - ((strlen(msg)/2)*m_Screen->GetFontWidth());
+				x = m_Screen->m_Width/2 - ((strlen(msg)/2)*m_Screen->GetFontWidth());
 			}
 			m_Screen->PrintText(iBuffer, x, y, color, msg);
 			
@@ -656,10 +653,10 @@ void CTextUI::ClearRows(int iRowStart, int iRowEnd)
 				iRowEnd = iRowStart;
 				
 			m_lockclear->Lock();
-			for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+			for (int iRow = iRowStart ; (iRow < m_Screen->m_Height) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
 			{
 				//m_Screen->ClearLine(PIXEL_TO_ROW(iRow));///m_Screen->GetFontHeight());
-				m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, PSP_SCREEN_WIDTH);
+				m_Screen->ClearCharsAtYFromX1ToX2(iRow, 0, m_Screen->m_Width);
 			}
 			m_lockclear->Unlock();
 		}
@@ -680,7 +677,7 @@ void CTextUI::ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowE
 				iRowEnd = iRowStart;
 				
 			m_lockclear->Lock();
-			for (int iRow = iRowStart ; (iRow < PSP_SCREEN_HEIGHT) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
+			for (int iRow = iRowStart ; (iRow < m_Screen->m_Height) && (iRow <= iRowEnd); iRow+=m_Screen->GetFontHeight())
 			{
 				m_Screen->ClearCharsAtYFromX1ToX2(iRow, iColStart, iColEnd);
 			}
@@ -827,9 +824,9 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 	/** If message is longer than 1 lines, then truncate;
 	The -10 is to accomodate for the "Error: " plus a bit.
 	*/
-	if (strlen(strMsg)>(size_t)(PIXEL_TO_COL(PSP_SCREEN_WIDTH) - 10))
+	if (strlen(strMsg)>(size_t)(PIXEL_TO_COL(m_Screen->m_Width) - 10))
 	{
-		strMsg[(PIXEL_TO_COL(PSP_SCREEN_WIDTH) - 10)] = 0;
+		strMsg[(PIXEL_TO_COL(m_Screen->m_Width) - 10)] = 0;
 	}
 	uiPrintf(0, x, y, c, "Error: %s", strMsg);
 	
@@ -848,9 +845,9 @@ int CTextUI::DisplayMessage(char *strMsg)
 	/** If message is longer than 1 lines, then truncate;
 	 *  The -3 is just in case.
 	 */
-	if (strlen(strMsg)>(size_t)(PIXEL_TO_COL(PSP_SCREEN_WIDTH) - 3))
+	if (strlen(strMsg)>(size_t)(PIXEL_TO_COL(m_Screen->m_Width) - 3))
 	{
-		strMsg[(PIXEL_TO_COL(PSP_SCREEN_WIDTH) - 3)] = 0;
+		strMsg[(PIXEL_TO_COL(m_Screen->m_Width) - 3)] = 0;
 	}
 	uiPrintf(0, -1, y, c, "%s", strMsg);
 	
@@ -984,7 +981,7 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 			m_Screen->DrawBackground(iBuffer, 
 							m_ScreenConfig.MetadataX1, 
 							y,
-							PSP_SCREEN_WIDTH, 
+							m_Screen->m_Width, 
 							m_ScreenConfig.MetadataRangeY2);
 		//ClearRows(y, m_ScreenConfig.MetadataRangeY2);
 

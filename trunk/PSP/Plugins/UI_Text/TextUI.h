@@ -14,7 +14,7 @@
 #define DIRTY_CONTAINERS 64
 #define DIRTY_ELEMENTS 128
 #define DIRTY_BACKGROUND  256
-
+#define DIRTY_OPTIONS 512
 
 struct screenconfig
 {
@@ -98,12 +98,12 @@ public:
 	
 public:
 	int  m_isdirty;
+	CScreen *m_Screen;
 private:
 	CLock *m_lockprint;
 	CLock *m_lockclear;
 	CIniParser *m_Config;
 	char  *m_strTitle;
-	//CScreen *m_Screen;
 	CScreenHandler::Screen m_CurrentScreen;
 	screenconfig m_ScreenConfig;
 	int 	m_LastBatteryPercentage;
@@ -139,6 +139,8 @@ private:
 	public:
 	int m_iBufferPercentage;
 	CMetaDataContainer *m_Container;
+	void CTextUI::NewPCMBuffer(short *PCMBuffer);
+
 	void PrintTime(int iBuffer, bool draw_background);
 	void CTextUI::PrintBattery(int iBuffer, bool draw_background);
 	int CTextUI::PrintBufferPercentage(int iBuffer, bool draw_background);
@@ -146,7 +148,9 @@ private:
 	int CTextUI::PrintStreamTime(int iBuffer, bool draw_background);
 	void CTextUI::PrintContainers(int iBuffer, bool draw_background);
 	void CTextUI::PrintElements(int iBuffer, bool draw_background);
-	void CTextUI::NewPCMBuffer(short *PCMBuffer);
+	void CTextUI::PrintProgramVersion(int iBuffer);
+
+	static void render_thread(void *);
 };
 
 
