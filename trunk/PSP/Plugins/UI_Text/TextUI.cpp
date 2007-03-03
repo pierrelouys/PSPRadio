@@ -127,9 +127,9 @@ CTextUI::~CTextUI()
 	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
 
-void CTextUI::News_pcmbuffer(short *s_pcmbuffer)
+void CTextUI::NewPCMBuffer(short *pcmbuffer)
 {
-	s_pcmbuffer = s_pcmbuffer;
+	s_pcmbuffer = pcmbuffer;
 	m_isdirty |= DIRTY_PCM;
 }
 
