@@ -17,7 +17,7 @@
 		~CScreen();
 		void SetBackColor(u32 colour);
 		void SetTextColor(u32 colour);
-		void SetBackgroundImage(char *strImage);
+		void LoadBuffer(int iBuffer, const char *strImage);
 		void SetTextMode(textmode mode){m_TextMode = mode;}
 		void SetFontSize(int iWidth, int iHeight);
 		int  GetFontHeight(){return m_FontHeight;}
@@ -40,7 +40,7 @@
 		
 		//NEW:
 	public:
-		void DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2);
+		void CopyRectangle(int iFromBuffer, int iDestBuffer, u32 x1, u32 y1, u32 x2, u32 y2);
 		void SetFrameBuffer(int iBuffer);
 		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
 		void Effect(int iBuffer);

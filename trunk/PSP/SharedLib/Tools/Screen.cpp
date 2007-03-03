@@ -92,6 +92,7 @@ void CScreen::Init()
 		m_Buffer[i] = (u32*)((char*)g_vram_base+FRAMESIZE*i);
 	}
 	//m_Buffer[2] = (u32*)memalign(16, FRAMESIZE);
+	m_Buffer[3] = (u32*)memalign(16, FRAMESIZE); //Used to store the background
 
 	init = true;
 }
@@ -161,8 +162,10 @@ void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
 }
 
 /* Load an image and show it to screen */
-void CScreen::LoadImage(const char* filename, u32 *ImageBuffer)
+void CScreen::LoadBuffer(int iBuffer, const char* filename)
 {
+	u32 *vram32;
+	u16 *vram16;
 	png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned int sig_read = 0;
@@ -201,82 +204,60 @@ void CScreen::LoadImage(const char* filename, u32 *ImageBuffer)
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
 		return;
 	}
-	for (y = 0; y < height; y++) 
-	{
+	vram16 = (u16*) m_Buffer[iBuffer];
+	vram32 = m_Buffer[iBuffer];
+
+	for (y = 0; y < height; y++) {
 		png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
-		for (x = 0; x < width; x++) 
-		{
-			ImageBuffer[y*width+x] = line[x];
+		for (x = 0; x < width; x++) {
+			u32 color32 = line[x];
+			u16 color16;
+			int r = color32 & 0xff;
+			int g = (color32 >> 8) & 0xff;
+			int b = (color32 >> 16) & 0xff;
+			switch (m_PixelFormat) {
+				case PSP_DISPLAY_PIXEL_FORMAT_565:
+					color16 = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+					vram16[x + y * m_Pitch] = color16;
+					break;
+				case PSP_DISPLAY_PIXEL_FORMAT_5551:
+					color16 = (r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10);
+					vram16[x + y * m_Pitch] = color16;
+					break;
+				case PSP_DISPLAY_PIXEL_FORMAT_4444:
+					color16 = (r >> 4) | ((g >> 4) << 4) | ((b >> 4) << 8);
+					vram16[x + y * m_Pitch] = color16;
+					break;
+				case PSP_DISPLAY_PIXEL_FORMAT_8888:
+					color32 = r | (g << 8) | (b << 16);
+					vram32[x + y * m_Pitch] = color32;
+					break;
+			}
 		}
 	}
-	free(line), line = NULL;
+	free(line);
 	png_read_end(png_ptr, info_ptr);
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 	fclose(fp);
 }
 /** PNG STUFF */
 
-void CScreen::DrawBackground(int iBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
+void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
 {
-	u16* vram16;
-	int bufferwidth;
-	int pixelformat;
-	u32 x,y;
-	u32 *vram32 =  m_Buffer[iBuffer];
-	bufferwidth = m_Pitch;
-	pixelformat = m_PixelFormat;
-	
-	vram16 = (u16*) vram32;
-	for (y = y1; y < y2; y++) {
-		for (x = x1; x < x2; x++) {
-			u32 color32 = m_ImageBuffer[y*m_Width+x];
-			u16 color16;
-			int r = color32 & 0xff;
-			int g = (color32 >> 8) & 0xff;
-			int b = (color32 >> 16) & 0xff;
-			switch (pixelformat) {
-				case PSP_DISPLAY_PIXEL_FORMAT_565:
-					color16 = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-					vram16[x + y * bufferwidth] = color16;
-					break;
-				case PSP_DISPLAY_PIXEL_FORMAT_5551:
-					color16 = (r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10);
-					vram16[x + y * bufferwidth] = color16;
-					break;
-				case PSP_DISPLAY_PIXEL_FORMAT_4444:
-					color16 = (r >> 4) | ((g >> 4) << 4) | ((b >> 4) << 8);
-					vram16[x + y * bufferwidth] = color16;
-					break;
-				case PSP_DISPLAY_PIXEL_FORMAT_8888:
-					color32 = r | (g << 8) | (b << 16);
-					vram32[x + y * bufferwidth] = color32;
-					break;
-			}
-		}
-	}
-}
+	u32 *src = m_Buffer[iFromBuffer] + x1 + (y1*m_Pitch);
+	u32 *dst = m_Buffer[iDestBuffer] + x1 + (y1*m_Pitch);
+	int xlen = x2 - x1;
+	int ylen = y2 - y1;
+	u32 *src_line, *dst_line;
 
-void CScreen::SetBackgroundImage(char *strImage)
-{
-	
-	if (strImage)
+	for (int y = 0; y < ylen; y++)
 	{
-		if (m_ImageBuffer == NULL)
+		src_line = src + y*m_Pitch;
+		dst_line = dst + y*m_Pitch;
+	
+		for (int x = 0; x < xlen ; x++)
 		{
-			m_ImageBuffer = (u32*)malloc(m_Width*m_Width*sizeof(u32));
-		}
-		
-		if (m_ImageBuffer)
-		{
-			if (m_strImage)
-			{
-				free(m_strImage), m_strImage = NULL;
-			}
-			m_strImage = strdup(strImage);
-			if (m_strImage)
-			{
-				LoadImage(m_strImage, m_ImageBuffer);
-			}
+			dst_line[x] = src_line[x];
 		}
 	}
 }

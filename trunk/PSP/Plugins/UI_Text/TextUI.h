@@ -124,8 +124,6 @@ private:
 		COLOR_YELLOW= 0x00559999
 	};
 	void uiPrintf(int iBuffer, int x, int y, int color, char *strFormat, ...);
-	void ClearRows(int iRowStart, int iRowEnd = -1);
-	void ClearHalfRows(int iColStart, int iColEnd, int iRowStart, int iRowEnd = -1);
 
 	int ClearErrorMessage();
 	int GetConfigColor(char *strKey);
