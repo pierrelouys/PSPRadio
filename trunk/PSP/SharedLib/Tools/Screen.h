@@ -24,17 +24,9 @@
 		int  GetFontWidth(){return m_FontWidth;}
 		size_t GetNumberOfTextColumns(){ return m_Width/m_FontWidth; }
 		size_t GetNumberOfTextRows(){ return m_Height/m_FontHeight; }
-		void Printf(const char *format, ...);
-		void Clear();
-		void SetXY(int x, int y);
-		int  GetX();
-		int  GetY();
 		
 	private:
-		int X, Y;
-		int MX, MY;
 		u32 bg_col, fg_col;
-		u32* g_vram_base;
 		bool init;
 		char *m_strImage;
 		u32  *m_ImageBuffer;
@@ -44,10 +36,7 @@
 		void Init();
 		int  PrintData(const char *buff, int size);
 		void LoadImage(const char* filename, u32 *ImageBuffer);
-		void clear_screen(u32 color);
-		void PutEraseChar( int x, int y, u32 color);
 		void ShowBackgroundPng(u32 x1, u32 y1, u32 x2, u32 y2);
-		
 		
 		//NEW:
 	public:
@@ -62,11 +51,12 @@
 		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);
 				
 	public:
+		u32 *m_Buffer[4]; // 4 FRAMES in VRAM
 		int FRAMESIZE;
-		int m_Width;// 480
-		int m_Height;// 272
-		int m_Pitch;// 512
-		int m_PixelFormat;// 3
+		int m_Width;
+		int m_Height;
+		int m_Pitch;
+		int m_PixelFormat;
 		
 	private:
 		void PutChar(int iBuffer, int x, int y, u32 color, u8 ch);
