@@ -184,10 +184,19 @@ void CTextUI::render_thread(void *) //static
 #define UNSET_DIRTY(x) {s_ui->m_isdirty&=~x;}
 	static int iBuffer = 0;
 	bool draw_background = true;
+	
+	/* For FPS Calculation: */
+	clock_t time1, time2;
+	int frame_count = 0;
+	int total_time = 0;
+	int fps = 0;
+
 	for (;;)
 	{
 		if (s_ui->m_isdirty)
 		{
+			time1 = sceKernelLibcClock();
+
 			if (s_ui->m_isdirty & DIRTY_BACKGROUND)
 			{
 				UNSET_DIRTY(DIRTY_BACKGROUND);
@@ -247,18 +256,29 @@ void CTextUI::render_thread(void *) //static
 				draw_pcm(iBuffer);
 			}
 			
+			/* FPS Calculation */
+			time2 = sceKernelLibcClock();
+			total_time += (time2 - time1);
+			if (++frame_count == 10)
+			{
+				fps = (frame_count * CLOCKS_PER_SEC) / total_time;
+				frame_count = 0;
+				total_time = 0;
+			}
+			s_ui->uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "FPS: %03d", fps);
+
 			///Buffer is configured in sync mode already... 
 			//sceDisplayWaitVblankStart();
 			//Flip Buffers
 			s_ui->m_Screen->SetFrameBuffer(iBuffer);
-			iBuffer = 1 - iBuffer; //(iBuffer+1)%2;
+			iBuffer = 1 - iBuffer;
 		}
 		else
 		{
 			if (s_exit)
 				break;
 		}
-		sceKernelDelayThread(0); /* yield */
+		sceKernelDelayThread(1); /* yield */
 	}
 
 }
