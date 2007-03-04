@@ -343,6 +343,11 @@ void CTextUI::render_thread(void *) //static
 				UNSET_DIRTY(DIRTY_ELEMENTS);
 				s_ui->PrintElements(2, draw_background);
 			}
+			if (s_ui->m_isdirty & DIRTY_OPTIONS)
+			{
+				UNSET_DIRTY(DIRTY_OPTIONS);
+				s_ui->PrintOptionsScreen(2, draw_background);
+			}
 			
 			/* Copy buffer 2 to back-buffer */
 			s_ui->m_Screen->CopyFromToBuffer(2, iBuffer);
@@ -643,6 +648,28 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator)
 {
+	m_OptionsList = &OptionsList;
+	m_CurrentOptionIterator = 0;
+	int index = 0;
+	list<OptionsScreen::Options>::iterator OptionIterator;
+	if (OptionsList.size() > 0)
+	{
+		for (OptionIterator = OptionsList.begin() ; OptionIterator != OptionsList.end() ; OptionIterator++)
+		{
+			if (OptionIterator == CurrentOptionIterator)
+			{
+				m_CurrentOptionIterator = index;
+			}
+			index++;
+		}
+	}
+	m_isdirty |= DIRTY_OPTIONS;
+}
+
+void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
+{
+	list<OptionsScreen::Options> OptionsList = *m_OptionsList;
+	int index = 0;
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
 	
@@ -652,7 +679,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	{
 		for (OptionIterator = OptionsList.begin() ; OptionIterator != OptionsList.end() ; OptionIterator++)
 		{
-			if (OptionIterator == CurrentOptionIterator)
+			if (index == m_CurrentOptionIterator)
 			{
 				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_NAME_TEXT");
 			}
@@ -663,16 +690,22 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			
 			Option = (*OptionIterator);
 			
-			PrintOption(x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
+			if (draw_background)
+				m_Screen->CopyRectangle(3, iBuffer, 
+									x, 
+									y,
+									m_Screen->m_Width - x, 
+									y + ROW_TO_PIXEL(1));
+			PrintOption(iBuffer, x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
 						Option.iActiveState);
 			
 			y+=m_Config->GetInteger("SCREEN_SETTINGS:Y_INCREMENT",16);
+			index++;
 		}
 	}
 }
 
-void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState,
-						  int iActiveState)
+void CTextUI::PrintOption(int iBuffer, int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, int iActiveState)
 {
 	int x1 = -100, x2 = -100;
 	int color = 0xFFFFFF;
@@ -694,17 +727,17 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 
 	///ModuleLog(LOG_LOWLEVEL, "PrintOption: x1=%d x2=%d", x1, x2);
 
-	uiPrintf(0, COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
+	uiPrintf(iBuffer, COL_TO_PIXEL(iTextPos), y, c, "%s", strName);
 	iTextPos += iNameLen;
 	if (iNumberOfStates > 0)
 	{
-		uiPrintf(0, COL_TO_PIXEL(iTextPos), y, c, ": ");
+		uiPrintf(iBuffer, COL_TO_PIXEL(iTextPos), y, c, ": ");
 		iTextPos += 2;
 		int iInitState = 1;
 		if (iSelectedState > 2)
 		{
 			iInitState = iSelectedState - 1;
-			uiPrintf(0, COL_TO_PIXEL(iTextPos),y,iArrowColor, "< ");
+			uiPrintf(iBuffer, COL_TO_PIXEL(iTextPos),y,iArrowColor, "< ");
 			iTextPos += 2;
 		}
 
@@ -731,12 +764,12 @@ void CTextUI::PrintOption(int x, int y, int c, char *strName, char *strStates[],
 			iOptionLen = strlen(strStates[iStates-1]);
 			if (PIXEL_TO_COL(x2) - iTextPos > iOptionLen)
 			{
-				uiPrintf(0, COL_TO_PIXEL(iTextPos),y,color, "%s ", strStates[iStates-1]);
+				uiPrintf(iBuffer, COL_TO_PIXEL(iTextPos),y,color, "%s ", strStates[iStates-1]);
 				iTextPos += iOptionLen+1;
 			}
 			else
 			{
-				uiPrintf(0, COL_TO_PIXEL(iTextPos++),y,iArrowColor, ">");
+				uiPrintf(iBuffer, COL_TO_PIXEL(iTextPos++),y,iArrowColor, ">");
 				break;
 			}
 		}

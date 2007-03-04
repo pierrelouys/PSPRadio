@@ -129,8 +129,9 @@ private:
 	int GetConfigColor(char *strKey);
 	void GetConfigPair(char *strKey, int *x, int *y);
 	
-	void PrintOption(int x, int y, int c, char *strName, char *strStates[], int iNumberOfStates, int iSelectedState, 
-					int iActiveState);
+	void PrintOption(int iBuffer, int x, int y, int c, 
+					 char *strName, char *strStates[], 
+					 int iNumberOfStates, int iSelectedState, int iActiveState);
 	void LoadConfigSettings(IScreen *Screen);
 	
 	//NEW:
@@ -138,6 +139,9 @@ private:
 	int m_iBufferPercentage;
 	CMetaDataContainer *m_Container;
 	void CTextUI::NewPCMBuffer(short *PCMBuffer);
+	list<OptionsScreen::Options> *m_OptionsList;
+	int m_CurrentOptionIterator;
+
 
 	void PrintTime(int iBuffer, bool draw_background);
 	void CTextUI::PrintBattery(int iBuffer, bool draw_background);
@@ -147,6 +151,7 @@ private:
 	void CTextUI::PrintContainers(int iBuffer, bool draw_background);
 	void CTextUI::PrintElements(int iBuffer, bool draw_background);
 	void CTextUI::PrintProgramVersion(int iBuffer);
+	void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background);
 
 	static void render_thread(void *);
 };
