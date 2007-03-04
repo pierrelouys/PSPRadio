@@ -274,7 +274,7 @@ draw_pcm_func visualizer[] = {
 	draw_pcm_osc_v4,
 	draw_pcm_osc_v5
  };
-unsigned int current_visualizer = 0;
+int current_visualizer = 0;
 #define number_of_visualizers 7//sizeof(visualizer)/sizeof(draw_pcm_func)
 
 void CTextUI::render_thread(void *) //static
@@ -371,7 +371,7 @@ void CTextUI::render_thread(void *) //static
 					
 					if (IS_BUTTON_PRESSED(pad.Buttons, VIS_KEY_PREV))
 					{
-						current_visualizer = (current_visualizer - 1 < 0)?number_of_visualizers:(current_visualizer - 1);
+						current_visualizer = (current_visualizer - 1 < 0)?(number_of_visualizers - 1):(current_visualizer - 1);
 					}
 					else if (IS_BUTTON_PRESSED(pad.Buttons, VIS_KEY_NEXT))
 					{
