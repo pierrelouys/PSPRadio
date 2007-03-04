@@ -28,10 +28,9 @@
 	private:
 		u32 bg_col, fg_col;
 		bool init;
-		char *m_strImage;
-		u32  *m_ImageBuffer;
 		textmode m_TextMode;
 		int m_FontWidth, m_FontHeight;
+		u32 *m_AllocatedBuffer[2];
 
 		void Init();
 		int  PrintData(const char *buff, int size);

@@ -53,8 +53,6 @@ CScreen::CScreen(int width, int height, int pitch, int pixel_format)
 	bg_col = 0; 
 	fg_col = 0xFFFFFFFF;
 	init = false;
-	m_strImage = NULL;
-	m_ImageBuffer = NULL;
 	m_TextMode = TEXTMODE_NORMAL;
 	m_FontWidth = 7; 
 	m_FontHeight = 8;
@@ -65,16 +63,8 @@ CScreen::CScreen(int width, int height, int pitch, int pixel_format)
 
 CScreen::~CScreen()
 {
-	if (m_strImage)
-	{
-		free (m_strImage), m_strImage = NULL;
-	}
-	
-	if (m_ImageBuffer)
-	{
-		free (m_ImageBuffer), m_ImageBuffer = NULL;
-	}
-
+	free (m_AllocatedBuffer[0]);
+	free (m_AllocatedBuffer[1]);
 }
 
 void CScreen::Init()
@@ -83,6 +73,9 @@ void CScreen::Init()
 	//u32 *g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	/* let's use cached memory better */
 	u32 *g_vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
+	m_AllocatedBuffer[0] = (u32*)memalign(16, FRAMESIZE); //Used to store the background
+	m_AllocatedBuffer[1] = NULL;
+
 	sceDisplaySetMode(0, m_Width, m_Height);
 	sceDisplaySetFrameBuf((void *) g_vram_base, 
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
@@ -91,8 +84,8 @@ void CScreen::Init()
 	{
 		m_Buffer[i] = (u32*)((char*)g_vram_base+FRAMESIZE*i);
 	}
-	//m_Buffer[2] = (u32*)memalign(16, FRAMESIZE);
-	m_Buffer[3] = (u32*)memalign(16, FRAMESIZE); //Used to store the background
+	//m_Buffer[2] = m_AllocatedBuffer[0];
+	m_Buffer[3] = m_AllocatedBuffer[0];
 
 	init = true;
 }
@@ -108,18 +101,30 @@ void CScreen::Plot(int iBuffer, int x, int y, int color)
 	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
 	//*pixel = color;//*pixel & 0xAAAAAAAA;//color;
 	//*pixel = *pixel & 0xAAAAAAAA;//color;
-	*pixel = *pixel | 0xAAAAAAAA;//color;
+	*pixel = *pixel | color;//0xAAAAAAAA;//color;
 }
 
 void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
 {
-	if (y1 < 0)
-		y1 = 0;
-	y2++;
-	for (int y = y1; y < y2; y++)
+	if (y1 < y2)
 	{
-		Plot(iBuffer, x, y, color);
+		for (int y = y1<0?0:y1; y <= y2; y++)
+		{
+			Plot(iBuffer, x, y, color);
+		}
 	}
+	else if (y2 < y1)
+	{
+		for (int y = y2<0?0:y2; y <= y1; y++)
+		{
+			Plot(iBuffer, x, y, color);
+		}
+	}
+	else 
+	{
+		Plot(iBuffer, x, y1, color);
+	}
+	
 }
 
 void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
@@ -135,9 +140,9 @@ int CScreen::Peek(int iBuffer, int x, int y)
 
 void CScreen::Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color)
 {
-	for (int x = x1;x < x2; x++)
+	for (int x = x1;x <= x2; x++)
 	{
-		for (int y = y1;y < y2; y++)
+		for (int y = y1;y <= y2; y++)
 		{
 			Plot(iBuffer, x, y, color);
 		}
@@ -246,19 +251,12 @@ void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, u32 x1, u32 y1, u3
 {
 	u32 *src = m_Buffer[iFromBuffer] + x1 + (y1*m_Pitch);
 	u32 *dst = m_Buffer[iDestBuffer] + x1 + (y1*m_Pitch);
-	int xlen = x2 - x1;
+	int xlen_in_bytes = (x2 - x1)*4;
 	int ylen = y2 - y1;
-	u32 *src_line, *dst_line;
 
 	for (int y = 0; y < ylen; y++)
 	{
-		src_line = src + y*m_Pitch;
-		dst_line = dst + y*m_Pitch;
-	
-		for (int x = 0; x < xlen ; x++)
-		{
-			dst_line[x] = src_line[x];
-		}
+		memcpy(dst + y*m_Pitch, src + y*m_Pitch, xlen_in_bytes);
 	}
 }
 
