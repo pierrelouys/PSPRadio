@@ -266,7 +266,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 	/** Only do UP and DOWN repeats */
 	if (MID_ONBUTTON_REPEAT == iEventType)
 	{
-		if(IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_FWD) || IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_BACK))
+		if(!IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_FWD) && !IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_BACK))
 		{
 			return;
 		}

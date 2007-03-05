@@ -30,9 +30,11 @@ CPSPRadio *gPSPRadio = NULL;
 int main(int argc, char **argv)
 {
 	rootScreen = new CScreen();
-	
-	rootScreen->SetBackgroundImage("Init.png");
-	rootScreen->Clear();
+
+	rootScreen->Clear(0);
+	rootScreen->SetFrameBuffer(0);
+	rootScreen->LoadBuffer(1, "Init.png");
+	rootScreen->SetFrameBuffer(1);
 
 	gPSPRadio = new CPSPRadio();
 	if (gPSPRadio)

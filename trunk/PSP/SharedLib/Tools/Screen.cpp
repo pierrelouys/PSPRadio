@@ -132,6 +132,11 @@ void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
 	memcpy(m_Buffer[iBufferTo], m_Buffer[iBufferFrom], FRAMESIZE);
 }
 
+void CScreen::Clear(int iBuffer)
+{
+	memset(m_Buffer[iBuffer], 0, FRAMESIZE);
+}
+
 int CScreen::Peek(int iBuffer, int x, int y)
 {
 	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;

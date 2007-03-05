@@ -3,6 +3,7 @@ What's New for PSPRadio
 1.15.xxxx (2007-02-xx)
 NEW FEATURES
 BUG FIXES
+(raf) Core: Fixed button repeat handling that broke when implemented the button mapping.
 KNOWN BUGS
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.
 (raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).

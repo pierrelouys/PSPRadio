@@ -272,8 +272,10 @@ void CPSPRadio::OnExit()
 		m_ScreenHandler->PrepareShutdown();
 	}
 
-	rootScreen->SetBackgroundImage("Shutdown.png");
-	rootScreen->Clear();
+	rootScreen->Clear(0);
+	rootScreen->SetFrameBuffer(0);
+	rootScreen->LoadBuffer(1, "Shutdown.png");
+	rootScreen->SetFrameBuffer(1);
 
 // 	Log(LOG_INFO, "OnExit(): Stopping network drivers");
 // 	StopNetworkDrivers();
