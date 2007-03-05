@@ -15,6 +15,8 @@
 #define DIRTY_ELEMENTS 128
 #define DIRTY_BACKGROUND  256
 #define DIRTY_OPTIONS 512
+#define DIRTY_ACTIVE_COMMAND 1024
+#define DIRTY_MESSAGE 2048
 
 struct screenconfig
 {
@@ -100,8 +102,6 @@ public:
 	int  m_isdirty;
 	CScreen *m_Screen;
 private:
-	CLock *m_lockprint;
-	CLock *m_lockclear;
 	CIniParser *m_Config;
 	char  *m_strTitle;
 	CScreenHandler::Screen m_CurrentScreen;
@@ -141,8 +141,10 @@ private:
 	void CTextUI::NewPCMBuffer(short *PCMBuffer);
 	list<OptionsScreen::Options> *m_OptionsList;
 	int m_CurrentOptionIterator;
+	CPSPSound::pspsound_state m_CurrentPlayingState;
+	char m_Message[512];
 
-
+	void PrintMessage(char *message);
 	void PrintTime(int iBuffer, bool draw_background);
 	void CTextUI::PrintBattery(int iBuffer, bool draw_background);
 	int CTextUI::PrintBufferPercentage(int iBuffer, bool draw_background);
@@ -152,6 +154,7 @@ private:
 	void CTextUI::PrintElements(int iBuffer, bool draw_background);
 	void CTextUI::PrintProgramVersion(int iBuffer);
 	void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background);
+	int CTextUI::PrintActiveCommand(int iBuffer, bool draw_background);
 
 	static void render_thread(void *);
 };

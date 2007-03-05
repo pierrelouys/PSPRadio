@@ -34,14 +34,17 @@
 #include "TextUI.h"
 #include <psputility_sysparam.h>
 
-#define MAX_ROWS 		m_Screen->GetNumberOfTextRows()
-#define MAX_COL 		m_Screen->GetNumberOfTextColumns()
+#define MAX_ROWS 		s_ui->m_Screen->GetNumberOfTextRows()
+#define MAX_COL 		s_ui->m_Screen->GetNumberOfTextColumns()
 #define PIXEL_TO_ROW(y)	((y)/m_Screen->GetFontHeight())
 #define PIXEL_TO_COL(x) ((x)/m_Screen->GetFontWidth())
 #define COL_TO_PIXEL(c) ((c)*m_Screen->GetFontWidth())
 #define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
 
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+
+#define BACKGROUND_BUFFER 3
+#define OFFLINE_BUFFER    2
 
 #define TextUILog ModuleLog
 
@@ -55,15 +58,12 @@ CTextUI::CTextUI()
 	
 	m_Config = NULL;
 	m_strConfigDir = NULL;
-	m_lockprint = NULL;
-	m_lockclear = NULL;
 	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
 	m_Screen = new CScreen;
 	m_strTitle = strdup("PSPRadio");
-	
-	m_lockprint = new CLock("Print_Lock");
-	m_lockclear = new CLock("Clear_Lock");
+	m_Message[0] = 0;
+
 	s_ui = this;
 	m_isdirty = 0;
 	m_LastBatteryPercentage = 0;
@@ -99,16 +99,7 @@ CTextUI::~CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
 	s_exit = true;
-	if (m_lockprint)
-	{
-		delete(m_lockprint);
-		m_lockprint = NULL;
-	}
-	if (m_lockclear)
-	{
-		delete(m_lockclear);
-		m_lockclear = NULL;
-	}
+	sceKernelDelayThread(1); /* yield */
 	if (m_Config)
 	{
 		delete(m_Config);
@@ -288,9 +279,12 @@ void CTextUI::render_thread(void *) //static
 	int frame_count = 0;
 	int total_time = 0;
 	int fps = 0;
+	int message_frames = 0;
 
 	for (;;)
 	{
+		if (s_exit)
+			break;
 		if (s_ui->m_isdirty)
 		{
 			time1 = sceKernelLibcClock();
@@ -298,9 +292,9 @@ void CTextUI::render_thread(void *) //static
 			if (s_ui->m_isdirty & DIRTY_BACKGROUND)
 			{
 				UNSET_DIRTY(DIRTY_BACKGROUND);
-				s_ui->m_Screen->CopyRectangle(3, 2, 
+				s_ui->m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
 					0, 0, s_ui->m_Screen->m_Width, s_ui->m_Screen->m_Height);
-				s_ui->PrintProgramVersion(2);
+				s_ui->PrintProgramVersion(OFFLINE_BUFFER);
 				draw_background  = false;
 			}
 			else
@@ -311,48 +305,65 @@ void CTextUI::render_thread(void *) //static
 			if (s_ui->m_isdirty & DIRTY_TIME)
 			{
 				UNSET_DIRTY(DIRTY_TIME);
-				s_ui->PrintTime(2, draw_background);
+				s_ui->PrintTime(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_BATTERY)
 			{
 				UNSET_DIRTY(DIRTY_BATTERY);
-				s_ui->PrintBattery(2, draw_background);
+				s_ui->PrintBattery(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_BUFFER_PERCENTAGE)
 			{
 				UNSET_DIRTY(DIRTY_BUFFER_PERCENTAGE);
-				s_ui->PrintBufferPercentage(2, draw_background);
+				s_ui->PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_SONG_DATA)
 			{
 				UNSET_DIRTY(DIRTY_SONG_DATA);
-				s_ui->PrintSongData(2, draw_background);
+				s_ui->PrintSongData(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_STREAM_TIME)
 			{
 				UNSET_DIRTY(DIRTY_STREAM_TIME);
-				s_ui->PrintStreamTime(2, draw_background);
+				s_ui->PrintStreamTime(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_CONTAINERS)
 			{
 				UNSET_DIRTY(DIRTY_CONTAINERS);
-				s_ui->PrintContainers(2, draw_background);
+				s_ui->PrintContainers(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_ELEMENTS)
 			{
 				UNSET_DIRTY(DIRTY_ELEMENTS);
-				s_ui->PrintElements(2, draw_background);
+				s_ui->PrintElements(OFFLINE_BUFFER, draw_background);
 			}
 			if (s_ui->m_isdirty & DIRTY_OPTIONS)
 			{
 				UNSET_DIRTY(DIRTY_OPTIONS);
-				s_ui->PrintOptionsScreen(2, draw_background);
+				s_ui->PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
+			}
+			if (s_ui->m_isdirty & DIRTY_ACTIVE_COMMAND)
+			{
+				UNSET_DIRTY(DIRTY_ACTIVE_COMMAND);
+				s_ui->PrintActiveCommand(OFFLINE_BUFFER, draw_background);
 			}
 			
-			/* Copy buffer 2 to back-buffer */
-			s_ui->m_Screen->CopyFromToBuffer(2, iBuffer);
+			/* Copy buffer OFFLINE_BUFFER to back-buffer */
+			s_ui->m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 	
 			/* Do effects to back-buffer */
+			if (s_ui->m_isdirty & DIRTY_MESSAGE)
+			{
+				//int x = (MAX_COL - strlen(s_ui->m_Message)) / 2;
+				message_frames++;
+				s_ui->uiPrintf(iBuffer, 100,100, 0xFFFFFF, s_ui->m_Message);
+				if (message_frames == 300)
+				{
+					UNSET_DIRTY(DIRTY_MESSAGE);
+					message_frames = 0;
+				}
+			}
+
 			if ((s_ui->m_isdirty & DIRTY_PCM) && s_pcmbuffer)
 			{
 				UNSET_DIRTY(DIRTY_PCM);
@@ -391,11 +402,6 @@ void CTextUI::render_thread(void *) //static
 			//Flip Buffers
 			s_ui->m_Screen->SetFrameBuffer(iBuffer);
 			iBuffer = 1 - iBuffer;
-		}
-		else
-		{
-			if (s_exit)
-				break;
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
@@ -444,7 +450,6 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 {
 	char *strCfgFile = NULL;
 
-	pspDebugScreenInit();
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() start");
 	
 	if (Screen->GetConfigFilename())
@@ -624,7 +629,7 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 				sprintf(strPath, "%s/%s/%s", m_strCWD, m_strConfigDir, m_ScreenConfig.strBackground);
 			}
 			TextUILog(LOG_LOWLEVEL, "Calling LoadBackground '%s'", strPath);
-			m_Screen->LoadBuffer(3, strPath);
+			m_Screen->LoadBuffer(BACKGROUND_BUFFER, strPath);
 		}
 	}
 #if 0
@@ -637,10 +642,10 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	}
 #endif
 	
+	m_OptionsList = NULL;
+	m_isdirty = DIRTY_BACKGROUND;
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
-	
-	m_isdirty = DIRTY_BACKGROUND;
 	
 	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
 }
@@ -668,6 +673,9 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 
 void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
 {
+	if (m_OptionsList == NULL)
+		return;
+
 	list<OptionsScreen::Options> OptionsList = *m_OptionsList;
 	int index = 0;
 	list<OptionsScreen::Options>::iterator OptionIterator;
@@ -691,7 +699,7 @@ void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
 			Option = (*OptionIterator);
 			
 			if (draw_background)
-				m_Screen->CopyRectangle(3, iBuffer, 
+				m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
 									x, 
 									y,
 									m_Screen->m_Width - x, 
@@ -836,7 +844,7 @@ void CTextUI::OnBatteryChange(int Percentage)
 void CTextUI::PrintBattery(int iBuffer, bool draw_background)
 {
 	if (draw_background)
-	m_Screen->CopyRectangle(3,iBuffer, m_ScreenConfig.BatteryX, m_ScreenConfig.BatteryY,
+	m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, m_ScreenConfig.BatteryX, m_ScreenConfig.BatteryY,
 							m_ScreenConfig.BatteryX + COL_TO_PIXEL(6), m_ScreenConfig.BatteryY + ROW_TO_PIXEL(1));
 	uiPrintf(iBuffer, m_ScreenConfig.BatteryX, m_ScreenConfig.BatteryY, 
 			m_ScreenConfig.BatteryColor, "B:%03d%%", m_LastBatteryPercentage);
@@ -853,7 +861,7 @@ void CTextUI::PrintTime(int iBuffer, bool draw_background)
 	if (m_ScreenConfig.ClockFormat == PSP_SYSTEMPARAM_TIME_FORMAT_24HR)
 	{
 		if (draw_background)
-			m_Screen->CopyRectangle(3, iBuffer, m_ScreenConfig.ClockX, m_ScreenConfig.ClockY,
+			m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, m_ScreenConfig.ClockX, m_ScreenConfig.ClockY,
 								m_ScreenConfig.ClockX + COL_TO_PIXEL(5), m_ScreenConfig.ClockY + ROW_TO_PIXEL(1));
 		uiPrintf(iBuffer, m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, 
 				m_ScreenConfig.ClockColor, "%02d:%02d", 
@@ -863,7 +871,7 @@ void CTextUI::PrintTime(int iBuffer, bool draw_background)
 	{
 		bool bIsPM = (m_LastLocalTime.hour)>12;
 		if (draw_background)
-			m_Screen->CopyRectangle(3, iBuffer, m_ScreenConfig.ClockX, m_ScreenConfig.ClockY,
+			m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, m_ScreenConfig.ClockX, m_ScreenConfig.ClockY,
 								m_ScreenConfig.ClockX + COL_TO_PIXEL(7), m_ScreenConfig.ClockY + ROW_TO_PIXEL(1));
 		uiPrintf(iBuffer, m_ScreenConfig.ClockX, m_ScreenConfig.ClockY, 	
 				m_ScreenConfig.ClockColor, "%02d:%02d%s", 
@@ -873,26 +881,34 @@ void CTextUI::PrintTime(int iBuffer, bool draw_background)
 	}
 }
 
+void CTextUI::PrintMessage(char *message)
+{
+	strlcpy(m_Message, message, MAX_COL);
+	m_isdirty = DIRTY_MESSAGE;
+}
+
 int CTextUI::DisplayMessage_EnablingNetwork()
 {
-	//ClearRows(m_ScreenConfig.NetworkEnablingY);
-	uiPrintf(0, m_ScreenConfig.NetworkEnablingX, m_ScreenConfig.NetworkEnablingY, m_ScreenConfig.NetworkEnablingColor, "Enabling Network");
+	//uiPrintf(0, m_ScreenConfig.NetworkEnablingX, m_ScreenConfig.NetworkEnablingY, m_ScreenConfig.NetworkEnablingColor, "Enabling Network");
+	PrintMessage("Enabling Network");
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_DisablingNetwork()
 {
-	//ClearRows(m_ScreenConfig.NetworkDisablingY);
-	uiPrintf(0, m_ScreenConfig.NetworkDisablingX, m_ScreenConfig.NetworkDisablingY, m_ScreenConfig.NetworkDisablingColor, "Disabling Network");
+	//uiPrintf(0, m_ScreenConfig.NetworkDisablingX, m_ScreenConfig.NetworkDisablingY, m_ScreenConfig.NetworkDisablingColor, "Disabling Network");
+	PrintMessage("Disabling Network");
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
-	//ClearRows(m_ScreenConfig.NetworkReadyY);
-	uiPrintf(0, m_ScreenConfig.NetworkReadyX, m_ScreenConfig.NetworkReadyY, m_ScreenConfig.NetworkReadyColor, "Ready, IP %s", strIP);
+	//uiPrintf(0, m_ScreenConfig.NetworkReadyX, m_ScreenConfig.NetworkReadyY, m_ScreenConfig.NetworkReadyColor, "Ready, IP %s", strIP);
+	char msg[128];
+	sprintf(msg, "Ready, IP %s", strIP);
+	PrintMessage(msg);
 	
 	return 0;
 }
@@ -904,21 +920,33 @@ int CTextUI::DisplayMainCommands()
 
 int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
-	//ClearRows(m_ScreenConfig.ActiveCommandY);
-	switch(playingstate)
+	m_isdirty = DIRTY_ACTIVE_COMMAND;
+	m_CurrentPlayingState = playingstate;
+	return 0;
+}
+
+int CTextUI::PrintActiveCommand(int iBuffer, bool draw_background)
+{
+	if (draw_background)
+		m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
+							0, 
+							m_ScreenConfig.ActiveCommandY,
+							m_Screen->m_Width, 
+							m_ScreenConfig.ActiveCommandY + ROW_TO_PIXEL(1));
+		
+	switch(m_CurrentPlayingState)
 	{
 	case CPSPSound::STOP:
-		{
-			uiPrintf(0, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, m_ScreenConfig.ActiveCommandColor, "STOP");
-			//ClearRows(m_ScreenConfig.MetadataRangeY1, m_ScreenConfig.MetadataRangeY2);
-			//ClearRows(m_ScreenConfig.BufferPercentageY);
-			break;
-		}
+		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 
+				m_ScreenConfig.ActiveCommandColor, "STOP");
+		break;
 	case CPSPSound::PLAY:
-		uiPrintf(0, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, m_ScreenConfig.ActiveCommandColor, "PLAY");
+		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 	
+				m_ScreenConfig.ActiveCommandColor, "PLAY");
 		break;
 	case CPSPSound::PAUSE:
-		uiPrintf(0, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, m_ScreenConfig.ActiveCommandColor, "PAUSE");
+		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 
+				m_ScreenConfig.ActiveCommandColor, "PAUSE");
 		break;
 	}
 	
@@ -927,42 +955,14 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 
 int CTextUI::DisplayErrorMessage(char *strMsg)
 {
-	int x,y,c;
-	//c = GetConfigColor("COLORS:ERROR_MESSAGE");
-	x = m_ScreenConfig.ErrorMessageX;
-	y = m_ScreenConfig.ErrorMessageY;
-	c = m_ScreenConfig.ErrorMessageColor;
-	
-	ClearErrorMessage();
-	/** If message is longer than 1 lines, then truncate;
-	The -10 is to accomodate for the "Error: " plus a bit.
-	*/
-	if (strlen(strMsg)>(size_t)(PIXEL_TO_COL(m_Screen->m_Width) - 10))
-	{
-		strMsg[(PIXEL_TO_COL(m_Screen->m_Width) - 10)] = 0;
-	}
-	uiPrintf(0, x, y, c, "Error: %s", strMsg);
+	PrintMessage(strMsg);
 	
 	return 0;
 }
 
 int CTextUI::DisplayMessage(char *strMsg)
 {
-	int x,y,c;
-	//c = GetConfigColor("COLORS:ERROR_MESSAGE");
-	x = m_ScreenConfig.ErrorMessageX;
-	y = m_ScreenConfig.ErrorMessageY;
-	c = m_ScreenConfig.ErrorMessageColor;
-
-	ClearErrorMessage();
-	/** If message is longer than 1 lines, then truncate;
-	 *  The -3 is just in case.
-	 */
-	if (strlen(strMsg)>(size_t)(PIXEL_TO_COL(m_Screen->m_Width) - 3))
-	{
-		strMsg[(PIXEL_TO_COL(m_Screen->m_Width) - 3)] = 0;
-	}
-	uiPrintf(0, -1, y, c, "%s", strMsg);
+	PrintMessage(strMsg);
 	
 	return 0;
 }
@@ -989,7 +989,7 @@ int CTextUI::PrintBufferPercentage(int iBuffer, bool draw_background)
 	if (CScreenHandler::PSPRADIO_SCREEN_OPTIONS != m_CurrentScreen)
 	{
 		if (draw_background)
-			m_Screen->CopyRectangle(3, iBuffer, 
+			m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
 							m_ScreenConfig.BufferPercentageX, 
 							m_ScreenConfig.BufferPercentageY,
 							m_ScreenConfig.BufferPercentageX + COL_TO_PIXEL(12), m_ScreenConfig.BufferPercentageY + ROW_TO_PIXEL(1));
@@ -1006,14 +1006,7 @@ int CTextUI::OnNewStreamStarted()
 
 int CTextUI::OnStreamOpening()
 {
-	int x,y,c;
-	x = m_ScreenConfig.StreamOpeningX;
-	y = m_ScreenConfig.StreamOpeningY;
-	c = m_ScreenConfig.StreamOpeningColor;
-	
-	ClearErrorMessage(); /** Clear any errors */
-	//ClearRows(y);
-	uiPrintf(0, x, y, c, "Opening Stream");
+	PrintMessage("Opening Stream");
 	return 0;
 }
 
@@ -1022,15 +1015,22 @@ int CTextUI::OnConnectionProgress()
 	int x,y,c;
 	//GetConfigPair("TEXT_POS:STREAM_OPENING", &x, &y);
 	//c = GetConfigColor("COLORS:STREAM_OPENING");
-	char *strIndicator[] = {"OpEnInG StReAm", "oPeNiNg sTrEaM"};
+	char *strIndicator[] = {"|", "/", "-", "\\"};
 	static int sIndex = -1;
 	x = m_ScreenConfig.StreamOpeningX;
 	y = m_ScreenConfig.StreamOpeningY;
 	c = m_ScreenConfig.StreamOpeningColor;
 
-	sIndex = (sIndex+1)%2;
+	sIndex = (sIndex+1)%4;
 	
-	uiPrintf(0, x, y, c, "%s", strIndicator[sIndex]);
+	//if (draw_background)
+		m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
+							x, 
+							y,
+							x + COL_TO_PIXEL(16), 
+							y + ROW_TO_PIXEL(1));
+
+	uiPrintf(0, x, y, c, "Opening Stream %s", strIndicator[sIndex]);
 	
 
 	return 0;
@@ -1038,13 +1038,7 @@ int CTextUI::OnConnectionProgress()
 
 int CTextUI::OnStreamOpeningError()
 {
-	int x,y,c;
-	x = m_ScreenConfig.StreamOpeningErrorX;
-	y = m_ScreenConfig.StreamOpeningErrorY;
-	c = m_ScreenConfig.StreamOpeningErrorColor;
-	
-	//ClearRows(y);
-	uiPrintf(0, x, y, c, "Error Opening Stream");
+	PrintMessage("Error Opening Stream");
 	return 0;
 }
 
@@ -1082,7 +1076,7 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 		int c = m_ScreenConfig.MetadataColor;
 		int iLen = m_ScreenConfig.MetadataLength;
 		if (draw_background)
-			m_Screen->CopyRectangle(3, iBuffer, 
+			m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
 							m_ScreenConfig.MetadataX1, 
 							y,
 							m_Screen->m_Width, 
@@ -1148,7 +1142,7 @@ int CTextUI::PrintStreamTime(int iBuffer, bool draw_background)
 	int c = m_ScreenConfig.TimeColor;
 	
 	if (draw_background)
-		m_Screen->CopyRectangle(3, iBuffer, 
+		m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
 							x, 
 							y,
 							x+COL_TO_PIXEL(13), 
@@ -1196,7 +1190,7 @@ void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 
 //	ClearHalfRows(m_ScreenConfig.ContainerListRangeX1, m_ScreenConfig.ContainerListRangeX2, m_ScreenConfig.ContainerListRangeY1, m_ScreenConfig.ContainerListRangeY2);
 	if (draw_background)
-		m_Screen->CopyRectangle(3, iBuffer, 
+		m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
 							m_ScreenConfig.ContainerListRangeX1, 
 							m_ScreenConfig.ContainerListRangeY1,
 							m_ScreenConfig.ContainerListRangeX2, 
@@ -1298,7 +1292,7 @@ void CTextUI::PrintElements(int iBuffer, bool draw_background)
 	//ClearHalfRows(m_ScreenConfig.EntriesListRangeX1,m_ScreenConfig.EntriesListRangeX2,
 	//			  m_ScreenConfig.EntriesListRangeY1,m_ScreenConfig.EntriesListRangeY2);
 	if (draw_background)
-		m_Screen->CopyRectangle(3, iBuffer, 
+		m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
 							m_ScreenConfig.EntriesListRangeX1, 
 							m_ScreenConfig.EntriesListRangeY1,
 							m_ScreenConfig.EntriesListRangeX2, 
