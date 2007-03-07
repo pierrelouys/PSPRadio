@@ -23,6 +23,7 @@
 	#include <pspnet_inet.h>
 	#include <pspnet_apctl.h>
 	#include <psputility_netparam.h>
+	#include <psputility.h>
 	
 	#ifdef PSPRADIOPLUGIN
 		#include <pthread.h>
@@ -32,8 +33,9 @@
 		PSP_MODULE_INFO("APP_afkim", 0, 1, 1);
 		PSP_HEAP_SIZE_KB(1024*4);
 	#else //NOT PSPRADIOPLUGIN
-		PSP_MODULE_INFO("afkim", 0x1000, 1, 1);
-		PSP_MAIN_THREAD_ATTR(0);
+		PSP_MODULE_INFO("afkim", 0, 0, 1);
+		PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
+		PSP_HEAP_SIZE_KB(1024*20);
 	#endif //PSPRADIOPLUGIN
 #endif //PSP
 
@@ -81,32 +83,6 @@ using namespace std;
 			}
 		
 			return thid;
-		}
-		
-		PspDebugStackTrace st[3];
-		
-		/* Example custom exception handler */
-		void MyExceptionHandler(PspDebugRegBlock *regs)
-		{
-			/* Do normal initial dump, setup screen etc */
-			pspDebugScreenInit();
-		
-			/* I always felt BSODs were more interesting that white on black */
-			pspDebugScreenSetBackColor(0x00FF0000);
-			pspDebugScreenSetTextColor(0xFFFFFFFF);
-			pspDebugScreenClear();
-		
-			pspDebugScreenPrintf("Exception Details:\n");
-			pspDebugDumpException(regs);
-			pspDebugScreenPrintf("\nStack Trace:\n");
-			
-			int size = pspDebugGetStackTrace2(regs, st, 3);
-			int a;
-			for (a = 0; a < size; a++)
-			{
-				printf("%i)  %x | %x\n", a, st[a].call_addr, st[a].func_addr);
-			}
-			sceKernelDelayThread(10*1000*1000);	// 10sec
 		}
 	#endif //PSPRADIOPLUGIN
 #else //NOT PSP
@@ -347,10 +323,6 @@ using namespace std;
 	return EXIT_SUCCESS;
 }
 
-extern "C" {
-	extern void _init(void); 
-}
-
 #ifdef PSPRADIOPLUGIN
 
 /** Plugin code */
@@ -391,18 +363,18 @@ int main(int argc, char **argv)
 	SceUID thid;
 
 	SetupCallbacks();
-	if (sceKernelDevkitVersion() >= 0x02000010)	//fix up stuff in 2.00
-		_init();
 
-	pspDebugScreenInit();
+	#if 0
 	if(pspSdkLoadInetModules() < 0)
 	{
 		printf("Error, could not load inet modules\n");
 		sceKernelSleepThread();
 	}
+	#else
+	sceUtilityLoadNetModule(1);
+	sceUtilityLoadNetModule(3);
+	#endif
 	
-	pspDebugInstallErrorHandler(MyExceptionHandler);
-
 	/* Create a user thread to do the real work */
 	thid = sceKernelCreateThread("userMain", userMain, 0x18, 0x10000, PSP_THREAD_ATTR_USER, NULL);
 	if(thid < 0)

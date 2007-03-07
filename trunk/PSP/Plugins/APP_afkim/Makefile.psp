@@ -22,8 +22,8 @@ LIBS = -lSDL_image  -lSDL -lfreetype -ldanzeffpuresdl -lpng -lz -lm -ljpeg -lpsp
 PSP_EBOOT_ICON = icon0.png
 PSP_EBOOT_PIC1 = pic1.png
 
-
-EXTRA_TARGETS = EBOOT.PBP
+BUILD_PRX=1
+#EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = afkim
 
 PSPSDK=$(shell psp-config --pspsdk-path)
