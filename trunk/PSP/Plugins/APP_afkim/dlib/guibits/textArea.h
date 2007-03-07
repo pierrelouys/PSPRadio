@@ -21,10 +21,10 @@ public:
 	textArea(const int &newWidth, const int &newHeight, textBlock* nText); //width/height are amount of chars
 	
 	//Erase all current text and replace it with this text
-	void textArea::setText(textBlock* newText);
+	void setText(textBlock* newText);
 	
 	//Add this text to the end
-	void textArea::addText(const wstring &newText, const unsigned int &color);
+	void addText(const wstring &newText, const unsigned int &color);
 	
 	//Get the text that is currently being rendered
 	textBlock* getText();
