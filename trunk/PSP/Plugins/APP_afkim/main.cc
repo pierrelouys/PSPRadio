@@ -242,6 +242,7 @@ using namespace std;
 	if (ic->status == BB_FAIL)
 	{
 		cout << "Failed to login to Bitlbee :(" << endl;
+		renderGui();
 		ic->doDisconnect();
 		#ifdef PSPRADIOPLUGIN
 			PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */

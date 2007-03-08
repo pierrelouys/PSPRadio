@@ -149,7 +149,7 @@ void bitlbeeCallback::identify(const string &password)
 	}
 	if (status == BB_FAIL)
 	{
-		mainTextA->addText(unicodeClean("Unable to connect!\n"), 0xFF0000FF);
+		mainTextA->addText(unicodeClean("Failed to connect!\n"), 0xFF0000FF);
 		myirc->doDisconnect();
 		delete myirc;
 		myirc = NULL;
@@ -466,8 +466,9 @@ void bitlbeeCallback::channelMsgCallback  (const string &who,             const 
 			status = BB_IDENTIFIED;
 			return;
 		}
-		else if (message == "Incorrect Password" || message == "Nick is already registered")
+		else if (message == "Incorrect Password" || message == "Incorrect password" || message == "Nick is already registered")
 		{
+			mainTextA->addText(unicodeClean(message + "\n"), 0xFF0000FF);
 			status = BB_FAIL;
 			return;
 		}
