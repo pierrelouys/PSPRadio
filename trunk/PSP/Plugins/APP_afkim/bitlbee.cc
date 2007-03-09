@@ -477,6 +477,11 @@ void bitlbeeCallback::channelMsgCallback  (const string &who,             const 
 			status = BB_IDENTIFIED;
 			return;
 		}
+		else if (message.find("No accounts known.") != string::npos) //Don't print this message, replace with cleaner text
+		{
+			mainTextA->addText(unicodeClean("No accounts detected, press [select] to add one.\n"), 0xFF0000FF);
+			return;
+		}
 		else if (message.find("-") != string::npos && message.substr(message.find("-")+2) == "Logged in")
 		{
 			//Find the account and set it to online

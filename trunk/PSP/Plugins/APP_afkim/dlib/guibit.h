@@ -1,7 +1,7 @@
 #ifndef INCLUDED_GUIBIT_H
 #define INCLUDED_GUIBIT_H
 
-#include <vector>
+//#include <vector>
 #include <string>
 #include <SDL/SDL.h>
 

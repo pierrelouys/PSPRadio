@@ -15,13 +15,19 @@ struct wifi_choice
 class wifiSelector : public selector{
 public:
 	wifiSelector(const unsigned int &targetX, const unsigned int &targetY, const string &image);
+	~wifiSelector();
+	
+	//From guibit:
 	void draw();
+	
+	//From inputable:
+	string getInputKey() const;
 protected:
 	//functions called when things happen in takeInput,
 	//the value returned here is the value returned to takeInput
-	virtual int fixSelected();
-	virtual int pressCross();
-	virtual int pressSelect();
+	virtual string fixSelected();
+	virtual string pressCross();
+	virtual string pressSelect();
 
 	textBlock infoText;
 	textArea* text;

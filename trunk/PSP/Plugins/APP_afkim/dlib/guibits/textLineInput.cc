@@ -76,17 +76,16 @@ void textLineInput::clearArea()
 	dirty = true;
 }
 
-int textLineInput::takeInput(SDL_Joystick* joystick)
+string textLineInput::takeInput(SDL_Joystick* joystick)
 {
 	unsigned int pressed = keyboard->readInput(joystick);
 	if (pressed == DANZEFF_START) // switch input area button (start on danzeff, L on p_sprint) 
 	{
-		//TODO - this is broken for accountCreateText!
-		return 0;			//HACK, should be in chatInput
+		return TEXTLINEINPUT_SWITCH;			//WAS HACK, should be in chatInput????
 	}
 	else if (pressed == DANZEFF_SELECT) //select
 	{
-		return inputs.size() - 1;
+		return "menuPopup"; //HACK: This isn't really correct, although it is okay ATM
 	}
 	else if (pressed == DANZEFF_LEFT)	//left
 	{
@@ -95,7 +94,7 @@ int textLineInput::takeInput(SDL_Joystick* joystick)
 			dirty = true;
 			cursorpos--;
 		}
-		return inputableIndexVal;
+		return getInputKey();
 	}
 	else if (pressed == DANZEFF_RIGHT)	//right
 	{
@@ -104,7 +103,7 @@ int textLineInput::takeInput(SDL_Joystick* joystick)
 			dirty = true;
 			cursorpos++;
 		}
-		return inputableIndexVal;
+		return getInputKey();
 	}
 	
 	switch(pressed)
@@ -130,7 +129,7 @@ int textLineInput::takeInput(SDL_Joystick* joystick)
 		if (realText.length() != maxLength)
 		{
 			if (realText[realText.size()-1] == (wchar_t)' ' && ' ' == pressed) //no double spaces
-				return inputableIndexVal;
+				return getInputKey();
 			
 			realText.insert(cursorpos, 1, (wchar_t)pressed);
 			cursorpos++;
@@ -139,7 +138,7 @@ int textLineInput::takeInput(SDL_Joystick* joystick)
 		}
 	}
 	
-	return inputableIndexVal;
+	return getInputKey();
 }
 
 void textLineInput::draw()

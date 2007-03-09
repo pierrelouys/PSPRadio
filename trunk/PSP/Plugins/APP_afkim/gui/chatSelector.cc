@@ -19,7 +19,12 @@ chatSelector::chatSelector(const unsigned int &targetX, const unsigned int &targ
 
 }
 
-int chatSelector::fixSelected()
+string chatSelector::getInputKey() const
+{
+	return "chatSelector";
+}
+
+string chatSelector::fixSelected()
 {
 	//wrap in either direction, -1 is for server window
 	if (selected < -1)
@@ -35,24 +40,21 @@ int chatSelector::fixSelected()
 	notifyContactChange(); //HACK, because of way above function works it gets set after, duuuumb
 	findNewScrollOffset();
 	
-	return inputableIndexVal;
+	return getInputKey();
 }
 
 
-int chatSelector::pressCross()
+string chatSelector::pressCross()
 {
 	cout << "X" << endl;
 	//change selected item to chat box
-	return 1; //HACK?
-//	return inputableIndexVal;
+	return "chatInput";
 }
 
-int chatSelector::pressSelect()
+string chatSelector::pressSelect()
 {
-	//TODO: change selected item to menu?
-	cout << "Returning to: " << inputs.size()-1 << endl;
-	return inputs.size() - 1;
-//	return inputableIndexVal;
+	//change selected item to menu?
+	return "menuPopup";
 }
 
 void chatSelector::draw()

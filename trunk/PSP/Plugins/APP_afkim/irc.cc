@@ -105,12 +105,12 @@ bool irc::doConnect()
 		return 0;
 	}
 	
-	int flag = 1;
+/*	int flag = 1;
 	int result = setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
 	if (result < 0)
 	{
 		//ignore the error!
-	}
+	}*/
 	
 	status = CS_IDENTIFYING;
 	callback->serverCallback(SM_IRC_DETAILS, "Connected, Identifying");

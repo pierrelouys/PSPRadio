@@ -42,7 +42,7 @@
 using namespace std;
 
 //GLOBAL IN INPUTABLE.h
-	vector<inputable*> inputs;
+	map<string, inputable*> inputs;
 
 
 #ifdef PSP
@@ -131,7 +131,6 @@ using namespace std;
 		
 		//create wifi object.
 		wifiSelector* ws = new wifiSelector(2, 8, "pics/selected.png");
-		ws->setIndexVal(0);
 		ws->inputableActivate();
 		addGuiBit(ws);
 		//loop on input
@@ -139,8 +138,8 @@ using namespace std;
 		while (1)
 		{
 			SDL_JoystickUpdate();
-			int newInput = ws->takeInput(joystick);
-			if (newInput != 0)
+			string newInput = ws->takeInput(joystick);
+			if (newInput != "wifiSelector")
 				break;
 			SDL_Delay(10);
 			renderGui();
@@ -154,25 +153,26 @@ using namespace std;
 	
 	
 	guiBit selectedText = guiBit("./pics/current.png");
-//	vector<inputable*> inputs;
-	int currentInput = 0;
+	string currentInput = "";
+	
+	//TODO :Scope this out
 	chatSelector* cs = new chatSelector(385,12, "./pics/select_chat.png"); //consts stolen from bitlbee.cc
 	cs->inputableDeactivate();
 	addGuiBit(cs);
-	cs->setIndexVal(inputs.size());
-	inputs.push_back(cs);
+	inputs[cs->getInputKey()] = cs;
 
+	//TODO: Make this a pointer and lose it in the guibits map?
 	accountsStatus ac = accountsStatus();
 	ac.moveTo(480-5, 272-34);
 	bitlbeeCallback* ic = bitlbeeCallback::getBee();
 	ic->setBitlbeeAccountChangeCallback((bitlbeeAccountChangeCallback*)&ac);
 	addGuiBit((guiBit*)&ac);
 
+	//TODO: Scope this out
 	inputable* cci = new chatInput(79, 2, 234, TEXT_NORMAL_COLOR);
 	cci->inputableDeactivate();
 	addGuiBit(cci);
-	cci->setIndexVal(inputs.size());
-	inputs.push_back(cci);
+	inputs[cci->getInputKey()] = cci;
 	
 	//Try load the bitlbee settings from file.
 	ifstream infile("./bitlbee.cfg");
@@ -186,17 +186,16 @@ using namespace std;
 			accountCreator* creator = new accountCreator(BAT_BITLBEE, unicodeClean(
 			"No bitlbee account found, Lets create one.\n"
 			"AFKIM uses the im.bitlbee.org server.\n"
-			"Thanks bitlbee crew :)"), 1);//new menuPopup();
-			creator->setIndexVal(0);
+			"Thanks bitlbee crew :)"), "done");//new menuPopup();
 			creator->inputableActivate();
 			renderGui();
-			int at = 0;
-			while (at == 0) //loops untill the menu is done menuing
+			string at = "";
+			while (at == "accountCreator") //loops untill the menu is done menuing
 			{
 				SDL_JoystickUpdate();
 				at = creator->takeInput(joystick);
 	//			cout << "AT:" << at << endl;
-				SDL_Delay(10);
+				SDL_Delay(10); //FIXME: Remove all these in PSP build?
 				ic->poll();
 				renderGui();
 			}
@@ -231,7 +230,7 @@ using namespace std;
 	}
 	else	//settings file exists, assume it is good and fire up the interface
 	{
-		cout << "Loading..." << endl;
+		cout << "Loading settings from bitlbee.cfg" << endl;
 		
 		string server, user, password;
 		infile >> server >> user >> password;
@@ -241,6 +240,7 @@ using namespace std;
 	
 	if (ic->status == BB_FAIL)
 	{
+		//FIXME: This shouldn't make you quit
 		cout << "Failed to login to Bitlbee :(" << endl;
 		renderGui();
 		ic->doDisconnect();
@@ -262,19 +262,21 @@ using namespace std;
 	selectedText.moveTo(378,0);
 	addGuiBit(&selectedText);
 
-	//gotta add this last!
-	int positionOfMenu = inputs.size();
+	//TODO: Scope this out
 	menuPopup* mmpop = new menuPopup();
-	inputs.push_back(mmpop);
-	mmpop->setIndexVal(positionOfMenu);
 	addGuiBit(mmpop);
+	inputs[mmpop->getInputKey()] = mmpop;
+	
+	currentInput = "chatSelector";
+	mmpop->changeReturnVal = "chatSelector";
+	
 	while (1)
 	{
 		SDL_JoystickUpdate();
 		
-		if (PRESSING_START(joystick) && PRESSING_SELECT(joystick)) { cout << "BANG" << endl; }
+		if (PRESSING_START(joystick) && PRESSING_SELECT(joystick)) { cout << "BANG" << endl; exit(0); }
 		
-		int newInput = inputs[currentInput]->takeInput(joystick);
+		string newInput = inputs[currentInput]->takeInput(joystick);
 		
 		if (newInput == SWITCH_QUIT)
 		{
@@ -284,28 +286,21 @@ using namespace std;
 		else if (newInput != currentInput)
 		{
 			cout << "Switch from " << currentInput << " -> " << newInput << endl;
-			if (newInput == positionOfMenu && currentInput < positionOfMenu)
+			if (currentInput == "chatInput" || currentInput == "chatSelector")
 			{
+				//Menu popup needs to know where it was called from, these are the only possibilities
 				mmpop->changeReturnVal = currentInput;
 			}
 			inputs[currentInput]->inputableDeactivate();
-			if (currentInput > positionOfMenu)
-			{
-				cout << "Removing one from inputs" << endl;
-				delete inputs[currentInput];
-				inputs.pop_back();
-			}
 			currentInput = newInput;
 			inputs[currentInput]->inputableActivate();
 			
-			if (currentInput == 0)
-			{
+			//Move the highlighter when the user selects either of these
+			if (currentInput == "chatSelector")
 				selectedText.moveTo(378,0);
-			}
-			else if (currentInput == 1)
-			{
+			else if (currentInput == "chatInput")
 				selectedText.moveTo(150,0);
-			}
+			
 			cs->dirty = true;
 		}
 		

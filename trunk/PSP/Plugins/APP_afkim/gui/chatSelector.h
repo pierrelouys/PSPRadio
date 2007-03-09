@@ -4,12 +4,14 @@
 #include "../dlib/guibits/selector.h"
 #include "../bitlbee.h"
 
+//The 'buddy list'
 class chatSelector : public selector, public bitlbeeContactChangeCallback
 {
 public:
 	chatSelector(const unsigned int &targetX, const unsigned int &targetY, const string &image);
 	void draw();
-
+	string getInputKey() const;
+	
 	//Called when a contact list something changes.
 	void notifyContactChange();
 	//Called when someone is renamed on your contact list (after altering the contact list list)
@@ -18,9 +20,9 @@ public:
 protected:
 	//functions called when things happen in takeInput,
 	//the value returned here is the value returned to takeInput
-	virtual int fixSelected();
-	virtual int pressCross();
-	virtual int pressSelect();
+	virtual string fixSelected();
+	virtual string pressCross();
+	virtual string pressSelect();
 
 	wstring selectedNick;
 	//for the actual contact list!

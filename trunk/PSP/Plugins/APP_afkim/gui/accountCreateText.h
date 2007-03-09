@@ -6,13 +6,19 @@
 class accountCreateText : public textLineInput
 {
 public:
-	accountCreateText(const unsigned int &nX, const unsigned int &nY);
+	accountCreateText(const unsigned int &nX, const unsigned int &nY, const string &inputKey, const string &nextInput);
 	
 	wstring getText();
+	
+	//From inputable
+	string getInputKey() const;
 	virtual void inputableActivate();
 	virtual void inputableDeactivate();
 protected:
-	int handleEnter();
+	string handleEnter();
+private:
+	string myInputKey;
+	string nextInputKey;
 };
 
 

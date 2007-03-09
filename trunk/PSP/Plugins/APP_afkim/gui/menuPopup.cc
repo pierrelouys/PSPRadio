@@ -24,44 +24,51 @@ void menuPopup::draw()
 	selector::draw();
 }
 
+string menuPopup::getInputKey() const
+{
+	return "menuPopup";
+}
+
 //functions called when things happen in takeInput,
 //the value returned here is the value returned to takeInput
-int menuPopup::fixSelected()
+string menuPopup::fixSelected()
 {
 	if (selected < 0) selected = 5;
 	if (selected > 5) selected = 0;
-	return inputableIndexVal;
+	return getInputKey();
 }
 
-int menuPopup::pressCross()
+string menuPopup::pressCross()
 {
-//	#warning need to launch
-	int newIndex = inputs.size();
+	if (selected == 5)
+		return SWITCH_QUIT;
+
+	accountCreator* newAC = NULL;
+#warning menuPopup "menuPopup" in accountCreator = correct behaviour?
+#warning menuPopup accountCreators get leaked when closed, likely that the bitlbee one gets leaked too!
 	switch(selected)
 	{
 	case 0:
-		inputs.push_back(new accountCreator(BAT_AOL, unicodeClean("Enter details for your AIM Account"), 2));
+		newAC = new accountCreator(BAT_AOL, unicodeClean("Enter details for your AIM Account"), "menuPopup");
 		break;
 	case 1:
-		inputs.push_back(new accountCreator(BAT_ICQ, unicodeClean("Enter details for your ICQ Account\nYour username is your ICQ number"), 2));
+		newAC = new accountCreator(BAT_ICQ, unicodeClean("Enter details for your ICQ Account\nYour username is your ICQ number"), "menuPopup");
 		break;
 	case 2:
-		inputs.push_back(new accountCreator(BAT_MSN, unicodeClean("Enter details for your MSN Account\nFull email address, like: someone@msn.com"), 2));
+		newAC = new accountCreator(BAT_MSN, unicodeClean("Enter details for your MSN Account\nFull email address, like: someone@msn.com"), "menuPopup");
 		break;
 	case 3:
-		inputs.push_back(new accountCreator(BAT_GMAIL, unicodeClean("Enter details for your GTalk Account\nYou do not need to add '@gmail.com'.\nIt is done automatically."), 2));
+		newAC = new accountCreator(BAT_GMAIL, unicodeClean("Enter details for your GTalk Account\nYou do not need to add '@gmail.com'.\nIt is done automatically."), "menuPopup");
 		break;
 	case 4:
-		inputs.push_back(new accountCreator(BAT_YAHOO, unicodeClean("Enter details for your Yahoo Account"), 2));
+		newAC = new accountCreator(BAT_YAHOO, unicodeClean("Enter details for your Yahoo Account"), "menuPopup");
 		break;
-	case 5:
-		return SWITCH_QUIT;
 	}
-	inputs.back()->setIndexVal(newIndex);
-	return inputableIndexVal+1;
+	inputs["accountCreator"] = newAC;
+	return "accountCreator";
 }
 
-int menuPopup::pressSelect()
+string menuPopup::pressSelect()
 {
 	holdingOne = true;
 	return changeReturnVal;

@@ -9,16 +9,19 @@
 class accountCreator : public inputable
 {
 public:
-	accountCreator(bitlbeeAccountType nType, wstring message, int nReturnTo);
-	virtual int takeInput(SDL_Joystick* joystick);
+	accountCreator(bitlbeeAccountType nType, wstring message, string nReturnTo);
+	~accountCreator();
+	string takeInput(SDL_Joystick* joystick);
 	
-	virtual void draw();
-
-	virtual bool needsRedraw() const;
+	//From guibit:
+	void draw();
+	bool needsRedraw() const;
 	
-	virtual void inputableActivate();
-	virtual void inputableDeactivate();
-
+	//From inputable:
+	void inputableActivate();
+	void inputableDeactivate();
+	string getInputKey() const;
+	
 //private
 	accountCreateText* username;
 	accountCreateText* password;
@@ -26,8 +29,8 @@ protected:
 	bool dirty;
 	bitlbeeAccountType type;
 	
-	int currentSelected;
-	int returnTo;
+	string currentSelected;
+	string returnTo;
 	
 	static guiBit* background;
 	textBlock infoText;

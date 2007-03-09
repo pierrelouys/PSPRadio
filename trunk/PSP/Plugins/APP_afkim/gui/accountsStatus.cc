@@ -27,7 +27,6 @@ SDL_Surface* accountsStatus::getPic(const string &name)
 		if (!nocase_cmp(surfaces[a].name, name))//same
 			return surfaces[a].surface;
 	}
-	//TODO
 	return NULL;
 }
 
@@ -59,7 +58,7 @@ accountsStatus::accountsStatus()
 
 accountsStatus::~accountsStatus()
 {
-//TODO FREE IMAGES
+	#warning 'memory leak' in accountStatus (even thought it is never deleted) - doesn't free images when done
 }
 
 void accountsStatus::draw()

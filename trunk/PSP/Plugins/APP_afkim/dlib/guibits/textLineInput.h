@@ -12,7 +12,7 @@ class textLineInput : public inputable
 public:
 	virtual void clearArea();
 	//Returns the index of the now active inputable (returns its own on no change)
-	virtual int takeInput(SDL_Joystick* joystick);
+	virtual string takeInput(SDL_Joystick* joystick);
 	
 	virtual void draw();
 	virtual bool needsRedraw() const;
@@ -27,7 +27,7 @@ protected:
 	unsigned int maxLength; //max length of area
 	
 	virtual void init(const unsigned int &nLength, const unsigned int &nX, const unsigned int &nY, const unsigned int &nColor);
-	virtual int handleEnter() = 0;
+	virtual string handleEnter() = 0;
 	
 	static keyboardWrapper* keyboard;
 	
@@ -38,4 +38,8 @@ protected:
 	int cursorpos;
 };
 
+//Returned when the start key is pressed from in a textLineInput, this signifies that we want to switch areas
+#warning TEXTLINEINPUT_SWITCH IS BAD, IT SHOULD BE SET ON ALL CHILD CLASSES INSTEAD
+#warning IT CURRENTLY CAUSES CRASHES EVERYWHERE WHEN START IS PRESSED.
+#define TEXTLINEINPUT_SWITCH "TEXTLINEINPUT_SWITCH"
 #endif //INCLUDED_DBLIB_GUIBITS_TEXTLINEINPUT_H

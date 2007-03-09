@@ -2,16 +2,15 @@
 #define INCLUDED_DLIB_INPUTABLE
 
 #include "guibit.h"
-
+#include <map>
 
 class inputable : public guiBit
 {
 public:
 	//Returns the index of the now ative inputable (returns its own on no change)
-	virtual int takeInput(SDL_Joystick* joystick) = 0;
+	virtual string takeInput(SDL_Joystick* joystick) = 0;
 	
-	//set the objects index value
-	virtual void setIndexVal(const int inputVal);
+	virtual string getInputKey() const = 0; //gets the string used to identify this inputable in the inputable map
 	//set this object to be the currently selected/not currently selected inputable object
 	//the object could remove/add itself to the guilist (this is the default behaviour)
 	virtual void inputableActivate();
@@ -20,14 +19,13 @@ public:
 //private:
 	static bool holdingOne; //user is holding a key
 	
-	int inputableIndexVal;
 	bool gui_active; //is the selected component;
 };
 
 //HACK
-extern vector<inputable*> inputs;
+extern map<string, inputable*> inputs;
 
 //Special return val for takeInput, quits the program.
-#define SWITCH_QUIT -1
+#define SWITCH_QUIT "QUIT_THE_APP_PLZ"
 
 #endif //INCLUDED_DLIB_INPUTABLE

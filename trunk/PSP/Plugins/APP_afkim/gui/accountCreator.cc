@@ -2,17 +2,19 @@
 #include <iostream>
 
 guiBit* accountCreator::background = NULL;
-accountCreator::accountCreator(bitlbeeAccountType nType, wstring message, int nReturnTo)
+accountCreator::accountCreator(bitlbeeAccountType nType, wstring message, string nReturnTo)
 {
 	pixels = NULL;
 	
 	if (background == NULL)
 	{
+		//#warning accountCreator create background and never de-creates it... not really a worry though
 		//we should free this some how...
+		//reference counting?
 		background = new guiBit("./pics/accc.png");
 		background->moveTo(2,148);
 	}
-	currentSelected = 0;
+	currentSelected = "username";
 	returnTo = nReturnTo;
 	type = nType;
 	infoText = textBlock(43,3);
@@ -20,22 +22,32 @@ accountCreator::accountCreator(bitlbeeAccountType nType, wstring message, int nR
 	
 	text = new textArea(43, 3, &infoText);
 	text->moveTo(11,168);
-	username = new accountCreateText(61, 203);
-	username->setIndexVal(0);
-	password = new accountCreateText(61, 223);
-	password->setIndexVal(1);
+	username = new accountCreateText(61, 203, "username", "password");
+	password = new accountCreateText(61, 223, "password", "done");
 	
 	dirty = true;
 	gui_active = false;
 }
 
-int accountCreator::takeInput(SDL_Joystick* joystick)
+accountCreator::~accountCreator()
+{
+	delete text;
+	delete username;
+	delete password;
+}
+
+string accountCreator::getInputKey() const
+{
+	return "accountCreator";
+}
+
+string accountCreator::takeInput(SDL_Joystick* joystick)
 {
 	//lock to prevent the previous X leaking in
 	if (justActive)
 	{
 		if (PRESSING_X(joystick))
-			return inputableIndexVal;
+			return getInputKey();
 		else
 			justActive = false;
 	}
@@ -47,45 +59,50 @@ int accountCreator::takeInput(SDL_Joystick* joystick)
 		return returnTo;
 	}	
 	dirty = false;
-	int result;
-	if (currentSelected == 0)
+	string result;
+	if (currentSelected == "username")
 	{
-// 		cout << "AAAA" << endl;
 		result = username->takeInput(joystick);
 		if (username->dirty) dirty = true;
 	}
-	else
+	else //password
 	{
-//		cout << "BBBB" << endl;
 		result = password->takeInput(joystick);
 		if (password->dirty) dirty = true;
 	}
 	if (currentSelected != result)
 	{
-		switch(result)
+		if (result == "username")
 		{
-			case 0:
-				username->inputableActivate();
-				password->inputableDeactivate();
-				break;
-			case 1:
-				password->inputableActivate();
-				username->inputableDeactivate();
-				break;
-			case 2:
-				if (type != BAT_BITLBEE)
-				{
-					bitlbeeCallback::getBee()->addAccount(type, username->getText(), password->getText());
-				}
-				return returnTo;
-				break;
-			default: //this is when we are quitting the menu
-				return returnTo;
-				break;
+			username->inputableActivate();
+			password->inputableDeactivate();
 		}
-		currentSelected = result;
+		else if (result == "password")
+		{
+			password->inputableActivate();
+			username->inputableDeactivate();
+		}
+		else if (result == "done")
+		{
+			if (type != BAT_BITLBEE)
+			{
+				bitlbeeCallback::getBee()->addAccount(type, username->getText(), password->getText());
+			}
+			return returnTo;
+		}
+		else if (result == "menuPopup" && type != BAT_BITLBEE) //quit back to menu unless its a bitlbee account
+		{
+			return returnTo;
+		}
+		else if (result == TEXTLINEINPUT_SWITCH)
+		{
+			//User has pressed the Switch input button, don't this we care do we?
+		}
+		
+		if (result != TEXTLINEINPUT_SWITCH) //HACK ^ ^
+			currentSelected = result;
 	}
-	return inputableIndexVal;
+	return getInputKey();
 }
 
 bool accountCreator::needsRedraw() const

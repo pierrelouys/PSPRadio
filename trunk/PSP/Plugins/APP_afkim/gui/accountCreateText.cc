@@ -4,9 +4,16 @@
 
 #warning THIS WONT WORK RIGHT THIS IS BROKE
 
-accountCreateText::accountCreateText(const unsigned int &nX, const unsigned int &nY)
+accountCreateText::accountCreateText(const unsigned int &nX, const unsigned int &nY, const string &inputKey, const string &nextInput)
 {
 	init(40, nX, nY, TEXT_NORMAL_COLOR);
+	myInputKey = inputKey;
+	nextInputKey = nextInput;
+}
+
+string accountCreateText::getInputKey() const
+{
+	return myInputKey;
 }
 
 wstring accountCreateText::getText()
@@ -14,13 +21,13 @@ wstring accountCreateText::getText()
 	return realText;
 }
 
-int accountCreateText::handleEnter()
+string accountCreateText::handleEnter()
 {
 	if (realText.size() == 0)
-		return inputableIndexVal;
+		return getInputKey();
 	
 	dirty = true;
-	return inputableIndexVal+1;			//HACK?
+	return nextInputKey;
 }
 
 void accountCreateText::inputableActivate()

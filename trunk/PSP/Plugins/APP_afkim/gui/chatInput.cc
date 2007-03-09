@@ -6,13 +6,18 @@ chatInput::chatInput(const unsigned int &nLength, const unsigned int &nX, const 
 	init(nLength, nX, nY, nColor);
 }
 
-int chatInput::handleEnter()
+string chatInput::getInputKey() const
+{
+	return "chatInput";
+}
+
+string chatInput::handleEnter()
 {
 	bitlbeeCallback::getBee()->messageCurrent(realText);
-	realText = wstring();
+	realText = wstring(); //FIXME: resize(0); ?
 	dirty = true;
 	cursorpos = 0;
-	return inputableIndexVal;
+	return getInputKey();
 }
 
 void chatInput::inputableActivate()

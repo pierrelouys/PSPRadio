@@ -3,12 +3,6 @@
 
 bool inputable::holdingOne = false;
 
-//set the objects index value
-void inputable::setIndexVal(const int inputVal)
-{
-	inputableIndexVal = inputVal;
-}
-
 //set this object to be the currently selected/not currently selected inputable object
 //the object should remove/add itself to the guilist
 void inputable::inputableActivate()

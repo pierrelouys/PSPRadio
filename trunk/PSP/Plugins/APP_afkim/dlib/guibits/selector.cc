@@ -24,7 +24,7 @@ void selector::init(const unsigned int &targetX, const unsigned int &targetY, co
 	gui_active = false;
 }
 
-int selector::takeInput(SDL_Joystick* joystick)
+string selector::takeInput(SDL_Joystick* joystick)
 {
 	if (!holdingOne)
 	{
@@ -59,7 +59,7 @@ int selector::takeInput(SDL_Joystick* joystick)
 	}
 	else if (!(PRESSING_UP(joystick) || PRESSING_DOWN(joystick) || PRESSING_X(joystick) || PRESSING_SELECT(joystick) || PRESSING_START(joystick))) //aren't pressing any
 		holdingOne = false;
-	return inputableIndexVal;
+	return getInputKey();
 }
 	
 void selector::inputableActivate()

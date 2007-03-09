@@ -8,14 +8,19 @@ class menuPopup : public selector
 public:
 	menuPopup();
 	~menuPopup();
+	string changeReturnVal;
+	
+	//From guibit:
 	void draw();
-	int changeReturnVal;
+	
+	//From inputable:
+	string getInputKey() const;
 protected:
 	//functions called when things happen in takeInput,
 	//the value returned here is the value returned to takeInput
-	virtual int fixSelected();
-	virtual int pressCross();
-	virtual int pressSelect();
+	virtual string fixSelected();
+	virtual string pressCross();
+	virtual string pressSelect();
 private:
 	guiBit* bgimage;
 };

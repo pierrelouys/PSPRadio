@@ -62,7 +62,18 @@ wifiSelector::wifiSelector(const unsigned int &targetX, const unsigned int &targ
 	init(targetX, targetY-1, 10, 0, image);
 }
 
-int wifiSelector::fixSelected()
+wifiSelector::~wifiSelector()
+{
+	delete text;
+	delete text2;
+}
+
+string wifiSelector::getInputKey() const
+{
+	return "wifiSelector";
+}
+
+string wifiSelector::fixSelected()
 {
 	//wrap in either direction, -1 is for server window
 	if (selected < 0)
@@ -71,12 +82,12 @@ int wifiSelector::fixSelected()
 		selected = 0;
 	cout << "WS: " << selected << endl;
 
-	//change it in bitlbee
-	return inputableIndexVal;
+	//change it in bitlbee <- FIXME wat?
+	return getInputKey();
 }
 
 
-int wifiSelector::pressCross()
+string wifiSelector::pressCross()
 {
 	cout << "X" << endl;
 #ifdef PSP
@@ -133,13 +144,13 @@ connectWifi:
 		sceKernelDelayThread(50*1000); // 50ms
 	}
 #endif
-	//change selected item to chat box
-	return 1; //HACK?
+	
+	return "done";
 }
 
-int wifiSelector::pressSelect()
+string wifiSelector::pressSelect()
 {
-	return inputableIndexVal;
+	return getInputKey();
 }
 
 void wifiSelector::draw()
