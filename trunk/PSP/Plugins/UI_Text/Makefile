@@ -28,7 +28,7 @@ LIBS = -lstdc++ -lpthread -lTools -liniparser -lPluginCommon  -lpng -lz -lm
 
 all: $(TARGET).prx
 
-install:
+install: all
 	mkdir -p $(PSPRADIO_RELEASE_DIR)/$(TARGET)
 	cp -vf $(TARGET).prx $(PSPRADIO_RELEASE_DIR)
 	cp -vf *.cfg $(PSPRADIO_RELEASE_DIR)/$(TARGET)

@@ -101,6 +101,7 @@ public:
 public:
 	int  m_isdirty;
 	CScreen *m_Screen;
+	CScreenHandler::ScreenShotState m_ScreenShotState;
 private:
 	CIniParser *m_Config;
 	char  *m_strTitle;
@@ -110,7 +111,6 @@ private:
 	pspTime m_LastLocalTime;
 	char *m_strCWD;
 	char *m_strConfigDir;
-	CScreenHandler::ScreenShotState m_ScreenShotState;
 	CPSPSound *m_Sound;
 	//helpers
 	enum uicolors
@@ -139,22 +139,25 @@ private:
 	int m_iBufferPercentage;
 	CMetaDataContainer *m_Container;
 	void CTextUI::NewPCMBuffer(short *PCMBuffer);
-	list<OptionsScreen::Options> *m_OptionsList;
+	list<OptionsScreen::Options> m_OptionsList;
 	int m_CurrentOptionIterator;
 	CPSPSound::pspsound_state m_CurrentPlayingState;
 	char m_Message[512];
+	CLock *m_RenderLock;
+	CBlocker *m_RenderExitBlocker;
 
 	void PrintMessage(char *message);
 	void PrintTime(int iBuffer, bool draw_background);
-	void CTextUI::PrintBattery(int iBuffer, bool draw_background);
-	int CTextUI::PrintBufferPercentage(int iBuffer, bool draw_background);
-	int CTextUI::PrintSongData(int iBuffer, bool draw_background);
-	int CTextUI::PrintStreamTime(int iBuffer, bool draw_background);
-	void CTextUI::PrintContainers(int iBuffer, bool draw_background);
-	void CTextUI::PrintElements(int iBuffer, bool draw_background);
-	void CTextUI::PrintProgramVersion(int iBuffer);
-	void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background);
-	int CTextUI::PrintActiveCommand(int iBuffer, bool draw_background);
+	void PrintBattery(int iBuffer, bool draw_background);
+	int  PrintBufferPercentage(int iBuffer, bool draw_background);
+	int  PrintSongData(int iBuffer, bool draw_background);
+	int  PrintStreamTime(int iBuffer, bool draw_background);
+	void PrintContainers(int iBuffer, bool draw_background);
+	void PrintElements(int iBuffer, bool draw_background);
+	void PrintProgramVersion(int iBuffer);
+	void PrintOptionsScreen(int iBuffer, bool draw_background);
+	int  PrintActiveCommand(int iBuffer, bool draw_background);
+	void PrintMessage(int iBuffer);
 
 	static void render_thread(void *);
 };

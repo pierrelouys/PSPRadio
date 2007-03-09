@@ -96,12 +96,13 @@ void CScreen::SetFrameBuffer(int iBuffer)
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 }
 
+
 void CScreen::Plot(int iBuffer, int x, int y, int color)
 {
 	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
-	//*pixel = color;//*pixel & 0xAAAAAAAA;//color;
-	//*pixel = *pixel & 0xAAAAAAAA;//color;
-	*pixel = *pixel | color;//0xAAAAAAAA;//color;
+	//*pixel = color;
+	//*pixel = *pixel & color;
+	*pixel = *pixel | color;
 }
 
 void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)

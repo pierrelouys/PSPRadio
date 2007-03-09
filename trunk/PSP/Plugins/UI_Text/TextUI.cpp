@@ -77,7 +77,9 @@ CTextUI::CTextUI()
 	PSPRadioIF(PSPRADIOIF_GET_SOUND_OBJECT, &ifdata);
 	m_Sound = (CPSPSound*)ifdata.Pointer;
 	m_Container = NULL;
-
+	m_RenderLock = new CLock("TextUI_RenderLock");
+	m_RenderExitBlocker = new CBlocker("TextUI_RenderBlock");
+	
 	/* Start Render Thread */
 	{
 		pthread_t pthid;
@@ -99,7 +101,7 @@ CTextUI::~CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
 	s_exit = true;
-	sceKernelDelayThread(1); /* yield */
+	m_RenderExitBlocker->Block();
 	if (m_Config)
 	{
 		delete(m_Config);
@@ -113,7 +115,14 @@ CTextUI::~CTextUI()
 	{
 		free(m_strConfigDir), m_strConfigDir = NULL;
 	}
-
+	if (m_RenderLock)
+	{
+		delete(m_RenderLock), m_RenderLock = NULL;
+	}
+	if (m_RenderExitBlocker)
+	{
+		delete(m_RenderExitBlocker), m_RenderExitBlocker = NULL;
+	}
 	delete(m_Screen), m_Screen = NULL;
 	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
 }
@@ -129,11 +138,17 @@ int CTextUI::OnVBlank()
 	return 0;
 }
 
-#define VIS_X1 170
-#define VIS_X2 308
+#define VIS_X1 0
+#define VIS_X2 480
+#define VIS_Y_MID (272/2)
+#define VIS_PCM_SHIFT 8
+
+
+//#define VIS_X1 170
+//#define VIS_X2 308
+//#define VIS_Y_MID 128
+//#define VIS_PCM_SHIFT 9
 #define VIS_WIDTH (VIS_X2 - VIS_X1)
-#define VIS_Y_MID 128
-#define VIS_PCM_SHIFT 9
 #define IS_BUTTON_PRESSED(i,b) ((i & 0xFFFF) == b)
 #define VIS_KEY_PREV (PSP_CTRL_LEFT)
 #define VIS_KEY_NEXT (PSP_CTRL_RIGHT)
@@ -284,8 +299,12 @@ void CTextUI::render_thread(void *) //static
 	for (;;)
 	{
 		if (s_exit)
+		{
+			sceKernelDelayThread(1); /* yield */
 			break;
-		if (s_ui->m_isdirty)
+		}
+		s_ui->m_RenderLock->Lock();
+		if (s_ui->m_isdirty)// && (s_ui->m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE))
 		{
 			time1 = sceKernelLibcClock();
 
@@ -352,18 +371,6 @@ void CTextUI::render_thread(void *) //static
 			s_ui->m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 	
 			/* Do effects to back-buffer */
-			if (s_ui->m_isdirty & DIRTY_MESSAGE)
-			{
-				//int x = (MAX_COL - strlen(s_ui->m_Message)) / 2;
-				message_frames++;
-				s_ui->uiPrintf(iBuffer, 100,100, 0xFFFFFF, s_ui->m_Message);
-				if (message_frames == 300)
-				{
-					UNSET_DIRTY(DIRTY_MESSAGE);
-					message_frames = 0;
-				}
-			}
-
 			if ((s_ui->m_isdirty & DIRTY_PCM) && s_pcmbuffer)
 			{
 				UNSET_DIRTY(DIRTY_PCM);
@@ -371,6 +378,22 @@ void CTextUI::render_thread(void *) //static
 				visualizer[current_visualizer](iBuffer);
 			}
 			
+			if (s_ui->m_isdirty & DIRTY_MESSAGE)
+			{
+				//int x = (MAX_COL - strlen(s_ui->m_Message)) / 2;
+				UNSET_DIRTY(DIRTY_MESSAGE);
+				message_frames = 1;
+			}
+			
+			if (message_frames > 0)
+			{
+				s_ui->PrintMessage(iBuffer);//, s_ui->m_Message);//s_ui->uiPrintf(iBuffer, 100,100, 0xFFFFFF, s_ui->m_Message);
+				if (message_frames++ >= 60)
+				{
+					message_frames = 0;
+				}
+			}
+
 			/* FPS Calculation */
 			time2 = sceKernelLibcClock();
 			total_time += (time2 - time1);
@@ -400,12 +423,21 @@ void CTextUI::render_thread(void *) //static
 			///Buffer is configured in sync mode already... 
 			//sceDisplayWaitVblankStart();
 			//Flip Buffers
+			sceKernelDcacheWritebackAll(); 
 			s_ui->m_Screen->SetFrameBuffer(iBuffer);
 			iBuffer = 1 - iBuffer;
 		}
+		s_ui->m_RenderLock->Unlock();
 		sceKernelDelayThread(1); /* yield */
 	}
+	s_ui->m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
+}
 
+void CTextUI::PrintMessage(int iBuffer)
+{
+	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xAAAAAA);
+//	uiPrintf(iBuffer, 60,310, 0xFFFFFF, m_Message);
+	uiPrintf(iBuffer, 110,60, 0xFFFFFF, m_Message);
 }
 
 void CTextUI::PrintProgramVersion(int iBuffer)
@@ -451,6 +483,8 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 	char *strCfgFile = NULL;
 
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() start");
+
+	m_RenderLock->Lock(); /* Stop rendering */
 	
 	if (Screen->GetConfigFilename())
 	{
@@ -595,16 +629,21 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		}
 	}
 	
+	m_RenderLock->Unlock(); /* Continue rendering */
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() end");
 }
 
 void CTextUI::Initialize_Screen(IScreen *Screen)
 {
 	TextUILog(LOG_LOWLEVEL, "Initialize screen start");
+
 	m_CurrentScreen = (CScreenHandler::Screen)Screen->GetId();
 
 	LoadConfigSettings(Screen);
 	TextUILog(LOG_LOWLEVEL, "After LoadConfigSettings");
+
+	m_RenderLock->Lock(); /* Stop rendering -- after LoadConfigSettings, which also locks.*/
+
 	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
 	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
 	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
@@ -642,18 +681,18 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	}
 #endif
 	
-	m_OptionsList = NULL;
+//	m_OptionsList = NULL;
 	m_isdirty = DIRTY_BACKGROUND;
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
 	
+	m_RenderLock->Unlock(); /* Continue rendering */
 	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
 }
 
 void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
 										 list<OptionsScreen::Options>::iterator &CurrentOptionIterator)
 {
-	m_OptionsList = &OptionsList;
 	m_CurrentOptionIterator = 0;
 	int index = 0;
 	list<OptionsScreen::Options>::iterator OptionIterator;
@@ -668,48 +707,45 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 			index++;
 		}
 	}
+	m_OptionsList = OptionsList;
 	m_isdirty |= DIRTY_OPTIONS;
 }
 
 void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
 {
-	if (m_OptionsList == NULL)
+	if (m_OptionsList.empty() == true)
 		return;
 
-	list<OptionsScreen::Options> OptionsList = *m_OptionsList;
 	int index = 0;
 	list<OptionsScreen::Options>::iterator OptionIterator;
 	OptionsScreen::Options	Option;
 	
 	int x=-1,y=m_Config->GetInteger("SCREEN_SETTINGS:FIRST_ENTRY_Y",40),c=0xFFFFFF;
 	
-	if (OptionsList.size() > 0)
+	for (OptionIterator = m_OptionsList.begin() ; OptionIterator != m_OptionsList.end() ; OptionIterator++)
 	{
-		for (OptionIterator = OptionsList.begin() ; OptionIterator != OptionsList.end() ; OptionIterator++)
+		if (index == m_CurrentOptionIterator)
 		{
-			if (index == m_CurrentOptionIterator)
-			{
-				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_NAME_TEXT");
-			}
-			else
-			{
-				c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_SELECTED_NAME_TEXT");
-			}
-			
-			Option = (*OptionIterator);
-			
-			if (draw_background)
-				m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
-									x, 
-									y,
-									m_Screen->m_Width - x, 
-									y + ROW_TO_PIXEL(1));
-			PrintOption(iBuffer, x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
-						Option.iActiveState);
-			
-			y+=m_Config->GetInteger("SCREEN_SETTINGS:Y_INCREMENT",16);
-			index++;
+			c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_NAME_TEXT");
 		}
+		else
+		{
+			c = GetConfigColor("SCREEN_SETTINGS:COLOR_OPTION_SELECTED_NAME_TEXT");
+		}
+		
+		Option = (*OptionIterator);
+		
+		if (draw_background)
+			m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
+								x, 
+								y,
+								m_Screen->m_Width - x, 
+								y + ROW_TO_PIXEL(1));
+		PrintOption(iBuffer, x,y,c, Option.strName, Option.strStates, Option.iNumberOfStates, Option.iSelectedState, 
+					Option.iActiveState);
+		
+		y+=m_Config->GetInteger("SCREEN_SETTINGS:Y_INCREMENT",16);
+		index++;
 	}
 }
 
@@ -906,7 +942,7 @@ int CTextUI::DisplayMessage_DisablingNetwork()
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
 	//uiPrintf(0, m_ScreenConfig.NetworkReadyX, m_ScreenConfig.NetworkReadyY, m_ScreenConfig.NetworkReadyColor, "Ready, IP %s", strIP);
-	char msg[128];
+	static char msg[128];
 	sprintf(msg, "Ready, IP %s", strIP);
 	PrintMessage(msg);
 	
@@ -1030,7 +1066,7 @@ int CTextUI::OnConnectionProgress()
 							x + COL_TO_PIXEL(16), 
 							y + ROW_TO_PIXEL(1));
 
-	uiPrintf(0, x, y, c, "Opening Stream %s", strIndicator[sIndex]);
+	uiPrintf(OFFLINE_BUFFER, x, y, c, "Opening Stream %s", strIndicator[sIndex]);
 	
 
 	return 0;
