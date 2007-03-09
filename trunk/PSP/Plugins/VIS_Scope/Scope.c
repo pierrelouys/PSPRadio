@@ -18,33 +18,32 @@
 */
 #include <pspdisplay.h>
 #include <pspge.h>
-//#include <PSPApp.h>
-//#include <PSPSound.h>
 #include <stdio.h>
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <malloc.h>
-//#include <iniparser.h>
 #include <Tools.h>
 #include <stdarg.h>
-//#include <Screen.h>
 #include <pthread.h>
+#include "../VIS_Plugin.h"
 #include "Scope.h"
-//#include <psputility_sysparam.h>
 
-PSP_MODULE_INFO("UI_TEXT", 0, 1, 1);
+PSP_MODULE_INFO("VIS_SCOPE", 0, 1, 1);
 PSP_HEAP_SIZE_KB(512);
 
 int module_stop(int args, void *argp)
 {
+	return 0;
 };
 
 #define true 1
 #define false 0
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
 #define UNSET_DIRTY(x) {m_isdirty&=~x;}
+int m_isdirty = 0;
+#define DIRTY_PCM 1
 
 #define VIS_X1 0
 #define VIS_X2 480
@@ -80,6 +79,50 @@ draw_pcm_func visualizer[] = {
 	draw_pcm_osc_v5
  };
 
+/* Plugin setup */
+void scope_init();
+void scope_cleanup();
+void scope_start();
+void scope_stop();
+void scope_render_pcm();
+VisPlugin scope_vtable = {
+	//void *handle; /* Filled in by PSPRadio */
+	NULL, 
+	//char *filename; /* Filled in by PSPRadio */
+	NULL, 
+	//int PSPRadio_session; /* not used atm *//* The session ID for attaching to the control socket */
+	0, 
+	//char *description; /* The description that is shown in the preferences box */
+	"Scope Plugin", 
+	//int num_pcm_chs_wanted; /* not used atm *//* Numbers of PCM channels wanted in the call to render_pcm */
+	2, 
+	//int num_freq_chs_wanted; /* not used atm *//* Numbers of freq channels wanted in the call to render_freq */
+	0, 
+	//void (*init)(void); /* Called when the plugin is enabled */
+	scope_init, 
+	//void (*cleanup)(void); /* Called when the plugin is disabled */
+	scope_cleanup, 
+	//void (*about)(void); /* Show the about box */:
+	NULL, 
+	//void (*configure)(void); /* Show the configure box */
+	NULL, 
+	//void (*disable_plugin)(struct _VisPlugin *); /* Call this with a pointer to your plugin to disable the plugin */
+	NULL, 
+	//void (*playback_start)(void); /* Called when playback starts */
+	scope_start, 
+	//void (*playback_stop)(void); /* Called when playback stops */
+	scope_stop, 
+	//void (*render_pcm)(int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
+	scope_render_pcm, 
+	/* not implemented *//* Render the freq data, don't do anything time consuming in here */
+	NULL, //void (*render_freq)(int16 *freq_data); 
+};
+/* We export this function */
+VisPlugin *get_vplugin_info()
+{
+	return &scope_vtable;
+}
+
 int current_visualizer = 0;
 #define number_of_visualizers 7//sizeof(visualizer)/sizeof(draw_pcm_func)
 
@@ -89,7 +132,7 @@ int current_visualizer = 0;
 #define m_BytesPerPixel 4
 #define FRAMESIZE (m_Pitch*m_Height*m_BytesPerPixel)
 u32 *m_Buffer[4];
-void init()
+void scope_init()
 {
 	int i;
 	u32 *vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
@@ -103,6 +146,24 @@ void init()
 	}
 }
 
+void scope_cleanup()
+{
+}
+
+void scope_start()
+{
+}
+
+void scope_stop()
+{
+}
+
+void scope_render_pcm(int16 *pcmbuffer)
+{
+	s_pcmbuffer = pcmbuffer;
+	m_isdirty |= DIRTY_PCM;
+}
+  
 void Plot(int iBuffer, int x, int y, int color)
 {
 	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
@@ -161,14 +222,6 @@ void VertLine(int iBuffer, int x, int y1, int y2, int color)
 		pthread_create(&pthid, &pthattr, render_thread, NULL);
 	}
 #endif
-
-int m_isdirty = 0;
-#define DIRTY_PCM 1
-void NewPCMBuffer(short *pcmbuffer)
-{
-	s_pcmbuffer = pcmbuffer;
-	m_isdirty |= DIRTY_PCM;
-}
 
 #if 0
 void render_thread(void *)
