@@ -94,13 +94,8 @@ string accountCreator::takeInput(SDL_Joystick* joystick)
 		{
 			return returnTo;
 		}
-		else if (result == TEXTLINEINPUT_SWITCH)
-		{
-			//User has pressed the Switch input button, don't this we care do we?
-		}
 		
-		if (result != TEXTLINEINPUT_SWITCH) //HACK ^ ^
-			currentSelected = result;
+		currentSelected = result;
 	}
 	return getInputKey();
 }

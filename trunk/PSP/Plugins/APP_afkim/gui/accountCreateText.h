@@ -16,6 +16,7 @@ public:
 	virtual void inputableDeactivate();
 protected:
 	string handleEnter();
+	string handleStart();
 private:
 	string myInputKey;
 	string nextInputKey;

@@ -27,8 +27,8 @@ protected:
 	unsigned int maxLength; //max length of area
 	
 	virtual void init(const unsigned int &nLength, const unsigned int &nX, const unsigned int &nY, const unsigned int &nColor);
-	virtual string handleEnter() = 0;
-	
+	virtual string handleEnter() = 0; //What to return when enter is pressed
+	virtual string handleStart() = 0; //What to return when start is pressed
 	static keyboardWrapper* keyboard;
 	
 	static SDL_Surface* blinkerPic;
@@ -38,8 +38,4 @@ protected:
 	int cursorpos;
 };
 
-//Returned when the start key is pressed from in a textLineInput, this signifies that we want to switch areas
-#warning TEXTLINEINPUT_SWITCH IS BAD, IT SHOULD BE SET ON ALL CHILD CLASSES INSTEAD
-#warning IT CURRENTLY CAUSES CRASHES EVERYWHERE WHEN START IS PRESSED.
-#define TEXTLINEINPUT_SWITCH "TEXTLINEINPUT_SWITCH"
 #endif //INCLUDED_DBLIB_GUIBITS_TEXTLINEINPUT_H

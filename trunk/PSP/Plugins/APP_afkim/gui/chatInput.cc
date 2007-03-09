@@ -14,10 +14,15 @@ string chatInput::getInputKey() const
 string chatInput::handleEnter()
 {
 	bitlbeeCallback::getBee()->messageCurrent(realText);
-	realText = wstring(); //FIXME: resize(0); ?
+	realText.resize(0);
 	dirty = true;
 	cursorpos = 0;
 	return getInputKey();
+}
+
+string chatInput::handleStart()
+{
+	return "chatSelector";
 }
 
 void chatInput::inputableActivate()

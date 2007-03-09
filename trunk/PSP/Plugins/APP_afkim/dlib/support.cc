@@ -205,7 +205,7 @@ void printTextToSurface(textBlock &text, SDL_Surface* pixels, bool align, const 
 		iter++;
 	
 	//skip the amount of lines specified
-	//WARNING THIS COULD CRASH
+	//FIXME: THIS COULD CRASH
 	for (int a = 0; a < linesToSkip; a++)
 		iter++;
 	

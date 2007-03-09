@@ -37,12 +37,18 @@ string chatSelector::fixSelected()
 	cout << "old nick:" << unUnicode(selectedNick ) << endl;
 	selectedNick = bitlbeeCallback::getBee()->changeChatToInt(selected);
 	cout << "new nick:" << unUnicode(selectedNick ) << endl;
-	notifyContactChange(); //HACK, because of way above function works it gets set after, duuuumb
+	notifyContactChange(); //HACK, see below
 	findNewScrollOffset();
 	
 	return getInputKey();
 }
 
+/*
+	Clarification of above:
+	When changeChatToInt is called, we receive a notifyContactChange() callback from bitlbeeCallback if the user had an unread message.
+	however, we do not know the new selectedNick untill after changeChatToInt has returned, so we just waste time in the callback.
+	Therefore we must call notifiyContactChange() ourself so that the newly selected contact can be selected in the list.
+*/
 
 string chatSelector::pressCross()
 {

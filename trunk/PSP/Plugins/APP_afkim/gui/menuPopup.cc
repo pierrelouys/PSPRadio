@@ -45,7 +45,6 @@ string menuPopup::pressCross()
 
 	accountCreator* newAC = NULL;
 #warning menuPopup "menuPopup" in accountCreator = correct behaviour?
-#warning menuPopup accountCreators get leaked when closed, likely that the bitlbee one gets leaked too!
 	switch(selected)
 	{
 	case 0:

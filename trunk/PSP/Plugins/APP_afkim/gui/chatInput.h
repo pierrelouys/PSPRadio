@@ -12,6 +12,7 @@ public:
 	void inputableDeactivate();
 protected:
 	string handleEnter();
+	string handleStart();
 };
 
 #endif //INCLUDED_LIB_CHATINPUT_H

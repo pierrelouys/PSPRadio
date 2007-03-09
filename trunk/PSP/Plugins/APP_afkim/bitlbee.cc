@@ -333,6 +333,7 @@ void bitlbeeCallback::changeChatTo(const wstring &nNick)
 					redoContactsBox();
 				}
 				mainTextA->setText(&(*iter).text);
+				break;
 			}
 		}
 	}
@@ -671,10 +672,6 @@ void bitlbeeCallback::privateMsgCallback  (const string &who,             const 
 				(*iter).text.addText(whoW + unicodeClean(": "), COLOR_SEND_NICK);
 				(*iter).text.addText(unicodeClean(message + "\n"), COLOR_MESSAGE);
 	
-				//HACK, show the window of the person who messages me
-//				mainTextA->setText(&(*iter).text);
-//				currentMainWindow = (*iter).nick; //nickname or ""(server) of main window target
-				
 				//light up their name
 				if (!(*iter).unreadMessages) updateUnread(+1);
 				(*iter).unreadMessages = true;

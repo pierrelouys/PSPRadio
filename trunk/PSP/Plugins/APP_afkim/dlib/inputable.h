@@ -22,8 +22,7 @@ public:
 	bool gui_active; //is the selected component;
 };
 
-//HACK
-extern map<string, inputable*> inputs;
+extern map<string, inputable*> inputs; //HACK
 
 //Special return val for takeInput, quits the program.
 #define SWITCH_QUIT "QUIT_THE_APP_PLZ"

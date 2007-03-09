@@ -75,14 +75,12 @@ string wifiSelector::getInputKey() const
 
 string wifiSelector::fixSelected()
 {
-	//wrap in either direction, -1 is for server window
+	//wrap in either direction
 	if (selected < 0)
 		selected += pick_count;
 	if (selected >= (int)pick_count)
 		selected = 0;
-	cout << "WS: " << selected << endl;
-
-	//change it in bitlbee <- FIXME wat?
+	
 	return getInputKey();
 }
 

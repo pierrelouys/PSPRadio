@@ -189,7 +189,7 @@ using namespace std;
 			"Thanks bitlbee crew :)"), "done");//new menuPopup();
 			creator->inputableActivate();
 			renderGui();
-			string at = "";
+			string at = "accountCreator";
 			while (at == "accountCreator") //loops untill the menu is done menuing
 			{
 				SDL_JoystickUpdate();
@@ -286,12 +286,20 @@ using namespace std;
 		else if (newInput != currentInput)
 		{
 			cout << "Switch from " << currentInput << " -> " << newInput << endl;
+			
+			//Menu popup needs to know where it was called from, these are the only possibilities
 			if (currentInput == "chatInput" || currentInput == "chatSelector")
-			{
-				//Menu popup needs to know where it was called from, these are the only possibilities
 				mmpop->changeReturnVal = currentInput;
-			}
+			
 			inputs[currentInput]->inputableDeactivate();
+			
+			//accountCreators need to be deleted when they are closed
+			if (currentInput == "accountCreator")
+			{
+				delete inputs["accountCreator"];
+				inputs["accountCreator"] = NULL;
+			}
+			
 			currentInput = newInput;
 			inputs[currentInput]->inputableActivate();
 			

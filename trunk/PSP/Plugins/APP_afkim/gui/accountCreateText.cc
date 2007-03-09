@@ -2,8 +2,6 @@
 #include "../dlib/keyboards/p_sprint.h"
 #include <iostream>
 
-#warning THIS WONT WORK RIGHT THIS IS BROKE
-
 accountCreateText::accountCreateText(const unsigned int &nX, const unsigned int &nY, const string &inputKey, const string &nextInput)
 {
 	init(40, nX, nY, TEXT_NORMAL_COLOR);
@@ -28,6 +26,11 @@ string accountCreateText::handleEnter()
 	
 	dirty = true;
 	return nextInputKey;
+}
+
+string accountCreateText::handleStart()
+{
+	return handleEnter();
 }
 
 void accountCreateText::inputableActivate()

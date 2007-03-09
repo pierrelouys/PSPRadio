@@ -81,7 +81,7 @@ string textLineInput::takeInput(SDL_Joystick* joystick)
 	unsigned int pressed = keyboard->readInput(joystick);
 	if (pressed == DANZEFF_START) // switch input area button (start on danzeff, L on p_sprint) 
 	{
-		return TEXTLINEINPUT_SWITCH;			//WAS HACK, should be in chatInput????
+		return handleStart();
 	}
 	else if (pressed == DANZEFF_SELECT) //select
 	{
