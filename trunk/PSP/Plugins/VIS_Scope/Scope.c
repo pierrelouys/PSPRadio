@@ -48,9 +48,6 @@ int module_stop(int args, void *argp)
 #define true 1
 #define false 0
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
-#define UNSET_DIRTY(x) {m_isdirty&=~x;}
-int m_isdirty = 0;
-#define DIRTY_PCM 1
 
 #define VIS_X1 0
 #define VIS_X2 480
@@ -65,26 +62,6 @@ int m_isdirty = 0;
 #define VIS_KEY_PREV (PSP_CTRL_LEFT)
 #define VIS_KEY_NEXT (PSP_CTRL_RIGHT)
 short *s_pcmbuffer = NULL;
-
-typedef void (*draw_pcm_func)(u32 *vram);
-
-void draw_pcm_bars(u32 *vram);
-void draw_pcm_osc(u32 *vram);
-void draw_pcm_osc_vl(u32 *vram);
-void draw_pcm_osc_v2(u32 *vram);
-void draw_pcm_osc_v3(u32 *vram);
-void draw_pcm_osc_v4(u32 *vram);
-void draw_pcm_osc_v5(u32 *vram);
-
-draw_pcm_func visualizer[] = { 
-	draw_pcm_bars,
-	draw_pcm_osc,
-	draw_pcm_osc_vl,
-	draw_pcm_osc_v2,
-	draw_pcm_osc_v3,
-	draw_pcm_osc_v4,
-	draw_pcm_osc_v5
- };
 
 /* Plugin setup */
 void scope_init();
@@ -130,27 +107,13 @@ VisPlugin *get_vplugin_info()
 	return &scope_vtable;
 }
 
-int current_visualizer = 0;
-#define number_of_visualizers 7//sizeof(visualizer)/sizeof(draw_pcm_func)
-
 #define m_Width  480
 #define m_Height 272
 #define m_Pitch  512
 #define m_BytesPerPixel 4
 #define FRAMESIZE (m_Pitch*m_Height*m_BytesPerPixel)
-u32 *m_Buffer[4];
 void scope_init()
 {
-	int i;
-	u32 *vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
-//	sceDisplaySetMode(0, m_Width, m_Height);
-//	sceDisplaySetFrameBuf((void *) g_vram_base, 
-//		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
-
-	for (i = 0; i < 4; i++)
-	{
-		m_Buffer[i] = (u32*)((char*)vram_base+FRAMESIZE*i);
-	}
 }
 
 void scope_cleanup()
@@ -165,19 +128,18 @@ void scope_stop()
 {
 }
 
+/* This is called from PSPRadio */
+void draw_pcm(u32* vram);
 void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 {
 	s_pcmbuffer = pcm_data;
-	//m_isdirty |= DIRTY_PCM;
-	draw_pcm_osc(vram_frame);
-	
+	draw_pcm(vram_frame);
 }
   
+/* Some basic drawing routines */
 void Plot(u32* vram, int x, int y, int color)
 {
 	u32 *pixel = vram + m_Pitch*y + x;
-	//*pixel = color;
-	//*pixel = *pixel & color;
 	*pixel = *pixel | color;
 }
 
@@ -217,173 +179,9 @@ void VertLine(u32* vram, int x, int y1, int y2, int color)
 	
 }
 
-#if 0
-	/* Start Render Thread */
-	{
-		pthread_t pthid;
-		pthread_attr_t pthattr;
-		struct sched_param shdparam;
-		pthread_attr_init(&pthattr);
-		shdparam.sched_policy = SCHED_OTHER;
-		shdparam.sched_priority = 45;
-		pthread_attr_setschedparam(&pthattr, &shdparam);
-		s_exit = false;
-		pthread_create(&pthid, &pthattr, render_thread, NULL);
-	}
-#endif
-
-#if 0
-void render_thread(void *)
-{
-	static int iBuffer = 0;
-	bool draw_background = true;
-	
-	/* For FPS Calculation: */
-	clock_t time1, time2;
-	int frame_count = 0;
-	int total_time = 0;
-	int fps = 0;
-	int message_frames = 0;
-
-	for (;;)
-	{
-		if (s_exit)
-		{
-			sceKernelDelayThread(1); /* yield */
-			break;
-		}
-		s_ui->m_RenderLock->Lock();
-		if (s_ui->m_isdirty)// && (s_ui->m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE))
-		{
-			time1 = sceKernelLibcClock();
-
-			if (s_ui->m_isdirty & DIRTY_BACKGROUND)
-			{
-				UNSET_DIRTY(DIRTY_BACKGROUND);
-				CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
-					0, 0, m_Width, m_Height);
-				s_ui->PrintProgramVersion(OFFLINE_BUFFER);
-				draw_background  = false;
-			}
-			else
-			{
-				draw_background = true;
-			}
-			
-			if (s_ui->m_isdirty & DIRTY_TIME)
-			{
-				UNSET_DIRTY(DIRTY_TIME);
-				s_ui->PrintTime(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_BATTERY)
-			{
-				UNSET_DIRTY(DIRTY_BATTERY);
-				s_ui->PrintBattery(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_BUFFER_PERCENTAGE)
-			{
-				UNSET_DIRTY(DIRTY_BUFFER_PERCENTAGE);
-				s_ui->PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_SONG_DATA)
-			{
-				UNSET_DIRTY(DIRTY_SONG_DATA);
-				s_ui->PrintSongData(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_STREAM_TIME)
-			{
-				UNSET_DIRTY(DIRTY_STREAM_TIME);
-				s_ui->PrintStreamTime(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_CONTAINERS)
-			{
-				UNSET_DIRTY(DIRTY_CONTAINERS);
-				s_ui->PrintContainers(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_ELEMENTS)
-			{
-				UNSET_DIRTY(DIRTY_ELEMENTS);
-				s_ui->PrintElements(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_OPTIONS)
-			{
-				UNSET_DIRTY(DIRTY_OPTIONS);
-				s_ui->PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
-			}
-			if (s_ui->m_isdirty & DIRTY_ACTIVE_COMMAND)
-			{
-				UNSET_DIRTY(DIRTY_ACTIVE_COMMAND);
-				s_ui->PrintActiveCommand(OFFLINE_BUFFER, draw_background);
-			}
-			
-			/* Copy buffer OFFLINE_BUFFER to back-buffer */
-			CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
-	
-			/* Do effects to back-buffer */
-			if ((s_ui->m_isdirty & DIRTY_PCM) && s_pcmbuffer)
-			{
-				UNSET_DIRTY(DIRTY_PCM);
-				//draw_pcm(iBuffer);
-				visualizer[current_visualizer](iBuffer);
-			}
-			
-			if (s_ui->m_isdirty & DIRTY_MESSAGE)
-			{
-				//int x = (MAX_COL - strlen(s_ui->m_Message)) / 2;
-				UNSET_DIRTY(DIRTY_MESSAGE);
-				message_frames = 1;
-			}
-			
-			if (message_frames > 0)
-			{
-				s_ui->PrintMessage(iBuffer);//, s_ui->m_Message);//s_ui->uiPrintf(iBuffer, 100,100, 0xFFFFFF, s_ui->m_Message);
-				if (message_frames++ >= 60)
-				{
-					message_frames = 0;
-				}
-			}
-
-			/* FPS Calculation */
-			time2 = sceKernelLibcClock();
-			total_time += (time2 - time1);
-			if (++frame_count == 10)
-			{
-				fps = (frame_count * CLOCKS_PER_SEC) / total_time;
-				frame_count = 0;
-				total_time = 0;
-
-				{
-					SceCtrlData pad;
-				
-					sceCtrlPeekBufferPositive(&pad, 1);
-					
-					if (IS_BUTTON_PRESSED(pad.Buttons, VIS_KEY_PREV))
-					{
-						current_visualizer = (current_visualizer - 1 < 0)?(number_of_visualizers - 1):(current_visualizer - 1);
-					}
-					else if (IS_BUTTON_PRESSED(pad.Buttons, VIS_KEY_NEXT))
-					{
-						current_visualizer = (current_visualizer + 1) % number_of_visualizers;
-					}
-				}
-			}
-			s_ui->uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d vis:%d", fps, current_visualizer);
-
-			///Buffer is configured in sync mode already... 
-			//sceDisplayWaitVblankStart();
-			//Flip Buffers
-			sceKernelDcacheWritebackAll(); 
-			SetFrameBuffer(iBuffer);
-			iBuffer = 1 - iBuffer;
-		}
-		s_ui->m_RenderLock->Unlock();
-		sceKernelDelayThread(1); /* yield */
-	}
-	s_ui->m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
-}
-#endif
-
-void draw_pcm_bars(u32* vram)
+/* actual visualizer routine */
+#ifdef SCOPE_BARS
+void draw_pcm(u32* vram) /* BARS */
 {
 	int x;
 	for (x = VIS_X1; x < VIS_X2; x++)
@@ -394,8 +192,10 @@ void draw_pcm_bars(u32* vram)
 										   x+4, VIS_Y_MID, 0xAAAAAA);
 	}
 }
+#endif
 
-void draw_pcm_osc(u32* vram)
+#ifdef SCOPE_DOTS
+void draw_pcm(u32* vram) /* DOTS */
 {
 	//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
 	//m_Screen->Rectangle(iBuffer, 0,0, 128, 128, 0);
@@ -411,8 +211,10 @@ void draw_pcm_osc(u32* vram)
 		Plot(vram, x, (y2 >= 0 && y2 < VIS_Y_MID*2)?y2:VIS_Y_MID, 0xAAAAAA);
 	}
 }
+#endif
 
-void draw_pcm_osc_vl(u32* vram)
+#ifdef SCOPE_LINES
+void draw_pcm(u32* vram) /* LINES */
 {
 	int x;
 	int y1, y2;
@@ -425,22 +227,10 @@ void draw_pcm_osc_vl(u32* vram)
 		VertLine(vram, x, y1, y2, 0xAAAAAA);
 	}
 }
+#endif
 
-void draw_pcm_osc_v2(u32* vram)
-{
-	int x;
-	int y1, y2;
-	for (x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y1 = VIS_Y_MID - (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
-		y2 = VIS_Y_MID + (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT);   // R component
-		VertLine(vram, x, y1, y2, 0xAAAAAA);
-	}
-}
-
-void draw_pcm_osc_v3(u32* vram)
+#ifdef SCOPE_LINES2
+void draw_pcm(u32* vram)
 {
 	int x;
 	int y, old_y;
@@ -454,8 +244,10 @@ void draw_pcm_osc_v3(u32* vram)
 		old_y = y;
 	}
 }
+#endif
 
-void draw_pcm_osc_v4(u32* vram)//, u32 *pcmbuffer)
+#ifdef SCOPE_LINES3
+void draw_pcm(u32* vram) /* TRAIL */
 {
 	int x;
 	int y, old_y;
@@ -487,8 +279,10 @@ void draw_pcm_osc_v4(u32* vram)//, u32 *pcmbuffer)
 		old_y = y;
 	}
 }
+#endif
 
-void draw_pcm_osc_v5(u32* vram)
+#ifdef SCOPE_LINES4 
+void draw_pcm(u32* vram)
 {
 	int x;
 	int yL, yR;
@@ -506,5 +300,5 @@ void draw_pcm_osc_v5(u32* vram)
 		old_yR = yR;
 	}
 }
-
+#endif
 
