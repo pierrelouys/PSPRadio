@@ -117,12 +117,15 @@ int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
 			ret = true;
 			break;
 		case PSPRADIOIF_SET_RENDER_PCM:
-		{
-			u32*	vram_frame = (u32*)Data->Pointer;
-			if (gPSPRadio->m_VisPluginData)
-				gPSPRadio->m_VisPluginData->render_pcm(vram_frame, (int16*)g_PCMBuffer);
+			{
+				u32*	vram_frame = (u32*)Data->Pointer;
+				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_pcm)
+					gPSPRadio->m_VisPluginData->render_pcm(vram_frame, (int16*)g_PCMBuffer);
+			}
 			break;
-		}
+		case PSPRADIOIF_GET_VISUALIZER_CONFIG:
+			Data->Pointer = &(gPSPRadio->m_VisPluginConfig);
+			break;
 
 	}	
 	

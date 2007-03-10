@@ -83,6 +83,7 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		void  ScreenshotStore(char *filename);
 	
 	public:
+		VisPluginConfig m_VisPluginConfig;
 		VisPlugin *m_VisPluginData;
 
 		int LoadPlugin(char *strPlugin, plugin_type type);

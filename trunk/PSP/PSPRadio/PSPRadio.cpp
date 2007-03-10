@@ -44,6 +44,10 @@ int CPSPRadio::Setup(int argc, char **argv)
 	char strAppTitle[140];
 
 	m_VisPluginData = NULL;
+	m_VisPluginConfig.x1 = 0;
+	m_VisPluginConfig.x2 = 480;
+	m_VisPluginConfig.y_mid = (272/2);
+	m_VisPluginConfig.pcm_right_shift = 8;
 	
 	sprintf(strAppTitle, "%s", GetProgramVersion());
 
@@ -874,6 +878,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 						m_VisPluginData = get_vplugin_info();
 						m_VisPluginData->handle = (void *)m_ModuleLoader[type];
 						m_VisPluginData->filename = m_ModuleLoader[type]->GetFilename();
+						m_VisPluginData->config = &m_VisPluginConfig;
 						//m_VisPluginData->disable_plugin = to-do
 						Log(LOG_INFO, "Module description: '%s'", m_VisPluginData->description);
 						m_VisPluginData->init();

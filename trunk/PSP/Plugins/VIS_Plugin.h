@@ -9,14 +9,22 @@
 		extern "C" {
 	#endif
 
-	/* Based on xmms visual plugin to ease porting plugins written for xmms to PSPRadio */
-	//typedef void (*draw_pcm_func)(int iBuffer);
 	#include <psptypes.h>
+	
+	typedef struct _VisPluginConfig
+	{
+		int x1;
+		int x2;
+		int y_mid;
+		int pcm_right_shift;
+	} VisPluginConfig;
+		
 
-	typedef struct _VisPlugin
+	typedef struct _VisPlugin /* Based on xmms visual plugin to ease porting plugins written for xmms to PSPRadio */
 	{
 		void *handle; /* Filled in by PSPRadio */
 		char *filename; /* Filled in by PSPRadio */
+		VisPluginConfig *config; /* Filled in by PSPRadio */
 		int PSPRadio_session; /* not used atm *//* The session ID for attaching to the control socket */
 		char *description; /* The description that is shown in the preferences box */
 		int num_pcm_chs_wanted; /* not used atm *//* Numbers of PCM channels wanted in the call to render_pcm */

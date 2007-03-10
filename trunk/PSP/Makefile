@@ -37,7 +37,7 @@ plugins:
 	cd $(PLUGINS_DIR)/UI_Text && $(MAKE) && $(MAKE) install
 	$(MAKE) clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/UI_Text3D && $(MAKE) && $(MAKE) install
-	cd $(PLUGINS_DIR)/VIS_Scope && $(MAKE) && $(MAKE) install
+	cd $(PLUGINS_DIR)/VIS_Scope && $(MAKE) install
 
 extra_plugins:
 	$(MAKE) clean_plugin_common_objects

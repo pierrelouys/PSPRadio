@@ -1,11 +1,10 @@
 BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
-TARGET = VIS_Scope1
+TARGET=VIS_ScopeBars
 
 EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
 OBJS = Scope.o $(EXPORTED_OBJS)
-# $(PLUGINS_DIR)/UI_Interface.o
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
@@ -15,10 +14,10 @@ PRX_EXPORTS=$(PLUGINS_DIR)/VIS_Exports.exp
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
 		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
-		 -I$(PSPRADIO_DIR)/ScreenHandler -L$(PLUGINS_DIR)/Common
+		 -I$(PSPRADIO_DIR)/ScreenHandler -L$(PLUGINS_DIR)/Common $(SET_F)
 
 		 
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES) $(DEFINE)
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES) $(SET_F)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
@@ -26,28 +25,28 @@ LDFLAGS += -mno-crt0 -nostartfiles
 
 LIBDIR =
 
-
-#LIBS = -lstdc++ -lpthread -lTools -liniparser -lPluginCommon  -lpng -lz -lm
-
 scope_bars:
-	make TARGET="VIS_ScopeBars" DEFINE="-DSCOPE_BARS" prx
+	TARGET="VIS_ScopeBars" SET_F="-DSCOPE_BARS" make the_prx
 scope_dots:
-	make TARGET="VIS_ScopeDots" DEFINE="-DSCOPE_DOTS" prx
+	make TARGET="VIS_ScopeDots" SET_F="-DSCOPE_DOTS" the_prx
 scope_lines:
-	make TARGET="VIS_ScopeLines" DEFINE="-DSCOPE_LINES" prx
+	make TARGET="VIS_ScopeLines" SET_F="-DSCOPE_LINES" the_prx
 scope_lines2:
-	make TARGET="VIS_ScopeLines2" DEFINE="-DSCOPE_LINES2" prx
+	make TARGET="VIS_ScopeLines2" SET_F="-DSCOPE_LINES2" the_prx
 scope_lines3:
-	make TARGET="VIS_ScopeLines3" DEFINE="-DSCOPE_LINES3" prx
+	make TARGET="VIS_ScopeLines3" SET_F="-DSCOPE_LINES3" the_prx
 scope_lines4:
-	make TARGET="VIS_ScopeLines4" DEFINE="-DSCOPE_LINES4" prx
+	make TARGET="VIS_ScopeLines4" SET_F="-DSCOPE_LINES4" the_prx
 
-prx: $(TARGET).prx
+the_prx: $(TARGET).prx
 
 clean_objs:
 	rm -Rf *.o *.elf 
 
-all:
+clobber:
+	rm -Rf *.o *.elf *.prx
+	
+all: scope_bars
 	make clean_objs 
 	make scope_bars 
 	make clean_objs
