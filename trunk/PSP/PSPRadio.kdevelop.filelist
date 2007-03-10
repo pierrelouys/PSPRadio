@@ -417,3 +417,7 @@ Plugins/UI_Text/OptionsPluginScreen.cfg
 Plugins/UI_Text/OptionsScreen.cfg
 Plugins/UI_Text/SHOUTcastScreen.cfg
 Plugins/UI_Text/PlaylistScreen.cfg
+Plugins/VIS_Scope/Makefile
+Plugins/VIS_Scope/Scope.c
+Plugins/VIS_Scope/Scope.h
+Plugins/VIS_Scope/main.c

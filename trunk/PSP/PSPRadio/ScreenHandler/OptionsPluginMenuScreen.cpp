@@ -47,6 +47,7 @@ enum OptionIDs
 	OPTION_ID_FSS,
 	OPTION_ID_APP,
 	OPTION_ID_GAME,
+	OPTION_ID_VIS,
 };
 
 OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
@@ -56,6 +57,7 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 	{	OPTION_ID_FSS,				"FileSystemServers",		{"Off"},			1,1,1		},
 	{	OPTION_ID_APP,				"Applications",				{"Off"},			1,1,1		},
 	{	OPTION_ID_GAME,				"Games",					{"Off"},			1,1,1		},
+	{	OPTION_ID_VIS,				"Visualization",			{""},				0,0,0		},
 
 	{  -1,  						"",							{""},				0,0,0		}
 };
@@ -105,6 +107,7 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 			 || ((*OptionIterator).Id == OPTION_ID_FSS)
 			 || ((*OptionIterator).Id == OPTION_ID_APP)
 			 || ((*OptionIterator).Id == OPTION_ID_GAME)
+			 || ((*OptionIterator).Id == OPTION_ID_VIS)
 			)
  		{
  			for (int i = 0; i < (*OptionIterator).iNumberOfStates; i++)
@@ -151,6 +154,11 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 			case OPTION_ID_GAME:
 				RetrievePlugins(/*option*/Option, /*prefix*/"GAME_",
 								gPSPRadio->GetActivePluginName(PLUGIN_GAME), /*insert 'off'*/true);
+				Option.iSelectedState = Option.iActiveState;
+				break;
+			case OPTION_ID_VIS:
+				RetrievePlugins(/*option*/Option, /*prefix*/"VIS_",
+								gPSPRadio->GetActivePluginName(PLUGIN_VIS), /*insert 'off'*/true);
 				Option.iSelectedState = Option.iActiveState;
 				break;
 		}
@@ -372,6 +380,41 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				{
 					m_UI->DisplayMessage("Stopping Plugin. . .");
 					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_GAME);
+					fOptionActivated = true;
+					m_UI->DisplayMessage("Plugin Stopped");
+				}
+			}
+			break;
+		case OPTION_ID_VIS:
+			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
+			{
+				sprintf(strPluginRealName, "VIS_%s.prx", strSelection);
+				Log(LOG_INFO, "User selected VISUALIZER Plugin '%s'.", strPluginRealName);
+				if (iSelectionBase0 > 0)
+				{
+					m_UI->DisplayMessage("Starting Plugin . . .");
+					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_VIS);
+					if (res == 0)
+					{
+						fOptionActivated = true;
+						m_UI->DisplayMessage("Plugin Started");
+					}
+					else
+					{
+						if (res == SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED)
+						{
+							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
+						}
+						else
+						{
+							m_UI->DisplayMessage("Error Starting Plugin . . .");
+						}
+					}
+				}
+				else
+				{
+					m_UI->DisplayMessage("Stopping Plugin. . .");
+					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_VIS);
 					fOptionActivated = true;
 					m_UI->DisplayMessage("Plugin Stopped");
 				}

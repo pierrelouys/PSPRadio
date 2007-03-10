@@ -28,6 +28,7 @@ exports:
 	cd $(PLUGINS_DIR)  && psp-build-exports -s FSS_Exports.exp
 	cd $(PLUGINS_DIR)  && psp-build-exports -s APP_Exports.exp
 	cd $(PLUGINS_DIR)  && psp-build-exports -s GAME_Exports.exp
+	cd $(PLUGINS_DIR)  && psp-build-exports -s VIS_Exports.exp
 
 plugins:
 	$(MAKE) clean_plugin_common_objects
@@ -36,6 +37,7 @@ plugins:
 	cd $(PLUGINS_DIR)/UI_Text && $(MAKE) && $(MAKE) install
 	$(MAKE) clean_plugin_common_objects
 	cd $(PLUGINS_DIR)/UI_Text3D && $(MAKE) && $(MAKE) install
+	cd $(PLUGINS_DIR)/VIS_Scope && $(MAKE) && $(MAKE) install
 
 extra_plugins:
 	$(MAKE) clean_plugin_common_objects

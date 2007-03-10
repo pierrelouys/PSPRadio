@@ -28,15 +28,15 @@
 		void (*disable_plugin)(struct _VisPlugin *); /* Call this with a pointer to your plugin to disable the plugin */
 		void (*playback_start)(void); /* Called when playback starts */
 		void (*playback_stop)(void); /* Called when playback stops */
-		void (*render_pcm)(int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
-		void (*render_freq)(int16 *freq_data); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
+		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
+		void (*render_freq)(u32* vram_frame, int16 *freq_data); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
 	} VisPlugin; 
 
 	/* The plugin exports this function */
 	VisPlugin *get_vplugin_info();
 
 	#ifdef __cplusplus
-		extern "C" {
+		};
 	#endif
 
 #endif

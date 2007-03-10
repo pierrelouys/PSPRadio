@@ -11,6 +11,7 @@
 		PLUGIN_FSS,
 		PLUGIN_APP,
 		PLUGIN_GAME,
+		PLUGIN_VIS,
 		/** This has to be the last */
 		NUMBER_OF_PLUGIN_TYPES,
 	}plugin_type;
@@ -81,6 +82,7 @@
 			{
 				PSPRADIOIF_SET_BUTTONMAP_CONFIG,
 				PSPRADIOIF_GET_SOUND_OBJECT,
+				PSPRADIOIF_SET_RENDER_PCM,
 			}pspradioexport_types;
 			
 			typedef struct

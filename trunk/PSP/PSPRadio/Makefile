@@ -12,7 +12,8 @@ PRX_EXPORTS=exports.exp
 IMPORTED_OBJS = $(PLUGINS_DIR)/UI_Interface.o $(PLUGINS_DIR)/PSPRadio_UI.o \
 				$(PLUGINS_DIR)/PSPRadio_FSS.o \
 				$(PLUGINS_DIR)/PSPRadio_APP.o \
-				$(PLUGINS_DIR)/PSPRadio_GAME.o
+				$(PLUGINS_DIR)/PSPRadio_GAME.o \
+				$(PLUGINS_DIR)/PSPRadio_VIS.o
 
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/SHOUTcastScreen.o  \

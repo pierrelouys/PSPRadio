@@ -116,6 +116,14 @@ int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
 			Data->Pointer = gPSPRadio->GetSoundObject();
 			ret = true;
 			break;
+		case PSPRADIOIF_SET_RENDER_PCM:
+		{
+			u32*	vram_frame = (u32*)Data->Pointer;
+			if (gPSPRadio->m_VisPluginData)
+				gPSPRadio->m_VisPluginData->render_pcm(vram_frame, (int16*)g_PCMBuffer);
+			break;
+		}
+
 	}	
 	
 	return ret;

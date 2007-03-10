@@ -22,6 +22,8 @@ CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
+LDFLAGS += -mno-crt0 -nostartfiles
+
 LIBDIR =
 
 

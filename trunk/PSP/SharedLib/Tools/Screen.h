@@ -49,6 +49,7 @@
 		void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color);
 		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);
 		void Clear(int iBuffer);
+		u32* GetBufferAddress(int iBuffer){ return m_Buffer[iBuffer]; };
 				
 	public:
 		u32 *m_Buffer[4]; // 4 FRAMES in VRAM

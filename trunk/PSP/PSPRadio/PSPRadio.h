@@ -25,6 +25,7 @@
 #include "ScreenHandler/PlayListScreen.h"
 #include "ScreenHandler/SHOUTcastScreen.h"
 #include <UI_Interface.h>
+#include <VIS_Plugin.h>
 #include "Screen.h"
 
 #include "PSPRadio_Exports.h"
@@ -82,6 +83,8 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		void  ScreenshotStore(char *filename);
 	
 	public:
+		VisPlugin *m_VisPluginData;
+
 		int LoadPlugin(char *strPlugin, plugin_type type);
 		char *GetActivePluginName(plugin_type type);
 		void SetExclusiveAccessPluginType(plugin_type type) { m_ExclusiveAccessPluginType = type; }

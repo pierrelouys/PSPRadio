@@ -16,6 +16,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#include <pspkernel.h>
 #include <pspdisplay.h>
 #include <pspge.h>
 #include <stdio.h>
@@ -32,6 +33,12 @@
 
 PSP_MODULE_INFO("VIS_SCOPE", 0, 1, 1);
 PSP_HEAP_SIZE_KB(512);
+PSP_NO_CREATE_MAIN_THREAD();
+
+int module_start(SceSize argc, void* argp)
+{
+	return 0;
+}
 
 int module_stop(int args, void *argp)
 {
@@ -59,15 +66,15 @@ int m_isdirty = 0;
 #define VIS_KEY_NEXT (PSP_CTRL_RIGHT)
 short *s_pcmbuffer = NULL;
 
-typedef void (*draw_pcm_func)(int iBuffer);
+typedef void (*draw_pcm_func)(u32 *vram);
 
-void draw_pcm_bars(int iBuffer);
-void draw_pcm_osc(int iBuffer);
-void draw_pcm_osc_vl(int iBuffer);
-void draw_pcm_osc_v2(int iBuffer);
-void draw_pcm_osc_v3(int iBuffer);
-void draw_pcm_osc_v4(int iBuffer);
-void draw_pcm_osc_v5(int iBuffer);
+void draw_pcm_bars(u32 *vram);
+void draw_pcm_osc(u32 *vram);
+void draw_pcm_osc_vl(u32 *vram);
+void draw_pcm_osc_v2(u32 *vram);
+void draw_pcm_osc_v3(u32 *vram);
+void draw_pcm_osc_v4(u32 *vram);
+void draw_pcm_osc_v5(u32 *vram);
 
 draw_pcm_func visualizer[] = { 
 	draw_pcm_bars,
@@ -84,7 +91,7 @@ void scope_init();
 void scope_cleanup();
 void scope_start();
 void scope_stop();
-void scope_render_pcm();
+void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
 VisPlugin scope_vtable = {
 	//void *handle; /* Filled in by PSPRadio */
 	NULL, 
@@ -158,52 +165,54 @@ void scope_stop()
 {
 }
 
-void scope_render_pcm(int16 *pcmbuffer)
+void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 {
-	s_pcmbuffer = pcmbuffer;
-	m_isdirty |= DIRTY_PCM;
+	s_pcmbuffer = pcm_data;
+	//m_isdirty |= DIRTY_PCM;
+	draw_pcm_osc(vram_frame);
+	
 }
   
-void Plot(int iBuffer, int x, int y, int color)
+void Plot(u32* vram, int x, int y, int color)
 {
-	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
+	u32 *pixel = vram + m_Pitch*y + x;
 	//*pixel = color;
 	//*pixel = *pixel & color;
 	*pixel = *pixel | color;
 }
 
-void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color)
+void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
 {
 	int x,y;
 	for (x = x1;x <= x2; x++)
 	{
 		for (y = y1;y <= y2; y++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(vram, x, y, color);
 		}
 	}
 }
 
-void VertLine(int iBuffer, int x, int y1, int y2, int color)
+void VertLine(u32* vram, int x, int y1, int y2, int color)
 {
 	int y;
 	if (y1 < y2)
 	{
 		for (y = y1<0?0:y1; y <= y2; y++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(vram, x, y, color);
 		}
 	}
 	else if (y2 < y1)
 	{
 		for (y = y2<0?0:y2; y <= y1; y++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(vram, x, y, color);
 		}
 	}
 	else 
 	{
-		Plot(iBuffer, x, y1, color);
+		Plot(vram, x, y1, color);
 	}
 	
 }
@@ -374,19 +383,19 @@ void render_thread(void *)
 }
 #endif
 
-void draw_pcm_bars(int iBuffer)
+void draw_pcm_bars(u32* vram)
 {
 	int x;
 	for (x = VIS_X1; x < VIS_X2; x++)
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
-		Rectangle(iBuffer, x, VIS_Y_MID - (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT), 
+		Rectangle(vram, x, VIS_Y_MID - (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT), 
 										   x+4, VIS_Y_MID, 0xAAAAAA);
 	}
 }
 
-void draw_pcm_osc(int iBuffer)
+void draw_pcm_osc(u32* vram)
 {
 	//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
 	//m_Screen->Rectangle(iBuffer, 0,0, 128, 128, 0);
@@ -398,12 +407,12 @@ void draw_pcm_osc(int iBuffer)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 256
 		y1 = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT);
 		y2 = VIS_Y_MID - (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT);
-		Plot(iBuffer, x, (y1 >= 0 && y1 < VIS_Y_MID*2)?y1:VIS_Y_MID, 0xAAAAAA);
-		Plot(iBuffer, x, (y2 >= 0 && y2 < VIS_Y_MID*2)?y2:VIS_Y_MID, 0xAAAAAA);
+		Plot(vram, x, (y1 >= 0 && y1 < VIS_Y_MID*2)?y1:VIS_Y_MID, 0xAAAAAA);
+		Plot(vram, x, (y2 >= 0 && y2 < VIS_Y_MID*2)?y2:VIS_Y_MID, 0xAAAAAA);
 	}
 }
 
-void draw_pcm_osc_vl(int iBuffer)
+void draw_pcm_osc_vl(u32* vram)
 {
 	int x;
 	int y1, y2;
@@ -413,11 +422,11 @@ void draw_pcm_osc_vl(int iBuffer)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		y1 = VIS_Y_MID - (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT); // L component
 		y2 = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT);   // R component
-		VertLine(iBuffer, x, y1, y2, 0xAAAAAA);
+		VertLine(vram, x, y1, y2, 0xAAAAAA);
 	}
 }
 
-void draw_pcm_osc_v2(int iBuffer)
+void draw_pcm_osc_v2(u32* vram)
 {
 	int x;
 	int y1, y2;
@@ -427,11 +436,11 @@ void draw_pcm_osc_v2(int iBuffer)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		y1 = VIS_Y_MID - (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
 		y2 = VIS_Y_MID + (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT);   // R component
-		VertLine(iBuffer, x, y1, y2, 0xAAAAAA);
+		VertLine(vram, x, y1, y2, 0xAAAAAA);
 	}
 }
 
-void draw_pcm_osc_v3(int iBuffer)
+void draw_pcm_osc_v3(u32* vram)
 {
 	int x;
 	int y, old_y;
@@ -441,12 +450,12 @@ void draw_pcm_osc_v3(int iBuffer)
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		y = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
-		VertLine(iBuffer, x, old_y, y, 0xAAAAAA);
+		VertLine(vram, x, old_y, y, 0xAAAAAA);
 		old_y = y;
 	}
 }
 
-void draw_pcm_osc_v4(int iBuffer)//, u32 *pcmbuffer)
+void draw_pcm_osc_v4(u32* vram)//, u32 *pcmbuffer)
 {
 	int x;
 	int y, old_y;
@@ -464,7 +473,7 @@ void draw_pcm_osc_v4(int iBuffer)//, u32 *pcmbuffer)
 			//convert fixed point int to int (the integer part is the most significant byte)
 			// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 			y = prev_pcm[x - VIS_X1]; // L component
-			VertLine(iBuffer, x, old_y, y, 0xFFA0A0);
+			VertLine(vram, x, old_y, y, 0xFFA0A0);
 			old_y = y;
 		}
 	}
@@ -474,12 +483,12 @@ void draw_pcm_osc_v4(int iBuffer)//, u32 *pcmbuffer)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		y = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
 		prev_pcm[x - VIS_X1] = y;
-		VertLine(iBuffer, x, old_y, y, 0x0AFF0A);
+		VertLine(vram, x, old_y, y, 0x0AFF0A);
 		old_y = y;
 	}
 }
 
-void draw_pcm_osc_v5(int iBuffer)
+void draw_pcm_osc_v5(u32* vram)
 {
 	int x;
 	int yL, yR;
@@ -491,8 +500,8 @@ void draw_pcm_osc_v5(int iBuffer)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		yL = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
 		yR = VIS_Y_MID + (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT); // L component
-		VertLine(iBuffer, x, old_yL, yL, 0xFF0A0A);
-		VertLine(iBuffer, x, old_yR, yR, 0xA0FFA0);
+		VertLine(vram, x, old_yL, yL, 0xFF0A0A);
+		VertLine(vram, x, old_yR, yR, 0xA0FFA0);
 		old_yL = yL;
 		old_yR = yR;
 	}

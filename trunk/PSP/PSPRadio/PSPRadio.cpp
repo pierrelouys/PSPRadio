@@ -43,6 +43,8 @@ int CPSPRadio::Setup(int argc, char **argv)
 	/** open config file */
 	char strAppTitle[140];
 
+	m_VisPluginData = NULL;
+	
 	sprintf(strAppTitle, "%s", GetProgramVersion());
 
 	m_strCWD = (char*)malloc(MAXPATHLEN);
@@ -574,10 +576,8 @@ int CPSPRadio::ProcessEvents()
 				break;
 
 			case MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO: /* User used key combo to kill plugin */
-				#ifdef DYNAMIC_BUILD
-					/** Unload the bad plugin */
-					LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
-				#endif
+				/** Unload the bad plugin */
+				LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
 				PSPRadioExport_GiveUpExclusiveAccess();
 				break;
 
@@ -801,6 +801,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 	#include <FSS_Exports.h>
 	#include <APP_Exports.h>
 	#include <GAME_Exports.h>
+	#include <VIS_Plugin.h>
 
 	int CPSPRadio::LoadPlugin(char *strPlugin, plugin_type type)
 	{
@@ -814,6 +815,11 @@ void CPSPRadio::ScreenshotStore(char *filename)
 			if (m_ModuleLoader[type]->IsLoaded() == true)
 			{
 				Log(LOG_INFO, "Unloading currently running plugin");
+				if (type == PLUGIN_VIS)
+				{
+					m_VisPluginData->cleanup();
+					m_VisPluginData = NULL;
+				}
 				m_ModuleLoader[type]->Unload();
 				m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
 			}
@@ -863,6 +869,14 @@ void CPSPRadio::ScreenshotStore(char *filename)
 						break;
 					case PLUGIN_GAME:
 						ModuleStartGAME();
+						break;
+					case PLUGIN_VIS:
+						m_VisPluginData = get_vplugin_info();
+						m_VisPluginData->handle = (void *)m_ModuleLoader[type];
+						m_VisPluginData->filename = m_ModuleLoader[type]->GetFilename();
+						//m_VisPluginData->disable_plugin = to-do
+						Log(LOG_INFO, "Module description: '%s'", m_VisPluginData->description);
+						m_VisPluginData->init();
 						break;
 					case NUMBER_OF_PLUGIN_TYPES: 
 					case PLUGIN_NA:

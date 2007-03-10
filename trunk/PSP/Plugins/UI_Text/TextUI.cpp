@@ -42,6 +42,7 @@
 #define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
 
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+#define UNSET_DIRTY(x) {s_ui->m_isdirty&=~x;}
 
 #define BACKGROUND_BUFFER 3
 #define OFFLINE_BUFFER    2
@@ -49,7 +50,6 @@
 #define TextUILog ModuleLog
 
 CTextUI *s_ui = NULL;
-short *s_pcmbuffer = NULL;
 bool s_exit = false;
 
 CTextUI::CTextUI()
@@ -129,7 +129,6 @@ CTextUI::~CTextUI()
 
 void CTextUI::NewPCMBuffer(short *pcmbuffer)
 {
-	s_pcmbuffer = pcmbuffer;
 	m_isdirty |= DIRTY_PCM;
 }
 
@@ -138,154 +137,8 @@ int CTextUI::OnVBlank()
 	return 0;
 }
 
-#define VIS_X1 0
-#define VIS_X2 480
-#define VIS_Y_MID (272/2)
-#define VIS_PCM_SHIFT 8
-
-
-//#define VIS_X1 170
-//#define VIS_X2 308
-//#define VIS_Y_MID 128
-//#define VIS_PCM_SHIFT 9
-#define VIS_WIDTH (VIS_X2 - VIS_X1)
-#define IS_BUTTON_PRESSED(i,b) ((i & 0xFFFF) == b)
-#define VIS_KEY_PREV (PSP_CTRL_LEFT)
-#define VIS_KEY_NEXT (PSP_CTRL_RIGHT)
-
-void draw_pcm_bars(int iBuffer)
-{
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
-		s_ui->m_Screen->Rectangle(iBuffer, x, VIS_Y_MID - (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT), 
-										   x+4, VIS_Y_MID, 0xAAAAAA);
-	}
-}
-
-void draw_pcm_osc(int iBuffer)
-{
-	//m_Screen->DrawBackground(iBuffer, 0, 0, 100, 100);
-	//m_Screen->Rectangle(iBuffer, 0,0, 128, 128, 0);
-	int y1, y2;
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 256
-		y1 = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT);
-		y2 = VIS_Y_MID - (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT);
-		s_ui->m_Screen->Plot(iBuffer, x, (y1 >= 0 && y1 < VIS_Y_MID*2)?y1:VIS_Y_MID, 0xAAAAAA);
-		s_ui->m_Screen->Plot(iBuffer, x, (y2 >= 0 && y2 < VIS_Y_MID*2)?y2:VIS_Y_MID, 0xAAAAAA);
-	}
-}
-
-void draw_pcm_osc_vl(int iBuffer)
-{
-	int y1, y2;
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y1 = VIS_Y_MID - (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT); // L component
-		y2 = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT);   // R component
-		s_ui->m_Screen->VertLine(iBuffer, x, y1, y2, 0xAAAAAA);
-	}
-}
-
-void draw_pcm_osc_v2(int iBuffer)
-{
-	int y1, y2;
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y1 = VIS_Y_MID - (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
-		y2 = VIS_Y_MID + (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT);   // R component
-		s_ui->m_Screen->VertLine(iBuffer, x, y1, y2, 0xAAAAAA);
-	}
-}
-
-void draw_pcm_osc_v3(int iBuffer)
-{
-	int y, old_y;
-	old_y = VIS_Y_MID;
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
-		s_ui->m_Screen->VertLine(iBuffer, x, old_y, y, 0xAAAAAA);
-		old_y = y;
-	}
-}
-
-void draw_pcm_osc_v4(int iBuffer)//, u32 *pcmbuffer)
-{
-	int y, old_y;
-	old_y = VIS_Y_MID;
-	static u32 prev_pcm[VIS_WIDTH];
-	static bool first_time = true;
-	if (first_time)
-	{
-		first_time = false;
-	}
-	else
-	{
-		for (int x = VIS_X1; x < VIS_X2; x++)
-		{
-			//convert fixed point int to int (the integer part is the most significant byte)
-			// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-			y = prev_pcm[x - VIS_X1]; // L component
-			s_ui->m_Screen->VertLine(iBuffer, x, old_y, y, 0xFFA0A0);
-			old_y = y;
-		}
-	}
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
-		prev_pcm[x - VIS_X1] = y;
-		s_ui->m_Screen->VertLine(iBuffer, x, old_y, y, 0x0AFF0A);
-		old_y = y;
-	}
-}
-
-void draw_pcm_osc_v5(int iBuffer)
-{
-	int yL, yR;
-	int old_yL = VIS_Y_MID;
-	int old_yR = VIS_Y_MID;
-	for (int x = VIS_X1; x < VIS_X2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		yL = VIS_Y_MID + (s_pcmbuffer[x*5] >> VIS_PCM_SHIFT); // L component
-		yR = VIS_Y_MID + (s_pcmbuffer[x*5+1] >> VIS_PCM_SHIFT); // L component
-		s_ui->m_Screen->VertLine(iBuffer, x, old_yL, yL, 0xFF0A0A);
-		s_ui->m_Screen->VertLine(iBuffer, x, old_yR, yR, 0xA0FFA0);
-		old_yL = yL;
-		old_yR = yR;
-	}
-}
-
-typedef void (*draw_pcm_func)(int iBuffer);
-draw_pcm_func visualizer[] = { 
-	draw_pcm_bars,
-	draw_pcm_osc,
-	draw_pcm_osc_vl,
-	draw_pcm_osc_v2,
-	draw_pcm_osc_v3,
-	draw_pcm_osc_v4,
-	draw_pcm_osc_v5
- };
-int current_visualizer = 0;
-#define number_of_visualizers 7//sizeof(visualizer)/sizeof(draw_pcm_func)
-
 void CTextUI::render_thread(void *) //static
 {
-#define UNSET_DIRTY(x) {s_ui->m_isdirty&=~x;}
 	static int iBuffer = 0;
 	bool draw_background = true;
 	
@@ -295,6 +148,8 @@ void CTextUI::render_thread(void *) //static
 	int total_time = 0;
 	int fps = 0;
 	int message_frames = 0;
+	pspradioexport_ifdata ifdata;
+	memset(&ifdata, 0, sizeof(ifdata));
 
 	for (;;)
 	{
@@ -371,11 +226,13 @@ void CTextUI::render_thread(void *) //static
 			s_ui->m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 	
 			/* Do effects to back-buffer */
-			if ((s_ui->m_isdirty & DIRTY_PCM) && s_pcmbuffer)
+			if ((s_ui->m_isdirty & DIRTY_PCM))
 			{
 				UNSET_DIRTY(DIRTY_PCM);
 				//draw_pcm(iBuffer);
-				visualizer[current_visualizer](iBuffer);
+				//visualizer[current_visualizer](iBuffer);
+				ifdata.Pointer = s_ui->m_Screen->GetBufferAddress(iBuffer);
+				PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 			}
 			
 			if (s_ui->m_isdirty & DIRTY_MESSAGE)
@@ -402,7 +259,7 @@ void CTextUI::render_thread(void *) //static
 				fps = (frame_count * CLOCKS_PER_SEC) / total_time;
 				frame_count = 0;
 				total_time = 0;
-
+#if 0
 				{
 					SceCtrlData pad;
 				
@@ -419,7 +276,9 @@ void CTextUI::render_thread(void *) //static
 				}
 			}
 			s_ui->uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d vis:%d", fps, current_visualizer);
-
+#endif
+			}
+			s_ui->uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
 			///Buffer is configured in sync mode already... 
 			//sceDisplayWaitVblankStart();
 			//Flip Buffers
