@@ -58,7 +58,12 @@ accountsStatus::accountsStatus()
 
 accountsStatus::~accountsStatus()
 {
-	#warning 'memory leak' in accountStatus (even thought it is never deleted) - doesn't free images when done
+	for(int a = 0; a < surfaces.size(); a++)
+	{
+		SDL_FreeSurface(surfaces[a].surface);
+		surfaces[a].surface = NULL;
+	}
+	surfaces.clear();
 }
 
 void accountsStatus::draw()

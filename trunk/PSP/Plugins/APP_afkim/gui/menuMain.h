@@ -1,13 +1,13 @@
-#ifndef INCLUDED_GUI_MENUPOPUP_H
-#define INCLUDED_GUI_MENUPOPUP_H
+#ifndef INCLUDED_GUI_MENUMAIN_H
+#define INCLUDED_GUI_MENUMAIN_H
 
 #include "../dlib/guibits/selector.h"
 
-class menuPopup : public selector
+class menuMain : public selector
 {
 public:
-	menuPopup();
-	~menuPopup();
+	menuMain();
+	~menuMain();
 	string changeReturnVal;
 	
 	//From guibit:

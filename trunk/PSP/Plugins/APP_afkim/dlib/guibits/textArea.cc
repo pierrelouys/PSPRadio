@@ -19,7 +19,12 @@ void textArea::clearArea()
 }
 
 textArea::textArea() { pixels=NULL; } //DONT USE
-textArea::~textArea() { }
+textArea::~textArea()
+{
+	if (pixels != NULL)
+		SDL_FreeSurface(pixels);
+	pixels = NULL;
+}
 
 //width/height are amount of chars
 textArea::textArea(const int &newWidth, const int &newHeight, textBlock* nText)

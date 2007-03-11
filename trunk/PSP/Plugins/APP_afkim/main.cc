@@ -6,7 +6,8 @@
 
 #include "gui/chatInput.h"
 #include "gui/chatSelector.h"
-#include "gui/menuPopup.h"
+#include "gui/menuMain.h"
+#include "gui/menuAddAccount.h"
 #include "gui/accountCreator.h"
 #include "dlib/util.h"
 
@@ -133,6 +134,9 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 	renderSetBitStack(oldBits);
 }
 
+//Forwards declaration, see below for use
+bool runAfkim(guiBit* guiBit_bg);
+
 #ifdef PSP
 	int userMain(SceSize args, void *argp)
 #else //NOT PSP
@@ -148,25 +152,41 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 			strcat(cwd, "/APP_afkim");
 			chdir(cwd);
 		}
-	#endif //PSPRADIOPLUGIN	
-	
-	//Init stuff, create base gui stuff
-	renderInit();
-	
-	SDL_Joystick *joystick;
-	joystick = SDL_JoystickOpen(0);
-	guiBit guiBit_bg = guiBit("./pics/bg.png", true);
-	addGuiBit(&guiBit_bg);
-	renderGui();
-	
-	///load the wifi and get the user to connect
-	#ifndef PSPRADIOPLUGIN
+	#else //PSPRADIOPLUGIN
 		#ifdef PSP
 			int err;
 			if((err = pspSdkInetInit()))
 				exit(0);
 		#endif // PSP	
-		runWifiConnect(joystick, &guiBit_bg);
+	#endif //PSPRADIOPLUGIN
+
+	//init renderer/support
+	renderInit();
+	
+	//keep this around since it is in HW memory.
+	//also PSP SDL seems to crash when I free it, i've done something wrong somewhere i thinks...
+	guiBit guiBit_bg = guiBit("./pics/bg.png", true);
+	
+	//Relaunch afkim untill it returns false
+	while (runAfkim(&guiBit_bg))
+	{ }
+	
+	return EXIT_SUCCESS;
+}
+
+// Runs afkim, this doesn't return untill either:
+//  true: we want to run again (wifi lost/bitlbee disconnect)
+//  false: we want to quit
+bool runAfkim(guiBit* guiBit_bg)
+{
+	SDL_Joystick *joystick;
+	joystick = SDL_JoystickOpen(0);
+	
+	addGuiBit(guiBit_bg);
+	renderGui();
+	
+	#ifndef PSPRADIOPLUGIN
+		runWifiConnect(joystick, guiBit_bg);
 	#endif //PSPRADIOPLUGIN
 	
 	
@@ -175,24 +195,21 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 	guiBit selectedText = guiBit("./pics/current.png", false);
 	string currentInput = "";
 	
-	//TODO :Scope this out
-	chatSelector* cs = new chatSelector(385,12, "./pics/select_chat.png"); //consts stolen from bitlbee.cc
-	cs->inputableDeactivate();
-	addGuiBit(cs);
-	inputs[cs->getInputKey()] = cs;
+	chatSelector cs(385,12, "./pics/select_chat.png"); //consts stolen from bitlbee.cc
+	cs.inputableDeactivate();
+	addGuiBit(&cs);
+	inputs[cs.getInputKey()] = &cs;
 
-	//TODO: Make this a pointer and lose it in the guibits map?
 	accountsStatus ac = accountsStatus();
 	ac.moveTo(480-5, 272-34);
 	bitlbeeCallback* ic = bitlbeeCallback::getBee();
 	ic->setBitlbeeAccountChangeCallback((bitlbeeAccountChangeCallback*)&ac);
 	addGuiBit((guiBit*)&ac);
 
-	//TODO: Scope this out
-	inputable* cci = new chatInput(79, 2, 234, TEXT_NORMAL_COLOR);
-	cci->inputableDeactivate();
-	addGuiBit(cci);
-	inputs[cci->getInputKey()] = cci;
+	chatInput cci(79, 2, 234, TEXT_NORMAL_COLOR);
+	cci.inputableDeactivate();
+	addGuiBit(&cci);
+	inputs[cci.getInputKey()] = &cci;
 	
 	//Try load the bitlbee settings from file.
 	ifstream infile("./bitlbee.cfg");
@@ -206,7 +223,7 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 			accountCreator* creator = new accountCreator(BAT_BITLBEE, unicodeClean(
 			"No bitlbee account found, Lets create one.\n"
 			"AFKIM uses the im.bitlbee.org server.\n"
-			"Thanks bitlbee crew :)"), "done");//new menuPopup();
+			"Thanks bitlbee crew :)"), "done");
 			creator->inputableActivate();
 			renderGui();
 			string at = "accountCreator";
@@ -233,7 +250,7 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 			cout << "STATUS:" << ic->status << endl;
 			if (ic->status == BB_FAIL)
 			{
-				cout << "Failed to create account, possibly taken" << endl;
+				cout << "Failed to create account, The username may already be in use?" << endl;
 				continue;
 			}
 			else
@@ -254,26 +271,28 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 		
 		string server, user, password;
 		infile >> server >> user >> password;
+		infile.close();
 		
 		ic->doConnect(server , 6667, user, password);
 	}
 	
 	if (ic->status == BB_FAIL)
 	{
-		//FIXME: This shouldn't make you quit
 		cout << "Failed to login to Bitlbee :(" << endl;
 		renderGui();
 		ic->doDisconnect();
-		#ifdef PSPRADIOPLUGIN
-			PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */
-		#endif //PSPRADIOPLUGIN
-		return 0;
+		ic->killBee();
+		renderClearBitStack();
+		inputs.clear();
+		SDL_JoystickClose(joystick);
+		SDL_Delay(2000);
+		return true;
 	}
 	else if (ic->status == BB_IDENTIFIED)
 	{
 		cout << "Logged into Bitlbee!" << endl;
 	}
-	ic->setBitlbeeContactChangeCallback(cs);
+	ic->setBitlbeeContactChangeCallback(&cs);
 	
 	renderGui();
 	ic->signin(-1);
@@ -282,13 +301,16 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 	selectedText.moveTo(378,0);
 	addGuiBit(&selectedText);
 
-	//TODO: Scope this out
-	menuPopup* mmpop = new menuPopup();
-	addGuiBit(mmpop);
-	inputs[mmpop->getInputKey()] = mmpop;
+	menuMain mmpop;
+	addGuiBit(&mmpop);
+	inputs[mmpop.getInputKey()] = &mmpop;
+	
+	menuAddAccount maa;
+	addGuiBit(&maa);
+	inputs[maa.getInputKey()] = &maa;
 	
 	currentInput = "chatSelector";
-	mmpop->changeReturnVal = "chatSelector";
+	mmpop.changeReturnVal = "chatSelector";
 	
 	while (1)
 	{
@@ -308,9 +330,20 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 		{
 			cout << "Switch from " << currentInput << " -> " << newInput << endl;
 			
+			//special return code to restart AFKIM
+			if (newInput == "RESET_AFKIM")
+			{
+				ic->doDisconnect();
+				ic->killBee();
+				renderClearBitStack();
+				inputs.clear();
+				SDL_JoystickClose(joystick);
+				return true;
+			}
+			
 			//Menu popup needs to know where it was called from, these are the only possibilities
 			if (currentInput == "chatInput" || currentInput == "chatSelector")
-				mmpop->changeReturnVal = currentInput;
+				mmpop.changeReturnVal = currentInput;
 			
 			inputs[currentInput]->inputableDeactivate();
 			
@@ -330,22 +363,24 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 			else if (currentInput == "chatInput")
 				selectedText.moveTo(150,0);
 			
-			cs->dirty = true;
+			cs.dirty = true;
 		}
 		
 		ic->poll();
 		renderGui();
 		SDL_Delay(1);
 	}
-	renderGui();
-//	SDL_Delay(5000);
-
+	
 	ic->doDisconnect();
+	ic->killBee();
+	renderClearBitStack();
+	inputs.clear();
+	SDL_JoystickClose(joystick);
 	
 	#ifdef PSPRADIOPLUGIN
 		PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */
 	#endif //PSPRADIOPLUGIN
-	return EXIT_SUCCESS;
+	return false;
 }
 
 #ifdef PSPRADIOPLUGIN

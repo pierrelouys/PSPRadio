@@ -12,6 +12,7 @@ bitlbeeAccount::bitlbeeAccount(const string &nType, const string &nDetails)
 	details = nDetails;
 }
 
+
 bitlbeeUser::bitlbeeUser()
 {
 	text = textBlock(CHAT_AREA_WIDTH, CHAT_AREA_HEIGHT);
@@ -28,12 +29,19 @@ bitlbeeUser::bitlbeeUser(const wstring &nNick)	//add a new user who is online, i
 	unreadMessages = false;
 }
 
+
 bitlbeeCallback* bitlbeeCallback::theBee = NULL;
 bitlbeeCallback* bitlbeeCallback::getBee()
 {
 	if (theBee == NULL)
 		theBee = new bitlbeeCallback();
 	return theBee;
+}
+
+void bitlbeeCallback::killBee()
+{
+	delete theBee;
+	theBee = NULL;
 }
 
 bitlbeeCallback::bitlbeeCallback()
@@ -136,6 +144,7 @@ void bitlbeeCallback::doDisconnect()
 		myirc->doDisconnect();
 		delete myirc;
 		myirc = NULL;
+		status = BB_OFFLINE;
 	}
 }
 
@@ -450,7 +459,8 @@ void bitlbeeCallback::serverCallback      (const serverMessageType &type, const 
 	oss << message << endl;
 	if (currentMainWindow.length() == 0)
 	{
-		mainTextA->addText(unicodeClean(oss.str()), TEXT_NORMAL_COLOR);
+		string oss_str = oss.str();
+		mainTextA->addText(unicodeClean(oss_str), TEXT_NORMAL_COLOR);
 		if (type == SM_IRC_DETAILS || type == SM_IRC_ERROR)
 			renderGui();
 	}
@@ -718,8 +728,11 @@ void bitlbeeCallback::setBitlbeeContactChangeCallback(bitlbeeContactChangeCallba
 
 bitlbeeCallback::~bitlbeeCallback(){
 	delete myirc;
+	delete newmsgbit;
 	delete mainTextA;
+	delete serverBlock;
 }
+
 /* TODO CONFIGURE USER SETTINGS
 set auto_connect false
 set display_namechanges

@@ -85,7 +85,7 @@ string textLineInput::takeInput(SDL_Joystick* joystick)
 	}
 	else if (pressed == DANZEFF_SELECT) //select
 	{
-		return "menuPopup"; //HACK: This isn't really correct, although it is okay ATM
+		return "menuMain"; //HACK: This isn't really correct, although it is okay ATM
 	}
 	else if (pressed == DANZEFF_LEFT)	//left
 	{

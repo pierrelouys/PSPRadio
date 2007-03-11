@@ -90,7 +90,7 @@ string accountCreator::takeInput(SDL_Joystick* joystick)
 			}
 			return returnTo;
 		}
-		else if (result == "menuPopup" && type != BAT_BITLBEE) //quit back to menu unless its a bitlbee account
+		else if (result == "menuMain" && type != BAT_BITLBEE) //quit back to menu unless its a bitlbee account
 		{
 			return returnTo;
 		}

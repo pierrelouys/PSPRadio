@@ -9,6 +9,8 @@ class chatSelector : public selector, public bitlbeeContactChangeCallback
 {
 public:
 	chatSelector(const unsigned int &targetX, const unsigned int &targetY, const string &image);
+	~chatSelector();
+	
 	void draw();
 	string getInputKey() const;
 	

@@ -19,6 +19,12 @@ chatSelector::chatSelector(const unsigned int &targetX, const unsigned int &targ
 
 }
 
+chatSelector::~chatSelector()
+{
+	delete contactsListA;
+	delete contactsList;
+}
+
 string chatSelector::getInputKey() const
 {
 	return "chatSelector";
@@ -60,7 +66,7 @@ string chatSelector::pressCross()
 string chatSelector::pressSelect()
 {
 	//change selected item to menu?
-	return "menuPopup";
+	return "menuMain";
 }
 
 void chatSelector::draw()

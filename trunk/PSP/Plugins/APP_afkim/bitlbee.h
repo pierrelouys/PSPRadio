@@ -99,6 +99,7 @@ class bitlbeeCallback : public ircCallback
 {
 public:
 	static bitlbeeCallback* getBee();
+	static void killBee(); //the opposite of getBee :P
 	void doConnect(const string &server, const int &port, const string &nick, const string &passwd);
 	void registrationConnect(const string &server, const int &port, const string &nick, const string &passwd);
 	void doDisconnect();

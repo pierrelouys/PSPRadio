@@ -99,6 +99,15 @@ string wifiSelector::pressCross()
 	int err;
 	int stateLast = -1;
 	
+	//Drop any existing connection
+	sceNetApctlGetState(&stateLast);
+	while (stateLast != 0)
+	{
+		sceNetApctlDisconnect(); //Ignore any errors on this
+		SDL_Delay(10);
+		sceNetApctlGetState(&stateLast);
+	}
+	
 	err = sceNetApctlConnect(choices[selected].index);
 	if (err != 0)
 	{
