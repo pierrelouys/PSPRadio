@@ -87,7 +87,51 @@ using namespace std;
 	#endif //PSPRADIOPLUGIN
 #else //NOT PSP
 #define userConnectToWifi(disconnect) 1
-#endif 
+#endif
+
+//Displays the wifi connect menu to connect to wifi.
+//needs the background to render ;)
+void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
+{
+	list<guiBit*> oldBits = renderGetBitStack();
+	renderClearBitStack();
+	addGuiBit(bg);
+	
+	bool connectedToWifi = false; //Get this from the psp or something?
+	while (!connectedToWifi)
+	{
+		//create wifi object.
+		wifiSelector* ws = new wifiSelector(2, 8, "pics/selected.png");
+		ws->inputableActivate();
+		addGuiBit(ws);
+		//loop on input
+		while (1)
+		{
+			SDL_JoystickUpdate();
+			string newInput = ws->takeInput(joystick);
+			renderGui();
+			if (newInput != "wifiSelector")
+				break;
+			SDL_Delay(1);
+		}
+		ws->inputableDeactivate();
+		removeGuiBit(ws);
+		delete ws;
+		
+		#ifdef PSP
+		int conState = 0;
+		sceNetApctlGetState(&conState);
+		if (conState == 4)
+			connectedToWifi = true;
+		else
+			SDL_Delay(2000);
+		#else
+		connectedToWifi = true;
+		#endif
+	}
+	
+	renderSetBitStack(oldBits);
+}
 
 #ifdef PSP
 	int userMain(SceSize args, void *argp)
@@ -111,42 +155,18 @@ using namespace std;
 	
 	SDL_Joystick *joystick;
 	joystick = SDL_JoystickOpen(0);
-	guiBit abit = guiBit("./pics/bg.png", true);
-	addGuiBit(&abit);
+	guiBit guiBit_bg = guiBit("./pics/bg.png", true);
+	addGuiBit(&guiBit_bg);
 	renderGui();
-//	SDL_Delay(2000);
 	
 	///load the wifi and get the user to connect
 	#ifndef PSPRADIOPLUGIN
 		#ifdef PSP
 			int err;
 			if((err = pspSdkInetInit()))
-			{
-				//HACK TODO OMG NO
-		//		sprintf(tmpBuffer, "ERROR: could not initialise the network %08X\r\n", err);
-		//		renderMain(tmpBuffer, COLOR_RED);
 				exit(0);
-			}
 		#endif // PSP	
-		
-		//create wifi object.
-		wifiSelector* ws = new wifiSelector(2, 8, "pics/selected.png");
-		ws->inputableActivate();
-		addGuiBit(ws);
-		//loop on input
-		cout << "AAA" << endl;
-		while (1)
-		{
-			SDL_JoystickUpdate();
-			string newInput = ws->takeInput(joystick);
-			if (newInput != "wifiSelector")
-				break;
-			SDL_Delay(10);
-			renderGui();
-		}
-		ws->inputableDeactivate();
-		removeGuiBit(ws);
-		delete ws;
+		runWifiConnect(joystick, &guiBit_bg);
 	#endif //PSPRADIOPLUGIN
 	
 	
@@ -195,7 +215,7 @@ using namespace std;
 				SDL_JoystickUpdate();
 				at = creator->takeInput(joystick);
 	//			cout << "AT:" << at << endl;
-				SDL_Delay(10); //FIXME: Remove all these in PSP build?
+				SDL_Delay(1);
 				ic->poll();
 				renderGui();
 			}

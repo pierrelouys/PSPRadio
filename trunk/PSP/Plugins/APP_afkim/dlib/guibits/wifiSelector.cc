@@ -5,6 +5,7 @@
 
 #ifdef PSP
 #include <pspsdk.h>
+#include <pspwlan.h>
 #include <pspnet_apctl.h>
 #include <psputility_netparam.h>
 #endif
@@ -37,6 +38,9 @@ wifiSelector::wifiSelector(const unsigned int &targetX, const unsigned int &targ
 		if (pick_count >= 10)
 			break;  // no more room
 	}
+	if (sceWlanGetSwitchState() == 0)
+		text2->addText(unicodeClean("Turn your wifi switch on...\n"), TEXT_ERROR_COLOR);
+	
 	#else
 	pick_count = 2;
 	choices[0].index = 1;
@@ -89,10 +93,11 @@ string wifiSelector::pressCross()
 {
 	cout << "X" << endl;
 #ifdef PSP
+	if (sceWlanGetSwitchState() == 0)
+		return getInputKey();
+	
 	int err;
 	int stateLast = -1;
-	
-connectWifi:
 	
 	err = sceNetApctlConnect(choices[selected].index);
 	if (err != 0)
@@ -113,22 +118,17 @@ connectWifi:
 		err = sceNetApctlGetState(&state);
 		if (err != 0)
 		{
-//			text2->addText(unicodeClean(string("ERROR: sceNetApctlGetState returns ") + err + string("\n")), TEXT_ERROR_COLOR);
 			text2->addText(unicodeClean(string("ERROR: sceNetApctlGetState returns Error\n")), TEXT_ERROR_COLOR);
 			dirty = true;
-			renderGui();
 			break;
 		}
 		if (state != stateLast)
 		{
-			if (stateLast == 2 && state == 0)
+			if (stateLast > 0 && state == 0)
 			{
-				text2->addText(unicodeClean("  Connecting to wifi Failed, Retrying...\n"), TEXT_ERROR_COLOR);
+				text2->addText(unicodeClean("  Connecting to wifi Failed...\n"), TEXT_ERROR_COLOR);
 				dirty = true;
-				renderGui();
-				SDL_Delay(500);
-				stateLast = state;
-				goto connectWifi;
+				break;
 			}
 			text2->addText(unicodeClean(string("  connection state ") + (char)('0'+state) + string(" of 4\n")), TEXT_ERROR_COLOR);
 			dirty = true;

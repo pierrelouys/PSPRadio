@@ -5,6 +5,8 @@
 
 #include <SDL/SDL.h>
 
+#include <list>
+
 #include "guibit.h"
 
 #define COLOR_WHITE   0x0FFFFFFF
@@ -26,6 +28,15 @@ void removeGuiBit(guiBit* oldBit);
 //render the current state of the gui
 //true if redrew
 bool renderGui();
+
+//Gets the current list of guiBits
+list<guiBit*> renderGetBitStack();
+
+//Clears the current list of guiBits
+void renderClearBitStack();
+
+//Sets the current list of guiBits
+void renderSetBitStack(list<guiBit*> newBitStack);
 
 extern SDL_Surface *screen;
 extern SDL_Rect screen_rect;

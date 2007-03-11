@@ -81,3 +81,18 @@ bool renderGui()
 	
 	return true;
 }
+
+list<guiBit*> renderGetBitStack()
+{
+	return guiBitStack;
+}
+
+void renderClearBitStack()
+{
+	guiBitStack.clear();
+}
+
+void renderSetBitStack(list<guiBit*> newBitStack)
+{
+	guiBitStack = newBitStack;
+}
