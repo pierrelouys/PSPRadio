@@ -6,7 +6,7 @@
 menuPopup::menuPopup()
 {
 	init(20, 172, 12, 0, "./pics/selected.png"); 
-	bgimage = new guiBit("./pics/menu.png");
+	bgimage = new guiBit("./pics/menu.png", false);
 	bgimage->moveTo(1,146);
 }
 

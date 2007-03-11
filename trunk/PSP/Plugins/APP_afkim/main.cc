@@ -111,7 +111,7 @@ using namespace std;
 	
 	SDL_Joystick *joystick;
 	joystick = SDL_JoystickOpen(0);
-	guiBit abit = guiBit("./pics/bg.png");
+	guiBit abit = guiBit("./pics/bg.png", true);
 	addGuiBit(&abit);
 	renderGui();
 //	SDL_Delay(2000);
@@ -152,7 +152,7 @@ using namespace std;
 	
 	
 	
-	guiBit selectedText = guiBit("./pics/current.png");
+	guiBit selectedText = guiBit("./pics/current.png", false);
 	string currentInput = "";
 	
 	//TODO :Scope this out
@@ -272,8 +272,9 @@ using namespace std;
 	
 	while (1)
 	{
-		SDL_JoystickUpdate();
+//		cout << sceKernelGetSystemTimeLow() << endl;
 		
+		SDL_JoystickUpdate();
 		if (PRESSING_START(joystick) && PRESSING_SELECT(joystick)) { cout << "BANG" << endl; exit(0); }
 		
 		string newInput = inputs[currentInput]->takeInput(joystick);
@@ -313,8 +314,8 @@ using namespace std;
 		}
 		
 		ic->poll();
-		SDL_Delay(10);
 		renderGui();
+		SDL_Delay(1);
 	}
 	renderGui();
 //	SDL_Delay(5000);

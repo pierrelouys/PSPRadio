@@ -11,7 +11,7 @@ accountCreator::accountCreator(bitlbeeAccountType nType, wstring message, string
 		//#warning accountCreator create background and never de-creates it... not really a worry though
 		//we should free this some how...
 		//reference counting?
-		background = new guiBit("./pics/accc.png");
+		background = new guiBit("./pics/accc.png", false);
 		background->moveTo(2,148);
 	}
 	currentSelected = "username";
@@ -115,7 +115,6 @@ void accountCreator::draw()
 	if (!gui_active)
 		return;
 	
-	cout << "redrawing AC" << endl;
 	background->draw();
 	text->draw();
 	username->draw();

@@ -8,12 +8,28 @@ guiBit::guiBit()
 	pixels = NULL;
 }
 
-guiBit::guiBit(string filename)
+
+guiBit::guiBit(string filename, bool performDisplayFormat)
 {
 	pixels = IMG_Load(filename.c_str());
 	if (pixels == NULL) {
 		printf("Unable to load image!\n");
 		return;
+	}
+	if (performDisplayFormat)
+	{
+		SDL_Surface* tmp = SDL_DisplayFormat(pixels);
+		if (tmp != NULL)
+		{
+			printf("Made DF: %s\n", filename.c_str());
+			SDL_FreeSurface(pixels);
+			pixels = tmp;
+			tmp = NULL;
+		}
+		else
+		{
+			printf("DF FAILED: %s\n", filename.c_str());
+		}
 	}
 	
 	rect.x = 0;

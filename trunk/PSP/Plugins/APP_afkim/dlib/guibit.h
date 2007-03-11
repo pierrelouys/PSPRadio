@@ -11,7 +11,12 @@ class guiBit
 {
 public:
 	guiBit();//NEVER USE
-	guiBit(string filename);
+	/*	Create a guiBit from the given image.
+		If performDisplayFormat is true, SDL_DisplayFormat will be called on the loaded image.
+		This increases rendering speed, but disables transparency
+	*/
+	guiBit(string filename, bool performDisplayFormat);
+	
 	virtual ~guiBit();
 	
 	virtual bool needsRedraw() const; //return true if this gui element has changed since last redraw

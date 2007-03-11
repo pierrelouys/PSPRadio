@@ -15,20 +15,6 @@ using namespace std;
 SDL_Surface *screen;
 SDL_Rect screen_rect;
 
-/*#ifdef PSP
-
-SceUID rendererSemaphore;
-SceUInt semTimeout = 1000*1000*60; // a minute
-#define INIT_MUTEX(); rendererSemaphore = sceKernelCreateSema("rendererSemaphore", 0, 1, 1, 0);
-#define LOCK_MUTEX(); sceKernelWaitSema(rendererSemaphore, 1, &semTimeout);
-#define FREE_MUTEX(); sceKernelSignalSema(rendererSemaphore, 1);
-
-#else //not psp, don't do any mutex stuff*/
-#define INIT_MUTEX(); 
-#define LOCK_MUTEX(); 
-#define FREE_MUTEX(); 
-//#endif
-
 list<guiBit*> guiBitStack;
 
 int renderInit()
@@ -41,7 +27,7 @@ int renderInit()
 	
 	atexit(SDL_Quit);
 	
-	screen = SDL_SetVideoMode(480, 272, 32, 0);
+	screen = SDL_SetVideoMode(480, 272, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
 	if (screen == NULL) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
 		return 1;
@@ -53,18 +39,12 @@ int renderInit()
 	
 	support_init();
 	
-	//setup the mutex
-	INIT_MUTEX();
 	return 0;
 }
 
 void addGuiBit(guiBit* newBit)
 {
-	LOCK_MUTEX();
-//	printf("GUI Adding %x\n",newBit);
 	guiBitStack.push_back(newBit);
-	
-	FREE_MUTEX();
 }
 
 //remove a guiBit from the stack
@@ -83,8 +63,6 @@ void removeGuiBit(guiBit* oldBit)
 
 bool renderGui()
 {
-	LOCK_MUTEX();
-	
 	bool needToRun = false;
 	list<guiBit*>::iterator iter;
 	for (iter = guiBitStack.begin(); iter != guiBitStack.end(); iter++)
@@ -93,15 +71,13 @@ bool renderGui()
 		{	needToRun = true; break; }
 	}
 	if (!needToRun) return false;
-	printf("<GUI>\n"); //TODO REMOVE THIS LINE
+	
 	for (iter = guiBitStack.begin(); iter != guiBitStack.end(); iter++)
 	{
-//		printf("Drawing %x\n", (*iter));
 		(*iter)->draw();
 	}
 	
-	SDL_UpdateRect(screen, 0, 0, 0, 0);
-	printf("</GUI>\n");
-	FREE_MUTEX();
+	SDL_Flip(screen);
+	
 	return true;
 }
