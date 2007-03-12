@@ -132,9 +132,9 @@ public:
 	
 	//Callbacks
 	void serverCallback              (const serverMessageType &type,  const string &message);
-	virtual void channelMsgCallback  (const string &who,              const string &message);
-	virtual void channelModeCallback (const string &whoDone,          const string &mode);
-	virtual void channelChangeCallback(const channelChangeType &type, const string &message);
+	virtual void channelMsgCallback  (const string &channel, const string &who,             const string &message);
+	virtual void channelModeCallback (const string &channel, const string &whoDone,         const string &mode);
+	virtual void channelChangeCallback(const string &channel, const channelChangeType &type, const string &message);
 	virtual void privateMsgCallback  (const string &who,              const string &message);
 	
 	//This is the currently shown text area, could be messages from a person or server
@@ -178,6 +178,7 @@ TODO messages in pm?
 FUTURE: typing_notice true
 */
 
+#define BITLBEE_CHANNEL "&bitlbee"
 
 //colors for rendering contacts list
 #define COLOR_USER_ONLINE  0x000000FF

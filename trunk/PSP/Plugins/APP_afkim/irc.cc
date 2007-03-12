@@ -1,4 +1,3 @@
-#include "dlib/dlib.h"
 #include "irc.h"
 #include "dlib/util.h"
 #include <netdb.h>
@@ -39,13 +38,11 @@ ircPerson::ircPerson(string joinInfo) // nick!user@host
 	int atPos = joinInfo.find("@", exPos);
 	user = joinInfo.substr(exPos+1, atPos-exPos-1);
 	host = joinInfo.substr(atPos+1, joinInfo.length());
-
-//	printf("________Added Person \"%s\", \"%s\", \"%s\"\n", nick.c_str();
 }
 
 ircPerson::ircPerson(const string &nNick, const string &nRealname, const string &nUser, const string &nHost, const string &nMode)
 {
-	nick     = nNick;
+	nick = nNick;
 	realname = nRealname;
 	user     = nUser;
 	host     = nHost;
@@ -55,14 +52,129 @@ ircPerson::ircPerson(const string &nNick, const string &nRealname, const string 
 	if (nMode.find("%") != string::npos) hop   = true; else hop   = false;
 }
 
-///irc
-irc::irc(const string &nServer, const int &nPort, const string &nChannel, const string &nNick, ircCallback* CB)
+///channelDetails
+
+//DON'T USE, required so channelDetails can be used properly with a map
+channelDetails::channelDetails()
 {
-	server  = nServer;
-	port    = nPort;
-	channel = nChannel;
-	nick    = nNick;
+	channelName = "INVALIDCHANNEL";
+}
+ 
+channelDetails::channelDetails(const string &name, const string &topic)
+{
+	channelName = name;
+	channelTopic = topic;
+}
+
+void channelDetails::addPerson(const ircPerson& person)
+{
+	//Insert in order
+	list<ircPerson>::iterator iter;
+	for (iter=channelPeople.begin(); iter != channelPeople.end(); iter++)
+	{
+		if ((*iter).nick > person.nick)
+		{
+			channelPeople.insert(iter, person);
+			return;
+		}
+	}
 	
+	channelPeople.push_back(person);
+}
+
+void channelDetails::renamePerson(const string &oldNick, const string &newNick)
+{
+	list<ircPerson>::iterator iter;
+	for (iter=channelPeople.begin(); iter != channelPeople.end(); iter++)
+	{
+		if ((*iter).nick == oldNick)
+		{
+			(*iter).nick = newNick;
+			break;
+		}
+	}
+}
+
+void channelDetails::removePerson(const string& nick)
+{
+	list<ircPerson>::iterator iter;
+	for (iter=channelPeople.begin(); iter != channelPeople.end(); iter++)
+	{
+		if ((*iter).nick == nick)
+		{
+			channelPeople.erase(iter);
+			break;
+		}
+	}
+}
+
+
+//used by irc class when receiving a MODE message.
+//parameters will be of format: 
+//source - ":bob!aaa@bbb" (use getNickFromInfo) - person/server that did change
+//modeString - "+vv Randy DuEy" or "+t" etc...
+void channelDetails::changeMode(ircCallback* callback, const string source, const string modeString)
+{
+//TODO: doesn't handle many valid modes (topic?)
+
+	vector < string > split = explode(modeString, ' ');
+	int cur = 1; //index in split list currently applying to
+	
+	bool inPlus = true; //needs a default, who cares
+	
+	for (unsigned int a = 0; a < split[0].size(); a++)
+	{
+		switch(split[0][a])
+		{
+		case '+':
+			inPlus = true;
+			break;
+		case '-':
+			inPlus = false;
+			break;
+		
+		case 'o':
+			getPerson(split[cur]).op = inPlus;
+			if (inPlus)	callback->channelChangeCallback(channelName, CC_OP, split[cur]);
+			else		callback->channelChangeCallback(channelName, CC_DEOP, split[cur]);
+			cur++;
+			break;
+			
+		case 'v':
+			getPerson(split[cur]).voice = inPlus;
+			if (inPlus)	callback->channelChangeCallback(channelName, CC_VOICE, split[cur]);
+			else		callback->channelChangeCallback(channelName, CC_DEVOICE, split[cur]);
+			cur++;
+			break;
+			
+		case 'h':
+			getPerson(split[cur]).hop = inPlus;
+			if (inPlus)	callback->channelChangeCallback(channelName, CC_HOP, split[cur]);
+			else		callback->channelChangeCallback(channelName, CC_DEHOP, split[cur]);
+			cur++;
+			break;
+		
+		}
+	}
+}
+
+ircPerson& channelDetails::getPerson(const string& nick)
+{
+	list<ircPerson>::iterator iter;
+	for (iter = channelPeople.begin(); iter != channelPeople.end(); iter++)
+	{
+		if ((*iter).nick == nick)
+			return *iter;
+	}
+
+	//THIS SHOULD NEVER HAPPEN
+}
+
+
+
+///irc
+irc::irc(ircCallback* CB)
+{
 	callback = CB;
 	CB->myirc = this;
 	
@@ -71,8 +183,17 @@ irc::irc(const string &nServer, const int &nPort, const string &nChannel, const 
 	status = CS_OFFLINE;
 }
 
-bool irc::doConnect()
+bool irc::doConnect(const string &nServer, const int &nPort, const string &nNick)
 {
+	//Disconnect if connected.
+	if (status != CS_OFFLINE)
+		doDisconnect();
+	
+	server  = nServer;
+	port    = nPort;
+	mNickname = nNick;
+	
+	
 	status = CS_CONNECTING;
 		
 		//resolve
@@ -81,6 +202,7 @@ bool irc::doConnect()
 	resolvd = gethostbyname(server.c_str());
 	if (resolvd == NULL)
 	{
+		status = CS_OFFLINE;
 		callback->serverCallback(SM_IRC_ERROR, "Failed to resolve");
 		return 0;
 	}
@@ -95,47 +217,34 @@ bool irc::doConnect()
 	
 	//Create socket
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+		status = CS_OFFLINE;
 		callback->serverCallback(SM_IRC_ERROR, "Socket Creation Error");
 		return 0;
 	}
 	
 	//TODO make not blocking / add timeout
 	if (connect(sock,(struct sockaddr *)  &saddr, sizeof(saddr)) == -1) {
+		status = CS_OFFLINE;
 		callback->serverCallback(SM_IRC_ERROR, "Connect error");
 		return 0;
 	}
-	
-/*	int flag = 1;
-	int result = setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
-	if (result < 0)
-	{
-		//ignore the error!
-	}*/
 	
 	status = CS_IDENTIFYING;
 	callback->serverCallback(SM_IRC_DETAILS, "Connected, Identifying");
 		
 		//send login details (UNKN = client type)
-	string loginDetails = "NICK " + nick + "\r\nUSER " + nick + " UNKN SERVERADDR :" + nick + "\r\n";
+	string loginDetails = "NICK " + mNickname + "\r\nUSER " + mNickname + " UNKN SERVERADDR :" + mNickname + "\r\n";
 	sendData(loginDetails);
 	
-	//TODO - what if we go into an error state in here!
-	
-	while(status != CS_CONNECTED && status != CS_INCHAN)
+	//poll untill connected or failed.
+	while(status == CS_CONNECTING || status == CS_IDENTIFYING)
 	{
 		poll();
 		usleep(1000*100);
 	}
 	
-	//join channel
-	sendData("JOIN " + channel + "\r\n");
-	
-	//wait for userlist
-	while (status != CS_INCHAN)
-	{
-		poll();
-		usleep(1000*100);
-	}
+	if (status != CS_CONNECTED)
+		return false;
 	
 	return true;
 }
@@ -146,14 +255,18 @@ void irc::doDisconnect()
 	close(sock);
 	sock = 0;
 	status = CS_OFFLINE;
+	channels.clear();
 }
-//	list<ircperson> channelPeople;
 
 const int TMP_BUF_SIZE = 1000;
 char tmpBuf[TMP_BUF_SIZE];
 
 void irc::poll()
 {
+	//Don't poll sockets if we are offline.
+	if (status == CS_OFFLINE)
+		return;
+	
 	fd_set socks;
 	FD_ZERO(&socks);
 	FD_SET(sock,&socks);
@@ -178,6 +291,9 @@ void irc::poll()
 	int received = recv(sock, tmpBuf, TMP_BUF_SIZE-1, 0);
 	if (received == -1)
 	{
+		close(sock);
+		status = CS_OFFLINE;
+		channels.clear();
 		callback->serverCallback(SM_IRC_ERROR, "recv() Error");
 		return;
 	}
@@ -201,6 +317,11 @@ void irc::sendPM(const string &target, const string &message)
 	sendData("PRIVMSG " + target + " :" + message +"\r\n");
 }
 
+void irc::sendAction(const string &target, const string &message)
+{
+	sendData("PRIVMSG " + target + " :\1ACTION " + message +"\1\r\n");
+}
+
 void irc::setAway(const string &message)
 {
 	sendData("AWAY :" + message + "\r\n");
@@ -209,6 +330,17 @@ void irc::setAway(const string &message)
 void irc::setBack()
 {
 	sendData("AWAY\r\n");
+}
+
+void irc::joinChannel(const string &channel)
+{
+	sendData("JOIN " + channel + "\r\n");
+}
+
+//TODO: I SHOULD BE USING THIS EVERYWHERE, saves writing \r\n everywhere!
+void irc::sendRaw(const string &message)
+{
+	sendData(message+"\r\n");
 }
 
 void irc::pingServer()
@@ -229,7 +361,7 @@ void irc::processLineBuf()
 {
 	if (currentLineBuf == "")
 		return;
-	
+	cout << "RAW: " << currentLineBuf << endl;
 	//Try parse 
 	if (!parseFirst())
 	{
@@ -357,11 +489,24 @@ bool irc::parseSecond()
 		
 		case 332: //Channel topic is...
 		{
+			//:Oslo2.NO.EU.undernet.org 332 ircbotest #hamlan :hamLan V | 20-21 Jan 2007 | http://register.hamlan.co.nz/ | http://imdb.com/title/tt0479884/ you will watch
+			//:server 332 whodidit channel topicishere
 			//Get the chan
 			GET_THIRD();
-			GET_FOURTH_PLUS();
+			GET_FOURTH();
 			
-			callback->channelChangeCallback(CC_TOPIC, fourth);
+			string topic;
+			if (currentLineBuf[fourthSpacePos+1] == ':')
+				topic = currentLineBuf.substr(fourthSpacePos+2, currentLineBuf.length());
+			else
+				topic = currentLineBuf.substr(fourthSpacePos+1, currentLineBuf.length());
+			
+			if (inChannel(fourth))
+			{
+				channels[fourth].channelTopic = topic;
+			}
+			
+			callback->channelChangeCallback(fourth, CC_TOPIC, third + " " + topic);
 			return true;
 		}
 		case 352: //People in ... is ..... (WHO list)
@@ -377,20 +522,23 @@ bool irc::parseSecond()
 			
 			vector<string> exploded = explode(currentLineBuf, ' ');
 			
-			if (exploded[3] != channel) //someone from another channel
+			if (!inChannel(exploded[3])) //someone from a channel we aren't in, WTF?
 				return true;
 			
-				//loop to check that this person isnt already in the chan.
-			channelUserLeave(exploded[7]);
+			//check that this person isnt already in the chan.
+			channels[exploded[3]].removePerson(exploded[7]);
 			
-			//TODO add sorted  -- insert(I,T)	Insert an element before I.
-			channelPeople.push_back(ircPerson(exploded[7], exploded[10], exploded[4], exploded[5], exploded[8]));
-
+			channels[exploded[3]].addPerson(ircPerson(exploded[7], exploded[10], exploded[4], exploded[5], exploded[8]));
 			return true;
 		}
 		case 315: //End of /who list
 		{
-			status = CS_INCHAN;
+			// :ny.undernet.org 315 YOURNICK #CHANNEL :End of /WHO list.
+			GET_THIRD();
+			GET_FOURTH();
+			
+			callback->serverCallback(SM_WHO_DONE, fourth);
+			
 			return true;
 		}
 		
@@ -416,22 +564,47 @@ bool irc::parseSecondString()
 		// :<NICK>!<USERNAME>@<HOST> NICK <NEWNICK>
 		GET_THIRD_PLUS(); //third = newnick
 		string oldnick = getNickFromInfo(first);
+		
+		if (oldnick == mNickname) mNickname = third; //If its our nickname
+
+		//Rename the person in the nick list
+		map<string,channelDetails>::iterator iter;
+		for (iter = channels.begin(); iter != channels.end(); iter++)
+		{
+			iter->second.renamePerson(oldnick, third);
+		}
 		callback->serverCallback(SM_RENAME, oldnick+" "+third);
+		
 		return true;
 	}
 	else if (second == "PART") //Part message
 	{
-		GET_THIRD();
+		//:dapples!dsawerwaer PART :#hamlan
 		
-		if (third != channel)	//Somewhere we don't care about
+		GET_THIRD_PLUS(); //HACK
+		
+		//TODO: Remove this hack and use get_third get_fourth+, 3=chan, 4=reason (may not be one)
+		string::size_type spacePos;
+		if ((spacePos = third.find(' ')) != string::npos)
+		{
+			third = third.substr(0,spacePos);
+		}
+		
+		if (!inChannel(third)) //we aren't in this channel, wtf?
 			return true;
 		
 		//get usernick
 		string partnick = getNickFromInfo(first);
 
-		//TODO - there should be a part reason, four+ ?
-		channelUserLeave(partnick);
-		callback->channelChangeCallback(CC_PART, partnick);
+		channels[third].removePerson(partnick);
+		
+		callback->channelChangeCallback(third, CC_PART, partnick);
+		
+		if (partnick == mNickname) //if we've left
+		{
+			channels.erase(channels.find(third)); //leave the channel
+			callback->serverCallback(SM_LEFT_CHAN, third);
+		}
 		return true;
 	}
 	else if (second == "JOIN") //Join message
@@ -439,21 +612,46 @@ bool irc::parseSecondString()
 		GET_THIRD_PLUS();
 		
 		if (third[0] == ':') third = third.substr(1, third.length());
-		
-		if (third != channel) //channel we don't care aobut
-			return true;
-		
 		string joinnick = getNickFromInfo(first);
-		if (joinnick == nick) //its us, get list of people in chan
+		
+		//its us, get list of people in chan
+		if (joinnick == mNickname) 
 		{
-			sendData("WHO " + channel + "\r\n");
-			//TODO -> do we want to send a message you have joined?
+			if (!inChannel(third))
+				channels[third] = channelDetails(third, "NO TOPIC???");
+			channels[third].addPerson(ircPerson(first)); //Add ourself
+			
+			sendData("WHO " + third + "\r\n");
+			callback->serverCallback(SM_JOIN_CHAN, third);
 			return true;
 		}
 		
-		channelUserLeave(joinnick); //make that user leave if they are already in there
-		channelPeople.push_back(ircPerson(first));
-		callback->channelChangeCallback(CC_JOIN, joinnick);
+		if (!inChannel(third)) //channel we don't care about
+			return true;
+		
+		channels[third].removePerson(joinnick);
+		channels[third].addPerson(ircPerson(first));
+		callback->channelChangeCallback(third, CC_JOIN, joinnick);
+		return true;
+	}
+	else if (second == "KICK") //Kick message
+	{
+		//:WiZ KICK #Finnish John :Speaking English
+		
+		GET_THIRD();
+		GET_FOURTH_PLUS();//HACK as there may not be a reason.
+		string::size_type spacePos;
+		if ((spacePos = fourth.find(" ")) != string::npos)
+			fourth = fourth.substr(0, spacePos);
+		
+		callback->channelChangeCallback(third, CC_KICK, first + " " + fourth); //FIXME
+		
+		if (fourth == mNickname) //if we've left
+		{
+			channels.erase(channels.find(third)); //leave the channel
+			callback->serverCallback(SM_LEFT_CHAN, third);
+		}
+		
 		return true;
 	}
 	else if (second == "QUIT") //Quit message
@@ -463,52 +661,33 @@ bool irc::parseSecondString()
 		//get usernick
 		string quitnick = getNickFromInfo(first);
 
-		channelUserLeave(quitnick);
-		callback->channelChangeCallback(CC_QUIT, quitnick + " " + third);
+		//Rename the person in the nick list
+		map<string,channelDetails>::iterator iter;
+		for (iter = channels.begin(); iter != channels.end(); iter++)
+		{
+			iter->second.removePerson(quitnick);
+		}
+		
+		callback->serverCallback(SM_QUIT, quitnick + " " + third);
 		return true;
 	}
 	else if (second == "MODE") //Mode message
 	{
+		//TODO: "server sets mode +x danzel" ??
+	
 		//:danzel!aaa@bbb MODE #hamlan +vv Randy DuEy
-		//TODO - doesn't handle multiple voicing/devoicing correctly
-		// :scraps.workgroup MODE &bitlbee +t
-		//^^ fails on GET_FOURTH <- TODO
 		GET_THIRD();
-		GET_FOURTH();
+		GET_FOURTH_PLUS();
 		
 		string modenick = getNickFromInfo(first);
 		
-		string applyedTo = currentLineBuf.substr(fourthSpacePos+1);
-		bool value = (fourth[0] == '+');
 		
-		callback->channelModeCallback(modenick, currentLineBuf.substr(secondSpacePos+1));
+		if (!inChannel(third))
+			return true;
 		
-		list<ircPerson>::iterator iter;
-		for (iter=channelPeople.begin(); iter != channelPeople.end(); iter++)
-		{
-			if ((*iter).nick == applyedTo)
-			{
-				if (fourth[1] == 'v')
-				{
-					(*iter).voice = value;
-					if (value)	callback->channelChangeCallback(CC_VOICE, applyedTo);
-					else		callback->channelChangeCallback(CC_DEVOICE, applyedTo);
-				}
-				else if (fourth[1] == 'o')
-				{
-					(*iter).op = value;
-					if (value)	callback->channelChangeCallback(CC_OP, applyedTo);
-					else		callback->channelChangeCallback(CC_DEOP, applyedTo);
-				}
-				else if (fourth[1] == 'h')
-				{
-					(*iter).voice = value;
-					if (value)	callback->channelChangeCallback(CC_HOP, applyedTo);
-					else		callback->channelChangeCallback(CC_DEHOP, applyedTo);
-				}
-				break;
-			}
-		}
+		channels[third].changeMode(callback, first, fourth);
+		
+		callback->channelModeCallback(third, modenick, currentLineBuf.substr(secondSpacePos+1));
 		return true;
 	}
 	else if (second == "TOPIC") //Topic Change message
@@ -519,21 +698,25 @@ bool irc::parseSecondString()
 		
 		string topicnick = getNickFromInfo(first);
 		
-		callback->channelChangeCallback(CC_TOPIC, topicnick + " " + fourth);
+		if (!inChannel(third)) //Topic for a channel I aren't in? wtf?
+			return true;
+		
+		channels[third].channelTopic = fourth; //TODO: Function?
+		
+		callback->channelChangeCallback(third, CC_TOPIC, topicnick + " " + fourth);
 		return true;
 	}
 	else if (second == "INVITE") //Invite message
 	{
-		//TODO. Throw away for now
-/*		//get usernick
-		char* invitenick = getUserNick(first);
-		sprintf(outBuffer, "-:- %s invites you to ", invitenick);
-		renderMain(outBuffer, COLOR_BLUE);
-		printFourthOnwards(COLOR_BLUE);
-		free(first);
-		free(second);
-		free(invitenick);
-*/		return true;
+		GET_THIRD();
+		GET_FOURTH_PLUS();
+		
+		//:Angel!wings@irc.org INVITE Wiz #Dust
+		string invitenick = getNickFromInfo(first);
+		
+		callback->serverCallback(SM_INVITE, invitenick + " " + fourth);
+		
+		return true;
 	}
 	else if (second == "PRIVMSG") //Private message
 	{
@@ -549,13 +732,13 @@ bool irc::parseSecondString()
 		//TODO VERSION/ACTION
 		string sender = getNickFromInfo(first);
 		
-		if (third == nick)	//PM
+		if (third == mNickname)	//PM
 		{
 			callback->privateMsgCallback(sender, fourth);
 		}
 		else	//Chan
 		{
-			callback->channelMsgCallback(sender, fourth);
+			callback->channelMsgCallback(third, sender, fourth);
 		}
 		return true;
 	}
@@ -566,15 +749,35 @@ bool irc::parseSecondString()
 	
 	return false;
 }
-void irc::channelUserLeave(const string &theirNick)
+
+///Functions for getting information
+string irc::getMyNick() const
 {
-	list<ircPerson>::iterator iter;
-	for (iter=channelPeople.begin(); iter != channelPeople.end(); iter++)
+	return mNickname;
+}
+
+const map<string, channelDetails>& irc::getChannels() const
+{
+	return channels;
+}
+
+//This won't compile as channels[channel] isn't really const :(
+//TODO: do this a smarter way
+const channelDetails& irc::getChannelDetails(const string &channel) const
+{
+	map<string, channelDetails>::const_iterator iter;
+	for (iter = channels.begin(); iter != channels.end(); iter++)
 	{
-		if ((*iter).nick == theirNick)
+		if (iter->first == channel)
 		{
-			channelPeople.erase(iter);
-			break;
+			return iter->second;
 		}
 	}
+	
+	//OH SHI- NOT ALL RETURN ONE OHES NOES
+}
+
+bool irc::inChannel(const string &channel) const
+{
+	return channels.count(channel) != 0;
 }

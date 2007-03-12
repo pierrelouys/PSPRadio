@@ -74,18 +74,27 @@ void bitlbeeCallback::doConnect(const string &server, const int &port, const str
 	yourName = unicodeClean(nick);
 	if (status == BB_OFFLINE)
 	{
-		myirc = new irc(server , port, "&bitlbee", nick, this);
-		if (!myirc->doConnect())
+		myirc = new irc(this);
+		if (!myirc->doConnect(server , port, nick))
 		{
 			delete myirc;
 			myirc = NULL;
 			return;
 		}
 		
+		//Wait till we are in the bitlbee channel
+		while (!myirc->inChannel(BITLBEE_CHANNEL))
+		{
+			myirc->poll();
+			SDL_Delay(1);
+		}
+		
 		//BEGINDEBUG
 		cout << "In Chan:" << endl;
 		list<ircPerson>::const_iterator iter;
-		for (iter = myirc->channelPeople.begin(); iter != myirc->channelPeople.end(); iter++)
+		for (iter = myirc->getChannelDetails(BITLBEE_CHANNEL).channelPeople.begin(); 
+			iter != myirc->getChannelDetails(BITLBEE_CHANNEL).channelPeople.end();
+			iter++)
 		{
 			cout << (*iter).nick << endl;
 		}
@@ -112,18 +121,27 @@ void bitlbeeCallback::registrationConnect(const string &server, const int &port,
 	yourName = unicodeClean(nick);
 	if (status == BB_OFFLINE)
 	{
-		myirc = new irc(server , port, "&bitlbee", nick, this);
-		if (!myirc->doConnect())
+		myirc = new irc(this);
+		if (!myirc->doConnect(server , port, nick))
 		{
 			delete myirc;
 			myirc = NULL;
 			return;
 		}
 		
+		//Wait till we are in the bitlbee channel
+		while (!myirc->inChannel(BITLBEE_CHANNEL))
+		{
+			myirc->poll();
+			SDL_Delay(1);
+		}
+		
 		//BEGINDEBUG
 		cout << "In Chan:" << endl;
 		list<ircPerson>::const_iterator iter;
-		for (iter = myirc->channelPeople.begin(); iter != myirc->channelPeople.end(); iter++)
+		for (iter = myirc->getChannelDetails(BITLBEE_CHANNEL).channelPeople.begin(); 
+			iter != myirc->getChannelDetails(BITLBEE_CHANNEL).channelPeople.end();
+			iter++)
 		{
 			cout << (*iter).nick << endl;
 		}
@@ -417,7 +435,34 @@ void bitlbeeCallback::serverCallback      (const serverMessageType &type, const 
 {
 	if (type == SM_NOTICE || type == SM_GENERAL_TEXT || type == SM_IRC_UNK) return;
 	
-	if (type == SM_RENAME)
+	if (type == SM_QUIT)
+	{
+		string::size_type xx = message.find(" ");
+		string nNick;
+		if (xx == string::npos)
+			nNick = message;
+		else
+			nNick = message.substr(0, xx);
+		
+		cout << "LEAVE -> " << nNick << endl;
+		list< bitlbeeUser >::iterator iter;
+		wstring newNick = unicodeClean(nNick);
+		for (iter = chatContacts.begin(); iter != chatContacts.end(); iter++)
+		{
+			if ((*iter).nick == newNick)
+			{
+				(*iter).status = BU_OFFLINE;
+				(*iter).stateChangeTime = SDL_GetTicks();
+				break;
+			}
+		}
+		
+		//HACK PERFORMANCE-- ON JOIN
+		redoContactsBox();
+		
+		return;
+	}
+	else if (type == SM_RENAME)
 	{
 		vector<string> exploded = explode(message, ' ');
 		wstring wOld = unicodeClean(exploded[0]);
@@ -467,7 +512,7 @@ void bitlbeeCallback::serverCallback      (const serverMessageType &type, const 
 		return;
 	}
 	cout << "serverCallback(" << type << ", " << message << ")" << endl;
-	stringstream oss; //wtf am i using a sstream here for?
+	stringstream oss; //FIXME wtf am i using a sstream here for?
 	oss << message << endl;
 	if (currentMainWindow.length() == 0)
 	{
@@ -480,8 +525,15 @@ void bitlbeeCallback::serverCallback      (const serverMessageType &type, const 
 		serverBlock->addText(unicodeClean(oss.str()), TEXT_NORMAL_COLOR);
 }
 	
-void bitlbeeCallback::channelMsgCallback  (const string &who,             const string &message)
+void bitlbeeCallback::channelMsgCallback  (const string &channel, const string &who, const string &message)
 {
+	if (channel != BITLBEE_CHANNEL)
+	{
+		//Likely got invited to multiperson chat, should handle these in the future
+		cout << "MESSAGE FROM BAD CHANNEL: " << channel << endl;
+		return;
+	}
+	
 	if (who == "root")
 	{
 		if (message == "Password accepted" || message == "Password successfully changed")
@@ -561,13 +613,21 @@ void bitlbeeCallback::channelMsgCallback  (const string &who,             const 
 		serverBlock->addText(unicodeClean(message+"\n"), TEXT_NORMAL_COLOR);
 }
 	
-void bitlbeeCallback::channelModeCallback (const string &whoDone,         const string &mode)
+void bitlbeeCallback::channelModeCallback (const string &channel, const string &whoDone, const string &mode)
 {
+	//um, care?
 	cout << "channelModeCallback(" << whoDone << ", " << mode << ")" << endl;
 }
 
-void bitlbeeCallback::channelChangeCallback(const channelChangeType &type, const string &message)
+void bitlbeeCallback::channelChangeCallback(const string &channel, const channelChangeType &type, const string &message)
 {
+	if (channel != BITLBEE_CHANNEL)
+	{
+		//Likely got invited to multiperson chat, should handle these in the future
+		cout << "channelChange FROM BAD CHANNEL: " << channel << endl;
+		return;
+	}
+	
 	switch (type)
 	{
 	case CC_JOIN:
@@ -642,32 +702,9 @@ void bitlbeeCallback::channelChangeCallback(const channelChangeType &type, const
 			break;
 		}
 	case CC_PART:
-	case CC_QUIT:
 		{
-			string::size_type xx = message.find(" ");
-			string nNick;
-			if (xx == string::npos)
-				nNick = message;
-			else
-				nNick = message.substr(0, xx);
-			
-			cout << "LEAVE -> " << nNick << endl;
-			list< bitlbeeUser >::iterator iter;
-			wstring newNick = unicodeClean(nNick);
-			for (iter = chatContacts.begin(); iter != chatContacts.end(); iter++)
-			{
-				if ((*iter).nick == newNick)
-				{
-					(*iter).status = BU_OFFLINE;
-					(*iter).stateChangeTime = SDL_GetTicks();
-					break;
-				}
-			}
-			
-			//HACK PERFORMANCE-- ON JOIN
-			redoContactsBox();
-			
-			break;
+			//call serverCallback with SM_QUIT so we don't dupe code :)
+			serverCallback(SM_QUIT, message);
 		}
 	default:
 		cout << "channelChangeCallback(" << type << ", " << message << ")" << endl;
