@@ -17,6 +17,7 @@
 #define DIRTY_OPTIONS 512
 #define DIRTY_ACTIVE_COMMAND 1024
 #define DIRTY_MESSAGE 2048
+#define DIRTY_CURRENT_CONTAINER_SIDE_TITLE 4096
 
 struct screenconfig
 {
@@ -158,6 +159,7 @@ private:
 	void PrintOptionsScreen(int iBuffer, bool draw_background);
 	int  PrintActiveCommand(int iBuffer, bool draw_background);
 	void PrintMessage(int iBuffer);
+	void PrintCurrentContainerSideTitle(int iBuffer, bool draw_background);
 
 	static void render_thread(void *);
 };
