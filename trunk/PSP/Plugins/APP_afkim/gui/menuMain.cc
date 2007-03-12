@@ -47,10 +47,10 @@ string menuMain::pressCross()
 			//TODO
 			break;
 		case 1: //Away
-			//TODO
+			bitlbeeCallback::getBee()->setAway();
 			break;
 		case 2: //Back
-			//TODO
+			bitlbeeCallback::getBee()->setBack();
 			break;
 		case 3: //Add Account
 			return "menuAddAccount";

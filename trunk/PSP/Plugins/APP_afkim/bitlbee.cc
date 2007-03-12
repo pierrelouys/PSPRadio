@@ -273,6 +273,18 @@ void bitlbeeCallback::addAccount(bitlbeeAccountType acctype, wstring Wusername, 
 
 }
 
+void bitlbeeCallback::setAway()
+{
+	myirc->setAway("away");
+	mainTextA->addText(unicodeClean("Set accounts away\n"), COLOR_AWAY_MODE);
+}
+
+void bitlbeeCallback::setBack()
+{
+	myirc->setBack();
+	mainTextA->addText(unicodeClean("Set accounts back\n"), COLOR_AWAY_MODE);
+}
+
 void bitlbeeCallback::poll()
 {
 	if (status != BB_OFFLINE) //if online

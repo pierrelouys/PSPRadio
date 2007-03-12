@@ -107,6 +107,10 @@ public:
 	void signin(int accountNo); //-1 for all
 	void addAccount(bitlbeeAccountType acctype, wstring username, wstring password);
 	
+	//Away/back
+	void setAway();
+	void setBack();
+	
 	void poll();
 	
 	~bitlbeeCallback();
@@ -133,7 +137,8 @@ public:
 	virtual void channelChangeCallback(const channelChangeType &type, const string &message);
 	virtual void privateMsgCallback  (const string &who,              const string &message);
 	
-	textArea* mainTextA; //HACK
+	//This is the currently shown text area, could be messages from a person or server
+	textArea* mainTextA; //HACK, should be private
 protected:
 	bitlbeeCallback();
 
@@ -150,7 +155,6 @@ private:
 	void doRegister(const string &password); //same as identify but registers the account
 
 	//Render Stuff
-//	textArea* mainTextA;
 	wstring currentMainWindow; //nickname or ""(server) of main window target
 	
 	textBlock* serverBlock;	//we want this here?
@@ -187,6 +191,7 @@ FUTURE: typing_notice true
 #define COLOR_MESSAGE      0x000000FF
 #define COLOR_SEND_NICK    0x085400FF
 #define COLOR_YOUR_NICK    0x163c9dFF
+#define COLOR_AWAY_MODE    0x0000FFFF
 
 #endif //INCLUDED_BITLBEE_H
 
