@@ -32,7 +32,13 @@ enum serverMessageType {
 	SM_JOIN_CHAN=11,     //You have joined a channel. Message: "#channel"
 	SM_LEFT_CHAN=12,     //You have left a channel. Message: "#channel"
 	SM_WHO_DONE=13,      //Got who list for given channel/person. Message: "#channel" / "nick????"
-	SM_UNKNOWN=14        //I DUNO LOL
+	SM_UNKNOWN=14,       //I DUNO LOL
+	
+	SM_WHOIS_IP=15,      //users ip from a whois, NOT IMPLEMENTED
+	SM_WHOIS_REALNAME=16,//users realname from a whois "nick realname"
+	SM_WHOIS_SERVER=17,  //users server "name" (not ip) from a whois "nick servername"
+	SM_WHOIS_AWAY=18,    //users away message (if any) from a whois "nick message"
+	SM_WHOIS_END=19      //end of whois responses about the given user 
 };
 
 enum channelChangeType {
@@ -160,6 +166,8 @@ public:
 	//Away Modes
 	void setAway(const string &message);
 	void setBack();
+	
+	void whoIs(const string nick);
 	
 	void joinChannel(const string &channel);
 	

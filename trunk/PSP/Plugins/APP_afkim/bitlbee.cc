@@ -429,6 +429,12 @@ void bitlbeeCallback::messageCurrent(const wstring &message)
 	mainTextA->addText(message + unicodeClean("\n"), COLOR_MESSAGE);
 }
 
+void bitlbeeCallback::getCurrentBuddyDetails()
+{
+	if (currentMainWindow.length() > 0)
+		myirc->whoIs(unUnicode(currentMainWindow));
+}
+
 ///Callbacks
 
 void bitlbeeCallback::serverCallback      (const serverMessageType &type, const string &message)
@@ -511,6 +517,28 @@ void bitlbeeCallback::serverCallback      (const serverMessageType &type, const 
 		contactChangeCallback->notifyContactRename(wOld, unicodeClean(exploded[1]));
 		return;
 	}
+	else if (type == SM_WHOIS_REALNAME)
+	{
+		string::size_type spacePos;
+		spacePos = message.find(' ');
+		mainTextA->addText(unicodeClean(message.substr(0, spacePos) + " is called: " + message.substr(spacePos+1, message.length()) + "\n"), COLOR_WHOIS_MSG);
+		return;
+	}
+	else if (type == SM_WHOIS_SERVER)
+	{
+		string::size_type spacePos;
+		spacePos = message.find(' ');
+		mainTextA->addText(unicodeClean(message.substr(0, spacePos) + " is on: " + message.substr(spacePos+1, message.length()) + "\n"), COLOR_WHOIS_MSG);
+		return;
+	}
+	else if (type == SM_WHOIS_AWAY)
+	{
+		string::size_type spacePos;
+		spacePos = message.find(' ');
+		mainTextA->addText(unicodeClean(message.substr(0, spacePos) + " is away: " + message.substr(spacePos+1, message.length()) + "\n"), COLOR_WHOIS_MSG);
+		return;
+	}
+	
 	cout << "serverCallback(" << type << ", " << message << ")" << endl;
 	stringstream oss; //FIXME wtf am i using a sstream here for?
 	oss << message << endl;

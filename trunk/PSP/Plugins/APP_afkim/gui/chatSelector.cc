@@ -37,7 +37,6 @@ string chatSelector::fixSelected()
 		selected += bitlbeeCallback::getBee()->chatContacts.size() + 1;
 	if (selected >= (int)contacts->size())
 		selected = -1;
-	cout << "FS: " << selected << endl;
 
 	//change it in bitlbee
 	cout << "old nick:" << unUnicode(selectedNick ) << endl;
@@ -78,7 +77,6 @@ void chatSelector::draw()
 	
 	if (selected >= 0) 
 	{
-		cout << "DR: " << selected << endl;
 		//update offset
 		offset = targetOffset;
 		offset.y += (selected - contactListOffset) * itemSize;

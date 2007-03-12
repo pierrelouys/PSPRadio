@@ -343,6 +343,11 @@ void irc::sendRaw(const string &message)
 	sendData(message+"\r\n");
 }
 
+void irc::whoIs(const string nick)
+{
+	sendData("whois " + nick + "\r\n");
+}
+
 void irc::pingServer()
 {
 	sendData("PING LAG123123123\r\n");
@@ -495,6 +500,7 @@ bool irc::parseSecond()
 			GET_THIRD();
 			GET_FOURTH();
 			
+			//FIXME: GET_FIFTHPLUS
 			string topic;
 			if (currentLineBuf[fourthSpacePos+1] == ':')
 				topic = currentLineBuf.substr(fourthSpacePos+2, currentLineBuf.length());
@@ -541,6 +547,62 @@ bool irc::parseSecond()
 			
 			return true;
 		}
+		
+		//A couple of whois responses
+		case 311: //Users realname and ipaddress
+		{
+			//:scraps 311 danzel thorxxx thorxxx hotmail.com * :Damion
+			GET_THIRD();
+			GET_FOURTH();
+			
+			//FIXME: finding ':' is a bit naughty
+			string realname = currentLineBuf.substr(currentLineBuf.find(":", thirdSpacePos)+1, currentLineBuf.length());
+			
+			//FIXME: Should also get their IP and send it tooo~
+			callback->serverCallback(SM_WHOIS_REALNAME, fourth + " " + realname);
+			
+			return true;
+		}
+		case 312: //server the user is connected to
+		{
+			//:scraps 312 danzel thorxxx my@msn_email.com. :MSN network
+			
+			GET_THIRD();
+			GET_FOURTH();
+			
+			//FIXME: finding ':' is a bit naughty
+			string theirserver = currentLineBuf.substr(currentLineBuf.find(":", thirdSpacePos)+1, currentLineBuf.length());
+			
+			callback->serverCallback(SM_WHOIS_SERVER, fourth + " " + theirserver);
+			return true;
+		}
+		case 301: //Away info
+		{
+			//:scraps 301 danzel thor98x :Away
+			GET_THIRD();
+			GET_FOURTH();
+			
+			//FIXME: GET_FIFTHPLUS
+			string awaytxt;
+			if (currentLineBuf[fourthSpacePos+1] == ':')
+				awaytxt = currentLineBuf.substr(fourthSpacePos+2, currentLineBuf.length());
+			else
+				awaytxt = currentLineBuf.substr(fourthSpacePos+1, currentLineBuf.length());
+			
+			callback->serverCallback(SM_WHOIS_AWAY, fourth + " " + awaytxt);
+			return true;
+		}
+		case 318: //End of whois
+		{
+			//:scraps 318 danzel thor98x :End of /WHOIS list
+			GET_THIRD();
+			GET_FOURTH();
+			
+			callback->serverCallback(SM_WHOIS_END, fourth);
+			
+			return true;
+		}
+		
 		
 		}
 	}

@@ -44,7 +44,7 @@ string menuMain::pressCross()
 	switch(selected)
 	{
 		case 0: //Buddy Details
-			//TODO
+			bitlbeeCallback::getBee()->getCurrentBuddyDetails();
 			break;
 		case 1: //Away
 			bitlbeeCallback::getBee()->setAway();

@@ -130,6 +130,9 @@ public:
 	//send a message to whoever the current person is (msgs server if "")
 	void messageCurrent(const wstring &message);
 	
+	//Perform a whois on the person you are currently chatting to, does nothing if server window
+	void getCurrentBuddyDetails();
+	
 	//Callbacks
 	void serverCallback              (const serverMessageType &type,  const string &message);
 	virtual void channelMsgCallback  (const string &channel, const string &who,             const string &message);
@@ -193,6 +196,7 @@ FUTURE: typing_notice true
 #define COLOR_SEND_NICK    0x085400FF
 #define COLOR_YOUR_NICK    0x163c9dFF
 #define COLOR_AWAY_MODE    0x0000FFFF
+#define COLOR_WHOIS_MSG    0x9000FFFF
 
 #endif //INCLUDED_BITLBEE_H
 
