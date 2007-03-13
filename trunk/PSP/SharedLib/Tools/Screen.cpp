@@ -28,12 +28,13 @@
 
 u32 *third = NULL;
 
-CScreen::CScreen(int width, int height, int pitch, int pixel_format)
+CScreen::CScreen(int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
 {
 	m_Width = width;
 	m_Height = height;
 	m_Pitch = pitch;
 	m_PixelFormat = pixel_format;
+	m_NumberOfBuffers = iNumberOfBuffers;
 	switch(m_PixelFormat)
 	{
 	case PSP_DISPLAY_PIXEL_FORMAT_565:
@@ -63,8 +64,14 @@ CScreen::CScreen(int width, int height, int pitch, int pixel_format)
 
 CScreen::~CScreen()
 {
-	free (m_AllocatedBuffer[0]);
-	free (m_AllocatedBuffer[1]);
+	if (m_NumberOfBuffers > NUM_VRAM_BUFFERS)
+	{
+		/* Allocate remainder of requested buffers in System RAM */
+		for (int i = NUM_VRAM_BUFFERS; i < m_NumberOfBuffers; i++)
+		{
+			free(m_Buffer[i]);
+		}
+	}
 }
 
 void CScreen::Init()
@@ -73,19 +80,23 @@ void CScreen::Init()
 	//u32 *g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	/* let's use cached memory better */
 	u32 *g_vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
-	m_AllocatedBuffer[0] = (u32*)memalign(16, FRAMESIZE); //Used to store the background
-	m_AllocatedBuffer[1] = NULL;
 
 	sceDisplaySetMode(0, m_Width, m_Height);
 	sceDisplaySetFrameBuf((void *) g_vram_base, 
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < NUM_VRAM_BUFFERS; i++)
 	{
 		m_Buffer[i] = (u32*)((char*)g_vram_base+FRAMESIZE*i);
 	}
-	//m_Buffer[2] = m_AllocatedBuffer[0];
-	m_Buffer[3] = m_AllocatedBuffer[0];
+	if (m_NumberOfBuffers > NUM_VRAM_BUFFERS)
+	{
+		/* Allocate remainder of requested buffers in System RAM */
+		for (int i = NUM_VRAM_BUFFERS; i < m_NumberOfBuffers; i++)
+		{
+			m_Buffer[i] = (u32*)memalign(16, FRAMESIZE);
+		}
+	}
 
 	init = true;
 }

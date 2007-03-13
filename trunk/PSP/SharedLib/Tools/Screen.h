@@ -2,6 +2,10 @@
 	#define __CSCREEN__
 
 	#include <pspdisplay.h>
+
+	#define MAX_BUFFERS 16
+	#define NUM_VRAM_BUFFERS 3
+
 	class CScreen
 	{
 	public:
@@ -12,7 +16,7 @@
 			TEXTMODE_SHADOWED
 		};
 				
-		CScreen(int width = 480, int height = 272, 
+		CScreen(int iNumberOfBuffers, int width = 480, int height = 272, 
 				int pitch = 512, int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
 		~CScreen();
 		void SetBackColor(u32 colour);
@@ -30,7 +34,7 @@
 		bool init;
 		textmode m_TextMode;
 		int m_FontWidth, m_FontHeight;
-		u32 *m_AllocatedBuffer[2];
+		int m_NumberOfBuffers;
 
 		void Init();
 		int  PrintData(const char *buff, int size);
@@ -52,7 +56,7 @@
 		u32* GetBufferAddress(int iBuffer){ return m_Buffer[iBuffer]; };
 				
 	public:
-		u32 *m_Buffer[4]; // 4 FRAMES in VRAM
+		u32 *m_Buffer[MAX_BUFFERS]; // 4 FRAMES in VRAM + system RAM
 		int FRAMESIZE;
 		int m_Width;
 		int m_Height;

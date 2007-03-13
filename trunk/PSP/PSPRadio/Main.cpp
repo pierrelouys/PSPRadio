@@ -29,7 +29,7 @@ CPSPRadio *gPSPRadio = NULL;
 /** main */
 int main(int argc, char **argv)
 {
-	rootScreen = new CScreen();
+	rootScreen = new CScreen(2); /* two buffers */
 
 	rootScreen->Clear(0);
 	rootScreen->SetFrameBuffer(0);

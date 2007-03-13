@@ -61,7 +61,7 @@ CTextUI::CTextUI()
 	m_strConfigDir = NULL;
 	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
-	m_Screen = new CScreen;
+	m_Screen = new CScreen(4); /* We use 4 video frames: 2 for page-flipping, one for offline drawing, and one to keep the background image in */
 	m_strTitle = strdup("PSPRadio");
 	m_Message[0] = 0;
 
@@ -266,8 +266,9 @@ void CTextUI::render_thread(void *) //static
 					total_time = 0;
 				}
 				s_ui->uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
+
 				///Buffer is configured in sync mode already... 
-				//sceDisplayWaitVblankStart();
+				sceDisplayWaitVblankStart();
 				//Flip Buffers
 				//sceKernelDcacheWritebackAll(); 
 				s_ui->m_Screen->SetFrameBuffer(iBuffer);
