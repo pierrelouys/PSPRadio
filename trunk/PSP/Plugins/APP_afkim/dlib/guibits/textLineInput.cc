@@ -79,6 +79,11 @@ void textLineInput::clearArea()
 string textLineInput::takeInput(SDL_Joystick* joystick)
 {
 	unsigned int pressed = keyboard->readInput(joystick);
+	if (holdingOne && pressed)
+		return getInputKey();
+	else
+		holdingOne = false;
+	
 	if (pressed == DANZEFF_START) // switch input area button (start on danzeff, L on p_sprint) 
 	{
 		return handleStart();
@@ -122,14 +127,9 @@ string textLineInput::takeInput(SDL_Joystick* joystick)
 	case '\n': //enter
 		return handleEnter();
 		break;
-	case ' ':
-		if (cursorpos == 0 || realText[cursorpos-1] == ' ' || (cursorpos < realText.size() && realText[cursorpos] == ' '))
-			break;
 	default:
 		if (realText.length() != maxLength)
 		{
-			if (realText[realText.size()-1] == (wchar_t)' ' && ' ' == pressed) //no double spaces
-				return getInputKey();
 			
 			realText.insert(cursorpos, 1, (wchar_t)pressed);
 			cursorpos++;
@@ -148,8 +148,11 @@ void textLineInput::draw()
 	{
 		printf("Redrawing TLI\n");
 		clearArea();
+		//This is a dirty way to render multiple spaces in a row:
 		text.reset();
-		text.addText(realText, color);
+		textLine t;
+		t.addText(realText, color);
+		text.lines.push_back(t);
 		printTextToSurface(text, pixels, ALIGN_TOP, 0);
 	}
 	dirty = false;
