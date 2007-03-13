@@ -5,7 +5,7 @@
 
 menuAddAccount::menuAddAccount()
 {
-	init(20, 172, 12, 0, "./pics/selected.png"); 
+	init(11, 171, 12, 0, "./pics/selected.png"); 
 	bgimage = new guiBit("./pics/menu.png", false);
 	bgimage->moveTo(1,146);
 }
@@ -33,16 +33,13 @@ string menuAddAccount::getInputKey() const
 //the value returned here is the value returned to takeInput
 string menuAddAccount::fixSelected()
 {
-	if (selected < 0) selected = 5;
-	if (selected > 5) selected = 0;
+	if (selected < 0) selected = 4;
+	if (selected > 4) selected = 0;
 	return getInputKey();
 }
 
 string menuAddAccount::pressCross()
 {
-	if (selected == 5)
-		return SWITCH_QUIT;
-
 	accountCreator* newAC = NULL;
 #warning menuAddAccount "menuAddAccount" in accountCreator = correct behaviour?
 	switch(selected)
