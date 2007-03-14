@@ -14,6 +14,10 @@ public:
 	//Returns the index of the now active inputable (returns its own on no change)
 	virtual string takeInput(SDL_Joystick* joystick);
 	
+	//Clear the text in this textLineInput
+	void clearText();
+	
+	//from guibit.h
 	virtual void draw();
 	virtual bool needsRedraw() const;
 

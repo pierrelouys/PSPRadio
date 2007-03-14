@@ -76,6 +76,14 @@ void textLineInput::clearArea()
 	dirty = true;
 }
 
+void textLineInput::clearText()
+{
+	realText.clear();
+	cursorpos = 0;
+	dirty = true;
+}
+
+
 string textLineInput::takeInput(SDL_Joystick* joystick)
 {
 	if (isHoldingOne())

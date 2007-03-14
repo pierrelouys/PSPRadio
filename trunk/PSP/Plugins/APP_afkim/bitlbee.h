@@ -132,6 +132,8 @@ public:
 	
 	//Perform a whois on the person you are currently chatting to, does nothing if server window
 	void getCurrentBuddyDetails();
+	//Rename the current Buddy (unless server)
+	void renameCurrentBuddy(const wstring &newNick);
 	
 	//Callbacks
 	void serverCallback              (const serverMessageType &type,  const string &message);

@@ -8,7 +8,9 @@
 #include "gui/chatSelector.h"
 #include "gui/menuMain.h"
 #include "gui/menuAddAccount.h"
+#include "gui/menuBuddyOptions.h"
 #include "gui/accountCreator.h"
+#include "gui/buddyRenamer.h"
 #include "dlib/util.h"
 
 #include "irc.h"
@@ -206,7 +208,7 @@ bool runAfkim(guiBit* guiBit_bg)
 	bitlbeeCallback* ic = bitlbeeCallback::getBee();
 	ic->setBitlbeeAccountChangeCallback((bitlbeeAccountChangeCallback*)&ac);
 	addGuiBit((guiBit*)&ac);
-
+	
 	chatInput cci(79, 2, 234, TEXT_NORMAL_COLOR);
 	cci.inputableDeactivate();
 	addGuiBit(&cci);
@@ -310,6 +312,14 @@ bool runAfkim(guiBit* guiBit_bg)
 	menuAddAccount maa;
 	addGuiBit(&maa);
 	inputs[maa.getInputKey()] = &maa;
+	
+	menuBuddyOptions mbo;
+	addGuiBit(&mbo);
+	inputs[mbo.getInputKey()] = &mbo;
+
+	buddyRenamer br = buddyRenamer();
+	addGuiBit(&br);
+	inputs[br.getInputKey()] = &br;
 	
 	currentInput = "chatSelector";
 	mmpop.changeReturnVal = "chatSelector";

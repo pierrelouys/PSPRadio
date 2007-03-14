@@ -413,11 +413,6 @@ wstring bitlbeeCallback::changeChatToInt(const int &offset) //-1 for server, oth
 void bitlbeeCallback::messageCurrent(const wstring &message)
 {
 	if (message.length() == 0) return;
-	if (message.find(' ',0) == 2 && message[0]=='/' && message[1]=='r') //"/r NEWNICK"
-	{
-		myirc->sendPM("&bitlbee", "rename " + unUnicode(currentMainWindow) + " " + unUnicode(message.substr(2)));
-		return;
-	}
 	
 	string target;
 	if (currentMainWindow.length() == 0)
@@ -433,6 +428,12 @@ void bitlbeeCallback::getCurrentBuddyDetails()
 {
 	if (currentMainWindow.length() > 0)
 		myirc->whoIs(unUnicode(currentMainWindow));
+}
+
+void bitlbeeCallback::renameCurrentBuddy(const wstring &newNick)
+{
+	if (currentMainWindow.length() > 0)
+		myirc->sendPM("&bitlbee", "rename " + unUnicode(currentMainWindow) + " " + unUnicode(newNick));
 }
 
 ///Callbacks
