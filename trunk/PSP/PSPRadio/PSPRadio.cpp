@@ -45,9 +45,10 @@ int CPSPRadio::Setup(int argc, char **argv)
 
 	m_VisPluginData = NULL;
 	m_VisPluginConfig.x1 = 0;
+	m_VisPluginConfig.y1 = 0;//_mid = (272/2);
 	m_VisPluginConfig.x2 = 480;
-	m_VisPluginConfig.y_mid = (272/2);
-	m_VisPluginConfig.pcm_right_shift = 8;
+	m_VisPluginConfig.y2 = 272;//_mid = (272/2);
+	//m_VisPluginConfig.pcm_right_shift = 8;
 	
 	sprintf(strAppTitle, "%s", GetProgramVersion());
 

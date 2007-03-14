@@ -33,6 +33,7 @@
 #include <pthread.h>
 #include "TextUI.h"
 #include <psputility_sysparam.h>
+#include "VIS_Plugin.h"
 
 #define MAX_ROWS 		s_ui->m_Screen->GetNumberOfTextRows()
 #define MAX_COL 		s_ui->m_Screen->GetNumberOfTextColumns()
@@ -130,7 +131,7 @@ CTextUI::~CTextUI()
 
 void CTextUI::NewPCMBuffer(short *pcmbuffer)
 {
-	m_isdirty |= DIRTY_PCM;
+	SET_BIT(DIRTY_PCM);
 }
 
 int CTextUI::OnVBlank()
@@ -250,7 +251,7 @@ void CTextUI::render_thread(void *) //static
 				if (message_frames > 0)
 				{
 					s_ui->PrintMessage(iBuffer);
-					if (message_frames++ >= 60)
+					if (message_frames++ >= 30)
 					{
 						message_frames = 0;
 					}
@@ -318,7 +319,7 @@ int CTextUI::GetConfigColor(char *strKey)
 
 void CTextUI::GetConfigPair(char *strKey, int *x, int *y)
 {
-	sscanf(m_Config->GetStr(strKey), "%d,%d", x, y);
+	sscanf(m_Config->GetString(strKey, "0,0"), "%d,%d", x, y);
 }
 
 void CTextUI::Terminate()
@@ -328,6 +329,7 @@ void CTextUI::Terminate()
 void CTextUI::LoadConfigSettings(IScreen *Screen)
 {
 	char *strCfgFile = NULL;
+	VisPluginConfig vis_cfg;
 
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() start");
 
@@ -455,6 +457,11 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		GetConfigPair("SCREEN_SETTINGS:TIME_XY", 
 			&m_ScreenConfig.TimeX, &m_ScreenConfig.TimeY);
 		m_ScreenConfig.TimeColor = GetConfigColor("SCREEN_SETTINGS:TIME_COLOR");
+		
+		GetConfigPair("VISUALIZER_CONFIG:UPPER_LEFT",
+			&vis_cfg.x1, &vis_cfg.y1);
+		GetConfigPair("VISUALIZER_CONFIG:LOWER_RIGHT",
+			&vis_cfg.x2, &vis_cfg.y2);
 			
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));
@@ -473,6 +480,14 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		{
 			ifdata.Pointer = NULL;
 			PSPRadioIF(PSPRADIOIF_SET_BUTTONMAP_CONFIG, &ifdata);
+		}
+		
+		/* Set visualizer config data */
+		if (vis_cfg.x1+vis_cfg.y1+vis_cfg.x2+vis_cfg.y2 > 0)
+		{
+			memset(&ifdata, 0, sizeof(ifdata));
+			ifdata.Pointer = &vis_cfg;
+			PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 		}
 	}
 	
@@ -1009,20 +1024,26 @@ int CTextUI::PrintStreamTime(int iBuffer, bool draw_background)
 	int x = m_ScreenConfig.TimeX;
 	int c = m_ScreenConfig.TimeColor;
 	
-	if (draw_background)
-		m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
-							x, 
-							y,
-							x+COL_TO_PIXEL(13), 
-							y+ROW_TO_PIXEL(1));
 	if (pData->lTotalTime > 0)
 	{
+		if (draw_background)
+				m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
+									x, 
+									y,
+									x+COL_TO_PIXEL(13), 
+									y+ROW_TO_PIXEL(1));
 		uiPrintf(iBuffer, x, y, c, "%02d:%02d / %02d:%02d",
 					pData->lCurrentTime / 60, pData->lCurrentTime % 60,
 					pData->lTotalTime / 60, pData->lTotalTime % 60);
 	}
 	else
 	{
+		if (draw_background)
+				m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 
+									x, 
+									y,
+									x+COL_TO_PIXEL(5), 
+									y+ROW_TO_PIXEL(1));
 		uiPrintf(iBuffer, x, y, c, "%02d:%02d",
 					pData->lCurrentTime / 60, pData->lCurrentTime % 60);
 	}

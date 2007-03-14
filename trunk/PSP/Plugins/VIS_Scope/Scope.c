@@ -58,13 +58,12 @@ void scope_cleanup();
 void scope_start();
 void scope_stop();
 void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
+void scope_config_update();
 VisPlugin scope_vtable = {
 	//void *handle; /* Filled in by PSPRadio */
 	NULL, 
 	//char *filename; /* Filled in by PSPRadio */
 	NULL, 
-	//VisPluginConfig *config; /* Filled in by PSPRadio */
-	NULL,
 	//int PSPRadio_session; /* not used atm *//* The session ID for attaching to the control socket */
 	0, 
 	//char *description; /* The description that is shown in the preferences box */
@@ -91,6 +90,10 @@ VisPlugin scope_vtable = {
 	scope_render_pcm, 
 	/* not implemented *//* Render the freq data, don't do anything time consuming in here */
 	NULL, //void (*render_freq)(int16 *freq_data); 
+ 	/* Called when config changes */
+	scope_config_update,
+	//VisPluginConfig *config; /* Filled in by PSPRadio */
+	NULL,
 };
 /* We export this function */
 VisPlugin *get_vplugin_info()
@@ -105,7 +108,32 @@ VisPlugin *get_vplugin_info()
 #define FRAMESIZE (m_Pitch*m_Height*m_BytesPerPixel)
 void scope_init()
 {
+	scope_config_update();
 }
+
+int y_mid = 127, pcm_shdiv = 15;
+
+void scope_config_update()
+{
+	int sh = 0, amp = 0;
+	
+	if(scope_vtable.config)
+	{
+		y_mid = (scope_vtable.config->y2 - scope_vtable.config->y1) / 2;
+		pcm_shdiv = 15; 
+		
+		// We convert the fixed-point integer into an integer by doing binary right shifts.
+		// So pcm_shdiv of 8 gives us the whole integer part, 9 is whole / 2, 10 is /4, etc.
+		// at 15, we are left with a max of 1, so this is the minimum. 
+		// shdiv then is 8 <= shdiv <= 15
+		
+		for (sh = 15, amp = 1; sh >= 8; sh--, amp *= 2)
+		{
+			if (y_mid >= amp)
+				pcm_shdiv = sh;
+		}
+	}
+}	
 
 void scope_cleanup()
 {
@@ -179,8 +207,8 @@ void draw_pcm(u32* vram) /* BARS */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
-		Rectangle(vram, x, scope_vtable.config->y_mid - (s_pcmbuffer[x*5] >> scope_vtable.config->pcm_right_shift), 
-										   x+4, scope_vtable.config->y_mid, 0xAAAAAA);
+		Rectangle(vram, x, y_mid - (s_pcmbuffer[x*5] >> pcm_shdiv), 
+										   x+4, y_mid, 0xAAAAAA);
 	}
 }
 #endif
@@ -196,10 +224,10 @@ void draw_pcm(u32* vram) /* DOTS */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 256
-		y1 = scope_vtable.config->y_mid + (s_pcmbuffer[x*5] >> scope_vtable.config->pcm_right_shift);
-		y2 = scope_vtable.config->y_mid - (s_pcmbuffer[x*5+1] >> scope_vtable.config->pcm_right_shift);
-		Plot(vram, x, (y1 >= 0 && y1 < scope_vtable.config->y_mid*2)?y1:scope_vtable.config->y_mid, 0xAAAAAA);
-		Plot(vram, x, (y2 >= 0 && y2 < scope_vtable.config->y_mid*2)?y2:scope_vtable.config->y_mid, 0xAAAAAA);
+		y1 = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv);
+		y2 = y_mid - (s_pcmbuffer[x*5+1] >> pcm_shdiv);
+		Plot(vram, x, (y1 >= 0 && y1 < y_mid*2)?y1:y_mid, 0xAAAAAA);
+		Plot(vram, x, (y2 >= 0 && y2 < y_mid*2)?y2:y_mid, 0xAAAAAA);
 	}
 }
 #endif
@@ -213,8 +241,8 @@ void draw_pcm(u32* vram) /* LINES */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y1 = scope_vtable.config->y_mid - (s_pcmbuffer[x*5+1] >> scope_vtable.config->pcm_right_shift); // L component
-		y2 = scope_vtable.config->y_mid + (s_pcmbuffer[x*5] >> scope_vtable.config->pcm_right_shift);   // R component
+		y1 = y_mid - (s_pcmbuffer[x*5+1] >> pcm_shdiv); // L component
+		y2 = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv);   // R component
 		VertLine(vram, x, y1, y2, 0xAAAAAA);
 	}
 }
@@ -225,12 +253,12 @@ void draw_pcm(u32* vram)
 {
 	int x;
 	int y, old_y;
-	old_y = scope_vtable.config->y_mid;
+	old_y = y_mid;
 	for (x = scope_vtable.config->x1; x < scope_vtable.config->x2; x++)
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y = scope_vtable.config->y_mid + (s_pcmbuffer[x*5] >> scope_vtable.config->pcm_right_shift); // L component
+		y = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
 		VertLine(vram, x, old_y, y, 0xAAAAAA);
 		old_y = y;
 	}
@@ -242,7 +270,7 @@ void draw_pcm(u32* vram) /* TRAIL */
 {
 	int x;
 	int y, old_y;
-	old_y = scope_vtable.config->y_mid;
+	old_y = y_mid;
 	static u32 prev_pcm[512/*max*/];
 	static bool first_time = true;
 	if (first_time)
@@ -264,7 +292,7 @@ void draw_pcm(u32* vram) /* TRAIL */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y = scope_vtable.config->y_mid + (s_pcmbuffer[x*5] >> scope_vtable.config->pcm_right_shift); // L component
+		y = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
 		prev_pcm[x - scope_vtable.config->x1] = y;
 		VertLine(vram, x, old_y, y, 0x0AFF0A);
 		old_y = y;
@@ -277,14 +305,14 @@ void draw_pcm(u32* vram)
 {
 	int x;
 	int yL, yR;
-	int old_yL = scope_vtable.config->y_mid;
-	int old_yR = scope_vtable.config->y_mid;
+	int old_yL = y_mid;
+	int old_yR = y_mid;
 	for (x = scope_vtable.config->x1; x < scope_vtable.config->x2; x++)
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		yL = scope_vtable.config->y_mid + (s_pcmbuffer[x*5] >> scope_vtable.config->pcm_right_shift); // L component
-		yR = scope_vtable.config->y_mid + (s_pcmbuffer[x*5+1] >> scope_vtable.config->pcm_right_shift); // L component
+		yL = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
+		yR = y_mid + (s_pcmbuffer[x*5+1] >> pcm_shdiv); // L component
 		VertLine(vram, x, old_yL, yL, 0xFF0A0A);
 		VertLine(vram, x, old_yR, yR, 0xA0FFA0);
 		old_yL = yL;

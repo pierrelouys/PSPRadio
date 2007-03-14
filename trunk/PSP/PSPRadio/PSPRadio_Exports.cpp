@@ -126,6 +126,11 @@ int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
 		case PSPRADIOIF_GET_VISUALIZER_CONFIG:
 			Data->Pointer = &(gPSPRadio->m_VisPluginConfig);
 			break;
+		case PSPRADIOIF_SET_VISUALIZER_CONFIG:
+			memcpy(&gPSPRadio->m_VisPluginConfig, Data->Pointer, sizeof(VisPluginConfig));
+			if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->config_update)
+				gPSPRadio->m_VisPluginData->config_update();
+			break;
 
 	}	
 	

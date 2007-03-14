@@ -14,9 +14,11 @@
 	typedef struct _VisPluginConfig
 	{
 		int x1;
+		int y1;
 		int x2;
-		int y_mid;
-		int pcm_right_shift;
+		int y2;
+		//int y_mid;
+		//int pcm_right_shift;
 	} VisPluginConfig;
 		
 
@@ -24,7 +26,6 @@
 	{
 		void *handle; /* Filled in by PSPRadio */
 		char *filename; /* Filled in by PSPRadio */
-		VisPluginConfig *config; /* Filled in by PSPRadio */
 		int PSPRadio_session; /* not used atm *//* The session ID for attaching to the control socket */
 		char *description; /* The description that is shown in the preferences box */
 		int num_pcm_chs_wanted; /* not used atm *//* Numbers of PCM channels wanted in the call to render_pcm */
@@ -38,6 +39,8 @@
 		void (*playback_stop)(void); /* Called when playback stops */
 		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
 		void (*render_freq)(u32* vram_frame, int16 *freq_data); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
+		void (*config_update)(); /* Called when config changes */
+		VisPluginConfig *config; /* Filled in by PSPRadio */
 	} VisPlugin; 
 
 	/* The plugin exports this function */
