@@ -786,7 +786,11 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 				}
 
 				/** Populate Listbox */
-				LoadFilesIntoCurrentElementList(strFilename);
+				if (LoadFilesIntoCurrentElementList(strFilename) == 0)
+				{
+					/* Directory had no files, so we remove it */
+					m_containerListMap.erase(strFilename);
+				}
 				
 			}
 		}
@@ -805,13 +809,14 @@ void CMetaDataContainer::LoadDirectory(char *strPath)
 	}
 }
 
-void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
+int CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 {
 	char strFilename[MAXPATHLEN];
 	int dfd;
 	SceIoDirent direntry;
 	MetaData *songdata;
-	
+	int iNumberOfFiles = 0;
+
 	songdata = new MetaData;
 	
 	Log(LOG_LOWLEVEL, "LoadFilesIntoCurrentElementList: Reading '%s' Directory", dirname);
@@ -827,6 +832,7 @@ void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 		{
 			if(false == (direntry.d_stat.st_attr & FIO_SO_IFDIR)) /** It's a file */
 			{
+				iNumberOfFiles++;
 				memset(strFilename, 0, MAXPATHLEN);
 				sprintf(strFilename, "%s/%s", dirname, direntry.d_name);
  				Log(LOG_LOWLEVEL, "LoadFilesIntoCurrentElementList(): Adding '%s' to list.", strFilename);
@@ -851,6 +857,7 @@ void CMetaDataContainer::LoadFilesIntoCurrentElementList(char *dirname)
 	{
 		Log(LOG_ERROR, "Unable to open '%s' Directory!", dirname);
 	}
+	return iNumberOfFiles;
 }
 
 void CMetaDataContainer::LoadPlaylistsFromDirectory(char *strDirName)

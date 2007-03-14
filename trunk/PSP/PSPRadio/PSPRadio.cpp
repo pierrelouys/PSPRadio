@@ -218,12 +218,22 @@ int CPSPRadio::Setup_ButtonMapping(CIniParser *pConfig)
 
 int CPSPRadio::Setup_UI(char *strCurrentDir)
 {
-	Log(LOG_LOWLEVEL, "Dynamic Build: UI Module = %s, Skin = %s", 
+	Log(LOG_LOWLEVEL, "Loading Default UI Module = %s, Skin = %s", 
 		m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE),
 		m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
 
 	m_UI = m_ScreenHandler->StartUI(m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE), 
 									m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
+
+
+	if (strlen(	m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", "") ) > 0)
+	{
+		Log(LOG_LOWLEVEL, "Loading Default Visualizer Plugin %s", 
+			m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", ""));
+	
+		LoadPlugin(m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", ""), PLUGIN_VIS);
+	}
+
 	
 	return 0;
 }

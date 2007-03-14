@@ -130,7 +130,7 @@
 			void AddToGenre(MetaData *metadata, char *strGenre);
 
 			void LoadPlayListURIIntoCurrentElementList(char *strFileName);
-			void LoadFilesIntoCurrentElementList(char *dirname);
+			int LoadFilesIntoCurrentElementList(char *dirname);
 	};
 	
 

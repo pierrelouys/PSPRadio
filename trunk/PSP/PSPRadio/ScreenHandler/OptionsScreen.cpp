@@ -34,6 +34,7 @@
 #include "SHOUTcastScreen.h"
 #include "LocalFilesScreen.h"
 #include "OptionsScreen.h"
+#include "Main.h"
 
 #define ReportError pPSPApp->ReportError
 
@@ -201,6 +202,7 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetInteger("SYSTEM:CPUFREQ", scePowerGetCpuClockFrequency());
 		pConfig->SetInteger("WIFI:PROFILE", m_iNetworkProfile);
 		pConfig->SetString("PLUGINS:UI", m_ScreenHandler->GetCurrentUIName());
+		pConfig->SetString("PLUGINS:DEFAULT_VISUALIZER", gPSPRadio->GetActivePluginName(PLUGIN_VIS));
 		/** OPTION_ID_INITIAL_SCREEN */
 		pConfig->SetInteger("SYSTEM:INITIAL_SCREEN", m_ScreenHandler->GetInitialScreen());
 		/** OPTION_ID_INITIAL_SCREEN */
@@ -221,6 +223,7 @@ void OptionsScreen::SaveToConfigFile()
 		pConfig->SetString("PLUGINS:UI_SKIN", m_ScreenHandler->GetCurrentSkin());
 		/** OPTION_ID_SKIN */
 
+		
 		pConfig->Save();
 	}
 	else
