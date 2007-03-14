@@ -53,9 +53,8 @@ string accountCreator::takeInput(SDL_Joystick* joystick)
 	}
 	
 	//Cancel adding an account, Can't cancel bitlbee.
-	if (type!=BAT_BITLBEE && !holdingOne && (PRESSING_SELECT(joystick)))
+	if (type!=BAT_BITLBEE && !isHoldingOne() && (PRESSING_SELECT(joystick)))
 	{
-		holdingOne = true;
 		return returnTo;
 	}	
 	dirty = false;

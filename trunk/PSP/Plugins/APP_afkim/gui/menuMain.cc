@@ -67,7 +67,6 @@ string menuMain::pressCross()
 
 string menuMain::pressSelect()
 {
-	holdingOne = true;
 	return changeReturnVal;
 }
  

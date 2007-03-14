@@ -16,10 +16,17 @@ public:
 	virtual void inputableActivate();
 	virtual void inputableDeactivate();
 	
-//private:
-	static bool holdingOne; //user is holding a key
-	
 	bool gui_active; //is the selected component;
+
+
+	//Functions and variables for keyrepeat
+	//wait 500ms for the first repeat, then repeat every 200ms
+	static bool isHoldingOne();
+	static void updateHoldingOne(SDL_Joystick* joystick); //called from main.cc
+private:
+	static bool holdingOne; //user is holding a key
+	static bool areRepeating; //if we are in keyrepeat
+	static unsigned int holdingOneTime; //Time the user started holding the key, for keyrepeat
 };
 
 extern map<string, inputable*> inputs; //HACK

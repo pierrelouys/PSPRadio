@@ -78,11 +78,10 @@ void textLineInput::clearArea()
 
 string textLineInput::takeInput(SDL_Joystick* joystick)
 {
-	unsigned int pressed = keyboard->readInput(joystick);
-	if (holdingOne && pressed)
+	if (isHoldingOne())
 		return getInputKey();
-	else
-		holdingOne = false;
+	
+	unsigned int pressed = keyboard->readInput(joystick);
 	
 	if (pressed == DANZEFF_START) // switch input area button (start on danzeff, L on p_sprint) 
 	{

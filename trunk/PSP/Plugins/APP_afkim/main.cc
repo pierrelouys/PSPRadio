@@ -113,6 +113,7 @@ void runWifiConnect(SDL_Joystick *joystick, guiBit* bg )
 			renderGui();
 			if (newInput != "wifiSelector")
 				break;
+			inputable::updateHoldingOne(joystick);
 			SDL_Delay(1);
 		}
 		ws->inputableDeactivate();
@@ -232,9 +233,10 @@ bool runAfkim(guiBit* guiBit_bg)
 				SDL_JoystickUpdate();
 				at = creator->takeInput(joystick);
 	//			cout << "AT:" << at << endl;
-				SDL_Delay(1);
 				ic->poll();
 				renderGui();
+				inputable::updateHoldingOne(joystick);
+				SDL_Delay(1);
 			}
 			//create bitlbee account.
 			string nUsername = unUnicode(creator->username->getText());
@@ -368,6 +370,7 @@ bool runAfkim(guiBit* guiBit_bg)
 		
 		ic->poll();
 		renderGui();
+		inputable::updateHoldingOne(joystick);
 		SDL_Delay(1);
 	}
 	

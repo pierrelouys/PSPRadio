@@ -28,6 +28,8 @@ typedef basic_string<wchar_t> wstring;
 #ifdef PSP
 	#define PRESSING_UP(joystick)       (SDL_JoystickGetButton(joystick, 8))
 	#define PRESSING_DOWN(joystick)     (SDL_JoystickGetButton(joystick, 6))
+	#define PRESSING_LEFT(joystick)     (SDL_JoystickGetButton(joystick, 7))
+	#define PRESSING_RIGHT(joystick)    (SDL_JoystickGetButton(joystick, 9))
 	
 	#define PRESSING_X(joystick)        (SDL_JoystickGetButton(joystick, 2))
 	#define PRESSING_O(joystick)        (SDL_JoystickGetButton(joystick, 1))
@@ -42,6 +44,8 @@ typedef basic_string<wchar_t> wstring;
 #else //Not PSP, PC?
 	#define PRESSING_UP(joystick)       (SDL_JoystickGetAxis(joystick, 5)<0)
 	#define PRESSING_DOWN(joystick)     (SDL_JoystickGetAxis(joystick, 5)>0)
+	#define PRESSING_LEFT(joystick)     (SDL_JoystickGetAxis(joystick, 6)<0)
+	#define PRESSING_RIGHT(joystick)    (SDL_JoystickGetAxis(joystick, 6)>0)
 	
 	#define PRESSING_X(joystick)        (SDL_JoystickGetButton(joystick, 2))
 	#define PRESSING_O(joystick)        (SDL_JoystickGetButton(joystick, 1))

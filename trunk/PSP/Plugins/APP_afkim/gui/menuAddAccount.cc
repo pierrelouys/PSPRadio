@@ -66,6 +66,5 @@ string menuAddAccount::pressCross()
 
 string menuAddAccount::pressSelect()
 {
-	holdingOne = true;
 	return "menuMain";
 }

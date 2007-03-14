@@ -26,45 +26,37 @@ void selector::init(const unsigned int &targetX, const unsigned int &targetY, co
 
 string selector::takeInput(SDL_Joystick* joystick)
 {
-	if (!holdingOne)
+	if (!isHoldingOne())
 	{
 		if (PRESSING_UP(joystick) || PRESSING_DOWN(joystick) || PRESSING_X(joystick) || PRESSING_SELECT(joystick) || PRESSING_START(joystick)) //pressed any
 		{
 			dirty = true;
-			holdingOne = true;
 		}
 		
 		if (PRESSING_UP(joystick))
 		{
 			selected--;
-			holdingOne = true;
 			return fixSelected();
 		}
 		else if (PRESSING_DOWN(joystick))
 		{
 			selected++;
-			holdingOne = true;
 			return fixSelected();
 		}
 		else if (PRESSING_X(joystick) || PRESSING_START(joystick))
 		{
-			holdingOne = true;
 			return pressCross();
 		}
 		else if (PRESSING_SELECT(joystick))
 		{
-			holdingOne = true;
 			return pressSelect();
 		}
 	}
-	else if (!(PRESSING_UP(joystick) || PRESSING_DOWN(joystick) || PRESSING_X(joystick) || PRESSING_SELECT(joystick) || PRESSING_START(joystick))) //aren't pressing any
-		holdingOne = false;
 	return getInputKey();
 }
 	
 void selector::inputableActivate()
 {
-	holdingOne = true;
 	gui_active = true;
 }
 
