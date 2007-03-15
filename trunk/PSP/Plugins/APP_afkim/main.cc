@@ -168,12 +168,24 @@ bool runAfkim(guiBit* guiBit_bg);
 	
 	//keep this around since it is in HW memory.
 	//also PSP SDL seems to crash when I free it, i've done something wrong somewhere i thinks...
-	guiBit guiBit_bg = guiBit("./pics/bg.png", true);
+	guiBit* guiBit_bg = new guiBit("./pics/bg.png", true);
 	
 	//Relaunch afkim untill it returns false
-	while (runAfkim(&guiBit_bg))
+	while (runAfkim(guiBit_bg))
 	{ }
 	
+	#ifndef PSP
+	delete guiBit_bg; //causes crash on PSP :(
+	#else //PSP
+		#ifdef PSPRADIOPLUGIN
+			PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */
+		#else //PSPRADIOPLUGIN
+			sceNetApctlDisconnect();
+			sceNetApctlTerm();
+			sceKernelExitGame();
+		#endif //PSPRADIOPLUGIN
+	#endif //PSP
+
 	return EXIT_SUCCESS;
 }
 
@@ -390,9 +402,6 @@ bool runAfkim(guiBit* guiBit_bg)
 	inputs.clear();
 	SDL_JoystickClose(joystick);
 	
-	#ifdef PSPRADIOPLUGIN
-		PSPRadioExport_PluginExits(PLUGIN_APP); /** Notify PSPRadio, so it can unload the plugin */
-	#endif //PSPRADIOPLUGIN
 	return false;
 }
 

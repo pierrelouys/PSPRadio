@@ -27,7 +27,7 @@ int renderInit()
 	
 	atexit(SDL_Quit);
 	
-	screen = SDL_SetVideoMode(480, 272, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
+	screen = SDL_SetVideoMode(480, 272, 32, SDL_SWSURFACE|SDL_DOUBLEBUF);
 	if (screen == NULL) {
 		printf("Unable to set video mode: %s\n", SDL_GetError());
 		return 1;

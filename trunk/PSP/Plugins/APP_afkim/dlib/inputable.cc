@@ -55,9 +55,9 @@ void inputable::updateHoldingOne(SDL_Joystick* joystick)
 	PRESSING_SQUARE(joystick) ||
 	PRESSING_TRIANGLE(joystick) ||
 	PRESSING_SELECT(joystick) ||
-	PRESSING_START(joystick) ||
-	PRESSING_LTRIGGER(joystick) ||
-	PRESSING_RTRIGGER(joystick);
+	PRESSING_START(joystick);
+//	PRESSING_LTRIGGER(joystick) ||
+//	PRESSING_RTRIGGER(joystick);
 	
 	if (isCurrentlyHoldingOne)
 	{
