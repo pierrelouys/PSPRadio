@@ -116,10 +116,12 @@ int y_mid = 127, pcm_shdiv = 15;
 void scope_config_update()
 {
 	int sh = 0, amp = 0;
+	int mid_a = 0;
+	y_mid = (scope_vtable.config->y2 + scope_vtable.config->y1) / 2;
 	
 	if(scope_vtable.config)
 	{
-		y_mid = (scope_vtable.config->y2 - scope_vtable.config->y1) / 2;
+		mid_a = (scope_vtable.config->y2 - scope_vtable.config->y1) / 2;
 		pcm_shdiv = 15; 
 		
 		// We convert the fixed-point integer into an integer by doing binary right shifts.
@@ -129,7 +131,7 @@ void scope_config_update()
 		
 		for (sh = 15, amp = 1; sh >= 8; sh--, amp *= 2)
 		{
-			if (y_mid >= amp)
+			if (mid_a >= amp)
 				pcm_shdiv = sh;
 		}
 	}
@@ -207,8 +209,8 @@ void draw_pcm(u32* vram) /* BARS */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
-		Rectangle(vram, x, y_mid - (s_pcmbuffer[x*5] >> pcm_shdiv), 
-										   x+4, y_mid, 0xAAAAAA);
+		Rectangle(vram, x, scope_vtable.config->y2 - (s_pcmbuffer[x*5] >> (pcm_shdiv - 1)), 
+										   x+4, scope_vtable.config->y2, 0xAAAAAA);
 	}
 }
 #endif
