@@ -430,10 +430,27 @@ void bitlbeeCallback::getCurrentBuddyDetails()
 		myirc->whoIs(unUnicode(currentMainWindow));
 }
 
+void bitlbeeCallback::blockCurrentBuddy()
+{
+	if (currentMainWindow.length() > 0)
+		myirc->sendPM("&bitlbee", "block " + unUnicode(currentMainWindow));
+}
+
+void bitlbeeCallback::allowCurrentBuddy()
+{
+	if (currentMainWindow.length() > 0)
+		myirc->sendPM("&bitlbee", "allow " + unUnicode(currentMainWindow));
+}
+
 void bitlbeeCallback::renameCurrentBuddy(const wstring &newNick)
 {
 	if (currentMainWindow.length() > 0)
 		myirc->sendPM("&bitlbee", "rename " + unUnicode(currentMainWindow) + " " + unUnicode(newNick));
+}
+
+bool bitlbeeCallback::isTalkingToSomeone()
+{
+	return (currentMainWindow.length() > 0);
 }
 
 ///Callbacks

@@ -46,11 +46,14 @@ string menuBuddyOptions::pressCross()
 			bitlbeeCallback::getBee()->getCurrentBuddyDetails();
 			return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 		case 1: //Rename Buddy
-			return "buddyRenamer";
+			if (bitlbeeCallback::getBee()->isTalkingToSomeone()) //Can only rename if ur talking to someone
+				return "buddyRenamer";
 		case 2: //Block Buddy
-			break;
+			bitlbeeCallback::getBee()->blockCurrentBuddy();
+			return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 		case 3: //Unblock Buddy
-			break;
+			bitlbeeCallback::getBee()->allowCurrentBuddy();
+			return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 		case 4: //Add Buddy
 			break;
 		case 5: //Delete Buddy

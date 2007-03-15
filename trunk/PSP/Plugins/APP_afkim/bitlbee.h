@@ -132,8 +132,15 @@ public:
 	
 	//Perform a whois on the person you are currently chatting to, does nothing if server window
 	void getCurrentBuddyDetails();
+	
+	//Block/Allow the person you are currently chatting to, does nothing if server window
+	void blockCurrentBuddy();
+	void allowCurrentBuddy();
 	//Rename the current Buddy (unless server)
 	void renameCurrentBuddy(const wstring &newNick);
+	
+	//Returns true if a buddy is selected, false if server window is selected
+	bool isTalkingToSomeone();
 	
 	//Callbacks
 	void serverCallback              (const serverMessageType &type,  const string &message);
