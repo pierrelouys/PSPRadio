@@ -448,6 +448,12 @@ void bitlbeeCallback::renameCurrentBuddy(const wstring &newNick)
 		myirc->sendPM("&bitlbee", "rename " + unUnicode(currentMainWindow) + " " + unUnicode(newNick));
 }
 
+void bitlbeeCallback::removeCurrentBuddy()
+{
+	if (currentMainWindow.length() > 0)
+		myirc->sendPM("&bitlbee", "remove " + unUnicode(currentMainWindow));
+}
+
 bool bitlbeeCallback::isTalkingToSomeone()
 {
 	return (currentMainWindow.length() > 0);

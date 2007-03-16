@@ -33,8 +33,8 @@ string menuBuddyOptions::getInputKey() const
 //the value returned here is the value returned to takeInput
 string menuBuddyOptions::fixSelected()
 {
-	if (selected < 0) selected = 6;
-	if (selected > 6) selected = 0;
+	if (selected < 0) selected = 4;
+	if (selected > 4) selected = 0;
 	return getInputKey();
 }
 
@@ -54,9 +54,10 @@ string menuBuddyOptions::pressCross()
 		case 3: //Unblock Buddy
 			bitlbeeCallback::getBee()->allowCurrentBuddy();
 			return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
-		case 4: //Add Buddy
-			break;
-		case 5: //Delete Buddy
+		case 4: //Delete Buddy
+			bitlbeeCallback::getBee()->removeCurrentBuddy();
+			return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
+		case 5: //BUDDY?
 			break;
 		case 6: //BUDDY?
 			break;

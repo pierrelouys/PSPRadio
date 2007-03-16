@@ -138,7 +138,8 @@ public:
 	void allowCurrentBuddy();
 	//Rename the current Buddy (unless server)
 	void renameCurrentBuddy(const wstring &newNick);
-	
+	//Remove the current Buddy from your contact list
+	void removeCurrentBuddy();
 	//Returns true if a buddy is selected, false if server window is selected
 	bool isTalkingToSomeone();
 	
