@@ -9,8 +9,8 @@ accountDeleter::accountDeleter()
 	bgimage = new guiBit("./pics/delaccount.png", false);
 	bgimage->moveTo(1,146);
 	
-	listText = textBlock(29,8); //8 should be more than we need
-	text = new textArea(29, 8, &listText);
+	listText = textBlock(44,8); //8 should be more than we need
+	text = new textArea(44, 8, &listText);
 	text->moveTo(22,165);
 	text->setAlign(ALIGN_TOP);
 	

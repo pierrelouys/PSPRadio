@@ -9,7 +9,7 @@ OBJS = main.o \
       irc.o bitlbee.o \
       gui/accountsStatus.o gui/chatInput.o gui/chatSelector.o gui/newmsgBit.o \
       gui/menuMain.o gui/menuAddAccount.o gui/menuBuddyOptions.o \
-      gui/accountCreateText.o gui/accountCreator.o gui/buddyRenamer.o \
+      gui/accountCreateText.o gui/accountCreator.o gui/accountDeleter.o gui/buddyRenamer.o \
       dlib/guibits/textArea.o dlib/guibits/textLineInput.o dlib/guibits/selector.o dlib/guibits/wifiSelector.o \
       dlib/keyboards/p_sprint.o dlib/keyboards/kbwrap.o dlib/keyboards/pspctrl_emu.o \
 		$(EXPORTED_OBJS)

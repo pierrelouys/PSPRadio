@@ -167,7 +167,7 @@ private:
 	
 	void identify(const string &password);
 	void doRegister(const string &password); //same as identify but registers the account
-
+	void setBitlbeeDefaults();
 	//Render Stuff
 	wstring currentMainWindow; //nickname or ""(server) of main window target
 	
@@ -208,6 +208,7 @@ FUTURE: typing_notice true
 #define COLOR_YOUR_NICK    0x163c9dFF
 #define COLOR_AWAY_MODE    0x0000FFFF
 #define COLOR_WHOIS_MSG    0x9000FFFF
+#define COLOR_BLOCK        0xEE0000FF
 
 #endif //INCLUDED_BITLBEE_H
 

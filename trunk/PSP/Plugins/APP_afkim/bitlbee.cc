@@ -192,6 +192,8 @@ void bitlbeeCallback::identify(const string &password)
 		usleep(10*1000);
 	}
 	if (accountChangeCallback != NULL) accountChangeCallback->notifyAccountChange(accounts);
+	
+	setBitlbeeDefaults();
 }
 
 void bitlbeeCallback::doRegister(const string &password)
@@ -210,11 +212,18 @@ void bitlbeeCallback::doRegister(const string &password)
 		myirc = NULL;
 		return;
 	}
+	
+	setBitlbeeDefaults();
+}
+
+void bitlbeeCallback::setBitlbeeDefaults()
+{
 	//Set the default settings on the account
 	serverMsg("set auto_connect false");
-	serverMsg("set auto_reconnect false");
+	serverMsg("set auto_reconnect true");
 	serverMsg("set display_namechanges true");
 	serverMsg("set auto_reconnect_delay 60");
+	serverMsg("set handle_unknown add");
 	serverMsg("save");
 }
 
@@ -450,25 +459,31 @@ void bitlbeeCallback::getCurrentBuddyDetails()
 void bitlbeeCallback::blockCurrentBuddy()
 {
 	if (currentMainWindow.length() > 0)
-		myirc->sendPM("&bitlbee", "block " + unUnicode(currentMainWindow));
+	{
+		serverMsg("block " + unUnicode(currentMainWindow));
+		mainTextA->addText(currentMainWindow + unicodeClean(" blocked\n"), COLOR_BLOCK);
+	}
 }
 
 void bitlbeeCallback::allowCurrentBuddy()
 {
 	if (currentMainWindow.length() > 0)
-		myirc->sendPM("&bitlbee", "allow " + unUnicode(currentMainWindow));
+	{
+		serverMsg("allow " + unUnicode(currentMainWindow));
+		mainTextA->addText(currentMainWindow + unicodeClean(" unblocked\n"), COLOR_BLOCK);
+	}
 }
 
 void bitlbeeCallback::renameCurrentBuddy(const wstring &newNick)
 {
 	if (currentMainWindow.length() > 0)
-		myirc->sendPM("&bitlbee", "rename " + unUnicode(currentMainWindow) + " " + unUnicode(newNick));
+		serverMsg("rename " + unUnicode(currentMainWindow) + " " + unUnicode(newNick));
 }
 
 void bitlbeeCallback::removeCurrentBuddy()
 {
 	if (currentMainWindow.length() > 0)
-		myirc->sendPM("&bitlbee", "remove " + unUnicode(currentMainWindow));
+		serverMsg("remove " + unUnicode(currentMainWindow));
 }
 
 bool bitlbeeCallback::isTalkingToSomeone()

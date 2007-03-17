@@ -37,9 +37,14 @@
 		PSP_MODULE_INFO("APP_afkim", 0, 1, 1);
 		PSP_HEAP_SIZE_KB(1024*4);
 	#else //NOT PSPRADIOPLUGIN
+		#ifdef PSP15
+		PSP_MODULE_INFO("afkim", 0x1000, 1, 1);
+		PSP_MAIN_THREAD_ATTR(0);
+		#else
 		PSP_MODULE_INFO("afkim", 0, 0, 1);
 		PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
 		PSP_HEAP_SIZE_KB(1024*20);
+		#endif
 	#endif //PSPRADIOPLUGIN
 #endif //PSP
 
@@ -451,7 +456,7 @@ int main(int argc, char **argv)
 
 	SetupCallbacks();
 
-	#if 0
+	#ifdef PSP15
 	if(pspSdkLoadInetModules() < 0)
 	{
 		printf("Error, could not load inet modules\n");

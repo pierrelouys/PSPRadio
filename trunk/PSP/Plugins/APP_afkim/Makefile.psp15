@@ -12,7 +12,7 @@ OBJS = $(APPOBJS)
 
 INCDIR = 
 #CFLAGS = -O2 -G0 -Wall
-CFLAGS = -O2 -G0 -g -Wall -I/usr/local/pspdev/psp/include/freetype2 -I../../SharedLib/danzeff/puresdl -L../../SharedLib/lib -DPSP
+CFLAGS = -O2 -G0 -g -Wall -I/usr/local/pspdev/psp/include/freetype2 -I../../SharedLib/danzeff/puresdl -L../../SharedLib/lib -DPSP -DPSP15
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS) -c
 
@@ -23,7 +23,6 @@ LIBS = -lSDL_image  -lSDL -lfreetype -ldanzeffpuresdl -lpng -lz -lm -ljpeg -lpsp
 PSP_EBOOT_ICON = icon0.png
 PSP_EBOOT_PIC1 = pic1.png
 
-BUILD_PRX=1
 EXTRA_TARGETS = EBOOT.PBP
 PSP_EBOOT_TITLE = afkim
 
