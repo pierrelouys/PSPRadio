@@ -284,7 +284,16 @@ void CTextUI::render_thread(void *) //static
 
 void CTextUI::PrintMessage(int iBuffer)
 {
+	m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xAAAAAA);
+
+	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
+	m_Screen->VertLine(iBuffer, 100, 50, 100, 0x0);
+	m_Screen->VertLine(iBuffer, m_Screen->m_Width - 100, 50, 100, 0x0);
+	m_Screen->HorizLine(iBuffer, 50, 100, m_Screen->m_Width - 100, 0x0);
+	m_Screen->HorizLine(iBuffer, 100, 100, m_Screen->m_Width - 100, 0x0);
+	m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
+
 	uiPrintf(iBuffer, 110,60, 0xFFFFFF, m_Message);
 }
 

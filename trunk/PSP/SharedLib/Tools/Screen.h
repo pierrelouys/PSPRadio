@@ -15,10 +15,16 @@
 			TEXTMODE_OUTLINED,
 			TEXTMODE_SHADOWED
 		};
+		enum drawingmode
+		{
+			DRMODE_TRANSPARENT,
+			DRMODE_OPAQUE,
+		};
 				
 		CScreen(int iNumberOfBuffers, int width = 480, int height = 272, 
 				int pitch = 512, int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
 		~CScreen();
+		void SetDrawingMode(drawingmode newmode) { m_DrawingMode = newmode; };
 		void SetBackColor(u32 colour);
 		void SetTextColor(u32 colour);
 		void LoadBuffer(int iBuffer, const char *strImage);
@@ -30,6 +36,7 @@
 		size_t GetNumberOfTextRows(){ return m_Height/m_FontHeight; }
 		
 	private:
+		drawingmode m_DrawingMode;
 		u32 bg_col, fg_col;
 		bool init;
 		textmode m_TextMode;
@@ -49,6 +56,7 @@
 		void Effect(int iBuffer);
 		void Plot(int iBuffer, int x, int y, int color);
 		void VertLine(int iBuffer, int x, int y1, int y2, int color);
+		void HorizLine(int iBuffer, int y, int x1, int x2, int color);
 		int  Peek(int iBuffer, int x, int y);
 		void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color);
 		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);

@@ -35,6 +35,7 @@ CScreen::CScreen(int iNumberOfBuffers, int width, int height, int pitch, int pix
 	m_Pitch = pitch;
 	m_PixelFormat = pixel_format;
 	m_NumberOfBuffers = iNumberOfBuffers;
+	m_DrawingMode = DRMODE_TRANSPARENT;
 	switch(m_PixelFormat)
 	{
 	case PSP_DISPLAY_PIXEL_FORMAT_565:
@@ -66,7 +67,6 @@ CScreen::~CScreen()
 {
 	if (m_NumberOfBuffers > NUM_VRAM_BUFFERS)
 	{
-		/* Allocate remainder of requested buffers in System RAM */
 		for (int i = NUM_VRAM_BUFFERS; i < m_NumberOfBuffers; i++)
 		{
 			free(m_Buffer[i]);
@@ -107,13 +107,29 @@ void CScreen::SetFrameBuffer(int iBuffer)
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 }
 
+typedef void (*drmodef)(u32 *pixel, int color);
+
+void dr_mode_transparent(u32 *pixel, int color)
+{
+	*pixel = *pixel | color;
+}
+void dr_mode_opaque(u32 *pixel, int color)
+{
+	*pixel = color;
+}
+
+drmodef DrawingModeFunction[] = {
+	dr_mode_transparent,
+	dr_mode_opaque
+};
 
 void CScreen::Plot(int iBuffer, int x, int y, int color)
 {
 	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
 	//*pixel = color;
 	//*pixel = *pixel & color;
-	*pixel = *pixel | color;
+	//*pixel = *pixel | color;
+	DrawingModeFunction[m_DrawingMode](pixel, color);
 }
 
 void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
@@ -138,6 +154,30 @@ void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
 	}
 	
 }
+
+void CScreen::HorizLine(int iBuffer, int y, int x1, int x2, int color)
+{
+	if (x1 < x2)
+	{
+		for (int x = x1<0?0:x1; x <= x2; x++)
+		{
+			Plot(iBuffer, x, y, color);
+		}
+	}
+	else if (x2 < x1)
+	{
+		for (int x = x2<0?0:x2; x <= x1; x++)
+		{
+			Plot(iBuffer, x, y, color);
+		}
+	}
+	else 
+	{
+		Plot(iBuffer, x1, y, color);
+	}
+	
+}
+
 
 void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
 {
