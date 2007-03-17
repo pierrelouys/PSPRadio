@@ -291,6 +291,23 @@ void bitlbeeCallback::addAccount(bitlbeeAccountType acctype, wstring Wusername, 
 
 }
 
+void bitlbeeCallback::deleteAccount(const string &accountDetail)
+{
+	serverMsg("account off " + accountDetail);
+	serverMsg("account del " + accountDetail);
+	
+	vector<bitlbeeAccount>::iterator iter;
+	for (iter = accounts.begin(); iter != accounts.end(); iter++)
+	{
+		if ((*iter).details == accountDetail)
+		{
+			accounts.erase(iter);
+			break;
+		}
+	}
+	if (accountChangeCallback != NULL) accountChangeCallback->notifyAccountChange(accounts);
+}
+
 void bitlbeeCallback::setAway()
 {
 	myirc->setAway("away");

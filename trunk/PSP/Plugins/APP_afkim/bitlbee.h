@@ -106,6 +106,7 @@ public:
 	
 	void signin(int accountNo); //-1 for all
 	void addAccount(bitlbeeAccountType acctype, wstring username, wstring password);
+	void deleteAccount(const string &accountDetail); //accountDetail should be the details field from a bitlbeeAccount instance
 	
 	//Away/back
 	void setAway();

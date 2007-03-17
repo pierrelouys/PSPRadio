@@ -54,8 +54,7 @@ string menuMain::pressCross()
 		case 3: //Add Account
 			return "menuAddAccount";
 		case 4: //Remove Account
-			//TODO
-			break;
+			return "accountDeleter";
 		case 5: //Reconnect Wifi
 			return "RESET_AFKIM";
 		case 6: //Quit

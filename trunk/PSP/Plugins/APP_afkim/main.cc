@@ -10,6 +10,7 @@
 #include "gui/menuAddAccount.h"
 #include "gui/menuBuddyOptions.h"
 #include "gui/accountCreator.h"
+#include "gui/accountDeleter.h"
 #include "gui/buddyRenamer.h"
 #include "dlib/util.h"
 
@@ -332,6 +333,10 @@ bool runAfkim(guiBit* guiBit_bg)
 	buddyRenamer br = buddyRenamer();
 	addGuiBit(&br);
 	inputs[br.getInputKey()] = &br;
+	
+	accountDeleter ad;
+	addGuiBit(&ad);
+	inputs[ad.getInputKey()] = &ad;
 	
 	currentInput = "chatSelector";
 	mmpop.changeReturnVal = "chatSelector";

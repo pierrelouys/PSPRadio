@@ -9,7 +9,7 @@ SRC = main.cc \
       irc.cc bitlbee.cc \
       gui/accountsStatus.cc gui/chatInput.cc gui/chatSelector.cc gui/newmsgBit.cc \
       gui/menuMain.cc gui/menuAddAccount.cc gui/menuBuddyOptions.cc \
-      gui/accountCreateText.cc gui/accountCreator.cc gui/buddyRenamer.cc \
+      gui/accountCreateText.cc gui/accountCreator.cc gui/accountDeleter.cc gui/buddyRenamer.cc \
       dlib/guibits/textArea.cc dlib/guibits/textLineInput.cc dlib/guibits/selector.cc dlib/guibits/wifiSelector.cc \
       dlib/keyboards/pspctrl_emu.cc dlib/keyboards/p_sprint.cc dlib/keyboards/kbwrap.cc
 
