@@ -25,11 +25,7 @@ public:
 //private
 	accountCreateText* nickname; //FIXME: Should probably rename accountCreateText class to something better since we use it here
 protected:
-	bool dirty;
-	
 	guiBit* background;
-	
-	bool justActive; //true if we were just activated, stops buttons leaking to the keyboard
 };
 
 #endif //INCLUDED_GUI_ACCOUNTCREATE

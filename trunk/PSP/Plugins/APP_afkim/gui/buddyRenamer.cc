@@ -11,7 +11,6 @@ buddyRenamer::buddyRenamer()
 	
 	nickname = new accountCreateText(61, 224, "", "done");
 	
-	dirty = true;
 	gui_active = false;
 }
 
@@ -28,15 +27,6 @@ string buddyRenamer::getInputKey() const
 
 string buddyRenamer::takeInput(SDL_Joystick* joystick)
 {
-	//lock to prevent the previous X leaking in
-	if (justActive)
-	{
-		if (PRESSING_X(joystick))
-			return getInputKey();
-		else
-			justActive = false;
-	}
-	
 	if (PRESSING_SELECT(joystick))
 	{
 		return "menuBuddyOptions";
@@ -44,7 +34,6 @@ string buddyRenamer::takeInput(SDL_Joystick* joystick)
 	else
 	{
 		string res = nickname->takeInput(joystick);
-		if (nickname->dirty) dirty = true;
 		
 		if (res == "done") //Returning, rename em
 		{
@@ -57,10 +46,7 @@ string buddyRenamer::takeInput(SDL_Joystick* joystick)
 
 bool buddyRenamer::needsRedraw() const
 {
-	nickname->needsRedraw();
-		return true;
-	
-	return dirty;
+	return (gui_active && nickname->needsRedraw());
 }
 
 void buddyRenamer::draw()
@@ -74,7 +60,6 @@ void buddyRenamer::draw()
 
 void buddyRenamer::inputableActivate()
 {
-	justActive = true;
 	inputable::inputableActivate();
 	nickname->inputableActivate();
 	nickname->clearText();

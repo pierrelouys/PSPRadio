@@ -36,8 +36,6 @@ protected:
 	textBlock infoText;
 
 	textArea* text;
-	
-	bool justActive; //true if we were just activated, stops buttons leaking to the keyboard
 };
 
 #endif //INCLUDED_GUI_ACCOUNTCREATE

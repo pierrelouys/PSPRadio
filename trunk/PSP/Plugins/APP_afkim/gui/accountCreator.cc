@@ -43,15 +43,6 @@ string accountCreator::getInputKey() const
 
 string accountCreator::takeInput(SDL_Joystick* joystick)
 {
-	//lock to prevent the previous X leaking in
-	if (justActive)
-	{
-		if (PRESSING_X(joystick))
-			return getInputKey();
-		else
-			justActive = false;
-	}
-	
 	//Cancel adding an account, Can't cancel bitlbee.
 	if (type!=BAT_BITLBEE && !isHoldingOne() && (PRESSING_SELECT(joystick)))
 	{
@@ -122,7 +113,6 @@ void accountCreator::draw()
 
 void accountCreator::inputableActivate()
 {
-	justActive = true;
 	inputable::inputableActivate();
 	username->inputableActivate();
 }
