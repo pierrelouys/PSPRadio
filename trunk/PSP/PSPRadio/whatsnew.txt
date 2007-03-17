@@ -5,6 +5,7 @@ NEW FEATURES
 (raf) Plugins: Added some VERY SIMPLE visualization plugins. This only work under TextUI at the moment. (Look under the Options-Plugins menu)
 (raf) Plugins: PSPRadio saves current selected plugin in config file section PLUGINS:DEFAULT_VISUALIZER
 (raf) Core: Localfiles: Empty directories are not listed anymore.
+(albadross) TextUI: Updated screens for the visualizer plugins.
 BUG FIXES
 (raf) Core: Fixed button repeat handling that broke when implemented the button mapping. (This also corrected problems with HPRM)
 KNOWN BUGS
