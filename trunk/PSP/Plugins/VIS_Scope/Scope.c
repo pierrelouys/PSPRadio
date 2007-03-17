@@ -25,12 +25,10 @@
 #include <string.h>
 #include <limits.h>
 #include <malloc.h>
-#include <Tools.h>
 #include <stdarg.h>
-#include <pthread.h>
-#include "../VIS_Plugin.h"
-#include "Scope.h"
+#include "VIS_Plugin.h"
 
+/** PRX **/
 PSP_MODULE_INFO("VIS_SCOPE", 0, 1, 1);
 PSP_HEAP_SIZE_KB(0);
 PSP_NO_CREATE_MAIN_THREAD();
@@ -43,13 +41,9 @@ int module_start(SceSize argc, void* argp)
 int module_stop(int args, void *argp)
 {
 	return 0;
-};
+}
+/** PRX **/
 
-#define true 1
-#define false 0
-#define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
-
-//#define VIS_WIDTH (scope_vtable.config->x2 - scope_vtable.config->x1)
 short *s_pcmbuffer = NULL;
 
 /* Plugin setup */
@@ -274,10 +268,10 @@ void draw_pcm(u32* vram) /* TRAIL */
 	int y, old_y;
 	old_y = y_mid;
 	static u32 prev_pcm[512/*max*/];
-	static bool first_time = true;
+	static int first_time = 1;
 	if (first_time)
 	{
-		first_time = false;
+		first_time = 0;
 	}
 	else
 	{

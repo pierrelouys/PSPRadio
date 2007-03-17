@@ -13,12 +13,9 @@
 	
 	typedef struct _VisPluginConfig
 	{
-		int x1;
-		int y1;
-		int x2;
-		int y2;
-		//int y_mid;
-		//int pcm_right_shift;
+		/* Upper left / Lower right corners when not in fullscreen mode */
+		int x1,y1;
+		int x2,y2;
 	} VisPluginConfig;
 		
 

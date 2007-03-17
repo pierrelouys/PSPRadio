@@ -3,25 +3,26 @@ include $(BASE_DIR)/include.mak
 
 TARGET=VIS_ScopeBars
 
-EXPORTED_OBJS = $(PSPRADIO_DIR)/PSPRadioExports.o 
-OBJS = Scope.o $(EXPORTED_OBJS)
+OBJS = Scope.o dummyimport.o
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
 # Define the name of our custom exports (minus the .exp extension)
 PRX_EXPORTS=$(PLUGINS_DIR)/VIS_Exports.exp
 
-INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
-		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
-		 -I$(PSPRADIO_DIR)/ScreenHandler -L$(PLUGINS_DIR)/Common $(SET_F)
-
+INCLUDES = -I./ -I../
 		 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES) $(SET_F)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
 LDFLAGS += -mno-crt0 -nostartfiles
+
+#LIBS = -lm -lpng
+
+#USE_KERNEL_LIBS=1
+#USE_KERNEL_LIBC=1
+#USE_PSPSDK_LIBC=1
 
 LIBDIR =
 
