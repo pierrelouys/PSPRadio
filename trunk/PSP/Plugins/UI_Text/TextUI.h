@@ -146,6 +146,10 @@ private:
 	char m_Message[512];
 	CLock *m_RenderLock;
 	CBlocker *m_RenderExitBlocker;
+	/* For renderloop */
+	bool m_ExitRenderThread;
+	bool m_bDisplayFPS;
+
 
 	void PrintMessage(char *message);
 	void PrintTime(int iBuffer, bool draw_background);
@@ -162,6 +166,7 @@ private:
 	void PrintCurrentContainerSideTitle(int iBuffer, bool draw_background);
 
 	static void render_thread(void *);
+	void RenderLoop(); /* Called from render_thread */
 };
 
 

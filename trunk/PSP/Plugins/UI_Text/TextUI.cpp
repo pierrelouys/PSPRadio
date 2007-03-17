@@ -35,24 +35,24 @@
 #include <psputility_sysparam.h>
 #include "VIS_Plugin.h"
 
-#define MAX_ROWS 		s_ui->m_Screen->GetNumberOfTextRows()
-#define MAX_COL 		s_ui->m_Screen->GetNumberOfTextColumns()
+#define MAX_ROWS 		m_Screen->GetNumberOfTextRows()
+#define MAX_COL 		m_Screen->GetNumberOfTextColumns()
 #define PIXEL_TO_ROW(y)	((y)/m_Screen->GetFontHeight())
 #define PIXEL_TO_COL(x) ((x)/m_Screen->GetFontWidth())
 #define COL_TO_PIXEL(c) ((c)*m_Screen->GetFontWidth())
 #define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
 
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
-#define SET_BIT(x) {s_ui->m_isdirty|=x;}
-#define UNSET_BIT(x) {s_ui->m_isdirty&=~x;}
+#define SET_BIT(x) {m_isdirty|=x;}
+#define UNSET_BIT(x) {m_isdirty&=~x;}
 
 #define BACKGROUND_BUFFER 3
 #define OFFLINE_BUFFER    2
 
 #define TextUILog ModuleLog
 
-CTextUI *s_ui = NULL;
-bool s_exit = false;
+/* For render thread */
+static CTextUI *sThis;
 
 CTextUI::CTextUI()
 {
@@ -66,10 +66,11 @@ CTextUI::CTextUI()
 	m_strTitle = strdup("PSPRadio");
 	m_Message[0] = 0;
 
-	s_ui = this;
+	sThis = this;
 	m_isdirty = 0;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
+	m_bDisplayFPS = false;
 
 	/* Get some PSPRadio objects */
 	pspradioexport_ifdata ifdata;
@@ -91,7 +92,7 @@ CTextUI::CTextUI()
 		shdparam.sched_policy = SCHED_OTHER;
 		shdparam.sched_priority = 45;
 		pthread_attr_setschedparam(&pthattr, &shdparam);
-		s_exit = false;
+		m_ExitRenderThread = false;
 		pthread_create(&pthid, &pthattr, render_thread, NULL);
 	}
 
@@ -102,8 +103,9 @@ CTextUI::CTextUI()
 CTextUI::~CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
-	s_exit = true;
+	m_ExitRenderThread = true;
 	m_RenderExitBlocker->Block();
+	sThis = NULL;
 	if (m_Config)
 	{
 		delete(m_Config);
@@ -141,8 +143,15 @@ int CTextUI::OnVBlank()
 
 void CTextUI::render_thread(void *) //static
 {
-	static int iBuffer = 0;
+	sThis->RenderLoop();
+	sThis->m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
+}
+
+void CTextUI::RenderLoop()
+{
+	int iBuffer = 0;
 	bool draw_background = true;
+	pspradioexport_ifdata ifdata = { 0 };
 	
 	/* For FPS Calculation: */
 	clock_t time1, time2;
@@ -150,27 +159,25 @@ void CTextUI::render_thread(void *) //static
 	int total_time = 0;
 	int fps = 0;
 	int message_frames = 0;
-	pspradioexport_ifdata ifdata;
-	memset(&ifdata, 0, sizeof(ifdata));
 
 	for (;;)
 	{
-		if (s_exit)
+		if (m_ExitRenderThread)
 		{
 			sceKernelDelayThread(1); /* yield */
 			break;
 		}
-		s_ui->m_RenderLock->Lock();
-		if (s_ui->m_isdirty)
+		if (m_isdirty)
 		{
+			m_RenderLock->Lock();
 			time1 = sceKernelLibcClock();
-
-			if (s_ui->m_isdirty & DIRTY_BACKGROUND)
+	
+			if (m_isdirty & DIRTY_BACKGROUND)
 			{
 				UNSET_BIT(DIRTY_BACKGROUND);
-				s_ui->m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
-					0, 0, s_ui->m_Screen->m_Width, s_ui->m_Screen->m_Height);
-				s_ui->PrintProgramVersion(OFFLINE_BUFFER);
+				m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
+					0, 0, m_Screen->m_Width, m_Screen->m_Height);
+				PrintProgramVersion(OFFLINE_BUFFER);
 				draw_background  = false;
 			}
 			else
@@ -178,71 +185,71 @@ void CTextUI::render_thread(void *) //static
 				draw_background = true;
 			}
 			
-			if (s_ui->m_isdirty & DIRTY_TIME)
+			if (m_isdirty & DIRTY_TIME)
 			{
 				UNSET_BIT(DIRTY_TIME);
-				s_ui->PrintTime(OFFLINE_BUFFER, draw_background);
+				PrintTime(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_BATTERY)
+			if (m_isdirty & DIRTY_BATTERY)
 			{
 				UNSET_BIT(DIRTY_BATTERY);
-				s_ui->PrintBattery(OFFLINE_BUFFER, draw_background);
+				PrintBattery(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_BUFFER_PERCENTAGE)
+			if (m_isdirty & DIRTY_BUFFER_PERCENTAGE)
 			{
 				UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
-				s_ui->PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
+				PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_SONG_DATA)
+			if (m_isdirty & DIRTY_SONG_DATA)
 			{
 				UNSET_BIT(DIRTY_SONG_DATA);
-				s_ui->PrintSongData(OFFLINE_BUFFER, draw_background);
+				PrintSongData(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_STREAM_TIME)
+			if (m_isdirty & DIRTY_STREAM_TIME)
 			{
 				UNSET_BIT(DIRTY_STREAM_TIME);
-				s_ui->PrintStreamTime(OFFLINE_BUFFER, draw_background);
+				PrintStreamTime(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_CONTAINERS)
+			if (m_isdirty & DIRTY_CONTAINERS)
 			{
 				UNSET_BIT(DIRTY_CONTAINERS);
-				s_ui->PrintContainers(OFFLINE_BUFFER, draw_background);
+				PrintContainers(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_ELEMENTS)
+			if (m_isdirty & DIRTY_ELEMENTS)
 			{
 				UNSET_BIT(DIRTY_ELEMENTS);
-				s_ui->PrintElements(OFFLINE_BUFFER, draw_background);
+				PrintElements(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_OPTIONS)
+			if (m_isdirty & DIRTY_OPTIONS)
 			{
 				UNSET_BIT(DIRTY_OPTIONS);
-				s_ui->PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
+				PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_ACTIVE_COMMAND)
+			if (m_isdirty & DIRTY_ACTIVE_COMMAND)
 			{
 				UNSET_BIT(DIRTY_ACTIVE_COMMAND);
-				s_ui->PrintActiveCommand(OFFLINE_BUFFER, draw_background);
+				PrintActiveCommand(OFFLINE_BUFFER, draw_background);
 			}
-			if (s_ui->m_isdirty & DIRTY_CURRENT_CONTAINER_SIDE_TITLE)
+			if (m_isdirty & DIRTY_CURRENT_CONTAINER_SIDE_TITLE)
 			{
 				UNSET_BIT(DIRTY_CURRENT_CONTAINER_SIDE_TITLE);
-				s_ui->PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
+				PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
 			}
 			
 			/* Copy buffer OFFLINE_BUFFER to back-buffer */
-			if (s_ui->m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
+			if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 			{
-				s_ui->m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
+				m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 		
 				/* Do effects to back-buffer */
-				if (s_ui->m_isdirty & DIRTY_PCM)
+				if (m_isdirty & DIRTY_PCM)
 				{
 					UNSET_BIT(DIRTY_PCM);
-					ifdata.Pointer = s_ui->m_Screen->GetBufferAddress(iBuffer);
+					ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 					PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 				}
 				
-				if (s_ui->m_isdirty & DIRTY_MESSAGE)
+				if (m_isdirty & DIRTY_MESSAGE)
 				{
 					UNSET_BIT(DIRTY_MESSAGE);
 					message_frames = 1;
@@ -250,7 +257,7 @@ void CTextUI::render_thread(void *) //static
 				
 				if (message_frames > 0)
 				{
-					s_ui->PrintMessage(iBuffer);
+					PrintMessage(iBuffer);
 					if (message_frames++ >= 30)
 					{
 						message_frames = 0;
@@ -266,24 +273,27 @@ void CTextUI::render_thread(void *) //static
 					frame_count = 0;
 					total_time = 0;
 				}
-				s_ui->uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
-
+				if (m_bDisplayFPS)
+				{
+					uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
+				}
+	
 				///Buffer is configured in sync mode already... 
 				sceDisplayWaitVblankStart();
 				//Flip Buffers
 				//sceKernelDcacheWritebackAll(); 
-				s_ui->m_Screen->SetFrameBuffer(iBuffer);
+				m_Screen->SetFrameBuffer(iBuffer);
 				iBuffer = 1 - iBuffer;
+				m_RenderLock->Unlock();
 			}
 		}
-		s_ui->m_RenderLock->Unlock();
 		sceKernelDelayThread(1); /* yield */
 	}
-	s_ui->m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
 }
 
 void CTextUI::PrintMessage(int iBuffer)
 {
+	sceKernelDcacheWritebackAll(); 
 	m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xAAAAAA);
 
@@ -471,6 +481,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 			&vis_cfg.x1, &vis_cfg.y1);
 		GetConfigPair("VISUALIZER_CONFIG:LOWER_RIGHT",
 			&vis_cfg.x2, &vis_cfg.y2);
+		m_bDisplayFPS = (bool)m_Config->GetInteger("VISUALIZER_CONFIG:DISPLAY_FPS", 0);
 			
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));
