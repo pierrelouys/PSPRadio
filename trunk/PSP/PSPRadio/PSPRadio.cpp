@@ -44,10 +44,14 @@ int CPSPRadio::Setup(int argc, char **argv)
 	char strAppTitle[140];
 
 	m_VisPluginData = NULL;
+	m_VisPluginConfig.sc_width = 480;
+	m_VisPluginConfig.sc_height = 272;
+	m_VisPluginConfig.sc_pitch = 512;
+	m_VisPluginConfig.sc_pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888;
 	m_VisPluginConfig.x1 = 0;
-	m_VisPluginConfig.y1 = 0;//_mid = (272/2);
+	m_VisPluginConfig.y1 = 0;
 	m_VisPluginConfig.x2 = 480;
-	m_VisPluginConfig.y2 = 272;//_mid = (272/2);
+	m_VisPluginConfig.y2 = 272;
 	//m_VisPluginConfig.pcm_right_shift = 8;
 	
 	sprintf(strAppTitle, "%s", GetProgramVersion());
@@ -322,7 +326,7 @@ void CPSPRadio::OnExit()
 	{
 		if (m_ModuleLoader[i])
 		{
-			Log(LOG_VERYLOW, "Exiting. Destroying m_ModuleLoader[%d] object", i);
+			Log(LOG_VERYLOW, "Exiting. Destroying m_ModuleLoader[%d] object. Name='%s'", i, m_ModuleLoader[i]->GetName());
 			delete(m_ModuleLoader[i]), m_ModuleLoader[i] = NULL;
 		}
 	}

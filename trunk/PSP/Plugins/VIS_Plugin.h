@@ -11,11 +11,17 @@
 
 	#include <psptypes.h>
 	
+	/* Config is populated by PSPRadio */
 	typedef struct _VisPluginConfig
 	{
-		/* Upper left / Lower right corners when not in fullscreen mode */
-		int x1,y1;
-		int x2,y2;
+		/* Screen properties */
+		int sc_width, sc_height, sc_pitch, sc_pixel_format;
+
+		/* Upper left / Lower right corners (rectangle) for visualization to use when not in fullscreen mode */
+		int x1,y1, x2,y2;
+
+		/* reserved */
+		char reserved[8];
 	} VisPluginConfig;
 		
 
@@ -23,20 +29,17 @@
 	{
 		void *handle; /* Filled in by PSPRadio */
 		char *filename; /* Filled in by PSPRadio */
-		int PSPRadio_session; /* not used atm *//* The session ID for attaching to the control socket */
 		char *description; /* The description that is shown in the preferences box */
-		int num_pcm_chs_wanted; /* not used atm *//* Numbers of PCM channels wanted in the call to render_pcm */
-		int num_freq_chs_wanted; /* not used atm *//* Numbers of freq channels wanted in the call to render_freq */
 		void (*init)(void); /* Called when the plugin is enabled */
 		void (*cleanup)(void); /* Called when the plugin is disabled */
-		void (*about)(void); /* Show the about box */
-		void (*configure)(void); /* Show the configure box */
-		void (*disable_plugin)(struct _VisPlugin *); /* Call this with a pointer to your plugin to disable the plugin */
+		void (*about)(void); /* not used atm *//* Show the about box */
+		void (*configure)(void); /* not used atm *//* Show the configure box */
+		void (*disable_plugin)(struct _VisPlugin *); /* not used atm *//* Call this with a pointer to your plugin to disable the plugin */
 		void (*playback_start)(void); /* Called when playback starts */
 		void (*playback_stop)(void); /* Called when playback stops */
-		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
+		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); /* Render the PCM (2ch/44KHz) data, don't do anything time consuming in here -- pcm_data has channels interleaved */
 		void (*render_freq)(u32* vram_frame, int16 *freq_data); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
-		void (*config_update)(); /* Called when config changes */
+		void (*config_update)(); /* Called by PSPRadio when config changes */
 		VisPluginConfig *config; /* Filled in by PSPRadio */
 	} VisPlugin; 
 

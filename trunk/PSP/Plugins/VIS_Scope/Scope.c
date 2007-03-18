@@ -58,14 +58,8 @@ VisPlugin scope_vtable = {
 	NULL, 
 	//char *filename; /* Filled in by PSPRadio */
 	NULL, 
-	//int PSPRadio_session; /* not used atm *//* The session ID for attaching to the control socket */
-	0, 
 	//char *description; /* The description that is shown in the preferences box */
 	"Scope Plugin", 
-	//int num_pcm_chs_wanted; /* not used atm *//* Numbers of PCM channels wanted in the call to render_pcm */
-	2, 
-	//int num_freq_chs_wanted; /* not used atm *//* Numbers of freq channels wanted in the call to render_freq */
-	0, 
 	//void (*init)(void); /* Called when the plugin is enabled */
 	scope_init, 
 	//void (*cleanup)(void); /* Called when the plugin is disabled */

@@ -1,11 +1,14 @@
 What's New for PSPRadio
 ========================
-1.15.xxxx (2007-02-xx)
+1.175.xxxx (2007-03-xx)
 NEW FEATURES
-(raf) Plugins: Added some VERY SIMPLE visualization plugins. This only work under TextUI at the moment. (Look under the Options-Plugins menu)
+(raf) Plugins: Added some VERY SIMPLE visualization plugins. This only works under TextUI at the moment. (Look under the Options-Plugins menu)
 (raf) Plugins: PSPRadio saves current selected plugin in config file section PLUGINS:DEFAULT_VISUALIZER
 (raf) Core: Localfiles: Empty directories are not listed anymore.
 (albadross) TextUI: Updated screens for the visualizer plugins.
+(raf) TextUI: Converted rendering to use page flipping (double buffering).
+(raf) TextUI: Added a PLUGINS:DISPLAY_FPS option to config files. (not there by default -- disabled).
+(raf) Plugins: Added sample sourcecode for a simple visualizer plugin to the release.
 BUG FIXES
 (raf) Core: Fixed button repeat handling that broke when implemented the button mapping. (This also corrected problems with HPRM)
 KNOWN BUGS

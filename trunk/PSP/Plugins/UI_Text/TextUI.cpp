@@ -505,6 +505,11 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		/* Set visualizer config data */
 		if (vis_cfg.x1+vis_cfg.y1+vis_cfg.x2+vis_cfg.y2 > 0)
 		{
+			vis_cfg.sc_width = m_Screen->m_Width;
+			vis_cfg.sc_height = m_Screen->m_Height;
+			vis_cfg.sc_pitch = m_Screen->m_Pitch;
+			vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
+
 			memset(&ifdata, 0, sizeof(ifdata));
 			ifdata.Pointer = &vis_cfg;
 			PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);

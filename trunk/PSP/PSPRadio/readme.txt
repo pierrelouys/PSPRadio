@@ -25,11 +25,11 @@ echto:     Initial SHOUTcast.com interface, zlib routines.
 mbf:       Patch to make devhook compatible
 
 Art:
--Semtex199:  TextUI Backgrounds, Iconset, PSPTris art, Links2 homepage art,
+-Semtex199:  TextUI/TextUI3D Skins, Iconset, PSPTris art, Links2 homepage art,
              3D UI Art.
 -HalfastII:  Iconset/Skin Tweaking/Config Tweaking/Ideas/Forum Moderation/
              Testing/Lots of Help.
--Albadross:  TextUI Backgrounds/Skins/Documentation/Ideas/Configurations.
+-Albadross:  TextUI Skin Package/Skins/Documentation/Ideas/Configurations.
 -handojinUK: Iconset
 -harbringer: Iconset, default GraphicsUI theme
 -Argandona:  Iconset for Links2
@@ -63,12 +63,12 @@ Raf would like to thank all the users that have donated to this project.
 Raf would also like to thank (In no particular order, except the first one :) ):
 -my sons and wife for putting up with me :)
 -PSPDEV Team for their incredible work on the PSPSDK, toolchain, libraries, etc!
--libMAD and libTremor teams.
+-libMAD and libTremor/Vorbis teams.
 -mpg123 team.
 -everybody I'm missing!!
 
 Also thanks for mirroring and posting news to:
--pspupdates, psp-hacks, gbazone, psp-news.dcemu!
+-pspupdates, psp-hacks, gbazone, psp-news.dcemu, and others.
 
 --------------------------------------------------------------------------
 
