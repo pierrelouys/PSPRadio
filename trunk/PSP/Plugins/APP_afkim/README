@@ -1,21 +1,38 @@
-AFKIM 2
+AFKIM 3
 Away from Keyboard Instant Messager.
 An (almost) universal messenger client: AIM, ICQ, MSN, GTalk, Yahoo!
 Coded by Danzel (danzelatlocalhostdotgeekdotnz)
 Using the Libraries: SDL, SDL_Image, LIBPNG, P_Sprint, danzeff, freetype2, pthreads.
 
-AFKIM is GPL Licensed, see gpl.txt for details.
+AFKIM is GPL Licensed, see gpl.txt for details. (code available at: http://sourceforge.net/svn/?group_id=166538 )
 p_sprint is included in the code tree and is BSD licensed (I have made slight modifications to it).
-dlib will possibly be released under BSD license at some stage.
 
 
 ##################### Thanks to #####################
 Ayb4btu and Randy for doing some art :)
 Bitlbee, wouldn't be here without it.
-macca-hacker, DuEy, thefamilyman, Castor, jawohl, others? for testing.
+macca-hacker, DuEy, thefamilyman, Castor, jawohl, others? for testing afkim 2.
 
 
 ##################### Changelog #####################
+--3
+Much better, more usable program.
+Works in OE kernel, DHCP ONLY CURRENTLY, not sure why static IP address doesn't work.
+Faster display rendering (Keyboard lags less)
+Better wifi handling - User can rechoose which to connect to if connecting fails.
+Better menu system, lots more menu items.
+ - Away / Back
+ - Remove Account
+ - Reconnect to Wifi (No more quitting AFKIM to reconnect! yay)
+ - Get Buddy Details
+ - Rename Buddy
+ - Block/Unblock Buddy
+ - Delete Buddy
+Fixes related to pressing buttons, menus now continue scrolling if you hold up or down.
+Better connection handling.
+Many many code cleanups
+Fix memory leaks (introduce a new known one :( )
+
 --2 and a bit
 Quit option.
 pspradio plugin.
@@ -46,63 +63,25 @@ And the server chat window now shows the bitlbee status so you can see why your 
 Increased the size of the input boxes when creating accounts to 40 chars.
 
 ####################### Usage #######################
-READ THE README THE WHOLE WAY THROUGH BEFORE STARTING AFKIM
+Getting started guide:
+http://localhost.geek.nz/afkim/docs/gettingstarted.html
 
-Install:
-Put the afkim and afkim% folders onto your psp in psp/game (do not copy the % folder unless you are on a 1.5 psp)
-If you are upgrading from an earlier version then take a copy of your bitlbee.cfg file and put it back into the new folder once you have copied it over.
+Upgrading:
+ - copy your 'bitlbee.cfg' file from your old afkim folder to the new one, done!
 
-Start it up,  hopefully you will be presented with the wifi connection screen, choose a wifi connection with x and afkim will connect to it.
-
-If this is the first time you have launched afkim you will be presented with the 'create a bitlbee account' menu.
- Enter in a username, press enter (digital down on the danzeff keyboard).
- Then enter in a password, pressing enter when you are done.
- If the screen goes away then you have successfully created your bitlbee account and it is saved on your memory stick.
- If the screen is still their but your username and password are gone, then you should be able to see an error under the create an account menu detailing what went wrong, most likely the username you want is taken, if so, try again with another one.
- [IMPORTANT]: Passwords are always shown in cleartext so you can see what you are typing! [/IMPORTANT]
-
-You will now be at the normal afkim screen, from here press select to get the accounts menu up, chose what kind of account you want to add with up/down and press x.
-Enter in details in the same way as a bitlbee account. If you make a mistake you can press select to cancel right out (DO NOT ADD AN INCORRECT ACCOUNT, YOU CAN'T REMOVE IT IN THIS VERSION!#!@#!@ (well, you can, view the FAQ below for details)).
-[WARNING] Do not add more than one of the same kind of account, it might work but it probably won't. This will be fixed in a future version. Most likely the area showing the account types logged in will just be incorrect, but you never know! [/WARNING]
-
-Now, the chat interface.
-You will initially be chatting to the server, not a very useful person to talk to as he's rather quiet ;)
-
-The green tag at the top of the screen shows which area your input it currently going to, if it is in the right column, then you can press up and down to chose who to chat to (signified by a orange fade), names are black if they are online and grey if they are busy. They are highlighted purple if they have sent a message you haven't read (This is also signified by a new msg popup at the bottom right). Press X to begin chatting to a contact.
-The green tag at the top of the screen should now move over to the right column, here you can enter text to send to your buddy (if you don't move the analog for a bit the OSK will disappear, twiddle it to make it reappear). When you have typed a message press enter (digital down on the danzeff keyboard) to send it.
-To get back to the buddy select column, press the start button.
-You can press select at any time to get the menu up to add more accounts (press select to close the menu)
-
-############ Extra things you should know ###########
 You can change which keyboard you are using by editing the afkim.cfg file in the afkim folder.
   If you are using the p-sprint keyboard then enter is [start] and to get from the chat window to the contact list is L-shoulder.
 
-If you get a message from someone not on your contact list it appears in the server window, the new msg popup does not appear in this case (It will in a future version).
+####################### FAQ #########################
 
-You can rename people!
-To rename a contact, send them the message "/r NEWNICK" and it will change their name to NEWNICK, if this name is already taken then there will be an error in the server window (This should really be in the current window, will change in the future).
-
-When quitting on 2.00+ it just crashes. Sucks I know, seems like an eloader bug currently as other wifi homebrew do the same thing.
-
-############### Known bugs / Wishlist ###############
-
---Todo list--
-Proper Jabber Support.
-Multiple accounts on the same protocol.
-Monkey
-Ability to remove accounts
-Scrollable chatlog
-Get told when people add you to your list (accept/deny/block).
-Full details on contacts (their name etc, ability to rename them).
-Change nick on your account.
-
-FAQ: (If you post any of these, YOU SUCK DIE DIE DIE)
+Q: When will you add IR keyboard support?
+A: When I get an IR keyboard, I'm having trouble finding one for a good price.
 
 Q: Whats all this spam in the console now?
 A: That would be the message from the bitlbee server, most of these should be hidden, but I haven't done it yet ;)
 
 Q: What is an ICQ username?
-A: It is your icq number.
+A: It is your ICQ number.
 
 Q: It crashed! / I'm stuck!
 A: uh thanks. a non-question :P I need more details than this, alot more. tell me exactly what you were doing and I might just be able to help.
@@ -116,10 +95,6 @@ A: AFKIM automatically signs into all the accounts it knows of.
 Q: How do I know if I'm online?
 A: If the icon for the account is colored you are online, if it is grey or not there you are offline or connecting.
 
-Q: Can I have the source code?
-A: No. When I'm happy with AFKIM I will release it under GPL, if there is a huge reason you need some of it, message me.
-   I plan to clean up the gui component classes and release them seperately at a future date.
-
 Q: What is that lightbulb icon, I added a gtalk account!
 A: That lightbulb is the jabber logo, gtalk uses jabber so it gets the jabber icon.
 
@@ -128,11 +103,7 @@ A: Jabber will come in the future, its basically in there already, if you know a
    Other protocols can't be added, we rely on bitlbee for the transports.
 
 Q: How do these nicknames get decided? Can I rename my contacts!?
-A: The bitlbee server decides how to name your contacts, usually it bases them of their username. You can rename as described up in the "Extra things you should know" section
-
-Q: How can I remove an account?
-A: Go to the server window, say "account list", find the number for the account you want to remove and say "account del X" (where X is the number).
-This will get a menu item or something in the future to make it easier.
+A: The bitlbee server decides how to name your contacts, usually it bases them of their username. You can rename buddies in the buddy menu.
 
 Q: Can I use a different bitlbee server or add an existing account?
 A: Yes, you need to create a bitlbee.cfg file in the afkim folder, its format is as follows:
@@ -144,6 +115,6 @@ PASSWORD
 We always connect on port 6667, don't try change it in the server string ;)
 If you do this, you should also set the following settings:
 set auto_connect false
-set auto_reconnect false
+set auto_reconnect true
 set display_namechanges true
 set auto_reconnect_delay 60
