@@ -28,7 +28,7 @@ string selector::takeInput(SDL_Joystick* joystick)
 {
 	if (!isHoldingOne())
 	{
-		if (PRESSING_UP(joystick) || PRESSING_DOWN(joystick) || PRESSING_X(joystick) || PRESSING_SELECT(joystick) || PRESSING_START(joystick)) //pressed any
+		if (PRESSING_UP(joystick) || PRESSING_DOWN(joystick) || PRESSING_O(joystick) || PRESSING_X(joystick) || PRESSING_SELECT(joystick) || PRESSING_START(joystick)) //pressed any
 		{
 			dirty = true;
 		}
@@ -46,6 +46,10 @@ string selector::takeInput(SDL_Joystick* joystick)
 		else if (PRESSING_X(joystick) || PRESSING_START(joystick))
 		{
 			return pressCross();
+		}
+		else if (PRESSING_O(joystick))
+		{
+			return pressCircle();
 		}
 		else if (PRESSING_SELECT(joystick))
 		{

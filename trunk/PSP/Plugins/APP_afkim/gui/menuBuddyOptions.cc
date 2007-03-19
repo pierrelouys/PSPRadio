@@ -65,7 +65,12 @@ string menuBuddyOptions::pressCross()
 	return getInputKey();
 }
 
-string menuBuddyOptions::pressSelect()
+string menuBuddyOptions::pressCircle()
 {
 	return "menuMain";
+}
+
+string menuBuddyOptions::pressSelect()
+{
+	return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 }

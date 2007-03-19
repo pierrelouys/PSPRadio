@@ -71,7 +71,12 @@ string accountDeleter::pressCross()
 	return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 }
 
-string accountDeleter::pressSelect()
+string accountDeleter::pressCircle()
 {
 	return "menuMain";
+}
+
+string accountDeleter::pressSelect()
+{
+	return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 }

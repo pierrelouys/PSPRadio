@@ -155,6 +155,11 @@ string wifiSelector::pressCross()
 	return "done";
 }
 
+string wifiSelector::pressCircle()
+{
+	return getInputKey();
+}
+
 string wifiSelector::pressSelect()
 {
 	return getInputKey();

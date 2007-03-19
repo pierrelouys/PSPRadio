@@ -1,6 +1,7 @@
 #include "menuAddAccount.h"
 #include "../dlib/util.h"
 #include "../bitlbee.h"
+#include "menuMain.h"
 #include "accountCreator.h"
 
 menuAddAccount::menuAddAccount()
@@ -64,7 +65,12 @@ string menuAddAccount::pressCross()
 	return "accountCreator";
 }
 
-string menuAddAccount::pressSelect()
+string menuAddAccount::pressCircle()
 {
 	return "menuMain";
+}
+
+string menuAddAccount::pressSelect()
+{
+	return ((menuMain*)inputs["menuMain"])->changeReturnVal; //HACK
 }

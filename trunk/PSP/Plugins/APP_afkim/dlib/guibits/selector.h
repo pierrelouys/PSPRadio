@@ -21,6 +21,7 @@ protected:
 	//the value returned here is the value returned to takeInput
 	virtual string fixSelected() = 0;
 	virtual string pressCross() = 0;
+	virtual string pressCircle() = 0;
 	virtual string pressSelect() = 0;
 	void init(const unsigned int &targetX, const unsigned int &targetY, const unsigned int &nItemSize, const int &nSelected, const string &image);
 	

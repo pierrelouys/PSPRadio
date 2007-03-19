@@ -63,6 +63,11 @@ string menuMain::pressCross()
 	return changeReturnVal;
 }
 
+string menuMain::pressCircle()
+{
+	return changeReturnVal;
+}
+
 string menuMain::pressSelect()
 {
 	return changeReturnVal;

@@ -62,6 +62,11 @@ string chatSelector::pressCross()
 	return "chatInput";
 }
 
+string chatSelector::pressCircle()
+{
+	return getInputKey();
+}
+
 string chatSelector::pressSelect()
 {
 	//change selected item to menu?

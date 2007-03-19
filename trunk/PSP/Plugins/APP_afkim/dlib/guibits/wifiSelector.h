@@ -27,6 +27,7 @@ protected:
 	//the value returned here is the value returned to takeInput
 	virtual string fixSelected();
 	virtual string pressCross();
+	virtual string pressCircle();
 	virtual string pressSelect();
 
 	textBlock infoText;
