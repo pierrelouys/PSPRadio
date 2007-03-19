@@ -1,4 +1,3 @@
-
 /*
 	PSPRadio / Music streaming client for the PSP. (Initial Release: Sept. 2005)
 	Copyright (C) 2005  Rafael Cabezas a.k.a. Raf
@@ -618,6 +617,7 @@ void CPSPRadio::OnVBlank()
 int CPSPRadio::OnPowerEvent(int pwrflags)
 {
 	static bool bPlayAfterResume = false;
+	static bool bPauseAfterResume = false;
 	static bool bEnableNetworkAfterResume = false;
 	static int iCurrentStreamPosition = 0;
 	
@@ -632,6 +632,14 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 			bPlayAfterResume = true;
 			iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
 			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was playing (pos=%d), so stopping...", iCurrentStreamPosition);
+			m_Sound->Stop();
+		}
+		
+		if (CPSPSound::PAUSE == m_Sound->GetPlayState())
+		{
+			bPauseAfterResume = true;
+			iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was paused (pos=%d), so stopping...", iCurrentStreamPosition);
 			m_Sound->Stop();
 		}
 		
@@ -656,7 +664,7 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 			((OptionsScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network();
 		}
 		
-		if (bPlayAfterResume)
+		if (bPlayAfterResume || bPauseAfterResume)
 		{
 			bPlayAfterResume = false;
 			
@@ -665,6 +673,8 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", iCurrentStreamPosition);
 				m_Sound->Play();
 				m_Sound->Seek(iCurrentStreamPosition);
+				if (bPauseAfterResume)
+					m_Sound->Pause();
 			}
 			else
 			{
