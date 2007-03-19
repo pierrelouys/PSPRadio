@@ -100,35 +100,28 @@ CTextUI::CTextUI()
 	TextUILog(LOG_VERYLOW, "CtextUI: Constructor end.");
 }
 
+void CTextUI::Terminate()
+{
+	m_ExitRenderThread = true;
+	m_isdirty = 0;
+}
+
 CTextUI::~CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
+
 	m_ExitRenderThread = true;
 	m_RenderExitBlocker->Block();
 	sThis = NULL;
-	if (m_Config)
-	{
-		delete(m_Config);
-		m_Config = NULL;
-	}
-	if (m_strCWD)
-	{
-		free(m_strCWD), m_strCWD = NULL;
-	}
-	if (m_strConfigDir)	
-	{
-		free(m_strConfigDir), m_strConfigDir = NULL;
-	}
-	if (m_RenderLock)
-	{
-		delete(m_RenderLock), m_RenderLock = NULL;
-	}
-	if (m_RenderExitBlocker)
-	{
-		delete(m_RenderExitBlocker), m_RenderExitBlocker = NULL;
-	}
+
+	delete(m_Config), m_Config = NULL;
+	free(m_strCWD), m_strCWD = NULL;
+	free(m_strConfigDir), m_strConfigDir = NULL;
+	delete(m_RenderLock), m_RenderLock = NULL;
+	delete(m_RenderExitBlocker), m_RenderExitBlocker = NULL;
 	delete(m_Screen), m_Screen = NULL;
-	TextUILog(LOG_VERYLOW, "~CTextUI(): End");
+
+	TextUILog(LOG_INFO, "~CTextUI(): End");
 }
 
 void CTextUI::NewPCMBuffer(short *pcmbuffer)
@@ -141,10 +134,10 @@ int CTextUI::OnVBlank()
 	return 0;
 }
 
-void CTextUI::render_thread(void *) //static
+/* static member */
+void CTextUI::render_thread(void *) 
 {
 	sThis->RenderLoop();
-	sThis->m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
 }
 
 void CTextUI::RenderLoop()
@@ -163,10 +156,8 @@ void CTextUI::RenderLoop()
 	for (;;)
 	{
 		if (m_ExitRenderThread)
-		{
-			sceKernelDelayThread(1); /* yield */
 			break;
-		}
+
 		if (m_isdirty)
 		{
 			m_RenderLock->Lock();
@@ -289,6 +280,7 @@ void CTextUI::RenderLoop()
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
+	m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
 }
 
 void CTextUI::PrintMessage(int iBuffer)
@@ -339,10 +331,6 @@ int CTextUI::GetConfigColor(char *strKey)
 void CTextUI::GetConfigPair(char *strKey, int *x, int *y)
 {
 	sscanf(m_Config->GetString(strKey, "0,0"), "%d,%d", x, y);
-}
-
-void CTextUI::Terminate()
-{
 }
 
 void CTextUI::LoadConfigSettings(IScreen *Screen)
@@ -530,6 +518,7 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	TextUILog(LOG_LOWLEVEL, "After LoadConfigSettings");
 
 	m_RenderLock->Lock(); /* Stop rendering -- after LoadConfigSettings, which also locks.*/
+	m_isdirty = 0; /* New screen loaded, clear all previous bits */
 
 	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
 	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
@@ -585,7 +574,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 		}
 	}
 	m_OptionsList = OptionsList;
-	m_isdirty |= DIRTY_OPTIONS;
+	SET_BIT(DIRTY_OPTIONS);
 }
 
 void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
@@ -746,7 +735,7 @@ int CTextUI::SetTitle(char *strTitle)
 void CTextUI::OnBatteryChange(int Percentage)
 {
 	m_LastBatteryPercentage = Percentage;
-	m_isdirty |= DIRTY_BATTERY;
+	SET_BIT(DIRTY_BATTERY);
 }
 
 void CTextUI::PrintBattery(int iBuffer, bool draw_background)
@@ -761,7 +750,7 @@ void CTextUI::PrintBattery(int iBuffer, bool draw_background)
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
 	m_LastLocalTime = *LocalTime;
-	m_isdirty |= DIRTY_TIME;
+	SET_BIT(DIRTY_TIME);
 }
 
 void CTextUI::PrintTime(int iBuffer, bool draw_background)
@@ -888,7 +877,7 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 		m_iBufferPercentage = 100;
 	if (m_iBufferPercentage < 2)
 		m_iBufferPercentage = 0;
-	m_isdirty |= DIRTY_BUFFER_PERCENTAGE;
+	SET_BIT(DIRTY_BUFFER_PERCENTAGE);
 	return 0;
 }
 
@@ -964,7 +953,7 @@ int CTextUI::OnStreamOpeningSuccess()
 
 int CTextUI::OnNewSongData(MetaData *pData)
 {
-	m_isdirty |= DIRTY_SONG_DATA;
+	SET_BIT(DIRTY_SONG_DATA);
 	return 0;
 }
 
@@ -1037,7 +1026,7 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 
 int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 {
-	m_isdirty |= DIRTY_STREAM_TIME;
+	SET_BIT(DIRTY_STREAM_TIME);
 	return 0;
 }
 	
@@ -1078,7 +1067,7 @@ int CTextUI::PrintStreamTime(int iBuffer, bool draw_background)
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
 	m_Container = Container;
-	m_isdirty |= DIRTY_CONTAINERS;
+	SET_BIT(DIRTY_CONTAINERS);
 }
 
 void CTextUI::PrintContainers(int iBuffer, bool draw_background)
@@ -1180,7 +1169,7 @@ void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
 	m_Container = Container;
-	m_isdirty |= DIRTY_ELEMENTS;
+	SET_BIT(DIRTY_ELEMENTS);
 }
 
 void CTextUI::PrintElements(int iBuffer, bool draw_background)

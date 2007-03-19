@@ -180,7 +180,9 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
   
 		  Log(LOG_INFO, "StartUI: Destroying current UI");
 		  m_UI->Terminate();
+		  sceKernelDelayThread(100*1000); /* give UI time to terminar */
 		  delete(m_UI), m_UI = NULL;
+
 		  Log(LOG_INFO, "Unloading Module");
 		  m_UIModuleLoader->Unload();
 		  Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
