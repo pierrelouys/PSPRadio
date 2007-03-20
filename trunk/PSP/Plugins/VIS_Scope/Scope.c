@@ -54,6 +54,7 @@ void scope_stop();
 void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
 void scope_config_update();
 VisPlugin scope_vtable = {
+	PLUGIN_VIS_VERSION, /* Interface version -- Don't change */
 	//void *handle; /* Filled in by PSPRadio */
 	NULL, 
 	//char *filename; /* Filled in by PSPRadio */

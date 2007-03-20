@@ -11,6 +11,8 @@
 
 	#include <psptypes.h>
 	
+	#define PLUGIN_VIS_VERSION	1
+
 	/* Config is populated by PSPRadio */
 	typedef struct _VisPluginConfig
 	{
@@ -27,6 +29,7 @@
 
 	typedef struct _VisPlugin /* Based on xmms visual plugin to ease porting plugins written for xmms to PSPRadio */
 	{
+		int  interface_version; /* Informationaal from Plugin to PSPRadio */
 		void *handle; /* Filled in by PSPRadio */
 		char *filename; /* Filled in by PSPRadio */
 		char *description; /* The description that is shown in the preferences box */

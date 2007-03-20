@@ -31,8 +31,6 @@
 PSP_MODULE_INFO("VIS_SAMPLE", 0, 1, 1);
 PSP_HEAP_SIZE_KB(0);
 
-int y_mid = 127, pcm_shdiv = 15;
-
 /* Prototypes */
 void scope_config_update();
 void scope_init();
@@ -41,6 +39,7 @@ void VertLine(u32* vram, int x, int y1, int y2, int color);
 
 /** START of Plugin definitions setup */
 VisPlugin sample_vtable = {
+	PLUGIN_VIS_VERSION, /* Interface version -- Don't change */
 	NULL, //void *handle; /* Filled in by PSPRadio */
 	NULL, //char *filename; /* Filled in by PSPRadio */
 	"Sample Visualizer Plugin", //char *description; /* The description that is shown in the preferences box */
@@ -71,14 +70,16 @@ void scope_init()
 }
 
 /* Called from PSPRadio when the config pointer has been updated */
+int y_mid = 127, pcm_shdiv = 15;
 void scope_config_update()
 {
 	int sh = 0, amp = 0;
 	int mid_a = 0;
-	y_mid = (sample_vtable.config->y2 + sample_vtable.config->y1) / 2;
-	
+
 	if(sample_vtable.config)
 	{
+		y_mid = (sample_vtable.config->y2 + sample_vtable.config->y1) / 2;
+
 		mid_a = (sample_vtable.config->y2 - sample_vtable.config->y1) / 2;
 		pcm_shdiv = 15; 
 		
@@ -105,12 +106,12 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 	int old_yR = y_mid;
 	for (x = sample_vtable.config->x1; x < sample_vtable.config->x2; x++)
 	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		yL = y_mid + (pcm_data[x*5] >> pcm_shdiv);     /* L component */
-		yR = y_mid + (pcm_data[x*5+1] >> pcm_shdiv);   /* R component */
-		VertLine(vram_frame, x, old_yL, yL, 0xFF0A0A);
-		VertLine(vram_frame, x, old_yR, yR, 0xA0FFA0);
+		/* convert fixed point int to int (the integer part is the most significant byte) */
+		/* (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192 */
+		yL = y_mid + (pcm_data[x*5]   >> pcm_shdiv); /* L component */
+		yR = y_mid + (pcm_data[x*5+1] >> pcm_shdiv); /* R component */
+		VertLine(vram_frame, x, old_yL, yL, 0xFF0000/* Blue */);
+		VertLine(vram_frame, x, old_yR, yR, 0x00FF00/* Green */);
 		old_yL = yL;
 		old_yR = yR;
 	}
@@ -120,7 +121,7 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 void Plot(u32* vram, int x, int y, int color)
 {
 	u32 *pixel = vram + sample_vtable.config->sc_pitch*y + x;
-	*pixel = *pixel | color;
+	*pixel = color;
 }
 
 void VertLine(u32* vram, int x, int y1, int y2, int color)
@@ -128,14 +129,14 @@ void VertLine(u32* vram, int x, int y1, int y2, int color)
 	int y;
 	if (y1 < y2)
 	{
-		for (y = y1<0?0:y1; y <= y2; y++)
+		for (y = (y1<0)?0:y1; y <= y2; y++)
 		{
 			Plot(vram, x, y, color);
 		}
 	}
 	else if (y2 < y1)
 	{
-		for (y = y2<0?0:y2; y <= y1; y++)
+		for (y = (y2<0)?0:y2; y <= y1; y++)
 		{
 			Plot(vram, x, y, color);
 		}

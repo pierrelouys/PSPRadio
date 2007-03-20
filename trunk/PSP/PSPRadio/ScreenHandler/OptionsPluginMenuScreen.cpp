@@ -285,14 +285,15 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
 					int res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_FSS);
 					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
-					if (res == 0)
+					switch(res)
 					{
-						fOptionActivated = true;
-						m_UI->DisplayMessage("Plugin Started");
-					}
-					else
-					{
-						m_UI->DisplayMessage("Error Starting Plugin . . .");
+						case 0:
+							fOptionActivated = true;
+							m_UI->DisplayMessage("Plugin Started");
+							break;
+						default:
+							m_UI->DisplayMessage("Error Starting Plugin . . .");
+							break;
 					}
 				}
 				else
@@ -394,21 +395,21 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				{
 					m_UI->DisplayMessage("Starting Plugin . . .");
 					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_VIS);
-					if (res == 0)
+					switch(res)
 					{
-						fOptionActivated = true;
-						m_UI->DisplayMessage("Plugin Started");
-					}
-					else
-					{
-						if (res == SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED)
-						{
+						case 0:
+							fOptionActivated = true;
+							m_UI->DisplayMessage("Plugin Started");
+							break;
+						case -2:
+							m_UI->DisplayMessage("Plugin not Supported");
+							break;
+						case SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED:
 							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
-						}
-						else
-						{
+							break;
+						default:
 							m_UI->DisplayMessage("Error Starting Plugin . . .");
-						}
+							break;
 					}
 				}
 				else
