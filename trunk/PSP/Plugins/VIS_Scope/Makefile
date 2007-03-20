@@ -32,12 +32,10 @@ scope_dots:
 	make TARGET="VIS_ScopeDots" SET_F="-DSCOPE_DOTS" the_prx
 scope_lines:
 	make TARGET="VIS_ScopeLines" SET_F="-DSCOPE_LINES" the_prx
-scope_lines2:
-	make TARGET="VIS_ScopeLines2" SET_F="-DSCOPE_LINES2" the_prx
-scope_lines3:
-	make TARGET="VIS_ScopeLines3" SET_F="-DSCOPE_LINES3" the_prx
-scope_lines4:
-	make TARGET="VIS_ScopeLines4" SET_F="-DSCOPE_LINES4" the_prx
+scope_trail:
+	make TARGET="VIS_ScopeTrail" SET_F="-DSCOPE_TRAIL" the_prx
+scope_twoch:
+	make TARGET="VIS_ScopeTwoCh" SET_F="-DSCOPE_TWOCH" the_prx
 
 the_prx: $(TARGET).prx
 
@@ -55,11 +53,9 @@ all: scope_bars
 	make clean_objs
 	make scope_lines 
 	make clean_objs
-	make scope_lines2 
+	make scope_trail 
 	make clean_objs
-	make scope_lines3 
-	make clean_objs
-	make scope_lines4
+	make scope_twoch 
 
 install: all
 	cp -vf *.prx $(PSPRADIO_RELEASE_DIR)

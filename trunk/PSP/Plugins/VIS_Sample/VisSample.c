@@ -110,8 +110,8 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 		/* (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192 */
 		yL = y_mid + (pcm_data[x*5]   >> pcm_shdiv); /* L component */
 		yR = y_mid + (pcm_data[x*5+1] >> pcm_shdiv); /* R component */
-		VertLine(vram_frame, x, old_yL, yL, 0xFF0000/* Blue */);
-		VertLine(vram_frame, x, old_yR, yR, 0x00FF00/* Green */);
+		VertLine(vram_frame, x, old_yL, yL, 0x00FFFF/* Yellow */);
+		VertLine(vram_frame, x, old_yR, yR, 0x00FF00/* Green  */);
 		old_yL = yL;
 		old_yR = yR;
 	}

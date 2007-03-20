@@ -527,7 +527,7 @@ void OptionsScreen::OnOptionActivation()
 		case OPTION_ID_SHOUTCAST_DN:
 			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
 			{
-				m_UI->DisplayMessage("Downloading latest SHOUTcast Database. . .");
+				m_UI->DisplayMessage("Downloading SHOUTcast Database");
 				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 				if (true == m_ScreenHandler->DownloadNewSHOUTcastDB())
 				{
@@ -540,7 +540,7 @@ void OptionsScreen::OnOptionActivation()
 			}
 			else
 			{
-				m_UI->DisplayErrorMessage("Wait a minute before re-downloading, thanks.");
+				m_UI->DisplayErrorMessage("Wait before re-downloading");
 			}
 			fOptionActivated = false;
 			break;
@@ -598,7 +598,7 @@ int OptionsScreen::Start_Network(int iProfile)
 			if (m_UI)
 				m_UI->DisplayMessage_DisablingNetwork();
 
-			Log(LOG_INFO, "Triangle Pressed. Restarting networking...");
+			Log(LOG_INFO, "Restarting networking...");
 			pPSPApp->DisableNetwork();
 			sceKernelDelayThread(500000);
 		}

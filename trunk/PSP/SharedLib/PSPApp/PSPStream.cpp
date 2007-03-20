@@ -512,7 +512,7 @@ int CPSPStreamReader::SocketRead(char *pBuffer, size_t LengthInBytes)
 		}
 		else if (bytesread == 0)
 		{
-			ReportError("SocketRead(): Connection reset by peer!\n");
+			ReportError("Connection Reset by Peer!\n");
 			//Close();
 			//m_eof = true;
 			break;

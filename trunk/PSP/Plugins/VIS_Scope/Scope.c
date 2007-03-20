@@ -28,6 +28,9 @@
 #include <stdarg.h>
 #include "VIS_Plugin.h"
 
+
+#define RGB(r,g,b) (((b&0xFF)<<16) | ((g&0xFF)<<8) | ((r&0xFF)))
+
 /** PRX **/
 PSP_MODULE_INFO("VIS_SCOPE", 0, 1, 1);
 PSP_HEAP_SIZE_KB(0);
@@ -150,7 +153,7 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 void Plot(u32* vram, int x, int y, int color)
 {
 	u32 *pixel = vram + m_Pitch*y + x;
-	*pixel = *pixel | color;
+	*pixel = /* *pixel |*/ color;
 }
 
 void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
@@ -194,12 +197,14 @@ void VertLine(u32* vram, int x, int y1, int y2, int color)
 void draw_pcm(u32* vram) /* BARS */
 {
 	int x;
+	static int color = 0;
 	for (x = scope_vtable.config->x1; x < scope_vtable.config->x2; x++)
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
 		Rectangle(vram, x, scope_vtable.config->y2 - (s_pcmbuffer[x*5] >> (pcm_shdiv - 1)), 
-										   x+4, scope_vtable.config->y2, 0xAAAAAA);
+										   x+4, scope_vtable.config->y2, RGB(color,color*2,color*8));
+		color++;
 	}
 }
 #endif
@@ -217,8 +222,8 @@ void draw_pcm(u32* vram) /* DOTS */
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 256
 		y1 = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv);
 		y2 = y_mid - (s_pcmbuffer[x*5+1] >> pcm_shdiv);
-		Plot(vram, x, (y1 >= 0 && y1 < y_mid*2)?y1:y_mid, 0xAAAAAA);
-		Plot(vram, x, (y2 >= 0 && y2 < y_mid*2)?y2:y_mid, 0xAAAAAA);
+		Plot(vram, x, (y1 >= 0 && y1 < y_mid*2)?y1:y_mid, 0x00FFFF);
+		Plot(vram, x, (y2 >= 0 && y2 < y_mid*2)?y2:y_mid, 0x11FFFF);
 	}
 }
 #endif
@@ -234,29 +239,12 @@ void draw_pcm(u32* vram) /* LINES */
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		y1 = y_mid - (s_pcmbuffer[x*5+1] >> pcm_shdiv); // L component
 		y2 = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv);   // R component
-		VertLine(vram, x, y1, y2, 0xAAAAAA);
+		VertLine(vram, x, y1, y2, 0x00FF00);
 	}
 }
 #endif
 
-#ifdef SCOPE_LINES2
-void draw_pcm(u32* vram)
-{
-	int x;
-	int y, old_y;
-	old_y = y_mid;
-	for (x = scope_vtable.config->x1; x < scope_vtable.config->x2; x++)
-	{
-		//convert fixed point int to int (the integer part is the most significant byte)
-		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
-		VertLine(vram, x, old_y, y, 0xAAAAAA);
-		old_y = y;
-	}
-}
-#endif
-
-#ifdef SCOPE_LINES3
+#ifdef SCOPE_TRAIL
 void draw_pcm(u32* vram) /* TRAIL */
 {
 	int x;
@@ -291,7 +279,7 @@ void draw_pcm(u32* vram) /* TRAIL */
 }
 #endif
 
-#ifdef SCOPE_LINES4 
+#ifdef SCOPE_TWOCH 
 void draw_pcm(u32* vram)
 {
 	int x;
@@ -304,8 +292,8 @@ void draw_pcm(u32* vram)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
 		yL = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
 		yR = y_mid + (s_pcmbuffer[x*5+1] >> pcm_shdiv); // L component
-		VertLine(vram, x, old_yL, yL, 0xFF0A0A);
-		VertLine(vram, x, old_yR, yR, 0xA0FFA0);
+		VertLine(vram, x, old_yL, yL, 0x00FFFF);
+		VertLine(vram, x, old_yR, yR, 0x00FF00);
 		old_yL = yL;
 		old_yR = yR;
 	}
