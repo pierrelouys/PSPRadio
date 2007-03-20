@@ -7,7 +7,7 @@
 	as published by the Free Software Foundation; either version 2
 	of the License, or (at your option) any later version.
 
-// 	This program is distributed in the hope that it will be useful,
+ 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
@@ -180,7 +180,7 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
   
 		  Log(LOG_INFO, "StartUI: Destroying current UI");
 		  m_UI->Terminate();
-		  sceKernelDelayThread(100*1000); /* give UI time to terminar */
+		  sceKernelDelayThread(100*1000); /* give UI time to terminate */
 		  delete(m_UI), m_UI = NULL;
 
 		  Log(LOG_INFO, "Unloading Module");
@@ -228,13 +228,13 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
      bJustChangeSkin?"Skin Changed:":"UI Started:",
      m_UI, GetCurrentUIName(), GetCurrentSkin());
 	
-	Log(LOG_LOWLEVEL, "Calling m_UI->Initialize");
+	Log(LOG_INFO, "Calling m_UI->Initialize");
 	m_UI->Initialize(GetCWD(), strSkinDirectory);
 	
-	Log(LOG_LOWLEVEL, "Calling currentscreen activate in (m_CurrentScreen=%p)", m_CurrentScreen);
+	Log(LOG_INFO, "Calling currentscreen activate in (m_CurrentScreen=%p)", m_CurrentScreen);
 	
 	m_CurrentScreen->Activate(m_UI);
-	Log(LOG_LOWLEVEL, "Activate called.");
+	Log(LOG_INFO, "Activate called.");
 	
 	if (wasPolling)
 	{

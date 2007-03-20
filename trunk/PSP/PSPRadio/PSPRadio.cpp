@@ -417,11 +417,17 @@ int CPSPRadio::ProcessEvents()
 				case MID_GIVEUPEXCLISIVEACCESS:
 					if (GetUI())
 					{
+						Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Calling OnScreenshot");
 						GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
+					  	sceKernelDelayThread(100*1000); /* give UI time to react */
 						/** Re-draw the current screen */
+						Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Calling Activate");
 						GetScreenHandler()->GetCurrentScreen()->Activate(GetScreenHandler()->GetCurrentUIPtr());
+					  	sceKernelDelayThread(100*1000); /* give UI time to react */
 					}
+					Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Calling StarKeyLatch");
 					StartKeyLatch();
+					Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Done.");
 					break;
 				case MID_PLUGINEXITED:
 					plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
@@ -666,8 +672,6 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 		
 		if (bPlayAfterResume || bPauseAfterResume)
 		{
-			bPlayAfterResume = false;
-			
 			if (m_Sound->GetCurrentStream()->GetType() == CPSPStream::STREAM_TYPE_FILE)
 			{
 				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", iCurrentStreamPosition);
@@ -680,6 +684,8 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 			{
 				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, but it was an online stream. Let the user restart it.");
 			}
+			bPlayAfterResume = false;
+			bPauseAfterResume = false;
 		}
 		
 	}

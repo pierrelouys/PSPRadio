@@ -160,15 +160,16 @@ void CTextUI::RenderLoop()
 
 		if (m_isdirty)
 		{
-			m_RenderLock->Lock();
 			time1 = sceKernelLibcClock();
 	
 			if (m_isdirty & DIRTY_BACKGROUND)
 			{
 				UNSET_BIT(DIRTY_BACKGROUND);
+				m_RenderLock->Lock();
 				m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
 					0, 0, m_Screen->m_Width, m_Screen->m_Height);
 				PrintProgramVersion(OFFLINE_BUFFER);
+				m_RenderLock->Unlock();
 				draw_background  = false;
 			}
 			else
@@ -273,6 +274,7 @@ void CTextUI::RenderLoop()
 				sceDisplayWaitVblankStart();
 				//Flip Buffers
 				//sceKernelDcacheWritebackAll(); 
+				m_RenderLock->Lock();
 				m_Screen->SetFrameBuffer(iBuffer);
 				iBuffer = 1 - iBuffer;
 				m_RenderLock->Unlock();
@@ -340,8 +342,6 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() start");
 
-	m_RenderLock->Lock(); /* Stop rendering */
-	
 	if (Screen->GetConfigFilename())
 	{
 		if (m_Config)
@@ -504,7 +504,6 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		}
 	}
 	
-	m_RenderLock->Unlock(); /* Continue rendering */
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() end");
 }
 
@@ -518,12 +517,14 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	TextUILog(LOG_LOWLEVEL, "After LoadConfigSettings");
 
 	m_RenderLock->Lock(); /* Stop rendering -- after LoadConfigSettings, which also locks.*/
-	m_isdirty = 0; /* New screen loaded, clear all previous bits */
 
 	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
 	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
 	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
 	m_Screen->SetTextColor(m_ScreenConfig.FgColor);
+
+	m_RenderLock->Unlock();
+
 	if (m_ScreenConfig.strBackground)
 	{
 		char strPath[MAXPATHLEN+1];
@@ -544,15 +545,18 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 				sprintf(strPath, "%s/%s/%s", m_strCWD, m_strConfigDir, m_ScreenConfig.strBackground);
 			}
 			TextUILog(LOG_LOWLEVEL, "Calling LoadBackground '%s'", strPath);
+
+			m_RenderLock->Lock(); /* Don't render while we load the background */
 			m_Screen->LoadBuffer(BACKGROUND_BUFFER, strPath);
+			m_RenderLock->Unlock(); /* Continue rendering */
 		}
 	}
-	
+
+	m_isdirty = 0; /* New screen loaded, clear all previous bits */
 	SET_BIT(DIRTY_BACKGROUND);
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
 	
-	m_RenderLock->Unlock(); /* Continue rendering */
 	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
 }
 
