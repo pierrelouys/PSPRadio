@@ -28,7 +28,7 @@
 
 u32 *third = NULL;
 
-CScreen::CScreen(int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
+CScreen::CScreen(bool use_cached_vram, int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
 {
 	m_Width = width;
 	m_Height = height;
@@ -36,6 +36,7 @@ CScreen::CScreen(int iNumberOfBuffers, int width, int height, int pitch, int pix
 	m_PixelFormat = pixel_format;
 	m_NumberOfBuffers = iNumberOfBuffers;
 	m_DrawingMode = DRMODE_TRANSPARENT;
+	m_VRAMIsCached = use_cached_vram;
 	switch(m_PixelFormat)
 	{
 	case PSP_DISPLAY_PIXEL_FORMAT_565:
@@ -76,10 +77,17 @@ CScreen::~CScreen()
 
 void CScreen::Init()
 {
-	/* Place vram in uncached memory */
-	//u32 *g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
-	/* let's use cached memory better */
-	u32 *g_vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
+	u32 *g_vram_base;
+	if (m_VRAMIsCached)
+	{
+		/* let's use cached memory */
+		g_vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
+	}
+	else
+	{
+		/* Place vram in uncached memory */
+		g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
+	}
 
 	sceDisplaySetMode(0, m_Width, m_Height);
 	sceDisplaySetFrameBuf((void *) g_vram_base, 
@@ -126,9 +134,7 @@ drmodef DrawingModeFunction[] = {
 void CScreen::Plot(int iBuffer, int x, int y, int color)
 {
 	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
-	//*pixel = color;
-	//*pixel = *pixel & color;
-	//*pixel = *pixel | color;
+
 	DrawingModeFunction[m_DrawingMode](pixel, color);
 }
 
@@ -181,12 +187,24 @@ void CScreen::HorizLine(int iBuffer, int y, int x1, int x2, int color)
 
 void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
 {
-	memcpy(m_Buffer[iBufferTo], m_Buffer[iBufferFrom], FRAMESIZE);
+	//memcpy(m_Buffer[iBufferTo], m_Buffer[iBufferFrom], FRAMESIZE);
+	u32 *src = m_Buffer[iBufferFrom];
+	u32 *dst = m_Buffer[iBufferTo];
+	for (int i = 0; i < (m_Height * m_Pitch); i++)
+	{
+		*dst++ = *src++;
+	}
+	
 }
 
 void CScreen::Clear(int iBuffer)
 {
-	memset(m_Buffer[iBuffer], 0, FRAMESIZE);
+	//memset(m_Buffer[iBuffer], 0, FRAMESIZE);
+	u32 *frame = m_Buffer[iBuffer];
+	for (int i = 0; i < (m_Height * m_Pitch); i++)
+	{
+		*frame++ = 0;
+	}
 }
 
 int CScreen::Peek(int iBuffer, int x, int y)

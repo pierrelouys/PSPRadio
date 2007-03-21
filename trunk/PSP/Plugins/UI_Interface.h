@@ -57,6 +57,8 @@
 		virtual void DisplayContainers(CMetaDataContainer *Container){}
 		virtual void DisplayElements(CMetaDataContainer *Container){}
 		virtual void OnCurrentContainerSideChange(CMetaDataContainer *Container){}
+
+		virtual void OnButtonReleased(int buttonmask){}
 		};
 		
 		extern "C" 

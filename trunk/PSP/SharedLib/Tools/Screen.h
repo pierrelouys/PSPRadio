@@ -21,7 +21,7 @@
 			DRMODE_OPAQUE,
 		};
 				
-		CScreen(int iNumberOfBuffers, int width = 480, int height = 272, 
+		CScreen(bool use_cached_vram, int iNumberOfBuffers, int width = 480, int height = 272, 
 				int pitch = 512, int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
 		~CScreen();
 		void SetDrawingMode(drawingmode newmode) { m_DrawingMode = newmode; };
@@ -37,6 +37,7 @@
 		
 	private:
 		drawingmode m_DrawingMode;
+		bool m_VRAMIsCached;
 		u32 bg_col, fg_col;
 		bool init;
 		textmode m_TextMode;

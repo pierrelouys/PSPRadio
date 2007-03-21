@@ -22,14 +22,14 @@
 PSP_MODULE_INFO("PSPRADIO_MAIN", 0x0/**USER MODULE */, 0, 1);
 PSP_MAIN_THREAD_PARAMS(/*Prio*/80, /*Stack KB*/512, PSP_THREAD_ATTR_USER);
 PSP_MAIN_THREAD_NAME("PSPRadioMain");
-PSP_HEAP_SIZE_KB(6*1024);
+PSP_HEAP_SIZE_KB(5*1024);
 
 CPSPRadio *gPSPRadio = NULL;
 
 /** main */
 int main(int argc, char **argv)
 {
-	rootScreen = new CScreen(2); /* two buffers */
+	rootScreen = new CScreen(false, 2); /* two buffers */
 
 	rootScreen->Clear(0);
 	rootScreen->SetFrameBuffer(0);

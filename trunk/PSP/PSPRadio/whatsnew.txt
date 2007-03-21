@@ -1,5 +1,13 @@
 What's New for PSPRadio
 ========================
+1.17.xxxx (2007-xx-xx)
+NEW FEATURES
+BUG FIXES
+KNOWN BUGS
+(raf) TextUI: Sometimes, when switching skins all the text will disappear. Moving Up/Down, or pressing START is the current work-around.
+(raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection).
+(raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).
+
 1.17.1349 (2007-03-20)
 NEW FEATURES
 (raf) Plugins: Added some VERY SIMPLE visualization plugins. This only works under TextUI at the moment. (Look under the Options-Plugins menu)
@@ -12,9 +20,10 @@ NEW FEATURES
 BUG FIXES
 (raf) Core: Fixed button repeat handling that broke when implemented the button mapping. (This also corrected problems with HPRM)
 (raf) Core: If resuming(from suspend) from a paused state, it would not continue from where it left off.
+(raf) Core: Changed the default button mapping to be closer to the original mapping, (so it matches the current skins).
 KNOWN BUGS
 (raf) TextUI: Sometimes, when switching skins all the text will disappear. Moving Up/Down, or pressing START is the current work-around.
-(raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.
+(raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection).
 (raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).
 
 1.15.1283 (2007-02-26)

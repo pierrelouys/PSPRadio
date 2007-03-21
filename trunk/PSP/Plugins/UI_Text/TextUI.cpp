@@ -46,8 +46,8 @@
 #define SET_BIT(x) {m_isdirty|=x;}
 #define UNSET_BIT(x) {m_isdirty&=~x;}
 
-#define BACKGROUND_BUFFER 3
-#define OFFLINE_BUFFER    2
+#define BACKGROUND_BUFFER 4
+#define OFFLINE_BUFFER    3
 
 #define TextUILog ModuleLog
 
@@ -62,7 +62,10 @@ CTextUI::CTextUI()
 	m_strConfigDir = NULL;
 	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
-	m_Screen = new CScreen(4); /* We use 4 video frames: 2 for page-flipping, one for offline drawing, and one to keep the background image in */
+	m_Screen = new CScreen(false, /* false = uncached VRAM */
+						   5); /* We use 4 video frames: 2 for page-flipping, one for offline drawing, and one to keep the background image in */
+	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
+	
 	m_strTitle = strdup("PSPRadio");
 	m_Message[0] = 0;
 
@@ -82,6 +85,19 @@ CTextUI::CTextUI()
 	m_Container = NULL;
 	m_RenderLock = new CLock("TextUI_RenderLock");
 	m_RenderExitBlocker = new CBlocker("TextUI_RenderBlock");
+	
+	m_TimeStartedPlaying = 0;
+	m_IsPlaying = false;
+	
+		
+	m_fs_vis_cfg.sc_width = m_Screen->m_Width;
+	m_fs_vis_cfg.sc_height = m_Screen->m_Height;
+	m_fs_vis_cfg.sc_pitch = m_Screen->m_Pitch;
+	m_fs_vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
+	m_fs_vis_cfg.x1 = 0;
+	m_fs_vis_cfg.y1 = 0;
+	m_fs_vis_cfg.x2 = m_Screen->m_Width;
+	m_fs_vis_cfg.y2 = m_Screen->m_Height;
 	
 	/* Start Render Thread */
 	{
@@ -143,15 +159,12 @@ void CTextUI::render_thread(void *)
 void CTextUI::RenderLoop()
 {
 	int iBuffer = 0;
-	bool draw_background = true;
-	pspradioexport_ifdata ifdata = { 0 };
 	
 	/* For FPS Calculation: */
 	clock_t time1, time2;
 	int frame_count = 0;
 	int total_time = 0;
 	int fps = 0;
-	int message_frames = 0;
 
 	for (;;)
 	{
@@ -162,141 +175,208 @@ void CTextUI::RenderLoop()
 		{
 			time1 = sceKernelLibcClock();
 	
-			if (m_isdirty & DIRTY_BACKGROUND)
+			if ( m_IsPlaying && 
+				 (((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) > m_FullscreenWait) )
 			{
-				UNSET_BIT(DIRTY_BACKGROUND);
-				m_RenderLock->Lock();
-				m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
-					0, 0, m_Screen->m_Width, m_Screen->m_Height);
-				PrintProgramVersion(OFFLINE_BUFFER);
-				m_RenderLock->Unlock();
-				draw_background  = false;
+				RenderFullscreenVisualizer(iBuffer);
 			}
 			else
 			{
-				draw_background = true;
+				RenderNormal(iBuffer);
 			}
 			
-			if (m_isdirty & DIRTY_TIME)
+			/* FPS Calculation */
+			time2 = sceKernelLibcClock();
+			total_time += (time2 - time1);
+			if (++frame_count == 10)
 			{
-				UNSET_BIT(DIRTY_TIME);
-				PrintTime(OFFLINE_BUFFER, draw_background);
+				fps = (frame_count * CLOCKS_PER_SEC) / total_time;
+				frame_count = 0;
+				total_time = 0;
 			}
-			if (m_isdirty & DIRTY_BATTERY)
+			if (m_bDisplayFPS)
 			{
-				UNSET_BIT(DIRTY_BATTERY);
-				PrintBattery(OFFLINE_BUFFER, draw_background);
+				uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
 			}
-			if (m_isdirty & DIRTY_BUFFER_PERCENTAGE)
-			{
-				UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
-				PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_SONG_DATA)
-			{
-				UNSET_BIT(DIRTY_SONG_DATA);
-				PrintSongData(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_STREAM_TIME)
-			{
-				UNSET_BIT(DIRTY_STREAM_TIME);
-				PrintStreamTime(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_CONTAINERS)
-			{
-				UNSET_BIT(DIRTY_CONTAINERS);
-				PrintContainers(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_ELEMENTS)
-			{
-				UNSET_BIT(DIRTY_ELEMENTS);
-				PrintElements(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_OPTIONS)
-			{
-				UNSET_BIT(DIRTY_OPTIONS);
-				PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_ACTIVE_COMMAND)
-			{
-				UNSET_BIT(DIRTY_ACTIVE_COMMAND);
-				PrintActiveCommand(OFFLINE_BUFFER, draw_background);
-			}
-			if (m_isdirty & DIRTY_CURRENT_CONTAINER_SIDE_TITLE)
-			{
-				UNSET_BIT(DIRTY_CURRENT_CONTAINER_SIDE_TITLE);
-				PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
-			}
-			
-			/* Copy buffer OFFLINE_BUFFER to back-buffer */
-			if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
-			{
-				m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
-		
-				/* Do effects to back-buffer */
-				if (m_isdirty & DIRTY_PCM)
-				{
-					UNSET_BIT(DIRTY_PCM);
-					ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
-					PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
-				}
-				
-				if (m_isdirty & DIRTY_MESSAGE)
-				{
-					UNSET_BIT(DIRTY_MESSAGE);
-					message_frames = 1;
-				}
-				
-				if (message_frames > 0)
-				{
-					PrintMessage(iBuffer);
-					if (message_frames++ >= 30)
-					{
-						message_frames = 0;
-					}
-				}
 	
-				/* FPS Calculation */
-				time2 = sceKernelLibcClock();
-				total_time += (time2 - time1);
-				if (++frame_count == 10)
-				{
-					fps = (frame_count * CLOCKS_PER_SEC) / total_time;
-					frame_count = 0;
-					total_time = 0;
-				}
-				if (m_bDisplayFPS)
-				{
-					uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
-				}
-	
-				///Buffer is configured in sync mode already... 
-				sceDisplayWaitVblankStart();
-				//Flip Buffers
-				//sceKernelDcacheWritebackAll(); 
-				m_RenderLock->Lock();
-				m_Screen->SetFrameBuffer(iBuffer);
-				iBuffer = 1 - iBuffer;
-				m_RenderLock->Unlock();
-			}
+			///Buffer is configured in sync mode already... 
+			sceDisplayWaitVblankStart();
+			//Flip Buffers
+			//sceKernelDcacheWritebackAll(); 
+			m_RenderLock->Lock();
+			m_Screen->SetFrameBuffer(iBuffer);
+			iBuffer = 1 - iBuffer;
+			m_RenderLock->Unlock();
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
 	m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
 }
 
+void CTextUI::RenderNormal(int iBuffer)
+{
+	static bool draw_background = true;
+	static pspradioexport_ifdata ifdata = { 0 };
+	static int message_frames = 0;
+	
+	if (m_isdirty & DIRTY_BACKGROUND)
+	{
+		UNSET_BIT(DIRTY_BACKGROUND);
+		m_RenderLock->Lock();
+		m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
+			0, 0, m_Screen->m_Width, m_Screen->m_Height);
+		PrintProgramVersion(OFFLINE_BUFFER);
+		m_RenderLock->Unlock();
+		draw_background  = false;
+	}
+	else
+	{
+		draw_background = true;
+	}
+	
+	if (m_isdirty & DIRTY_TIME)
+	{
+		UNSET_BIT(DIRTY_TIME);
+		PrintTime(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_BATTERY)
+	{
+		UNSET_BIT(DIRTY_BATTERY);
+		PrintBattery(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_BUFFER_PERCENTAGE)
+	{
+		UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
+		PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_SONG_DATA)
+	{
+		UNSET_BIT(DIRTY_SONG_DATA);
+		PrintSongData(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_STREAM_TIME)
+	{
+		UNSET_BIT(DIRTY_STREAM_TIME);
+		PrintStreamTime(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_CONTAINERS)
+	{
+		UNSET_BIT(DIRTY_CONTAINERS);
+		PrintContainers(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_ELEMENTS)
+	{
+		UNSET_BIT(DIRTY_ELEMENTS);
+		PrintElements(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_OPTIONS)
+	{
+		UNSET_BIT(DIRTY_OPTIONS);
+		PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_ACTIVE_COMMAND)
+	{
+		UNSET_BIT(DIRTY_ACTIVE_COMMAND);
+		PrintActiveCommand(OFFLINE_BUFFER, draw_background);
+	}
+	if (m_isdirty & DIRTY_CURRENT_CONTAINER_SIDE_TITLE)
+	{
+		UNSET_BIT(DIRTY_CURRENT_CONTAINER_SIDE_TITLE);
+		PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
+	}
+	
+	/* Copy buffer OFFLINE_BUFFER to back-buffer */
+	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
+	{
+		m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
+
+		/* Do effects to back-buffer */
+		if (m_isdirty & DIRTY_PCM)
+		{
+			ifdata.Pointer = &m_vis_cfg;
+			PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+			
+			UNSET_BIT(DIRTY_PCM);
+			ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
+			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+		}
+		
+		if (m_isdirty & DIRTY_MESSAGE)
+		{
+			UNSET_BIT(DIRTY_MESSAGE);
+			message_frames = 1;
+		}
+		
+		if (message_frames > 0)
+		{
+			PrintMessage(iBuffer);
+			if (message_frames++ >= 30)
+			{
+				message_frames = 0;
+			}
+		}
+	}
+}				
+
+void CTextUI::RenderFullscreenVisualizer(int iBuffer)
+{
+	static pspradioexport_ifdata ifdata = { 0 };
+	static int message_frames = 0;
+	
+	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
+	{
+		m_Screen->Clear(iBuffer);
+
+		ifdata.Pointer = &m_fs_vis_cfg;
+		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+					
+		UNSET_BIT(DIRTY_PCM);
+		ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
+		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+		
+		UNSET_BIT(DIRTY_STREAM_TIME);
+		PrintStreamTime(iBuffer, false);
+		UNSET_BIT(DIRTY_SONG_DATA);
+		PrintSongData(iBuffer, false);
+		//UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
+		//PrintBufferPercentage(iBuffer, false);
+		
+		if (m_isdirty & DIRTY_MESSAGE)
+		{
+			UNSET_BIT(DIRTY_MESSAGE);
+			message_frames = 1;
+		}
+		
+		if (message_frames > 0)
+		{
+			PrintMessage(iBuffer);
+			if (message_frames++ >= 30)
+			{
+				message_frames = 0;
+			}
+		}
+		m_isdirty = 0;
+	}
+}
+
 void CTextUI::PrintMessage(int iBuffer)
 {
 	sceKernelDcacheWritebackAll(); 
-	m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
-	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xAAAAAA);
+	//m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
+	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
+	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xFFFFFF);//0xAAAAAA);
 
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
 	m_Screen->VertLine(iBuffer, 100, 50, 100, 0x0);
 	m_Screen->VertLine(iBuffer, m_Screen->m_Width - 100, 50, 100, 0x0);
+	m_Screen->VertLine(iBuffer, 102, 52, 98, 0x0);
+	m_Screen->VertLine(iBuffer, m_Screen->m_Width - 102, 52, 98, 0x0);
+
 	m_Screen->HorizLine(iBuffer, 50, 100, m_Screen->m_Width - 100, 0x0);
 	m_Screen->HorizLine(iBuffer, 100, 100, m_Screen->m_Width - 100, 0x0);
-	m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
+	m_Screen->HorizLine(iBuffer, 52, 102, m_Screen->m_Width - 102, 0x0);
+	m_Screen->HorizLine(iBuffer, 98, 102, m_Screen->m_Width - 102, 0x0);
+	//m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 
 	uiPrintf(iBuffer, 110,60, 0xFFFFFF, m_Message);
 }
@@ -470,6 +550,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		GetConfigPair("VISUALIZER_CONFIG:LOWER_RIGHT",
 			&vis_cfg.x2, &vis_cfg.y2);
 		m_bDisplayFPS = (bool)m_Config->GetInteger("VISUALIZER_CONFIG:DISPLAY_FPS", 0);
+		m_FullscreenWait = m_Config->GetInteger("VISUALIZER_CONFIG:FULLSCREEN_WAIT", 5);
 			
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));
@@ -493,10 +574,11 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		/* Set visualizer config data */
 		if (vis_cfg.x1+vis_cfg.y1+vis_cfg.x2+vis_cfg.y2 > 0)
 		{
-			vis_cfg.sc_width = m_Screen->m_Width;
-			vis_cfg.sc_height = m_Screen->m_Height;
-			vis_cfg.sc_pitch = m_Screen->m_Pitch;
-			vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
+			m_vis_cfg = vis_cfg;
+			m_vis_cfg.sc_width = m_Screen->m_Width;
+			m_vis_cfg.sc_height = m_Screen->m_Height;
+			m_vis_cfg.sc_pitch = m_Screen->m_Pitch;
+			m_vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
 
 			memset(&ifdata, 0, sizeof(ifdata));
 			ifdata.Pointer = &vis_cfg;
@@ -826,6 +908,12 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	return 0;
 }
 
+void CTextUI::OnButtonReleased(int buttonmask)
+{
+	m_TimeStartedPlaying = sceKernelLibcClock();
+}
+
+
 int CTextUI::PrintActiveCommand(int iBuffer, bool draw_background)
 {
 	if (draw_background)
@@ -840,14 +928,20 @@ int CTextUI::PrintActiveCommand(int iBuffer, bool draw_background)
 	case CPSPSound::STOP:
 		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 
 				m_ScreenConfig.ActiveCommandColor, "STOP");
+		m_IsPlaying = false;
 		break;
 	case CPSPSound::PLAY:
 		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 	
 				m_ScreenConfig.ActiveCommandColor, "PLAY");
+		
+		m_TimeStartedPlaying = sceKernelLibcClock();
+		m_IsPlaying = true;
+				
 		break;
 	case CPSPSound::PAUSE:
 		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 
 				m_ScreenConfig.ActiveCommandColor, "PAUSE");
+		m_IsPlaying = false;
 		break;
 	}
 	

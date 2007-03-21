@@ -553,6 +553,8 @@ int CPSPRadio::ProcessEvents()
 			case MID_ONBUTTON_RELEASED:
 				Log(LOG_VERYLOW, "On button released received. data = 0x%x", ((int)event.pData));
 				m_ScreenHandler->CommonInputHandler((int)(event.pData), MID_ONBUTTON_RELEASED);
+				if (m_UI)
+					m_UI->OnButtonReleased((int)(event.pData));
 				break;
 
 			case MID_ONBUTTON_REPEAT:

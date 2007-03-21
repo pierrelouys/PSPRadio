@@ -4,6 +4,7 @@
 #include <UI_Interface.h>
 #include "PSPRadio_Exports.h"
 #include "Screen.h"
+#include "VIS_Plugin.h"
 
 #define DIRTY_PCM	1
 #define DIRTY_TIME	2
@@ -98,6 +99,8 @@ public:
 	
 	void OnBatteryChange(int Percentage);
 	void OnTimeChange(pspTime *LocalTime);
+
+	void OnButtonReleased(int buttonmask);
 	
 public:
 	int  m_isdirty;
@@ -149,7 +152,11 @@ private:
 	/* For renderloop */
 	bool m_ExitRenderThread;
 	bool m_bDisplayFPS;
-
+	bool m_IsPlaying;
+	clock_t m_TimeStartedPlaying;	
+	VisPluginConfig m_vis_cfg;
+	VisPluginConfig m_fs_vis_cfg;
+	int m_FullscreenWait;
 
 	void PrintMessage(char *message);
 	void PrintTime(int iBuffer, bool draw_background);
@@ -167,6 +174,10 @@ private:
 
 	static void render_thread(void *);
 	void RenderLoop(); /* Called from render_thread */
+	void RenderNormal(int iBuffer);
+	void RenderFullscreenVisualizer(int iBuffer);
+	
+	
 };
 
 
