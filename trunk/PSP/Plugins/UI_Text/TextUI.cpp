@@ -89,6 +89,10 @@ CTextUI::CTextUI()
 	m_TimeStartedPlaying = 0;
 	m_IsPlaying = false;
 	
+	for (int i = 0 ; i < 257 ; i++)
+	{
+		m_FreqData[i] = 123.456f;
+	}
 		
 	m_fs_vis_cfg.sc_width = m_Screen->m_Width;
 	m_fs_vis_cfg.sc_height = m_Screen->m_Height;
@@ -341,6 +345,12 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 		//UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
 		//PrintBufferPercentage(iBuffer, false);
 		
+		uiPrintf(iBuffer, 10, 200, 0xFFFFFF, "fr[0]=%f fr[128]=%f fr[256]=%f",
+				m_FreqData[0],
+				m_FreqData[128],
+				m_FreqData[256]);
+
+
 		if (m_isdirty & DIRTY_MESSAGE)
 		{
 			UNSET_BIT(DIRTY_MESSAGE);
@@ -356,6 +366,15 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 			}
 		}
 		m_isdirty = 0;
+	}
+}
+
+void CTextUI::FreqData(float freq_data[2][257])
+{
+//	memcpy(&m_FreqData, &freq_data, sizeof(m_FreqData));
+	for (int i = 0 ; i < 257 ; i++)
+	{
+		m_FreqData[i] = freq_data[0][i];
 	}
 }
 

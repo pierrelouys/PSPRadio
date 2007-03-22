@@ -20,6 +20,7 @@
 #define PLUGIN_TYPE 0
 #include "PSPRadio_Exports.h"
 #include "PSPRadio.h"
+#include "VisualizerInterface/vis_if.h"
 
 _button_mappings_struct_ PSPRadioButtonMap;
 CScreen *rootScreen;
@@ -68,6 +69,8 @@ int CPSPRadio::Setup(int argc, char **argv)
 	Log(LOG_VERYLOW, "Main(): this=%p", this);
 
 	Setup_ButtonMapping(m_Config);
+	
+	do_fft_init();
 
 	for (int i = 0; i < argc ; i++)
 	{
@@ -296,6 +299,7 @@ void CPSPRadio::OnExit()
 	rootScreen->SetFrameBuffer(0);
 	rootScreen->LoadBuffer(1, "Shutdown.png");
 	rootScreen->SetFrameBuffer(1);
+	
 
 // 	Log(LOG_INFO, "OnExit(): Stopping network drivers");
 // 	StopNetworkDrivers();
@@ -336,6 +340,8 @@ void CPSPRadio::OnExit()
 		free(m_strCWD); m_strCWD = NULL;
 	}
 
+	do_fft_destroy();
+	
 	Log(LOG_VERYLOW, "Exiting. The end.");
 #endif
 }

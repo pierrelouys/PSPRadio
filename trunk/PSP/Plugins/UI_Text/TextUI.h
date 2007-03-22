@@ -157,6 +157,8 @@ private:
 	VisPluginConfig m_vis_cfg;
 	VisPluginConfig m_fs_vis_cfg;
 	int m_FullscreenWait;
+	/*test*/
+	float m_FreqData[257];
 
 	void PrintMessage(char *message);
 	void PrintTime(int iBuffer, bool draw_background);
@@ -176,8 +178,8 @@ private:
 	void RenderLoop(); /* Called from render_thread */
 	void RenderNormal(int iBuffer);
 	void RenderFullscreenVisualizer(int iBuffer);
-	
-	
+
+	void FreqData(float freq_data[2][257]);
 };
 
 

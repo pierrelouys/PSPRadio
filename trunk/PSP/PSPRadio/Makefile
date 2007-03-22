@@ -15,23 +15,28 @@ IMPORTED_OBJS = $(PLUGINS_DIR)/UI_Interface.o $(PLUGINS_DIR)/PSPRadio_UI.o \
 				$(PLUGINS_DIR)/PSPRadio_GAME.o \
 				$(PLUGINS_DIR)/PSPRadio_VIS.o
 
+VIS_IF_OBJS = ./VisualizerInterface/vis_if.o ./VisualizerInterface/kiss_fft.o ./VisualizerInterface/kiss_fftr.o 
+
 OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		./ScreenHandler/ScreenHandler.o ./ScreenHandler/SHOUTcastScreen.o  \
 		./ScreenHandler/OptionsScreen.o ./ScreenHandler/OptionsPluginMenuScreen.o \
 		./ScreenHandler/PlayListScreen.o ./ScreenHandler/LocalFilesScreen.o \
 		PSPRadio_Exports.o \
+		$(VIS_IF_OBJS) \
 		$(IMPORTED_OBJS)
 
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES)
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES) -DFIXED_POINT=16 -DPSP
 
 INCDIR = $(SHAREDLIB_DIR)/PSPApp \
 		 $(SHAREDLIB_DIR)/libpspnet $(SHAREDLIB_DIR)/libiniparser \
 		 $(SHAREDLIB_DIR)/Tools $(SHAREDLIB_DIR)/Logging \
 		 ./ScreenHandler \
+		 ./VisualizerInterface \
 		 $(PLUGINS_DIR) \
 		 $(PLUGINS_DIR)/TextUI \
 		 $(PLUGINS_DIR)/GraphicsUI \
 		 $(PLUGINS_DIR)/TextUI3D
+
 INCLUDES = -L$(SHAREDLIB_DIR)/lib -L$(BASE_DIR)/OE_SDK/lib
 
 

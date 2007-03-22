@@ -21,6 +21,7 @@
 #include "ScreenHandler.h"
 #include "PSPRadio_Exports.h"
 #include "Main.h"
+#include "VisualizerInterface/vis_if.h"
 
 int module_stop(int args, void *argp)
 {
@@ -121,6 +122,13 @@ int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
 				u32*	vram_frame = (u32*)Data->Pointer;
 				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_pcm)
 					gPSPRadio->m_VisPluginData->render_pcm(vram_frame, (int16*)g_PCMBuffer);
+				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_freq)
+				{
+					do_fft();
+					gPSPRadio->m_VisPluginData->render_freq(vram_frame, g_FreqData);
+					//if (gPSPRadio->m_UI)
+					//	gPSPRadio->m_UI->FreqData(g_FreqData);
+				}
 			}
 			break;
 		case PSPRADIOIF_GET_VISUALIZER_CONFIG:

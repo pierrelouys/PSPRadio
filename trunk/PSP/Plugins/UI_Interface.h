@@ -59,6 +59,9 @@
 		virtual void OnCurrentContainerSideChange(CMetaDataContainer *Container){}
 
 		virtual void OnButtonReleased(int buttonmask){}
+
+		/** test **/
+		virtual void FreqData(float freq_data[2][257]){}
 		};
 		
 		extern "C" 

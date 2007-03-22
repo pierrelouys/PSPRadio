@@ -51,11 +51,11 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 	private:
 		CIniParser		*m_Config;
 		CPSPSound		*m_Sound;
-		IPSPRadio_UI	*m_UI;
 		CScreenHandler	*m_ScreenHandler;
 		char 			*m_strCWD;
 	
 	public:
+		IPSPRadio_UI	*m_UI;
 		CPSPRadio(): CPSPApp("PSPRadio", IF_VERSION, REPO_VERSION)
 		{
 			/** Initialize to some sensible defaults */
