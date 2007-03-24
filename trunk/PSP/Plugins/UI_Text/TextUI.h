@@ -21,6 +21,8 @@
 #define BITMASK_MESSAGE 2048
 #define BITMASK_CURRENT_CONTAINER_SIDE_TITLE 4096
 
+#define BITMASK_ALL (BITMASK_PCM | BITMASK_TIME	| BITMASK_BATTERY | BITMASK_BUFFER_PERCENTAGE | BITMASK_SONG_DATA | BITMASK_STREAM_TIME | BITMASK_CONTAINERS | BITMASK_ELEMENTS | BITMASK_BACKGROUND | BITMASK_OPTIONS |  BITMASK_ACTIVE_COMMAND | BITMASK_MESSAGE | BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
+
 struct screenconfig
 {
 	CScreen::textmode FontMode;
@@ -158,7 +160,7 @@ private:
 	clock_t m_TimeStartedPlaying;	
 	VisPluginConfig m_vis_cfg;
 	VisPluginConfig m_fs_vis_cfg;
-	int m_FullscreenWait;
+	clock_t m_FullscreenWait;
 	/*test*/
 	float m_FreqData[257];
 

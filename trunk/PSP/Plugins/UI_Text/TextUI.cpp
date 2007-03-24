@@ -73,7 +73,7 @@ CTextUI::CTextUI()
 
 	sThis = this;
 	m_dirtybitmask = 0;
-	m_activebitmask = 0;
+	m_activebitmask = ( BITMASK_PCM | BITMASK_MESSAGE );
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
 	m_bDisplayFPS = false;
@@ -173,6 +173,13 @@ void CTextUI::RenderLoop()
 	int frame_count = 0;
 	int total_time = 0;
 	int fps = 0;
+	pspradioexport_ifdata ifdata = { 0 };
+
+	enum _render_mode
+	{
+		RM_NORMAL,
+		RM_FULLSCREEN,
+	} render_mode = RM_NORMAL;
 
 	for (;;)
 	{
@@ -183,14 +190,33 @@ void CTextUI::RenderLoop()
 		{
 			time1 = sceKernelLibcClock();
 	
-			if ( m_IsPlaying && 
-				 (((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) > m_FullscreenWait) )
+			switch(render_mode)
 			{
-				RenderFullscreenVisualizer(iBuffer);
-			}
-			else
-			{
-				RenderNormal(iBuffer);
+			case RM_NORMAL:
+				if ( m_IsPlaying && 
+					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) >= m_FullscreenWait) )
+				{
+					ifdata.Pointer = &m_fs_vis_cfg;
+					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+					render_mode = RM_FULLSCREEN;
+				}
+				else
+				{
+					RenderNormal(iBuffer);
+				}
+				break;
+			case RM_FULLSCREEN:
+				if ( m_IsPlaying == false ||
+					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) < m_FullscreenWait) )
+				{
+					ifdata.Pointer = &m_vis_cfg;
+					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+					render_mode = RM_NORMAL;
+				}
+				else
+				{
+					RenderFullscreenVisualizer(iBuffer);
+				}
 			}
 			
 			/* FPS Calculation */
@@ -224,10 +250,11 @@ void CTextUI::RenderLoop()
 void CTextUI::RenderNormal(int iBuffer)
 {
 	static bool draw_background = true;
-	static pspradioexport_ifdata ifdata = { 0 };
 	static int message_frames = 0;
+	static pspradioexport_ifdata ifdata = { 0 };
 	
-	if (m_dirtybitmask & BITMASK_BACKGROUND)
+	if (m_activebitmask & BITMASK_BACKGROUND &&
+		m_dirtybitmask & BITMASK_BACKGROUND)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BACKGROUND);
 		m_RenderLock->Lock();
@@ -242,52 +269,62 @@ void CTextUI::RenderNormal(int iBuffer)
 		draw_background = true;
 	}
 	
-	if (m_dirtybitmask & BITMASK_TIME)
+	if (m_activebitmask & BITMASK_TIME &&
+		m_dirtybitmask & BITMASK_TIME )
 	{
 		UNSET_DIRTY_BIT(BITMASK_TIME);
 		PrintTime(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_BATTERY)
+	if (m_activebitmask & BITMASK_BATTERY &&
+		m_dirtybitmask & BITMASK_BATTERY)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BATTERY);
 		PrintBattery(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_BUFFER_PERCENTAGE)
+	if (m_activebitmask & BITMASK_BUFFER_PERCENTAGE &&
+		m_dirtybitmask & BITMASK_BUFFER_PERCENTAGE)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
 		PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_SONG_DATA)
+	if (m_activebitmask & BITMASK_SONG_DATA &&
+		m_dirtybitmask & BITMASK_SONG_DATA)
 	{
 		UNSET_DIRTY_BIT(BITMASK_SONG_DATA);
 		PrintSongData(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_STREAM_TIME)
+	if (m_activebitmask & BITMASK_STREAM_TIME &&
+		m_dirtybitmask & BITMASK_STREAM_TIME)
 	{
 		UNSET_DIRTY_BIT(BITMASK_STREAM_TIME);
 		PrintStreamTime(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_CONTAINERS)
+	if (m_activebitmask & BITMASK_CONTAINERS &&
+		m_dirtybitmask & BITMASK_CONTAINERS)
 	{
 		UNSET_DIRTY_BIT(BITMASK_CONTAINERS);
 		PrintContainers(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_ELEMENTS)
+	if (m_activebitmask & BITMASK_ELEMENTS &&
+		m_dirtybitmask & BITMASK_ELEMENTS)
 	{
 		UNSET_DIRTY_BIT(BITMASK_ELEMENTS);
 		PrintElements(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_OPTIONS)
+	if (m_activebitmask & BITMASK_OPTIONS &&
+		m_dirtybitmask & BITMASK_OPTIONS)
 	{
 		UNSET_DIRTY_BIT(BITMASK_OPTIONS);
 		PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_ACTIVE_COMMAND)
+	if (m_activebitmask & BITMASK_ACTIVE_COMMAND &&
+		m_dirtybitmask & BITMASK_ACTIVE_COMMAND)
 	{
 		UNSET_DIRTY_BIT(BITMASK_ACTIVE_COMMAND);
 		PrintActiveCommand(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_dirtybitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
+	if (m_activebitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE &&
+		m_dirtybitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
 	{
 		UNSET_DIRTY_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
 		PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
@@ -299,17 +336,16 @@ void CTextUI::RenderNormal(int iBuffer)
 		m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 
 		/* Do effects to back-buffer */
-		if (m_dirtybitmask & BITMASK_PCM)
+		if (m_activebitmask & BITMASK_PCM &&
+			m_dirtybitmask & BITMASK_PCM)
 		{
-			ifdata.Pointer = &m_vis_cfg;
-			PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
-			
 			UNSET_DIRTY_BIT(BITMASK_PCM);
 			ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		}
 		
-		if (m_dirtybitmask & BITMASK_MESSAGE)
+		if (m_activebitmask & BITMASK_MESSAGE &&
+			m_dirtybitmask & BITMASK_MESSAGE)
 		{
 			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
 			message_frames = 1;
@@ -335,9 +371,6 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 	{
 		m_Screen->Clear(iBuffer);
 
-		ifdata.Pointer = &m_fs_vis_cfg;
-		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
-					
 		UNSET_DIRTY_BIT(BITMASK_PCM);
 		ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
@@ -355,7 +388,8 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 	//			m_FreqData[256]);
 
 
-		if (m_dirtybitmask & BITMASK_MESSAGE)
+		if (m_activebitmask & BITMASK_MESSAGE &&
+			m_dirtybitmask & BITMASK_MESSAGE)
 		{
 			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
 			message_frames = 1;
@@ -603,10 +637,11 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 			m_vis_cfg.sc_pitch = m_Screen->m_Pitch;
 			m_vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
 
-			memset(&ifdata, 0, sizeof(ifdata));
-			ifdata.Pointer = &vis_cfg;
-			PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+			//memset(&ifdata, 0, sizeof(ifdata));
 		}
+		ifdata.Pointer = &m_vis_cfg;
+		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+		
 	}
 	
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() end");
@@ -657,10 +692,38 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 		}
 	}
 
-	m_dirtybitmask = 0; /* New screen loaded, clear all previous bits */
-	SET_DIRTY_BIT(BITMASK_BACKGROUND);
+	m_dirtybitmask  = 0;
+	m_activebitmask = 0;
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
+	SET_DIRTY_BIT(BITMASK_BACKGROUND);
+
+	SET_ACTIVE_BIT(BITMASK_PCM);
+	SET_ACTIVE_BIT(BITMASK_TIME);
+	SET_ACTIVE_BIT(BITMASK_BATTERY);
+	SET_ACTIVE_BIT(BITMASK_STREAM_TIME);
+	SET_ACTIVE_BIT(BITMASK_BACKGROUND);
+	SET_ACTIVE_BIT(BITMASK_MESSAGE);
+	switch(m_CurrentScreen)
+	{
+		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
+		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
+		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
+			SET_ACTIVE_BIT(BITMASK_BUFFER_PERCENTAGE);
+			SET_ACTIVE_BIT(BITMASK_SONG_DATA);
+			SET_ACTIVE_BIT(BITMASK_CONTAINERS);
+			SET_ACTIVE_BIT(BITMASK_ELEMENTS);
+			SET_ACTIVE_BIT(BITMASK_ACTIVE_COMMAND);
+			SET_ACTIVE_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
+			break;
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
+		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
+			SET_ACTIVE_BIT(BITMASK_OPTIONS);
+			break;
+	}
+
+
+	//SET_DIRTY_BIT(BITMASK_ALL); /* Re-render all active elements */
 	
 	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
 }
@@ -683,6 +746,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 		}
 	}
 	m_OptionsList = OptionsList;
+	//SET_ACTIVE_BIT(BITMASK_OPTIONS);
 	SET_DIRTY_BIT(BITMASK_OPTIONS);
 }
 
@@ -844,6 +908,7 @@ int CTextUI::SetTitle(char *strTitle)
 void CTextUI::OnBatteryChange(int Percentage)
 {
 	m_LastBatteryPercentage = Percentage;
+	//SET_ACTIVE_BIT(BITMASK_BATTERY);
 	SET_DIRTY_BIT(BITMASK_BATTERY);
 }
 
@@ -859,6 +924,7 @@ void CTextUI::PrintBattery(int iBuffer, bool draw_background)
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
 	m_LastLocalTime = *LocalTime;
+	//SET_ACTIVE_BIT(BITMASK_BATTERY);
 	SET_DIRTY_BIT(BITMASK_TIME);
 }
 
