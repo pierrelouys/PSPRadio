@@ -19,8 +19,10 @@
 #include <stdarg.h>
 #include "vis_if.h"
 
+extern "C" {
 #include "kiss_fft.h"
 #include "kiss_fftr.h"
+};
 
 float g_FreqData[2][NFREQS];
 
@@ -67,7 +69,7 @@ void do_fft()
 {
 	/* Stereo */
 	for (i=0;i<NFFT;++i) 
-		tbuf[i] = g_PCMBuffer[2*i] + g_PCMBuffer[2*i+1];
+		tbuf[i] = g_PCMBuffer[2*i] >> 2;// + g_PCMBuffer[2*i+1];
 
 	if (remove_dc) {
 		float avg = 0;
@@ -82,19 +84,7 @@ void do_fft()
 	for (i=0;i<NFREQS;++i)
 	{
 		//mag2buf[i] += fbuf[i].r * fbuf[i].r + fbuf[i].i * fbuf[i].i;
-		g_FreqData[0][i] = fbuf[i].r * fbuf[i].r + fbuf[i].i * fbuf[i].i;
+		g_FreqData[0][i] = sqrtf(fbuf[i].r * fbuf[i].r + fbuf[i].i*fbuf[i].i) * 64; //fbuf[i].i;
 		//g_FreqData[1][i] = g_FreqData[0][i];
 	}
-
-/*
-	if (++avgctr == navg) {
-		avgctr=0;
-		++nrows;
-		vals = (float*)realloc(vals,sizeof(float)*nrows*nfreqs);
-		float eps = 1;
-		for (i=0;i<nfreqs;++i)
-			vals[(nrows - 1) * nfreqs + i] = 10 * log10 ( mag2buf[i] / navg + eps );
-		memset(mag2buf,0,sizeof(mag2buf[0])*nfreqs);
-	}
-*/	
 }

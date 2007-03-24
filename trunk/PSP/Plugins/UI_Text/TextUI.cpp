@@ -43,8 +43,10 @@
 #define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
 
 #define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
-#define SET_BIT(x) {m_isdirty|=x;}
-#define UNSET_BIT(x) {m_isdirty&=~x;}
+#define SET_DIRTY_BIT(x)    {m_dirtybitmask  |=x; }
+#define UNSET_DIRTY_BIT(x)  {m_dirtybitmask  &=~x;}
+#define SET_ACTIVE_BIT(x)   {m_activebitmask |=x; }
+#define UNSET_ACTIVE_BIT(x) {m_activebitmask &=~x;}
 
 #define BACKGROUND_BUFFER 4
 #define OFFLINE_BUFFER    3
@@ -70,7 +72,8 @@ CTextUI::CTextUI()
 	m_Message[0] = 0;
 
 	sThis = this;
-	m_isdirty = 0;
+	m_dirtybitmask = 0;
+	m_activebitmask = 0;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
 	m_bDisplayFPS = false;
@@ -100,8 +103,8 @@ CTextUI::CTextUI()
 	m_fs_vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
 	m_fs_vis_cfg.x1 = 0;
 	m_fs_vis_cfg.y1 = 0;
-	m_fs_vis_cfg.x2 = m_Screen->m_Width;
-	m_fs_vis_cfg.y2 = m_Screen->m_Height;
+	m_fs_vis_cfg.x2 = m_Screen->m_Width  - 1;
+	m_fs_vis_cfg.y2 = m_Screen->m_Height - 1;
 	
 	/* Start Render Thread */
 	{
@@ -109,6 +112,7 @@ CTextUI::CTextUI()
 		pthread_attr_t pthattr;
 		struct sched_param shdparam;
 		pthread_attr_init(&pthattr);
+		pthattr.scope = PTHREAD_SCOPE_PROCESS_VFPU;
 		shdparam.sched_policy = SCHED_OTHER;
 		shdparam.sched_priority = 45;
 		pthread_attr_setschedparam(&pthattr, &shdparam);
@@ -123,7 +127,7 @@ CTextUI::CTextUI()
 void CTextUI::Terminate()
 {
 	m_ExitRenderThread = true;
-	m_isdirty = 0;
+	m_dirtybitmask = 0;
 }
 
 CTextUI::~CTextUI()
@@ -146,7 +150,7 @@ CTextUI::~CTextUI()
 
 void CTextUI::NewPCMBuffer(short *pcmbuffer)
 {
-	SET_BIT(DIRTY_PCM);
+	SET_DIRTY_BIT(BITMASK_PCM);
 }
 
 int CTextUI::OnVBlank()
@@ -175,7 +179,7 @@ void CTextUI::RenderLoop()
 		if (m_ExitRenderThread)
 			break;
 
-		if (m_isdirty)
+		if (m_dirtybitmask)
 		{
 			time1 = sceKernelLibcClock();
 	
@@ -223,9 +227,9 @@ void CTextUI::RenderNormal(int iBuffer)
 	static pspradioexport_ifdata ifdata = { 0 };
 	static int message_frames = 0;
 	
-	if (m_isdirty & DIRTY_BACKGROUND)
+	if (m_dirtybitmask & BITMASK_BACKGROUND)
 	{
-		UNSET_BIT(DIRTY_BACKGROUND);
+		UNSET_DIRTY_BIT(BITMASK_BACKGROUND);
 		m_RenderLock->Lock();
 		m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
 			0, 0, m_Screen->m_Width, m_Screen->m_Height);
@@ -238,54 +242,54 @@ void CTextUI::RenderNormal(int iBuffer)
 		draw_background = true;
 	}
 	
-	if (m_isdirty & DIRTY_TIME)
+	if (m_dirtybitmask & BITMASK_TIME)
 	{
-		UNSET_BIT(DIRTY_TIME);
+		UNSET_DIRTY_BIT(BITMASK_TIME);
 		PrintTime(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_BATTERY)
+	if (m_dirtybitmask & BITMASK_BATTERY)
 	{
-		UNSET_BIT(DIRTY_BATTERY);
+		UNSET_DIRTY_BIT(BITMASK_BATTERY);
 		PrintBattery(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_BUFFER_PERCENTAGE)
+	if (m_dirtybitmask & BITMASK_BUFFER_PERCENTAGE)
 	{
-		UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
+		UNSET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
 		PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_SONG_DATA)
+	if (m_dirtybitmask & BITMASK_SONG_DATA)
 	{
-		UNSET_BIT(DIRTY_SONG_DATA);
+		UNSET_DIRTY_BIT(BITMASK_SONG_DATA);
 		PrintSongData(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_STREAM_TIME)
+	if (m_dirtybitmask & BITMASK_STREAM_TIME)
 	{
-		UNSET_BIT(DIRTY_STREAM_TIME);
+		UNSET_DIRTY_BIT(BITMASK_STREAM_TIME);
 		PrintStreamTime(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_CONTAINERS)
+	if (m_dirtybitmask & BITMASK_CONTAINERS)
 	{
-		UNSET_BIT(DIRTY_CONTAINERS);
+		UNSET_DIRTY_BIT(BITMASK_CONTAINERS);
 		PrintContainers(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_ELEMENTS)
+	if (m_dirtybitmask & BITMASK_ELEMENTS)
 	{
-		UNSET_BIT(DIRTY_ELEMENTS);
+		UNSET_DIRTY_BIT(BITMASK_ELEMENTS);
 		PrintElements(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_OPTIONS)
+	if (m_dirtybitmask & BITMASK_OPTIONS)
 	{
-		UNSET_BIT(DIRTY_OPTIONS);
+		UNSET_DIRTY_BIT(BITMASK_OPTIONS);
 		PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_ACTIVE_COMMAND)
+	if (m_dirtybitmask & BITMASK_ACTIVE_COMMAND)
 	{
-		UNSET_BIT(DIRTY_ACTIVE_COMMAND);
+		UNSET_DIRTY_BIT(BITMASK_ACTIVE_COMMAND);
 		PrintActiveCommand(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_isdirty & DIRTY_CURRENT_CONTAINER_SIDE_TITLE)
+	if (m_dirtybitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
 	{
-		UNSET_BIT(DIRTY_CURRENT_CONTAINER_SIDE_TITLE);
+		UNSET_DIRTY_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
 		PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
 	}
 	
@@ -295,19 +299,19 @@ void CTextUI::RenderNormal(int iBuffer)
 		m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 
 		/* Do effects to back-buffer */
-		if (m_isdirty & DIRTY_PCM)
+		if (m_dirtybitmask & BITMASK_PCM)
 		{
 			ifdata.Pointer = &m_vis_cfg;
 			PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 			
-			UNSET_BIT(DIRTY_PCM);
+			UNSET_DIRTY_BIT(BITMASK_PCM);
 			ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		}
 		
-		if (m_isdirty & DIRTY_MESSAGE)
+		if (m_dirtybitmask & BITMASK_MESSAGE)
 		{
-			UNSET_BIT(DIRTY_MESSAGE);
+			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
 			message_frames = 1;
 		}
 		
@@ -334,26 +338,26 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 		ifdata.Pointer = &m_fs_vis_cfg;
 		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 					
-		UNSET_BIT(DIRTY_PCM);
+		UNSET_DIRTY_BIT(BITMASK_PCM);
 		ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		
-		UNSET_BIT(DIRTY_STREAM_TIME);
+		UNSET_DIRTY_BIT(BITMASK_STREAM_TIME);
 		PrintStreamTime(iBuffer, false);
-		UNSET_BIT(DIRTY_SONG_DATA);
+		UNSET_DIRTY_BIT(BITMASK_SONG_DATA);
 		PrintSongData(iBuffer, false);
-		//UNSET_BIT(DIRTY_BUFFER_PERCENTAGE);
+		//UNSET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
 		//PrintBufferPercentage(iBuffer, false);
 		
-		uiPrintf(iBuffer, 10, 200, 0xFFFFFF, "fr[0]=%f fr[128]=%f fr[256]=%f",
-				m_FreqData[0],
-				m_FreqData[128],
-				m_FreqData[256]);
+	//	uiPrintf(iBuffer, 10, 200, 0xFFFFFF, "fr[0]=%f fr[128]=%f fr[256]=%f",
+	//			m_FreqData[0],
+	//			m_FreqData[128],
+	//			m_FreqData[256]);
 
 
-		if (m_isdirty & DIRTY_MESSAGE)
+		if (m_dirtybitmask & BITMASK_MESSAGE)
 		{
-			UNSET_BIT(DIRTY_MESSAGE);
+			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
 			message_frames = 1;
 		}
 		
@@ -365,7 +369,7 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 				message_frames = 0;
 			}
 		}
-		m_isdirty = 0;
+		m_dirtybitmask = 0;
 	}
 }
 
@@ -653,8 +657,8 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 		}
 	}
 
-	m_isdirty = 0; /* New screen loaded, clear all previous bits */
-	SET_BIT(DIRTY_BACKGROUND);
+	m_dirtybitmask = 0; /* New screen loaded, clear all previous bits */
+	SET_DIRTY_BIT(BITMASK_BACKGROUND);
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
 	
@@ -679,7 +683,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 		}
 	}
 	m_OptionsList = OptionsList;
-	SET_BIT(DIRTY_OPTIONS);
+	SET_DIRTY_BIT(BITMASK_OPTIONS);
 }
 
 void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
@@ -840,7 +844,7 @@ int CTextUI::SetTitle(char *strTitle)
 void CTextUI::OnBatteryChange(int Percentage)
 {
 	m_LastBatteryPercentage = Percentage;
-	SET_BIT(DIRTY_BATTERY);
+	SET_DIRTY_BIT(BITMASK_BATTERY);
 }
 
 void CTextUI::PrintBattery(int iBuffer, bool draw_background)
@@ -855,7 +859,7 @@ void CTextUI::PrintBattery(int iBuffer, bool draw_background)
 void CTextUI::OnTimeChange(pspTime *LocalTime)
 {
 	m_LastLocalTime = *LocalTime;
-	SET_BIT(DIRTY_TIME);
+	SET_DIRTY_BIT(BITMASK_TIME);
 }
 
 void CTextUI::PrintTime(int iBuffer, bool draw_background)
@@ -886,7 +890,7 @@ void CTextUI::PrintTime(int iBuffer, bool draw_background)
 void CTextUI::PrintMessage(char *message)
 {
 	strlcpy(m_Message, message, MAX_COL);
-	SET_BIT(DIRTY_MESSAGE);
+	SET_DIRTY_BIT(BITMASK_MESSAGE);
 }
 
 int CTextUI::DisplayMessage_EnablingNetwork()
@@ -922,7 +926,7 @@ int CTextUI::DisplayMainCommands()
 
 int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
-	SET_BIT(DIRTY_ACTIVE_COMMAND);
+	SET_DIRTY_BIT(BITMASK_ACTIVE_COMMAND);
 	m_CurrentPlayingState = playingstate;
 	return 0;
 }
@@ -994,7 +998,7 @@ int CTextUI::DisplayBufferPercentage(int iPerc)
 		m_iBufferPercentage = 100;
 	if (m_iBufferPercentage < 2)
 		m_iBufferPercentage = 0;
-	SET_BIT(DIRTY_BUFFER_PERCENTAGE);
+	SET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
 	return 0;
 }
 
@@ -1070,7 +1074,7 @@ int CTextUI::OnStreamOpeningSuccess()
 
 int CTextUI::OnNewSongData(MetaData *pData)
 {
-	SET_BIT(DIRTY_SONG_DATA);
+	SET_DIRTY_BIT(BITMASK_SONG_DATA);
 	return 0;
 }
 
@@ -1143,7 +1147,7 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 
 int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 {
-	SET_BIT(DIRTY_STREAM_TIME);
+	SET_DIRTY_BIT(BITMASK_STREAM_TIME);
 	return 0;
 }
 	
@@ -1184,7 +1188,7 @@ int CTextUI::PrintStreamTime(int iBuffer, bool draw_background)
 void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
 	m_Container = Container;
-	SET_BIT(DIRTY_CONTAINERS);
+	SET_DIRTY_BIT(BITMASK_CONTAINERS);
 }
 
 void CTextUI::PrintContainers(int iBuffer, bool draw_background)
@@ -1286,7 +1290,7 @@ void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
 	m_Container = Container;
-	SET_BIT(DIRTY_ELEMENTS);
+	SET_DIRTY_BIT(BITMASK_ELEMENTS);
 }
 
 void CTextUI::PrintElements(int iBuffer, bool draw_background)
@@ -1393,7 +1397,7 @@ void CTextUI::PrintElements(int iBuffer, bool draw_background)
 void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 {
 	m_Container = Container;
-	SET_BIT(DIRTY_CURRENT_CONTAINER_SIDE_TITLE);
+	SET_DIRTY_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
 }
 
 void CTextUI::PrintCurrentContainerSideTitle(int iBuffer, bool draw_background)

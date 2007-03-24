@@ -17,6 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
  fixed or floating point complex numbers.  It also delares the kf_ internal functions.
  */
 
+
 static kiss_fft_cpx *scratchbuf=NULL;
 static size_t nscratchbuf=0;
 static kiss_fft_cpx *tmpbuf=NULL;

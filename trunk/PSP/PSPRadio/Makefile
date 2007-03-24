@@ -25,7 +25,7 @@ OBJS = Main.o PSPRadio.o MetaDataContainer.o \
 		$(VIS_IF_OBJS) \
 		$(IMPORTED_OBJS)
 
-CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES) -DFIXED_POINT=16 -DPSP
+CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES) -DPSP -DFIXED_POINT=16 
 
 INCDIR = $(SHAREDLIB_DIR)/PSPApp \
 		 $(SHAREDLIB_DIR)/libpspnet $(SHAREDLIB_DIR)/libiniparser \
@@ -52,7 +52,7 @@ LIBS =	-lstdc++ \
 		-lvorbisfile -lvorbis -logg \
 		-lpspwlan \
 		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc -lpsppower \
-		-lpng -lz -lm \
+		-lpng -lz -lm -lpspmath \
 		-lpspkubridge
 
 all: $(EXTRA_TARGETS) $(FINAL_TARGET)

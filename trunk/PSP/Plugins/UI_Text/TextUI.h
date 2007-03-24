@@ -6,19 +6,20 @@
 #include "Screen.h"
 #include "VIS_Plugin.h"
 
-#define DIRTY_PCM	1
-#define DIRTY_TIME	2
-#define DIRTY_BATTERY 4
-#define DIRTY_BUFFER_PERCENTAGE 8
-#define DIRTY_SONG_DATA 16
-#define DIRTY_STREAM_TIME 32
-#define DIRTY_CONTAINERS 64
-#define DIRTY_ELEMENTS 128
-#define DIRTY_BACKGROUND  256
-#define DIRTY_OPTIONS 512
-#define DIRTY_ACTIVE_COMMAND 1024
-#define DIRTY_MESSAGE 2048
-#define DIRTY_CURRENT_CONTAINER_SIDE_TITLE 4096
+/* active / dirty bits */
+#define BITMASK_PCM	1
+#define BITMASK_TIME	2
+#define BITMASK_BATTERY 4
+#define BITMASK_BUFFER_PERCENTAGE 8
+#define BITMASK_SONG_DATA 16
+#define BITMASK_STREAM_TIME 32
+#define BITMASK_CONTAINERS 64
+#define BITMASK_ELEMENTS 128
+#define BITMASK_BACKGROUND  256
+#define BITMASK_OPTIONS 512
+#define BITMASK_ACTIVE_COMMAND 1024
+#define BITMASK_MESSAGE 2048
+#define BITMASK_CURRENT_CONTAINER_SIDE_TITLE 4096
 
 struct screenconfig
 {
@@ -103,7 +104,8 @@ public:
 	void OnButtonReleased(int buttonmask);
 	
 public:
-	int  m_isdirty;
+	int  m_dirtybitmask;
+	int  m_activebitmask;
 	CScreen *m_Screen;
 	CScreenHandler::ScreenShotState m_ScreenShotState;
 private:

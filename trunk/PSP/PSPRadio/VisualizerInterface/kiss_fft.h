@@ -8,6 +8,7 @@
 #ifdef PSP
 	#include <string.h>
 	#include <psptypes.h>
+	#include <pspmath.h>
 #else
 	#include <memory.h>
 	#include <malloc.h>

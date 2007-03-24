@@ -27,7 +27,7 @@
 #include <malloc.h>
 #include <stdarg.h>
 #include "../VIS_Plugin.h"
-#include <math.h>
+#include <pspmath.h>
 
 PSP_MODULE_INFO("VIS_SPECTRUM", 0, 1, 1);
 PSP_HEAP_SIZE_KB(0);
@@ -65,53 +65,80 @@ VisPlugin *get_vplugin_info()
 	return &sample_vtable;
 }
 
+/* Linearity of the amplitude scale (0.5 for linear, keep in [0.1, 0.9]) */
+#define d 0.33
+
+/* Time factor of the band dinamics. 3 means that the coefficient of the
+   last value is half of the current one's. (see source) */
+#define tau 3
+
+/* Factor used for the diffusion. 4 means that half of the height is
+   added to the neighbouring bars */
+#define dif 4
+
+/*static gint timeout_tag;*/
+static double scale, x00, y00;
+static int16 bar_heights[512];
+#define NUM_BANDS 20
+int conf_width = 480;
+int conf_height = 271;
+int band_width = 48;
+
 /* Called from PSPRadio on initialization */
 void spect_init()
 {
+	vfpu_srand(0);
 	spect_config_update();
 }
 
 /* Called from PSPRadio when the config pointer has been updated */
-int y_mid = 127, pcm_shdiv = 15;
 void spect_config_update()
 {
-	int sh = 0, amp = 0;
-	int mid_a = 0;
-
 	if(sample_vtable.config)
 	{
-		y_mid = (sample_vtable.config->y2 + sample_vtable.config->y1) / 2;
+		conf_width  = (sample_vtable.config->x2 - sample_vtable.config->x1);
+		conf_height = (sample_vtable.config->y2 - sample_vtable.config->y1);
+		band_width  = conf_width / NUM_BANDS;
 
-		mid_a = (sample_vtable.config->y2 - sample_vtable.config->y1) / 2;
-		pcm_shdiv = 15; 
-		
-		// We convert the fixed-point integer into an integer by doing binary right shifts.
-		// So pcm_shdiv of 8 gives us the whole integer part, 9 is whole / 2, 10 is /4, etc.
-		// at 15, we are left with a max of 1, so this is the minimum. 
-		// shdiv then is 8 <= shdiv <= 15
-		
-		for (sh = 15, amp = 1; sh >= 8; sh--, amp *= 2)
-		{
-			if (mid_a >= amp)
-				pcm_shdiv = sh;
-		}
+		scale = conf_height / ( vfpu_logf((1 - d) / d) * 2 );
+		x00 = d*d*32768.0/(2 * d - 1);
+		y00 = -vfpu_logf(-x00) * scale;
+
 	}
+
+	sceKernelChangeCurrentThreadAttr(0, PSP_THREAD_ATTR_VFPU);
 }	
 
 /* This is called from PSPRadio */
 /* (actual visualizer routine) */
-void spect_render_freq(u32* vram_frame, float freq_data[2][257])
+/* Based on "finespectrum.c" visualizer for XMMS
+   Copyright (C) 1998-2001 Vágvölgyi Attila, Peter Alm, Mikael Alm,
+   Olle Hallnas, Thomas Nilsson and 4Front Technologies */
+void spect_render_freq(u32* vram_frame, float data[2][257])
 {
-	int bass = 20*log10(freq_data[0][0] + 1);
-	int mid  = 20*log10(freq_data[0][128] + 1);
-	int treb = 20*log10(freq_data[0][256] + 1);
+	int i;
+	double y;
+	float xo;
+	float xof = ((float)conf_width - (float)band_width)/257;
+	xo = 0;
 
-	Rectangle(vram_frame, 10,  sample_vtable.config->y2-bass, 100, sample_vtable.config->y2, 0xFFFFFF);
+	for (i = 0; i < 257; i+=(257/NUM_BANDS)) {
+		y = (double)(data[0][i]) * (i + 1); /* Compensating the energy */
+		y = ( vfpu_logf(y - x00) * scale + y00 ); /* Logarithmic amplitude */
 
-	Rectangle(vram_frame, 110, sample_vtable.config->y2-mid,  200, sample_vtable.config->y2, 0xFFFFFF);
+		y = ( (dif-2)*y + /* FIXME: conditionals should be rolled out of the loop */
+			(i==0            ? y : bar_heights[i-1]) +
+			(i==conf_width-1 ? y : bar_heights[i+1])) / dif; /* Add some diffusion */
+		y = ((tau-1)*bar_heights[i] + y) / tau; /* Add some dynamics */
+		bar_heights[i] = (int16)y;
 
-	Rectangle(vram_frame, 210, sample_vtable.config->y2-treb, 300, sample_vtable.config->y2, 0xFFFFFF);
+		Rectangle(vram_frame, 
+				  sample_vtable.config->x1 + xo, sample_vtable.config->y2, 
+				  sample_vtable.config->x1 + xo + band_width - 5, sample_vtable.config->y2 - bar_heights[i], 
+				  0xFFFFFF);
 
+		xo = (i*xof)+band_width;
+	}
 }
   
 /* Some basic drawing routines */
@@ -124,8 +151,19 @@ void Plot(u32* vram, int x, int y, int color)
 void VertLine(u32* vram, int x, int y1, int y2, int color)
 {
 	int y;
+	
+	if (x < 0)
+		x = 0;
+	if (x > 480)
+		x = 480;
+
 	if (y1 < y2)
 	{
+		if (y1 < 0)
+			y1 = 0;
+		if (y2 > 272)
+			y2 = 272;
+		
 		for (y = (y1<0)?0:y1; y <= y2; y++)
 		{
 			Plot(vram, x, y, color);
@@ -133,6 +171,11 @@ void VertLine(u32* vram, int x, int y1, int y2, int color)
 	}
 	else if (y2 < y1)
 	{
+		if (y2 < 0)
+			y2 = 0;
+		if (y1 > 272)
+			y1 = 272;
+
 		for (y = (y2<0)?0:y2; y <= y1; y++)
 		{
 			Plot(vram, x, y, color);

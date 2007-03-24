@@ -69,7 +69,7 @@ CPSPApp::CPSPApp(char *strProgramName, char *strInterfaceVersion, char *strBuild
 	m_EventToPSPApp = new CPSPEventQ("msg_to_pspapp_q");
 	
 	m_thCallbackSetup = new CPSPThread("update_thread", callbacksetupThread, 
-										32, 4*1024, THREAD_ATTR_USER);
+										32, 4*1024, THREAD_ATTR_VFPU);
 	if (m_thCallbackSetup)
 	{
 		m_thCallbackSetup->Start();

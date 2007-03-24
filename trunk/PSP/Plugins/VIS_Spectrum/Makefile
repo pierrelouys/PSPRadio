@@ -13,7 +13,7 @@ ASFLAGS = $(CFLAGS)
 
 LDFLAGS += -mno-crt0 -nostartfiles
 
-LIBS = -lm
+LIBS = -lpspmath
 
 LIBDIR =
 
