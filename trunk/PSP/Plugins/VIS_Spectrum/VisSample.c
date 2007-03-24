@@ -36,7 +36,7 @@ PSP_HEAP_SIZE_KB(0);
 void spect_config_update();
 void spect_init();
 void spect_render_freq(u32* vram_frame, float freq_data[2][257]);
-void VertLine (u32* vram, int x, int y1, int y2, int color);
+void HorizLine(u32* vram, int y, int x1, int x2, int color);
 void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color);
 
 /** START of Plugin definitions setup */
@@ -79,7 +79,7 @@ VisPlugin *get_vplugin_info()
 /*static gint timeout_tag;*/
 static double scale, x00, y00;
 static int16 bar_heights[512];
-#define NUM_BANDS 20
+#define NUM_BANDS 15
 int conf_width = 480;
 int conf_height = 271;
 int band_width = 48;
@@ -142,61 +142,42 @@ void spect_render_freq(u32* vram_frame, float data[2][257])
 }
   
 /* Some basic drawing routines */
-void Plot(u32* vram, int x, int y, int color)
-{
-	u32 *pixel = vram + sample_vtable.config->sc_pitch*y + x;
-	*pixel = color;
-}
-
-void VertLine(u32* vram, int x, int y1, int y2, int color)
-{
-	int y;
-	
-	if (x < 0)
-		x = 0;
-	if (x > 480)
-		x = 480;
-
-	if (y1 < y2)
-	{
-		if (y1 < 0)
-			y1 = 0;
-		if (y2 > 272)
-			y2 = 272;
-		
-		for (y = (y1<0)?0:y1; y <= y2; y++)
-		{
-			Plot(vram, x, y, color);
-		}
-	}
-	else if (y2 < y1)
-	{
-		if (y2 < 0)
-			y2 = 0;
-		if (y1 > 272)
-			y1 = 272;
-
-		for (y = (y2<0)?0:y2; y <= y1; y++)
-		{
-			Plot(vram, x, y, color);
-		}
-	}
-	else 
-	{
-		Plot(vram, x, y1, color);
-	}
-	
-}
-
+#define min(a,b) ((a<b)?a:b)
+#define max(a,b) ((a>b)?a:b)
+#define RGB(r,g,b) (((b&0xFF)<<16) | ((g&0xFF)<<8) | ((r&0xFF)))
 void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
 {
-	int x;
-	for (x = x1; x <= x2; x++)
+	int y, ya, yb;
+	int x, xa, xb;
+	u32 *linestart;
+	u32 *pixel;
+	float color_factor;
+	ya = min(y1,y2);
+	yb = max(y1,y2);
+	xa = min(x1,x2);
+	xb = max(x1,x2);
+
+	xa = xa<0?0:xa;
+	xb = xb<0?0:xb;
+	ya = ya<0?0:ya;
+	yb = yb<0?0:yb;
+	
+	linestart = vram + sample_vtable.config->sc_pitch*ya + xa;
+	pixel = linestart;
+	color_factor = 255.0/(yb-ya+1.0);
+
+	for (y = ya; y <= yb; y++)
 	{
-		VertLine(vram, x, y1, y2, color);
+		if (y%2)
+		for (x = x1; x <= x2; x+=2)
+		{
+			*pixel++ = RGB(0, ((u32)((ya-y+1.0)*color_factor)), 0xFF);
+			pixel++;
+		}
+		linestart += sample_vtable.config->sc_pitch;
+		pixel = linestart;
 	}
 }
-
 
 /** START Plugin Boilerplate -- shouldn't need to change **/
 PSP_NO_CREATE_MAIN_THREAD();
