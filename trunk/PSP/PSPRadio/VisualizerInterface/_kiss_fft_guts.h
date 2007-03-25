@@ -147,4 +147,4 @@ struct kiss_fft_state{
 
 /* a debugging function */
 #define pcpx(c)\
-    fprintf(stderr,"%g + %gi\n",(double)((c)->r),(double)((c)->i) )
+    fprintf(stderr,"%f + %fi\n",(float)((c)->r),(float)((c)->i) )

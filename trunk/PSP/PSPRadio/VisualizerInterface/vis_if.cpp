@@ -64,6 +64,21 @@ void do_fft_destroy()
 //    free(mag2buf);
 }
 
+/* cabs/hypot implementation */
+float vfpu_cabsf(float r, float i)
+{
+    /* float result = sqrt(r*r + i*i); */
+	ScePspFVector2 a = { r, i };
+	float result;
+   __asm__ volatile (
+       "lv.q   C000, %1\n"
+       "vdot.p S010, C000, C000\n"
+       "vsqrt.s S010, S010\n"
+	   "mfv %0, S010\n"
+       : "=r"(result) : "m"(a));
+
+	return result;
+}
 
 void do_fft()
 {
@@ -84,7 +99,7 @@ void do_fft()
 	for (i=0;i<NFREQS;++i)
 	{
 		//mag2buf[i] += fbuf[i].r * fbuf[i].r + fbuf[i].i * fbuf[i].i;
-		g_FreqData[0][i] = sqrtf(fbuf[i].r * fbuf[i].r + fbuf[i].i*fbuf[i].i) * 64; //fbuf[i].i;
+		g_FreqData[0][i] = vfpu_cabsf(fbuf[i].r, fbuf[i].i) * 64;
 		//g_FreqData[1][i] = g_FreqData[0][i];
 	}
 }
