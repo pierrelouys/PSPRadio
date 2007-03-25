@@ -2,9 +2,14 @@ What's New for PSPRadio
 ========================
 1.17.xxxx (2007-xx-xx)
 NEW FEATURES
+(raf) TextUI: After a configurable amount (default 5 seconds) during playback, the visualizer goes into fullscreen.
+(raf) Core: Added kiss-fft routines, and now provide frequency data to visualizer plugins if requested.
+(raf) Plugins: Added a spectrum analyzer plugin (based on finespectrum.c for XMMS).
+(raf) Core: FFT and VIS_Spectrum use vfpu for some calculations, to get a speedup. (Thanks to MrMr[iCE] for his helpful vfpu library pspmath).
 BUG FIXES
+(raf) TextUI: When switching skins all the text will disappear. Corrected.
+(raf) Choosing exit from option menu is much faster, and less prone to crashing.
 KNOWN BUGS
-(raf) TextUI: Sometimes, when switching skins all the text will disappear. Moving Up/Down, or pressing START is the current work-around.
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection).
 (raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).
 

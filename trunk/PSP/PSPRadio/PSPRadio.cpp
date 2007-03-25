@@ -304,10 +304,10 @@ void CPSPRadio::OnExit()
 // 	Log(LOG_INFO, "OnExit(): Stopping network drivers");
 // 	StopNetworkDrivers();
 
-	//Log(LOG_INFO, "Exiting. The end. -- Calling sceKernelExitGame");
-	//sceKernelExitGame();
+	Log(LOG_INFO, "Exiting. The end. -- Calling sceKernelExitGame");
+	sceKernelExitGame();
 
-#if 1 /** sceKernelExitGame() always works, so we call that, the OS will do the cleanup for us. */
+#if 0 /** sceKernelExitGame() always works, so we call that, the OS will do the cleanup for us. */
 	if (m_Sound)
 	{
 		Log(LOG_VERYLOW, "Exiting. Destroying m_Sound object");
@@ -325,7 +325,7 @@ void CPSPRadio::OnExit()
 		delete(m_ScreenHandler), m_ScreenHandler = NULL;
 	}
 
-	for (int i = 0 ; i < NUMBER_OF_PLUGIN_TYPES; i++)
+	for (int i = NUMBER_OF_PLUGIN_TYPES - 1 ; i >= 0 ; i--)
 	{
 		if (m_ModuleLoader[i])
 		{
