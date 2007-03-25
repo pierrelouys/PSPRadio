@@ -104,7 +104,7 @@ CTextUI::CTextUI()
 	m_fs_vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
 	m_fs_vis_cfg.x1 = 0;
 	m_fs_vis_cfg.y1 = 0;
-	m_fs_vis_cfg.x2 = m_Screen->m_Width  - 1;
+	m_fs_vis_cfg.x2 = m_Screen->m_Width;
 	m_fs_vis_cfg.y2 = m_Screen->m_Height - 1;
 	
 	/* Start Render Thread */
@@ -270,7 +270,7 @@ void CTextUI::RenderNormal(int iBuffer)
 		{
 			m_RenderLock->Lock();
 			m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
-				0, 0, m_Screen->m_Width, m_Screen->m_Height);
+				0, 0, m_Screen->m_Width, m_Screen->m_Height - 1);
 			PrintProgramVersion(OFFLINE_BUFFER);
 			m_RenderLock->Unlock();
 			draw_background  = false;
@@ -736,7 +736,7 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 			SET_ACTIVE_BIT(BITMASK_OPTIONS);
 
-			SET_DIRTY_BIT(BITMASK_OPTIONS);
+			//SET_DIRTY_BIT(BITMASK_OPTIONS);
 			break;
 	}
 	
@@ -767,6 +767,7 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 	m_OptionsList = OptionsList;
 	//SET_ACTIVE_BIT(BITMASK_OPTIONS);
 	SET_DIRTY_BIT(BITMASK_OPTIONS);
+	m_refreshbitmask |= BITMASK_OPTIONS;
 }
 
 void CTextUI::PrintOptionsScreen(int iBuffer, bool draw_background)
@@ -1274,6 +1275,7 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 {
 	m_Container = Container;
 	SET_DIRTY_BIT(BITMASK_CONTAINERS);
+	m_refreshbitmask |= BITMASK_CONTAINERS;
 }
 
 void CTextUI::PrintContainers(int iBuffer, bool draw_background)
@@ -1376,6 +1378,7 @@ void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {
 	m_Container = Container;
 	SET_DIRTY_BIT(BITMASK_ELEMENTS);
+	m_refreshbitmask |= BITMASK_ELEMENTS;
 }
 
 void CTextUI::PrintElements(int iBuffer, bool draw_background)

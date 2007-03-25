@@ -1,6 +1,6 @@
 TARGET=VIS_Spectrum
 
-OBJS = VisSample.o dummyimport.o
+OBJS = VisSpectrum.o dummyimport.o
 
 # Define to build this as a prx (instead of a static elf)
 BUILD_PRX=1
