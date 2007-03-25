@@ -39,6 +39,7 @@ plugins:
 	cd $(PLUGINS_DIR)/UI_Text3D && $(MAKE) && $(MAKE) install
 	cd $(PLUGINS_DIR)/VIS_Scope && $(MAKE) install
 	cd $(PLUGINS_DIR)/VIS_Sample && $(MAKE) make_in_pspradio_repo
+	cd $(PLUGINS_DIR)/VIS_Spectrum && $(MAKE) clean all
 
 extra_plugins:
 	$(MAKE) clean_plugin_common_objects

@@ -108,6 +108,8 @@ public:
 public:
 	int  m_dirtybitmask;
 	int  m_activebitmask;
+	int  m_refreshbitmask;
+
 	CScreen *m_Screen;
 	CScreenHandler::ScreenShotState m_ScreenShotState;
 private:

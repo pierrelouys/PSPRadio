@@ -77,12 +77,12 @@ VisPlugin *get_vplugin_info()
 #define dif 4
 
 /*static gint timeout_tag;*/
-static double scale, x00, y00;
+static float scale, x00, y00;
 static int16 bar_heights[512];
-#define NUM_BANDS 15
+#define NUM_BANDS 20
 int conf_width = 480;
 int conf_height = 271;
-int band_width = 48;
+float band_width = 48.0f;
 
 /* Called from PSPRadio on initialization */
 void spect_init()
@@ -101,7 +101,7 @@ void spect_config_update()
 		band_width  = conf_width / NUM_BANDS;
 
 		scale = conf_height / ( vfpu_logf((1 - d) / d) * 2 );
-		x00 = d*d*32768.0/(2 * d - 1);
+		x00 = d*d*32768.0f/(2 * d - 1);
 		y00 = -vfpu_logf(-x00) * scale;
 
 	}
@@ -117,13 +117,13 @@ void spect_config_update()
 void spect_render_freq(u32* vram_frame, float data[2][257])
 {
 	int i;
-	double y;
+	float y;
 	float xo;
 	float xof = ((float)conf_width - (float)band_width)/257;
 	xo = 0;
 
 	for (i = 0; i < 257; i+=(257/NUM_BANDS)) {
-		y = (double)(data[0][i]) * (i + 1); /* Compensating the energy */
+		y = (float)(data[0][i]) * (i + 1); /* Compensating the energy */
 		y = ( vfpu_logf(y - x00) * scale + y00 ); /* Logarithmic amplitude */
 
 		y = ( (dif-2)*y + /* FIXME: conditionals should be rolled out of the loop */
@@ -142,9 +142,9 @@ void spect_render_freq(u32* vram_frame, float data[2][257])
 }
   
 /* Some basic drawing routines */
-#define min(a,b) ((a<b)?a:b)
-#define max(a,b) ((a>b)?a:b)
-#define RGB(r,g,b) (((b&0xFF)<<16) | ((g&0xFF)<<8) | ((r&0xFF)))
+#define min(a,b) (((a)<(b))?(a):(b))
+#define max(a,b) (((a)>(b))?(a):(b))
+#define RGB(r,g,b) ((((b)&0xFF)<<16) | (((g)&0xFF)<<8) | (((r)&0xFF)))
 void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
 {
 	int y, ya, yb;
@@ -164,14 +164,14 @@ void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
 	
 	linestart = vram + sample_vtable.config->sc_pitch*ya + xa;
 	pixel = linestart;
-	color_factor = 255.0/(yb-ya+1.0);
+	color_factor = 255.0f/(yb-ya+1.0f);
 
 	for (y = ya; y <= yb; y++)
 	{
 		if (y%2)
 		for (x = x1; x <= x2; x+=2)
 		{
-			*pixel++ = RGB(0, ((u32)((ya-y+1.0)*color_factor)), 0xFF);
+			*pixel++ = RGB(0, 0xFF - ((u32)((y-ya+1.0f)*color_factor)), 0xFF);
 			pixel++;
 		}
 		linestart += sample_vtable.config->sc_pitch;

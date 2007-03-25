@@ -74,6 +74,7 @@ CTextUI::CTextUI()
 	sThis = this;
 	m_dirtybitmask = 0;
 	m_activebitmask = ( BITMASK_PCM | BITMASK_MESSAGE );
+	m_refreshbitmask = 0;
 	m_LastBatteryPercentage = 0;
 	sceRtcGetCurrentClockLocalTime(&m_LastLocalTime);
 	m_bDisplayFPS = false;
@@ -186,8 +187,15 @@ void CTextUI::RenderLoop()
 		if (m_ExitRenderThread)
 			break;
 
+		if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE)
+		{
+			sceKernelDelayThread(1); /* yield */
+			continue;
+		}
+
 		if (m_dirtybitmask)
 		{
+
 			time1 = sceKernelLibcClock();
 	
 			switch(render_mode)
@@ -199,6 +207,7 @@ void CTextUI::RenderLoop()
 					ifdata.Pointer = &m_fs_vis_cfg;
 					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 					render_mode = RM_FULLSCREEN;
+					m_dirtybitmask = m_refreshbitmask;
 				}
 				else
 				{
@@ -212,6 +221,7 @@ void CTextUI::RenderLoop()
 					ifdata.Pointer = &m_vis_cfg;
 					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 					render_mode = RM_NORMAL;
+					m_dirtybitmask = m_refreshbitmask;
 				}
 				else
 				{
@@ -253,114 +263,116 @@ void CTextUI::RenderNormal(int iBuffer)
 	static int message_frames = 0;
 	static pspradioexport_ifdata ifdata = { 0 };
 	
-	if (m_activebitmask & BITMASK_BACKGROUND &&
-		m_dirtybitmask & BITMASK_BACKGROUND)
+	if (m_dirtybitmask & BITMASK_BACKGROUND)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BACKGROUND);
-		m_RenderLock->Lock();
-		m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
-			0, 0, m_Screen->m_Width, m_Screen->m_Height);
-		PrintProgramVersion(OFFLINE_BUFFER);
-		m_RenderLock->Unlock();
-		draw_background  = false;
+		if (m_activebitmask & BITMASK_BACKGROUND)
+		{
+			m_RenderLock->Lock();
+			m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
+				0, 0, m_Screen->m_Width, m_Screen->m_Height);
+			PrintProgramVersion(OFFLINE_BUFFER);
+			m_RenderLock->Unlock();
+			draw_background  = false;
+		}
 	}
 	else
 	{
 		draw_background = true;
 	}
 	
-	if (m_activebitmask & BITMASK_TIME &&
-		m_dirtybitmask & BITMASK_TIME )
+	if (m_dirtybitmask & BITMASK_TIME)
 	{
 		UNSET_DIRTY_BIT(BITMASK_TIME);
-		PrintTime(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_TIME)
+			PrintTime(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_BATTERY &&
-		m_dirtybitmask & BITMASK_BATTERY)
+	if (m_dirtybitmask & BITMASK_BATTERY)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BATTERY);
-		PrintBattery(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_BATTERY)
+			PrintBattery(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_BUFFER_PERCENTAGE &&
-		m_dirtybitmask & BITMASK_BUFFER_PERCENTAGE)
+	if (m_dirtybitmask & BITMASK_BUFFER_PERCENTAGE)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
-		PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_BUFFER_PERCENTAGE)
+			PrintBufferPercentage(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_SONG_DATA &&
-		m_dirtybitmask & BITMASK_SONG_DATA)
+	if (m_dirtybitmask & BITMASK_SONG_DATA)
 	{
 		UNSET_DIRTY_BIT(BITMASK_SONG_DATA);
-		PrintSongData(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_SONG_DATA)
+			PrintSongData(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_STREAM_TIME &&
-		m_dirtybitmask & BITMASK_STREAM_TIME)
+	if (m_dirtybitmask & BITMASK_STREAM_TIME)
 	{
 		UNSET_DIRTY_BIT(BITMASK_STREAM_TIME);
-		PrintStreamTime(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_STREAM_TIME)
+			PrintStreamTime(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_CONTAINERS &&
-		m_dirtybitmask & BITMASK_CONTAINERS)
+	if (m_dirtybitmask & BITMASK_CONTAINERS)
 	{
 		UNSET_DIRTY_BIT(BITMASK_CONTAINERS);
-		PrintContainers(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_CONTAINERS)
+			PrintContainers(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_ELEMENTS &&
-		m_dirtybitmask & BITMASK_ELEMENTS)
+	if (m_dirtybitmask & BITMASK_ELEMENTS)
 	{
 		UNSET_DIRTY_BIT(BITMASK_ELEMENTS);
-		PrintElements(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_ELEMENTS)
+			PrintElements(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_OPTIONS &&
-		m_dirtybitmask & BITMASK_OPTIONS)
+	if (m_dirtybitmask & BITMASK_OPTIONS)
 	{
 		UNSET_DIRTY_BIT(BITMASK_OPTIONS);
-		PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_OPTIONS)
+			PrintOptionsScreen(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_ACTIVE_COMMAND &&
-		m_dirtybitmask & BITMASK_ACTIVE_COMMAND)
+	if (m_dirtybitmask & BITMASK_ACTIVE_COMMAND)
 	{
 		UNSET_DIRTY_BIT(BITMASK_ACTIVE_COMMAND);
-		PrintActiveCommand(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_ACTIVE_COMMAND)
+			PrintActiveCommand(OFFLINE_BUFFER, draw_background);
 	}
-	if (m_activebitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE &&
-		m_dirtybitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
+	if (m_dirtybitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
 	{
 		UNSET_DIRTY_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
-		PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
+		if (m_activebitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
+			PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
 	}
-	
+		
 	/* Copy buffer OFFLINE_BUFFER to back-buffer */
-	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
-	{
-		m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
+	m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
 
-		/* Do effects to back-buffer */
-		if (m_activebitmask & BITMASK_PCM &&
-			m_dirtybitmask & BITMASK_PCM)
+	/* Do effects to back-buffer */
+	if (m_dirtybitmask & BITMASK_PCM)
+	{
+		UNSET_DIRTY_BIT(BITMASK_PCM);
+		if (m_activebitmask & BITMASK_PCM)
 		{
-			UNSET_DIRTY_BIT(BITMASK_PCM);
 			ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		}
-		
-		if (m_activebitmask & BITMASK_MESSAGE &&
-			m_dirtybitmask & BITMASK_MESSAGE)
-		{
-			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
+	}
+	
+	if (m_dirtybitmask & BITMASK_MESSAGE)
+	{
+		UNSET_DIRTY_BIT(BITMASK_MESSAGE);
+		if (m_activebitmask & BITMASK_MESSAGE)
 			message_frames = 1;
-		}
-		
-		if (message_frames > 0)
+	}
+	
+	if (message_frames > 0)
+	{
+		PrintMessage(iBuffer);
+		if (message_frames++ >= 30)
 		{
-			PrintMessage(iBuffer);
-			if (message_frames++ >= 30)
-			{
-				message_frames = 0;
-			}
+			message_frames = 0;
 		}
 	}
-}				
+	
+}	
 
 void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 {
@@ -371,13 +383,10 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 	{
 		m_Screen->Clear(iBuffer);
 
-		UNSET_DIRTY_BIT(BITMASK_PCM);
 		ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		
-		UNSET_DIRTY_BIT(BITMASK_STREAM_TIME);
 		PrintStreamTime(iBuffer, false);
-		UNSET_DIRTY_BIT(BITMASK_SONG_DATA);
 		PrintSongData(iBuffer, false);
 		//UNSET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
 		//PrintBufferPercentage(iBuffer, false);
@@ -388,11 +397,11 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 	//			m_FreqData[256]);
 
 
-		if (m_activebitmask & BITMASK_MESSAGE &&
-			m_dirtybitmask & BITMASK_MESSAGE)
+		if (m_dirtybitmask & BITMASK_MESSAGE)
 		{
 			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
-			message_frames = 1;
+			if (m_activebitmask & BITMASK_MESSAGE)
+				message_frames = 1;
 		}
 		
 		if (message_frames > 0)
@@ -692,11 +701,11 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 		}
 	}
 
+	m_RenderLock->Lock(); /* Don't render set masks*/
 	m_dirtybitmask  = 0;
 	m_activebitmask = 0;
 	OnBatteryChange(m_LastBatteryPercentage);
 	OnTimeChange(&m_LastLocalTime);
-	SET_DIRTY_BIT(BITMASK_BACKGROUND);
 
 	SET_ACTIVE_BIT(BITMASK_PCM);
 	SET_ACTIVE_BIT(BITMASK_TIME);
@@ -704,6 +713,9 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	SET_ACTIVE_BIT(BITMASK_STREAM_TIME);
 	SET_ACTIVE_BIT(BITMASK_BACKGROUND);
 	SET_ACTIVE_BIT(BITMASK_MESSAGE);
+
+	SET_DIRTY_BIT(BITMASK_BACKGROUND);
+
 	switch(m_CurrentScreen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
@@ -715,15 +727,22 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 			SET_ACTIVE_BIT(BITMASK_ELEMENTS);
 			SET_ACTIVE_BIT(BITMASK_ACTIVE_COMMAND);
 			SET_ACTIVE_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
+
+			//SET_DIRTY_BIT(BITMASK_CONTAINERS);
+			//SET_DIRTY_BIT(BITMASK_ELEMENTS);
+			SET_DIRTY_BIT(BITMASK_CURRENT_CONTAINER_SIDE_TITLE);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 			SET_ACTIVE_BIT(BITMASK_OPTIONS);
+
+			SET_DIRTY_BIT(BITMASK_OPTIONS);
 			break;
 	}
-
-
-	//SET_DIRTY_BIT(BITMASK_ALL); /* Re-render all active elements */
+	
+	m_refreshbitmask = m_dirtybitmask;
+	
+	m_RenderLock->Unlock(); /* Don't render while we load the background */
 	
 	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
 }
