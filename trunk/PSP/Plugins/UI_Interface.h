@@ -16,7 +16,8 @@
 
 	typedef struct _UIPlugin
 	{
-		int  interface_version; /* Informationaal from Plugin to PSPRadio */
+		int  interface_version; /* Populated by Plugin | Informationaal from Plugin to PSPRadio */
+		void *PSPRadioObject;   /* Populated by PSPRadio | Cast to a CPSPRadio -- For use on C++ Plugins */
 		void *handle; /* Filled in by PSPRadio */
 		char *filename; /* Filled in by PSPRadio */
 		char *description; /* The description that is shown in the preferences box */

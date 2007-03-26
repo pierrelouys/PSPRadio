@@ -53,7 +53,7 @@ LIBS =	-lstdc++ \
 		-lpspwlan \
 		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc -lpsppower \
 		-lpng -lz -lm -lpspmath \
-		-lpspkubridge
+		-lpspkubridge -lpspgu
 
 all: $(EXTRA_TARGETS) $(FINAL_TARGET)
 	mkdir -p $(PSPRADIO_RELEASE_DIR)

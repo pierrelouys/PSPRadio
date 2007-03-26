@@ -45,6 +45,7 @@ IPSPRadio_UI *ModuleStartUI()
 /** START of Plugin definitions setup */
 UIPlugin textui_vtable = {
 	PLUGIN_UI_VERSION, /* Interface version -- Don't change */
+	NULL,//PSPRadio Object; populated by PSPRadio.
 	NULL,//	void *handle; /* Filled in by PSPRadio */
 	NULL,//	char *filename; /* Filled in by PSPRadio */
 	"Text3DUI",//	char *description; /* The description that is shown in the preferences box */

@@ -2,7 +2,8 @@ What's New for PSPRadio
 ========================
 1.18.xxxx (2007-xx-xx)
 NEW FEATURES
-(raf) TextUI: After a configurable amount (default 5 seconds) during playback, the visualizer goes into fullscreen.
+(raf) TextUI: After a configurable amount (default 10 seconds) during playback, the visualizer goes into fullscreen.
+(raf) Core: Use PSPRadio.cfg PLUGINS:VISUALIZER_FULLSCREEN_WAIT to set the wait before going into visualizer fullscreen mode. (Set to 0 to disable).
 (raf) Core: Added kiss-fft routines, and now provide frequency data to visualizer plugins if requested.
 (raf) Plugins: Added a spectrum analyzer plugin (based on finespectrum.c for XMMS).
 (raf) Core: FFT and VIS_Spectrum use vfpu for some calculations, to get a speedup. (Thanks to MrMr[iCE] for his helpful vfpu library pspmath).

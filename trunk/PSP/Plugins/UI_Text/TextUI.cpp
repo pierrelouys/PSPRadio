@@ -56,6 +56,8 @@
 /* For render thread */
 static CTextUI *sThis;
 
+extern UIPlugin textui_vtable;
+
 CTextUI::CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "CtextUI: Constructor start");
@@ -90,6 +92,10 @@ CTextUI::CTextUI()
 	m_RenderLock = new CLock("TextUI_RenderLock");
 	m_RenderExitBlocker = new CBlocker("TextUI_RenderBlock");
 	
+	m_PSPRadio = (CPSPRadio*)textui_vtable.PSPRadioObject;
+
+	m_FullscreenWait = m_PSPRadio->GetConfig()->GetInteger("PLUGINS:VISUALIZER_FULLSCREEN_WAIT", 10); /* Default = 10sec */
+
 	m_TimeStartedPlaying = 0;
 	m_IsPlaying = false;
 	
@@ -196,7 +202,7 @@ void CTextUI::RenderLoop()
 			switch(render_mode)
 			{
 			case RM_NORMAL:
-				if ( m_IsPlaying && 
+				if ( m_IsPlaying && m_FullscreenWait &&
 					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) >= m_FullscreenWait) )
 				{
 					ifdata.Pointer = &m_fs_vis_cfg;
@@ -611,8 +617,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		GetConfigPair("VISUALIZER_CONFIG:LOWER_RIGHT",
 			&vis_cfg.x2, &vis_cfg.y2);
 		m_bDisplayFPS = (bool)m_Config->GetInteger("VISUALIZER_CONFIG:DISPLAY_FPS", 0);
-		m_FullscreenWait = m_Config->GetInteger("VISUALIZER_CONFIG:FULLSCREEN_WAIT", 5);
-			
+
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));
 		m_ScreenConfig.EntriesListTitleLen = max(strlen(m_ScreenConfig.strEntriesListTitleSelected), 

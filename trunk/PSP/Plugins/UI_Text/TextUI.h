@@ -5,6 +5,7 @@
 #include "PSPRadio_Exports.h"
 #include "Screen.h"
 #include "VIS_Plugin.h"
+#include <PSPRadio.h>
 
 /* active / dirty bits */
 #define BITMASK_PCM	1
@@ -162,6 +163,7 @@ private:
 	VisPluginConfig m_vis_cfg;
 	VisPluginConfig m_fs_vis_cfg;
 	clock_t m_FullscreenWait;
+	CPSPRadio *m_PSPRadio;
 	/*test*/
 	float m_FreqData[257];
 

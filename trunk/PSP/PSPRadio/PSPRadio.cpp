@@ -894,6 +894,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 							m_UIPluginData = get_uiplugin_info();
 						if (m_UIPluginData && m_UIPluginData->interface_version == PLUGIN_UI_VERSION)
 						{
+							m_UIPluginData->PSPRadioObject = this;
 							Log(LOG_INFO, "Module description: '%s' Interface Version: %d", 
 								m_UIPluginData->description,
 								m_UIPluginData->interface_version);
