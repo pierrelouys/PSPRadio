@@ -617,6 +617,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		GetConfigPair("VISUALIZER_CONFIG:LOWER_RIGHT",
 			&vis_cfg.x2, &vis_cfg.y2);
 		m_bDisplayFPS = (bool)m_Config->GetInteger("VISUALIZER_CONFIG:DISPLAY_FPS", 0);
+		m_FullscreenWait = m_PSPRadio->GetConfig()->GetInteger("PLUGINS:VISUALIZER_FULLSCREEN_WAIT", 10); /* Default = 10sec */
 
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
 													strlen(m_ScreenConfig.strContainerListTitleUnselected));

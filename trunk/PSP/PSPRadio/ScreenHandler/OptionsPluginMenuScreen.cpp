@@ -48,6 +48,7 @@ enum OptionIDs
 	OPTION_ID_APP,
 	OPTION_ID_GAME,
 	OPTION_ID_VIS,
+	OPTION_ID_VIS_FS_WAIT,
 };
 
 OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
@@ -57,7 +58,9 @@ OptionsPluginMenuScreen::Options OptionsPluginMenuData[] =
 	{	OPTION_ID_FSS,				"FileSystemServers",		{"Off"},			1,1,1		},
 	{	OPTION_ID_APP,				"Applications",				{"Off"},			1,1,1		},
 	{	OPTION_ID_GAME,				"Games",					{"Off"},			1,1,1		},
-	{	OPTION_ID_VIS,				"Visualization",			{""},				0,0,0		},
+	{	OPTION_ID_VIS,				"Visualizations",			{""},				0,0,0		},
+	{	OPTION_ID_VIS_FS_WAIT,		"Vis Fullscreen Wait",		{"Off", "5", "10", "30"},	3,3,4	},
+	
 
 	{  -1,  						"",							{""},				0,0,0		}
 };
@@ -160,6 +163,21 @@ void OptionsPluginMenuScreen::UpdateOptionsData()
 				RetrievePlugins(/*option*/Option, /*prefix*/"VIS_",
 								gPSPRadio->GetActivePluginName(PLUGIN_VIS), /*insert 'off'*/true);
 				Option.iSelectedState = Option.iActiveState;
+				break;
+			case OPTION_ID_VIS_FS_WAIT:
+				{
+					int iVal = gPSPRadio->GetConfig()->GetInteger("PLUGINS:VISUALIZER_FULLSCREEN_WAIT", 10);
+					if (iVal < 5)
+						Option.iActiveState = 1;
+					else if(iVal >=5 && iVal < 10)
+						Option.iActiveState = 2;
+					else if(iVal >=10 && iVal < 30)
+						Option.iActiveState = 3;
+					else if(iVal >=30)
+						Option.iActiveState = 4;
+
+					Option.iSelectedState = Option.iActiveState;
+				}
 				break;
 		}
 
@@ -419,6 +437,19 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 					fOptionActivated = true;
 					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
+			}
+			break;
+		case OPTION_ID_VIS_FS_WAIT:
+			if ((*m_CurrentOptionIterator).iSelectedState != (*m_CurrentOptionIterator).iActiveState)
+			{
+				int iVal = 0;
+				if (iSelectionBase0 > 0)
+				{
+					sscanf(strSelection, "%d", &iVal);
+				}
+				gPSPRadio->GetConfig()->SetInteger("PLUGINS:VISUALIZER_FULLSCREEN_WAIT", iVal);
+				fOptionActivated = true;
+				//gPSPRadio->m_UI->DisplayMessage("Changed");
 			}
 			break;
 	}
