@@ -26,7 +26,12 @@
 #include <Screen.h>
 #include <png.h>
 
+#include <pspgu.h>
+
 u32 *third = NULL;
+unsigned int __attribute__((aligned(16))) list[262144];
+
+u32 *empty_buffer = NULL;
 
 CScreen::CScreen(bool use_cached_vram, int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
 {
@@ -105,7 +110,13 @@ void CScreen::Init()
 			m_Buffer[i] = (u32*)memalign(16, FRAMESIZE);
 		}
 	}
-
+	
+	if (empty_buffer == NULL)
+	{
+		empty_buffer = (u32*)memalign(16, FRAMESIZE);
+		memset(empty_buffer, 0, FRAMESIZE);
+	}
+	
 	init = true;
 }
 
@@ -187,6 +198,7 @@ void CScreen::HorizLine(int iBuffer, int y, int x1, int x2, int color)
 
 void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
 {
+#if 0
 	//memcpy(m_Buffer[iBufferTo], m_Buffer[iBufferFrom], FRAMESIZE);
 	u32 *src = m_Buffer[iBufferFrom];
 	u32 *dst = m_Buffer[iBufferTo];
@@ -194,17 +206,41 @@ void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
 	{
 		*dst++ = *src++;
 	}
-	
+#endif
+	sceKernelDcacheWritebackInvalidateAll();
+	sceGuStart(GU_DIRECT, list);
+	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, m_Buffer[iBufferFrom], 0,0, m_Pitch, m_Buffer[iBufferTo]);
+	sceGuFinish();
+	sceGuSync(0,0);
+	sceGuTexSync(); //This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. 
+	sceKernelDcacheWritebackInvalidateAll();
 }
 
 void CScreen::Clear(int iBuffer)
 {
+	#if 0
 	//memset(m_Buffer[iBuffer], 0, FRAMESIZE);
 	u32 *frame = m_Buffer[iBuffer];
 	for (int i = 0; i < (m_Height * m_Pitch); i++)
 	{
 		*frame++ = 0;
 	}
+	#endif
+#if 0	
+    sceGuStart(GU_DIRECT, list);
+    sceGuClearColor(0x00000000);
+    sceGuClearDepth(0);
+    sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+    sceGuFinish();
+    sceGuSync(0, 0);
+#endif
+	sceKernelDcacheWritebackInvalidateAll();
+	sceGuStart(GU_DIRECT, list);
+	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, empty_buffer, 0,0, m_Pitch, m_Buffer[iBuffer]);
+	sceGuFinish();
+	sceGuSync(0,0);
+	sceGuTexSync(); //This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. 
+	sceKernelDcacheWritebackInvalidateAll();
 }
 
 int CScreen::Peek(int iBuffer, int x, int y)

@@ -120,9 +120,9 @@ int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
 		case PSPRADIOIF_SET_RENDER_PCM:
 			{
 				u32*	vram_frame = (u32*)Data->Pointer;
-				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_pcm)
+				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_pcm && g_PCMBuffer)
 					gPSPRadio->m_VisPluginData->render_pcm(vram_frame, (int16*)g_PCMBuffer);
-				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_freq)
+				if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->render_freq && g_PCMBuffer)
 				{
 					do_fft();
 					gPSPRadio->m_VisPluginData->render_freq(vram_frame, g_FreqData);

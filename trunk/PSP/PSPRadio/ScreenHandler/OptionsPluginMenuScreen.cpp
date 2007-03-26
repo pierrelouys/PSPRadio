@@ -299,7 +299,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				else
 				{
 					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
-					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_FSS);
+					gPSPRadio->UnloadPlugin(PLUGIN_FSS);
 					fOptionActivated = true;
 					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
@@ -337,7 +337,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				else
 				{
 					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
-					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_APP);
+					gPSPRadio->UnloadPlugin(PLUGIN_APP);
 					fOptionActivated = true;
 					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
@@ -380,7 +380,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				else
 				{
 					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
-					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_GAME);
+					gPSPRadio->UnloadPlugin(PLUGIN_GAME);
 					fOptionActivated = true;
 					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
@@ -415,7 +415,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				else
 				{
 					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
-					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_VIS);
+					gPSPRadio->UnloadPlugin(PLUGIN_VIS);
 					fOptionActivated = true;
 					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}

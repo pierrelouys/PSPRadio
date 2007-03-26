@@ -449,7 +449,7 @@ int CPSPRadio::ProcessEvents()
 				case MID_PLUGINEXITED:
 					plugin_type type = (plugin_type)((int)event.pData); /** Passed by value */
 					Log(LOG_INFO, "Plugin Exited. Unloading. type = %d", type);
-					LoadPlugin(PLUGIN_OFF_STRING, type);
+					UnloadPlugin(type);
 					break;
 				}
 			}
@@ -614,7 +614,7 @@ int CPSPRadio::ProcessEvents()
 
 			case MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO: /* User used key combo to kill plugin */
 				/** Unload the bad plugin */
-				LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
+				UnloadPlugin(m_ExclusiveAccessPluginType);
 				PSPRadioExport_GiveUpExclusiveAccess();
 				break;
 
@@ -855,18 +855,17 @@ void CPSPRadio::ScreenshotStore(char *filename)
 		if (type < NUMBER_OF_PLUGIN_TYPES)
 		{
 
-			if (m_ModuleLoader[type]->IsLoaded() == true)
-			{
-				Log(LOG_INFO, "LoadPlugin(): Unloading currently running plugin");
-				UnloadPlugin(type);
-			}
-
-
 			/** Asked to just unload */
 			if (strcmp(strPlugin, PLUGIN_OFF_STRING) == 0)
 			{
 				UnloadPlugin(type);
 				return 0;
+			}
+
+			if (m_ModuleLoader[type]->IsLoaded() == true)
+			{
+				Log(LOG_INFO, "LoadPlugin(): Unloading currently running plugin");
+				UnloadPlugin(type);
 			}
 
 			sprintf(strModulePath, "%s/%s", getcwd(cwd, MAXPATHLEN), strPlugin);

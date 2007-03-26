@@ -10,6 +10,7 @@ NEW FEATURES
 (raf) TextUI3d: Updated to use a renderthread instead of vblank message -- Good speed-up.
 (raf) Core/Plugins: UI Plugins have versioning now, and won't work across versions of PSPRadio that don't support the same interface.
 (raf) Core: Clean-up.
+(raf) CScreen: Using GU for clearing screen and background copies. This makes rendering (TextUI) MUCH faster; especially during fullscreen visualization!.
 BUG FIXES
 (raf) TextUI: When switching skins all the text will disappear. Corrected.
 (raf) Choosing exit from option menu is much faster, and less prone to crashing.
