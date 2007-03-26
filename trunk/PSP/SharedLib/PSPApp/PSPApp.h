@@ -63,7 +63,6 @@
 	#define MID_ONHPRM_RELEASED				0x01000014
 	///#define MID_KEY_LATCH_ENABLED			0x01000015
 	#define MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO 0x01000016
-	#define MID_ONVBLANK					0x01000020
 	#define MID_ONBATTERY_CHANGE			0x01000040
 	#define MID_ONTIME_CHANGE				0x01000041
 	#define MID_USB_ENABLE					0x02000000
@@ -96,8 +95,8 @@
 		};
 		int ReportError(char *format, ...);
 
-		/** Control the Run() Thread. In charge of polling vblank and buttons */
-		int StartPolling(); /** Start polling buttons/vblank */
+		/** Control the Run() Thread. In charge of polling and input */
+		int StartPolling(); /** Start polling buttons */
 		int StopPolling();
 		bool IsPolling(){ return m_Polling;}
 
@@ -132,7 +131,6 @@
 		int Run(); /** Thread */
 
 		/** Event Handlers */
-		virtual void OnVBlank(){};
 		virtual void OnAnalogueStickChange(int Lx, int Ly){};
 
 		/* System Callbacks */

@@ -33,6 +33,7 @@
 #include <Tools.h>
 #include <stdarg.h>
 #include <Logging.h>
+#include <pthread.h>
 
 #include <pspkernel.h>
 #include <pspdisplay.h>
@@ -40,6 +41,7 @@
 #include <pspgum.h>
 #include <psprtc.h>
 #include <psppower.h>
+
 
 #include "TextUI3D.h"
 #include "TextUI3D_Panel.h"
@@ -54,6 +56,9 @@ jsaTextureCache		tcache;
 Settings 	LocalSettings;
 gfx_sizes	GfxSizes;
 
+/* For render thread */
+static CTextUI3D *sThis;
+
 CTextUI3D::CTextUI3D()
 {
 	ModuleLog(LOG_VERYLOW, "CTextUI3D: created");
@@ -64,10 +69,31 @@ CTextUI3D::CTextUI3D()
 	m_entry_list = m_entry_list_tail = NULL;
 	m_strConfigDir = NULL;
 	m_Settings = NULL;
+	/* For Render Thread */
+	{
+		sThis = this;
+		pthread_t pthid;
+		pthread_attr_t pthattr;
+		struct sched_param shdparam;
+		pthread_attr_init(&pthattr);
+		pthattr.scope = PTHREAD_SCOPE_PROCESS_VFPU;
+		shdparam.sched_policy = SCHED_OTHER;
+		shdparam.sched_priority = 45;
+		pthread_attr_setschedparam(&pthattr, &shdparam);
+		m_ExitRenderThread = false;
+		m_RenderExitBlocker = new CBlocker("TextUI3D_RenderBlock");
+		pthread_create(&pthid, &pthattr, render_thread, NULL);
+	}
 }
 
 CTextUI3D::~CTextUI3D()
 {
+	/* For render thread */
+	m_ExitRenderThread = true;
+	m_RenderExitBlocker->Block();
+	sThis = NULL;
+	delete(m_RenderExitBlocker), m_RenderExitBlocker = NULL;
+
 	if (m_Settings)
 	{
 		delete(m_Settings);
@@ -202,6 +228,7 @@ void CTextUI3D::PrepareShutdown()
 
 void CTextUI3D::Terminate()
 {
+	m_ExitRenderThread = true;
 	ModuleLog(LOG_VERYLOW, "CTextUI3D:Terminating");
 	sceGuTerm();
 }
@@ -314,14 +341,34 @@ void CTextUI3D::OnScreenshot(CScreenHandler::ScreenShotState state)
 	m_state = state;
 }
 
-int CTextUI3D::OnVBlank()
+/* static member */
+void CTextUI3D::render_thread(void *) 
 {
-	if (m_state == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
+	sThis->RenderLoop();
+}
+
+
+void CTextUI3D::RenderLoop()
+{
+	for (;;)
 	{
-		/* Render windows */
-		m_wmanager.Dispatch(WM_EVENT_VBLANK, NULL);
+		if (m_ExitRenderThread)
+			break;
+
+
+		if (m_state == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
+		{
+			/* Render windows */
+			m_wmanager.Dispatch(WM_EVENT_VBLANK, NULL);
+		}
+
+		sceDisplayWaitVblankStart();
+
+		//sceKernelDelayThread(1); /* yield */
 	}
-	return 0;
+
+	m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
+
 }
 
 int CTextUI3D::OnNewSongData(MetaData *pData)

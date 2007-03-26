@@ -209,14 +209,6 @@ void CScreenHandler::PrepareShutdown()
 	}
 }
 
-void CScreenHandler::OnVBlank()
-{
-	if (gPSPRadio->m_UI)
-	{
-		gPSPRadio->m_UI->OnVBlank();
-	}
-}
-
 void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Event Type is MID_ONBUTTON_RELEASED or MID_ONBUTTON_REPEAT */
 {
 	/** Only do UP and DOWN repeats */

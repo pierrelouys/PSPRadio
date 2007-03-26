@@ -24,7 +24,7 @@ CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
 LIBS =  -lstdc++ -liniparser -lTools  \
-		-lpspgum -lpspgu -lpng -lz -lm -lPluginCommon
+		-lpspgum -lpspgu -lpng -lz -lm -lPluginCommon -lpthread
 
 all: $(TARGET).prx
 

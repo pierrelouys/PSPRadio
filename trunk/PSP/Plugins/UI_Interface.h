@@ -54,7 +54,6 @@
 		virtual int OnConnectionProgress(){return 0;};
 		virtual int OnStreamOpeningError(){return 0;};
 		virtual int OnStreamOpeningSuccess(){return 0;};
-		virtual int OnVBlank(){return 0;};
 		virtual int OnNewSongData(MetaData *pData){return 0;};
 		virtual int OnStreamTimeUpdate(MetaData *pData){return 0;};
 

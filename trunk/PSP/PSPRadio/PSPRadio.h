@@ -106,7 +106,6 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		int Setup_Sound();
 		
 		void OnExit();
-		void OnVBlank();
 		int OnPowerEvent(int pwrflags);
 	};
 #endif // __cplusplus

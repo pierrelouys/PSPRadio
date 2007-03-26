@@ -154,11 +154,6 @@ void CTextUI::NewPCMBuffer(short *pcmbuffer)
 	SET_DIRTY_BIT(BITMASK_PCM);
 }
 
-int CTextUI::OnVBlank()
-{
-	return 0;
-}
-
 /* static member */
 void CTextUI::render_thread(void *) 
 {
@@ -270,7 +265,7 @@ void CTextUI::RenderNormal(int iBuffer)
 		{
 			m_RenderLock->Lock();
 			m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
-				0, 0, m_Screen->m_Width, m_Screen->m_Height - 1);
+				0, 0, m_Screen->m_Width, m_Screen->m_Height);
 			PrintProgramVersion(OFFLINE_BUFFER);
 			m_RenderLock->Unlock();
 			draw_background  = false;

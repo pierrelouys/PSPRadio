@@ -131,8 +131,6 @@
 			playmodes GetPlayMode() { return m_PlayMode; }
 			void SetPlayMode(playmodes mode) { m_PlayMode = mode; }
 	
-			void OnVBlank();
-	
 			request_on_play_stop m_RequestOnPlayOrStop;
 	
 			/** Screenshot functionality */

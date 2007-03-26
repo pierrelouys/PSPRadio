@@ -79,7 +79,6 @@ public:
 	int DisplayErrorMessage(char *strMsg);
 	int DisplayMessage(char *strMsg);
 	int DisplayBufferPercentage(int a);
-	int OnVBlank();
 
 	/** these are listed in sequential order */
 	int OnNewStreamStarted();

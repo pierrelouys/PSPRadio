@@ -127,7 +127,7 @@ public:
 	int OnConnectionProgress();
 	int OnStreamOpeningError();
 	int OnStreamOpeningSuccess();
-	int OnVBlank();
+	//int OnVBlank(); //Replaced with render thread
 	int OnNewSongData(MetaData *pData);
 	int OnStreamTimeUpdate(MetaData *pData);
 	void DisplayContainers(CMetaDataContainer *Container);
@@ -168,6 +168,12 @@ private:
 	WindowHandlerHSM::TextItem			*m_list_list, *m_list_list_tail;
 	WindowHandlerHSM::TextItem			*m_entry_list, *m_entry_list_tail;
 	char								*m_strConfigDir;
+
+	/* Render thread */
+	static void render_thread(void *);
+	void RenderLoop(); /* Called from render_thread */
+	bool m_ExitRenderThread;
+	CBlocker *m_RenderExitBlocker;
 };
 
 #endif

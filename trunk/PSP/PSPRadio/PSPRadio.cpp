@@ -612,12 +612,6 @@ int CPSPRadio::ProcessEvents()
 					m_UI->OnUSBDisable();
 				break;
 
-			/** This is not used, vblank notification is done via 'callback' of OnVBlank from PSPApp */
-			case MID_ONVBLANK:
-				if (m_UI)
-					m_UI->OnVBlank();
-				break;
-
 			case MID_KEY_LATCH_ENABLED_WITH_KEY_COMBO: /* User used key combo to kill plugin */
 				/** Unload the bad plugin */
 				LoadPlugin(PLUGIN_OFF_STRING, m_ExclusiveAccessPluginType);
@@ -632,11 +626,6 @@ int CPSPRadio::ProcessEvents()
 		}
 	}
 	return 0;
-}
-
-void CPSPRadio::OnVBlank()
-{
-	m_ScreenHandler->OnVBlank();
 }
 
 int CPSPRadio::OnPowerEvent(int pwrflags)

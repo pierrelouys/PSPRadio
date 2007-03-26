@@ -86,7 +86,7 @@ int CPSPApp::StartPolling()
 	{
 		m_thRun = new CPSPThread("run_thread", runThread, 45, 512*1024);
 
-		/** Start Polling for Vblank and buttons */
+		/** Start Polling for input */
 		m_thRun->Start();
 	}
 	m_Polling = true;
@@ -184,9 +184,6 @@ int CPSPApp::Run()
 
 		if (false == m_Polling)
 			continue;
-
-		OnVBlank();
-		//SendEvent(MID_ONVBLANK);
 
 		if (m_StopKeyLatch == true)
 		{
