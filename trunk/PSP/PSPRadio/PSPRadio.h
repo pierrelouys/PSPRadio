@@ -70,7 +70,6 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		int Main(int argc, char **argv);
 		
 		CIniParser *GetConfig(){return m_Config;}
-		IPSPRadio_UI *GetUI() { return m_UI; }
 		CScreenHandler *GetScreenHandler() { return m_ScreenHandler; }
 	
 		void TakeScreenShot();
@@ -83,10 +82,13 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		void  ScreenshotStore(char *filename);
 	
 	public:
+		UIPlugin  *m_UIPluginData;
+
 		VisPluginConfig m_VisPluginConfig;
 		VisPlugin *m_VisPluginData;
 
-		int LoadPlugin(char *strPlugin, plugin_type type);
+		int LoadPlugin(const char *strPlugin, plugin_type type);
+		int UnloadPlugin(plugin_type type);
 		char *GetActivePluginName(plugin_type type);
 		void SetExclusiveAccessPluginType(plugin_type type) { m_ExclusiveAccessPluginType = type; }
 		int Setup_ButtonMapping(CIniParser *pConfig);

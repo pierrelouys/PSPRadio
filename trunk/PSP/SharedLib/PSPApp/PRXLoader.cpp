@@ -34,7 +34,7 @@ CPRXLoader::~CPRXLoader()
 
 }
 
-void CPRXLoader::SetName(char *strName)
+void CPRXLoader::SetName(const char *strName)
 {
 	if (m_Name)
 	{

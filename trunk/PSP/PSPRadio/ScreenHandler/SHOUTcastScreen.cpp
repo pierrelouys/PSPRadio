@@ -126,18 +126,18 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 			Log(LOG_INFO, "DownloadSHOUTcastDB(): DB Retrieved. (%dbytes)", bytes);
 			if (isCompressedDownload == true)
 			{
-				m_UI->DisplayMessage("Uncompressing . . .");
+				gPSPRadio->m_UI->DisplayMessage("Uncompressing . . .");
 				bRet = UnCompress(SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
 				if (true == bRet)
 				{
-					m_UI->DisplayMessage("SHOUTcast DataBase Retrieved");
+					gPSPRadio->m_UI->DisplayMessage("SHOUTcast DataBase Retrieved");
 					Log(LOG_INFO, "SHOUTcast.com DB retrieved.");
 					success = true;
 				}
 				else
 				{
 					Log(LOG_ERROR, "Error uncompressing '%s' to '%s'",SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
-					m_UI->DisplayMessage("Error Uncompressing . . .");
+					gPSPRadio->m_UI->DisplayMessage("Error Uncompressing...");
 				}
 			}
 			else
@@ -152,7 +152,7 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 	else
 	{
 		Log(LOG_ERROR, "Error connecting to '%s'", strRequestString);
-		m_UI->DisplayErrorMessage("Couldn't connect to SHOUTcast.com ...");
+		gPSPRadio->m_UI->DisplayErrorMessage("Can't connect to SHOUTcast.com");
 	}
 	
 	/** The compressed file is not needed anymore */
@@ -214,7 +214,7 @@ bool CScreenHandler::DownloadNewSHOUTcastDB()
 	else
 	{
 		Log(LOG_ERROR, "Error connecting to '%s'", strRequestString);
-		m_UI->DisplayErrorMessage("Couldn't connect to SHOUTcast.com ...");
+		gPSPRadio->m_UI->DisplayErrorMessage("Can't connect to SHOUTcast.com");
 	}
 	
 	if (false == success)

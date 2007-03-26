@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 {
 	SceSize am = sceKernelTotalFreeMemSize();
 	ModuleLog(LOG_INFO, "main(%s): Available memory: %dbytes (%dKB or %dMB)", module_info.modname, am, am/1024, am/1024/1024);
+#if 0
 	ModuleLog(LOG_INFO, "main: Plugin '%s' PSPRadio Interface Version %s", module_info.modname, IF_VERSION);
 
 	/** PSPRadio version is different than the version this plugin was compiled against: */
@@ -31,6 +32,7 @@ int main(int argc, char **argv)
 		ModuleLog(LOG_ALWAYS, "**ERROR**: VERSION ERROR: Plugin: %s is for PSPRadio I/F %s, but this PSPRadio complies to I/F %s", module_info.modname, IF_VERSION, PSPRadioExport_GetVersion());
 		PSPRadioExport_PluginExits(PLUGIN_TYPE);
 	}
+#endif
 
 	BLOCKER_CREATE_AND_BLOCK(g_blocker, module_info.modname);
 	am = sceKernelTotalFreeMemSize();

@@ -10,7 +10,7 @@
 			~OptionsPluginMenuScreen();			
 			void UpdateOptionsData();
 
-			void Activate(IPSPRadio_UI *UI);
+			void Activate();
 
 			void LoadFromConfig();
 			void SaveToConfigFile();

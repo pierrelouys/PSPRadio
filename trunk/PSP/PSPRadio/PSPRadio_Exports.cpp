@@ -72,9 +72,9 @@ char *PSPRadioExport_GetMyIP()
 
 void PSPRadioExport_RequestExclusiveAccess(plugin_type type)
 {
-	if (gPSPRadio->GetUI())
+	if (gPSPRadio->m_UI)
 	{
-		gPSPRadio->GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
+		gPSPRadio->m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
 	}
 	gPSPRadio->StopKeyLatch(PSP_CTRL_START | PSP_CTRL_LTRIGGER | PSP_CTRL_RTRIGGER);
 	gPSPRadio->SetExclusiveAccessPluginType(type);

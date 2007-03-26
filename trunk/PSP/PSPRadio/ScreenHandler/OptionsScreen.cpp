@@ -89,13 +89,13 @@ OptionsScreen::OptionsScreen(int Id, CScreenHandler *ScreenHandler):IScreen(Id, 
 }
 
 /** Activate() is called on screen activation */
-void OptionsScreen::Activate(IPSPRadio_UI *UI)
+void OptionsScreen::Activate()
 {
-	IScreen::Activate(UI);
+	IScreen::Activate();
 
 	// Update network and UI options.  This is necesary the first time */
 	UpdateOptionsData();
-	m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 }
 
 void OptionsScreen::LoadFromConfig()
@@ -503,7 +503,7 @@ void OptionsScreen::OnOptionActivation()
 
 		case OPTION_ID_SKIN:
 			/* Have UI Stop updating */
-			m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
+			gPSPRadio->m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE);
 			m_ScreenHandler->StartUI(m_ScreenHandler->GetCurrentUIName(), strSelection, true);
 			pPSPApp->SendEvent(MID_GIVEUPEXCLISIVEACCESS, NULL, SID_PSPRADIO);
 
@@ -516,18 +516,18 @@ void OptionsScreen::OnOptionActivation()
 			break;
 
 		case OPTION_ID_REFRESH_PLAYLISTS:
-			m_UI->DisplayMessage("Refreshing Playlists");
+			gPSPRadio->m_UI->DisplayMessage("Refreshing Playlists");
 			m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 			((PlayListScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_PLAYLIST))->LoadLists();
 			((LocalFilesScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_LOCALFILES))->LoadLists();
-			m_UI->DisplayMessage("Done");
+			gPSPRadio->m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
 			break;
 
 		case OPTION_ID_SHOUTCAST_DN:
 			if ( (timeNow - timeLastTime) > 60 ) /** Only allow to refresh shoutcast once a minute max! */
 			{
-				m_UI->DisplayMessage("Downloading SHOUTcast Database");
+				gPSPRadio->m_UI->DisplayMessage("Downloading SHOUTcast Database");
 				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */
 				if (true == m_ScreenHandler->DownloadNewSHOUTcastDB())
 				{
@@ -535,31 +535,31 @@ void OptionsScreen::OnOptionActivation()
 					int iItemNo = ((SHOUTcastScreen*)m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER))->LoadLists();
 					char strMsg[45];
 					sprintf(strMsg, "* %d Radio Stations Retrieved *", iItemNo);
-					m_UI->DisplayMessage(strMsg);
+					gPSPRadio->m_UI->DisplayMessage(strMsg);
 				}
 			}
 			else
 			{
-				m_UI->DisplayErrorMessage("Wait before re-downloading");
+				gPSPRadio->m_UI->DisplayErrorMessage("Wait before re-downloading");
 			}
 			fOptionActivated = false;
 			break;
 
 		case OPTION_ID_PLUGINS_MENU:
-			//m_UI->DisplayMessage("Saving Configuration Options");
+			//gPSPRadio->m_UI->DisplayMessage("Saving Configuration Options");
 			//Log(LOG_INFO, "User selected to save config file.");
 			// Enter option menu and store the current screen
 			m_ScreenHandler->SetCurrentScreen(m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU));
-			m_ScreenHandler->GetCurrentScreen()->Activate(m_UI);
+			m_ScreenHandler->GetCurrentScreen()->Activate();
 			fOptionActivated = true;
 			return;
 			break;
 			
 		case OPTION_ID_SAVE_CONFIG:
-			m_UI->DisplayMessage("Saving Configuration Options");
+			gPSPRadio->m_UI->DisplayMessage("Saving Configuration Options");
 			Log(LOG_INFO, "User selected to save config file.");
 			SaveToConfigFile();
-			m_UI->DisplayMessage("Done");
+			gPSPRadio->m_UI->DisplayMessage("Done");
 			fOptionActivated = true;
 			break;
 
@@ -573,7 +573,7 @@ void OptionsScreen::OnOptionActivation()
 	if (true == fOptionActivated)
 	{
 		(*m_CurrentOptionIterator).iActiveState = (*m_CurrentOptionIterator).iSelectedState;
-		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 }
 
@@ -595,21 +595,21 @@ int OptionsScreen::Start_Network(int iProfile)
 	{
 		if (pPSPApp->IsNetworkEnabled())
 		{
-			if (m_UI)
-				m_UI->DisplayMessage_DisablingNetwork();
+			if (gPSPRadio->m_UI)
+				gPSPRadio->m_UI->DisplayMessage_DisablingNetwork();
 
 			Log(LOG_INFO, "Restarting networking...");
 			pPSPApp->DisableNetwork();
 			sceKernelDelayThread(500000);
 		}
 
-		if (m_UI)
-			m_UI->DisplayMessage_EnablingNetwork();
+		if (gPSPRadio->m_UI)
+			gPSPRadio->m_UI->DisplayMessage_EnablingNetwork();
 
 		if (pPSPApp->EnableNetwork(abs(m_iNetworkProfile)) == 0)
 		{
-			if (m_UI)
-				m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+			if (gPSPRadio->m_UI)
+				gPSPRadio->m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 			
 			CIniParser *pConfig = m_ScreenHandler->GetConfig();
 			if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0))
@@ -623,12 +623,12 @@ int OptionsScreen::Start_Network(int iProfile)
 		}
 		else
 		{
-			if (m_UI)
-				m_UI->DisplayMessage_DisablingNetwork();
+			if (gPSPRadio->m_UI)
+				gPSPRadio->m_UI->DisplayMessage_DisablingNetwork();
 		}
 
-		if (m_UI)
-			m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
+		if (gPSPRadio->m_UI)
+			gPSPRadio->m_UI->DisplayMessage_NetworkReady(pPSPApp->GetMyIP());
 		Log(LOG_INFO, "Networking Enabled, IP='%s'...", pPSPApp->GetMyIP());
 
 		Log(LOG_INFO, "Enabling Network: Done. IP='%s'", pPSPApp->GetMyIP());
@@ -648,7 +648,7 @@ int OptionsScreen::Stop_Network()
 
 	if (pPSPApp->IsNetworkEnabled())
 	{
-		m_UI->DisplayMessage_DisablingNetwork();
+		gPSPRadio->m_UI->DisplayMessage_DisablingNetwork();
 
 		if (pConfig->GetInteger("DEBUGGING:WIFI_LOG_ENABLE", 0))
 		{
@@ -670,7 +670,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 		if(m_CurrentOptionIterator == m_OptionsList.begin())
 			m_CurrentOptionIterator = m_OptionsList.end();
 		m_CurrentOptionIterator--;
-		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OPT_NAMES_FWD))
 	{
@@ -678,7 +678,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 		if(m_CurrentOptionIterator == m_OptionsList.end())
 			m_CurrentOptionIterator = m_OptionsList.begin();
 
-		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OPT_OPTIONS_BACK))
 	{
@@ -687,7 +687,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 			(*m_CurrentOptionIterator).iSelectedState--;
 
 			//OnOptionChange();
-			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
 	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OPT_OPTIONS_FWD))
@@ -697,7 +697,7 @@ void OptionsScreen::InputHandler(int iButtonMask)
 			(*m_CurrentOptionIterator).iSelectedState++;
 
 			//OnOptionChange();
-			m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+			gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 		}
 	}
 	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_OPT_ACTIVATE))

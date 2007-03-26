@@ -47,7 +47,6 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	m_RequestOnPlayOrStop = NOTHING;
 	m_strCurrentUIName = strdup(DEFAULT_UI_MODULE);
 	m_strCurrentSkin = strdup(DEFAULT_SKIN);
-	m_UI = NULL;
 	m_strCWD = strdup(strCWD);
 	m_Config = Config;
 	m_Sound = Sound;
@@ -94,28 +93,11 @@ CScreenHandler::CScreenHandler(char *strCWD, CIniParser *Config, CPSPSound *Soun
 	}
 	m_StreamOwnerScreen = NULL;
 
-	m_UIModuleLoader = new CPRXLoader();
-	if (m_UIModuleLoader == NULL)
-	{
-		Log(LOG_ERROR, "Memory error - Unable to create CPRXLoader.");
-	}
-	
 	SetInitialScreen(InitialScreen);
-
-	
 }
 
 CScreenHandler::~CScreenHandler()
 {
-	if (m_UI)
-	{
-		Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
-		m_UI->Terminate();
-		Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
-		delete(m_UI);
-		m_UI = NULL;
-		Log(LOG_LOWLEVEL, "Exiting. UI object deleted.");
-	}
 	if (m_strCWD)
 	{
 		Log(LOG_LOWLEVEL, "Exiting. deleting m_strCWD.");
@@ -165,9 +147,9 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
 
   if (bJustChangeSkin == false)
   {
-	  if (m_UI)
+	  if (gPSPRadio->m_UI)
 	  {
-      wasPolling = pPSPApp->IsPolling();
+		  wasPolling = pPSPApp->IsPolling();
 		  if (wasPolling)
 		  {
 			  /** If PSPRadio was running, then notify it that we're switching UIs */
@@ -178,14 +160,7 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
 			  pPSPApp->StopPolling();
 		  }
   
-		  Log(LOG_INFO, "StartUI: Destroying current UI");
-		  m_UI->Terminate();
-		  sceKernelDelayThread(100*1000); /* give UI time to terminate */
-		  delete(m_UI), m_UI = NULL;
-
-		  Log(LOG_INFO, "Unloading Module");
-		  m_UIModuleLoader->Unload();
-		  Log(LOG_LOWLEVEL, "StartUI: Current UI destroyed.");
+		  gPSPRadio->UnloadPlugin(PLUGIN_UI);
 	  }
 	  
 	  Log(LOG_LOWLEVEL, "StartUI: Starting UI '%s' using skin: '%s' (%s)", 
@@ -193,28 +168,7 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
 					  strSkinName,
 					  strSkinDirectory );
 
-    int id = m_UIModuleLoader->Load(strUIModule);
-    
-    if (m_UIModuleLoader->IsLoaded() == true)
-    {
-      SceKernelModuleInfo modinfo;
-      memset(&modinfo, 0, sizeof(modinfo));
-      modinfo.size = sizeof(modinfo);
-      sceKernelQueryModuleInfo(id, &modinfo);
-      Log(LOG_ALWAYS, "TEXT_ADDR: '%s' Loaded at text_addr=0x%x",
-        strUIModule, modinfo.text_addr);
-    
-      int iRet = m_UIModuleLoader->Start();
-      
-      Log(LOG_LOWLEVEL, "Module start returned: 0x%x", iRet);
-      
-    }
-    else
-    {
-      Log(LOG_ERROR, "Error loading '%s' Module. Error=0x%x", strUIModule, m_UIModuleLoader->GetError());
-    }
-    Log(LOG_INFO, "Calling ModuleStartUI() (at addr %p)", &ModuleStartUI);
-    m_UI = ModuleStartUI();
+	gPSPRadio->LoadPlugin(strUIModule, PLUGIN_UI);
 
     SetCurrentUIName(strUIModule);
   }
@@ -224,42 +178,42 @@ IPSPRadio_UI *CScreenHandler::StartUI(const char *strUIModule, const char *strSk
 	
   SetCurrentSkinName(strSkinName);
 
-	Log(LOG_INFO, "%s m_UI = %p, name='%s', skin='%s'", 
+	Log(LOG_INFO, "%s gPSPRadio->m_UI = %p, name='%s', skin='%s'", 
      bJustChangeSkin?"Skin Changed:":"UI Started:",
-     m_UI, GetCurrentUIName(), GetCurrentSkin());
+     gPSPRadio->m_UI, GetCurrentUIName(), GetCurrentSkin());
 	
-	Log(LOG_INFO, "Calling m_UI->Initialize");
-	m_UI->Initialize(GetCWD(), strSkinDirectory);
+	Log(LOG_INFO, "Calling gPSPRadio->m_UI->Initialize");
+	gPSPRadio->m_UI->Initialize(GetCWD(), strSkinDirectory);
 	
 	Log(LOG_INFO, "Calling currentscreen activate in (m_CurrentScreen=%p)", m_CurrentScreen);
 	
-	m_CurrentScreen->Activate(m_UI);
+	m_CurrentScreen->Activate();
 	Log(LOG_INFO, "Activate called.");
 	
 	if (wasPolling)
 	{
 		/** If PSPRadio was running, then notify it of the new address of the UI */
-		Log(LOG_LOWLEVEL, "Notifying PSPRadio of new UI's address (%p)", m_UI );
-		pPSPApp->SendEvent(EID_NEW_UI_POINTER, m_UI, SID_SCREENHANDLER);
+		Log(LOG_LOWLEVEL, "Notifying PSPRadio of new UI's address (%p)", gPSPRadio->m_UI );
+		pPSPApp->SendEvent(EID_NEW_UI_POINTER, gPSPRadio->m_UI, SID_SCREENHANDLER);
 		pPSPApp->StartPolling();
 	}
 
-	return m_UI;
+	return gPSPRadio->m_UI;
 }
 
 void CScreenHandler::PrepareShutdown()
 {
-	if(m_UI)
+	if(gPSPRadio->m_UI)
 	{
-		m_UI->PrepareShutdown();
+		gPSPRadio->m_UI->PrepareShutdown();
 	}
 }
 
 void CScreenHandler::OnVBlank()
 {
-	if (m_UI)
+	if (gPSPRadio->m_UI)
 	{
-		m_UI->OnVBlank();
+		gPSPRadio->m_UI->OnVBlank();
 	}
 }
 
@@ -281,16 +235,16 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 
 			// Generic screenshot method, which works for all UI classes
 
-			if (m_UI)
+			if (gPSPRadio->m_UI)
 			{
-				m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_ACTIVE);
+				gPSPRadio->m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_ACTIVE);
 			}
 
 			gPSPRadio->TakeScreenShot();
 
-			if (m_UI)
+			if (gPSPRadio->m_UI)
 			{
-				m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_NOT_ACTIVE);
+				gPSPRadio->m_UI->OnScreenshot(PSPRADIO_SCREENSHOT_NOT_ACTIVE);
 			}
 		}
 	}
@@ -305,7 +259,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 				// Enter option menu and store the current screen
 				m_PreviousScreen = m_CurrentScreen;
 				m_CurrentScreen  = Screens[PSPRADIO_SCREEN_OPTIONS];
-				m_CurrentScreen->Activate(m_UI);
+				m_CurrentScreen->Activate();
 			}
 			else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_CYCLE_SCREENS)) /** Cycle through screens (except options) */
 			{
@@ -317,7 +271,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 				{
 					m_CurrentScreen = Screens[PSPRADIO_SCREEN_LIST_BEGIN];
 				}
-				m_CurrentScreen->Activate(m_UI);
+				m_CurrentScreen->Activate();
 			}
 			else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_CYCLE_SCREENS_BACK)) /** Cycle through screens (except options) */
 			{
@@ -331,7 +285,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 				}
 					
 				m_CurrentScreen = Screens[newscreenindex];
-				m_CurrentScreen->Activate(m_UI);
+				m_CurrentScreen->Activate();
 			}
 			else
 			{
@@ -346,7 +300,7 @@ void CScreenHandler::CommonInputHandler(int iButtonMask, u32 iEventType) /** Eve
 			{
 				// Go back to where we were before entering the options menu
 				m_CurrentScreen = m_PreviousScreen;
-				m_CurrentScreen->Activate(m_UI);
+				m_CurrentScreen->Activate();
 			}
 			else
 			{
@@ -391,9 +345,9 @@ bool  CScreenHandler::SetCurrentSkinName(const char *strNewName)
 }
 
 /*----------------------------------*/
-void IScreen::Activate(IPSPRadio_UI *UI)
+void IScreen::Activate()
 {
-	m_UI = UI;
-	m_UI->Initialize_Screen(this);
+
+	gPSPRadio->m_UI->Initialize_Screen(this);
 	m_ScreenHandler->SetCurrentScreen(this);
 }

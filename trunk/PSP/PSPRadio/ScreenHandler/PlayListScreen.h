@@ -12,7 +12,7 @@
 			
 			virtual int LoadLists();
 
-			virtual void Activate(IPSPRadio_UI *UI);
+			virtual void Activate();
 
 			virtual void InputHandler(int iButtonMask);
 

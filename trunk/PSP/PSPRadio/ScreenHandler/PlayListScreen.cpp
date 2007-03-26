@@ -32,6 +32,7 @@
 #include <UI_Interface.h>
 #include "PlayListScreen.h"
 #include <PSPRadio.h>
+#include <Main.h>
 
 PlayListScreen::PlayListScreen(int Id, CScreenHandler *ScreenHandler): IScreen(Id, ScreenHandler)
 {
@@ -75,29 +76,29 @@ int PlayListScreen::LoadLists()
 	return 0;
 }
 
-void PlayListScreen::Activate(IPSPRadio_UI *UI)
+void PlayListScreen::Activate()
 {
 	Log(LOG_VERYLOW, "Activate(): Start");
 	
-	IScreen::Activate(UI);
+	IScreen::Activate();
 
 	if (m_Lists)
 	{
 		if (false == m_Lists->GetContainerList()->empty())
 		{
 			Log(LOG_VERYLOW, "Activate(): Calling DisplayContainers");
-			m_UI->DisplayContainers(m_Lists);
+			gPSPRadio->m_UI->DisplayContainers(m_Lists);
 	
 			//Log(LOG_VERYLOW, "Activate(): 1");
 			if ( (m_Lists->GetElementList()) &&
 				(false == m_Lists->GetElementList()->empty()) )
 			{
 				Log(LOG_VERYLOW, "Activate(): Calling DisplayElements");
-				m_UI->DisplayElements(m_Lists);
+				gPSPRadio->m_UI->DisplayElements(m_Lists);
 			}
 		}
 		//Log(LOG_VERYLOW, "Activate(): 2");
-		m_UI->OnCurrentContainerSideChange(m_Lists); 
+		gPSPRadio->m_UI->OnCurrentContainerSideChange(m_Lists); 
 	}
 
 
@@ -106,7 +107,7 @@ void PlayListScreen::Activate(IPSPRadio_UI *UI)
 		/** Populate m_CurrentMetaData */
 		//don't until user starts it!
 		//m_CurrentPlayList->GetCurrentSong(m_CurrentMetaData);
-		m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
+		gPSPRadio->m_UI->OnNewSongData(m_ScreenHandler->GetSound()->GetCurrentStream()->GetMetaData());
 	}
 }
 
@@ -123,7 +124,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 		m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_CONTAINERS);
 
 		/** tell ui of m_Lists->GetCurrentSide() change. */
-		m_UI->OnCurrentContainerSideChange(m_Lists); 
+		gPSPRadio->m_UI->OnCurrentContainerSideChange(m_Lists); 
 	}
 	else if (IS_BUTTON_PRESSED(iButtonMask, PSPRadioButtonMap.BTN_PGUP))
 	{
@@ -137,7 +138,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 						//m_Lists->PrevContainer();
 						SelectionIndexer->PrevContainer();
 					}
-					m_UI->DisplayContainers(m_Lists);
+					gPSPRadio->m_UI->DisplayContainers(m_Lists);
 				}
 				break;
 			
@@ -149,7 +150,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 						//m_Lists->PrevElement();
 						SelectionIndexer->PrevElement();
 					}
-					m_UI->DisplayElements(m_Lists);
+					gPSPRadio->m_UI->DisplayElements(m_Lists);
 				}
 				break;
 		}
@@ -166,7 +167,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 						//m_Lists->NextContainer();
 						SelectionIndexer->NextContainer();
 					}
-					m_UI->DisplayContainers(m_Lists);
+					gPSPRadio->m_UI->DisplayContainers(m_Lists);
 				}
 				break;
 			
@@ -178,7 +179,7 @@ void PlayListScreen::InputHandler(int iButtonMask)
 						//m_Lists->NextElement();
 						SelectionIndexer->NextElement();
 					}
-					m_UI->DisplayElements(m_Lists);
+					gPSPRadio->m_UI->DisplayElements(m_Lists);
 				}
 				break;
 		}
@@ -190,13 +191,13 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 				//m_Lists->PrevContainer();
 				SelectionIndexer->PrevContainer();
-				m_UI->DisplayContainers(m_Lists);
+				gPSPRadio->m_UI->DisplayContainers(m_Lists);
 				break;
 			
 			case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 				//m_Lists->PrevElement();
 				SelectionIndexer->PrevElement();
-				m_UI->DisplayElements(m_Lists);
+				gPSPRadio->m_UI->DisplayElements(m_Lists);
 				break;
 		}
 	}
@@ -207,13 +208,13 @@ void PlayListScreen::InputHandler(int iButtonMask)
 			case CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
 				//m_Lists->NextContainer();
 				SelectionIndexer->NextContainer();
-				m_UI->DisplayContainers(m_Lists);
+				gPSPRadio->m_UI->DisplayContainers(m_Lists);
 				break;
 			
 			case CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
 				//m_Lists->NextElement();
 				SelectionIndexer->NextElement();
-				m_UI->DisplayElements(m_Lists);
+				gPSPRadio->m_UI->DisplayElements(m_Lists);
 				break;
 		}
 	}
@@ -226,10 +227,10 @@ void PlayListScreen::InputHandler(int iButtonMask)
 				{
 					//m_Lists->AssociateElementList();
 					SelectionIndexer->AssociateElementList();
-					m_UI->DisplayElements(m_Lists);
+					gPSPRadio->m_UI->DisplayElements(m_Lists);
 					m_Lists->SetCurrentSide(CMetaDataContainer::CONTAINER_SIDE_ELEMENTS);
 					/** Notify the UI of m_Lists->GetCurrentSide() change. */
-					m_UI->OnCurrentContainerSideChange(m_Lists);
+					gPSPRadio->m_UI->OnCurrentContainerSideChange(m_Lists);
 				}
 				break;
 			
@@ -242,10 +243,10 @@ void PlayListScreen::InputHandler(int iButtonMask)
 						case CPSPSound::STOP:
 							/** Make the play index be whatever is selected */
 							m_Lists->SetPlayingToSelection();
-							if (m_UI)
+							if (gPSPRadio->m_UI)
 							{
-								m_UI->DisplayContainers(m_Lists);
-								m_UI->DisplayElements(m_Lists);
+								gPSPRadio->m_UI->DisplayContainers(m_Lists);
+								gPSPRadio->m_UI->DisplayElements(m_Lists);
 							}
 							/** We start decoding */
 							PlaySetStream();
@@ -260,10 +261,10 @@ void PlayListScreen::InputHandler(int iButtonMask)
 							{
 								m_Lists->SetPlayingToSelection();
 								
-								if (m_UI)
+								if (gPSPRadio->m_UI)
 								{
-									m_UI->DisplayContainers(m_Lists);
-									m_UI->DisplayElements(m_Lists);
+									gPSPRadio->m_UI->DisplayContainers(m_Lists);
+									gPSPRadio->m_UI->DisplayElements(m_Lists);
 								}
 								/** We start decoding */
 								PlaySetStream();
@@ -283,10 +284,10 @@ void PlayListScreen::InputHandler(int iButtonMask)
 								{
 									m_Lists->SetPlayingToSelection();
 									
-									if (m_UI)
+									if (gPSPRadio->m_UI)
 									{
-										m_UI->DisplayContainers(m_Lists);
-										m_UI->DisplayElements(m_Lists);
+										gPSPRadio->m_UI->DisplayContainers(m_Lists);
+										gPSPRadio->m_UI->DisplayElements(m_Lists);
 									}
 
 									PlaySetStream();
@@ -388,8 +389,8 @@ void PlayListScreen::OnHPRMReleased(u32 iHPRMMask)
 		}
 	}
 	
-	m_UI->DisplayContainers(m_Lists);
-	m_UI->DisplayElements(m_Lists);
+	gPSPRadio->m_UI->DisplayContainers(m_Lists);
+	gPSPRadio->m_UI->DisplayElements(m_Lists);
 }
 
 void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
@@ -406,7 +407,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 	/* This prvents screens like the option screen from getting notified */
 	if (this == m_ScreenHandler->GetCurrentScreen())
 	{
-		UI = m_UI;
+		UI = gPSPRadio->m_UI;
 	}
 	else
 	{
@@ -452,8 +453,8 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with PLAY_REQUEST");
 					PlaySetStream();
 					
-					m_UI->DisplayContainers(m_Lists);
-					m_UI->DisplayElements(m_Lists);
+					gPSPRadio->m_UI->DisplayContainers(m_Lists);
+					gPSPRadio->m_UI->DisplayElements(m_Lists);
 
 				}
 				else if (CScreenHandler::STOP_REQUEST == m_ScreenHandler->m_RequestOnPlayOrStop) 
@@ -496,7 +497,7 @@ void PlayListScreen::EOSHandler()
 	/* This prvents screens like the option screen from getting notified */
 	if (this == m_ScreenHandler->GetCurrentScreen())
 	{
-		UI = m_UI;
+		UI = gPSPRadio->m_UI;
 	}
 	else
 	{

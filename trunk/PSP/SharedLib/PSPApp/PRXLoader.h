@@ -33,7 +33,7 @@
 		char *GetFilename() { return m_FileName; }
 
 		/** Helpers */
-		void SetName(char *strName);
+		void SetName(const char *strName);
 		char *GetName();
 	
 	private:

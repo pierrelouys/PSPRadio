@@ -74,13 +74,13 @@ OptionsPluginMenuScreen::~OptionsPluginMenuScreen()
 
 
 /** Activate() is called on screen activation */
-void OptionsPluginMenuScreen::Activate(IPSPRadio_UI *UI)
+void OptionsPluginMenuScreen::Activate()
 {
-	IScreen::Activate(UI);
+	IScreen::Activate();
 
 	// Update.  This is necesary the first time */
 	UpdateOptionsData();
-	m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+	gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 }
 
 void OptionsPluginMenuScreen::LoadFromConfig()
@@ -265,11 +265,11 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 
 				sprintf(strPluginRealName, "UI_%s.prx", strSelection);
 				Log(LOG_INFO, "User selected to load '%s'", strPluginRealName);
-				m_UI->DisplayMessage("Starting Plugin . . .");
+				gPSPRadio->m_UI->DisplayMessage("Starting Plugin . . .");
 
 				m_ScreenHandler->StartUI(strPluginRealName, DEFAULT_SKIN);
 
-				m_UI->DisplayMessage("Plugin Started");
+				gPSPRadio->m_UI->DisplayMessage("Plugin Started");
 				fOptionActivated = true;
 			}
 			break;
@@ -280,28 +280,28 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				Log(LOG_INFO, "User selected FSS Plugin '%s'.", strPluginRealName);
 				if (iSelectionBase0 > 0)
 				{
-					m_UI->DisplayMessage("Starting Plugin . . .");
-					//sprintf(m_UI->buff, "original data");
-					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
+					gPSPRadio->m_UI->DisplayMessage("Starting Plugin . . .");
+					//sprintf(gPSPRadio->m_UI->buff, "original data");
+					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", gPSPRadio->m_UI->buff);
 					int res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_FSS);
-					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
+					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", gPSPRadio->m_UI->buff);
 					switch(res)
 					{
 						case 0:
 							fOptionActivated = true;
-							m_UI->DisplayMessage("Plugin Started");
+							gPSPRadio->m_UI->DisplayMessage("Plugin Started");
 							break;
 						default:
-							m_UI->DisplayMessage("Error Starting Plugin . . .");
+							gPSPRadio->m_UI->DisplayMessage("Error Starting Plugin . . .");
 							break;
 					}
 				}
 				else
 				{
-					m_UI->DisplayMessage("Stopping Plugin. . .");
+					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
 					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_FSS);
 					fOptionActivated = true;
-					m_UI->DisplayMessage("Plugin Stopped");
+					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
 			}
 			break;
@@ -312,41 +312,41 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				Log(LOG_INFO, "User selected APP Plugin '%s'.", strPluginRealName);
 				if (iSelectionBase0 > 0)
 				{
-					m_UI->DisplayMessage("Starting Plugin . . .");
-					//sprintf(m_UI->buff, "original data");
-					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", m_UI->buff);
+					gPSPRadio->m_UI->DisplayMessage("Starting Plugin . . .");
+					//sprintf(gPSPRadio->m_UI->buff, "original data");
+					//Log(LOG_INFO, "ui->buff before loading plugin='%s'", gPSPRadio->m_UI->buff);
 					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_APP);
-					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", m_UI->buff);
+					//Log(LOG_INFO, "ui->buff after loading plugin='%s'", gPSPRadio->m_UI->buff);
 					if (res == 0)
 					{
 						fOptionActivated = true;
-						m_UI->DisplayMessage("Plugin Started");
+						gPSPRadio->m_UI->DisplayMessage("Plugin Started");
 					}
 					else
 					{
 						if (res == SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED)
 						{
-							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
+							gPSPRadio->m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
 						}
 						else
 						{
-							m_UI->DisplayMessage("Error Starting Plugin . . .");
+							gPSPRadio->m_UI->DisplayMessage("Error Starting Plugin . . .");
 						}
 					}
 				}
 				else
 				{
-					m_UI->DisplayMessage("Stopping Plugin. . .");
+					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
 					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_APP);
 					fOptionActivated = true;
-					m_UI->DisplayMessage("Plugin Stopped");
+					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
 			}
 			else
 			{
 				if (iSelectionBase0 > 0)
 				{
-					m_UI->DisplayMessage("Continuing Plugin. . .");
+					gPSPRadio->m_UI->DisplayMessage("Continuing Plugin. . .");
 					ModuleContinueApp();
 				}
 			}
@@ -358,31 +358,31 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				Log(LOG_INFO, "User selected GAME Plugin '%s'.", strPluginRealName);
 				if (iSelectionBase0 > 0)
 				{
-					m_UI->DisplayMessage("Starting Plugin . . .");
+					gPSPRadio->m_UI->DisplayMessage("Starting Plugin . . .");
 					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_GAME);
 					if (res == 0)
 					{
 						fOptionActivated = true;
-						m_UI->DisplayMessage("Plugin Started");
+						gPSPRadio->m_UI->DisplayMessage("Plugin Started");
 					}
 					else
 					{
 						if (res == SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED)
 						{
-							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
+							gPSPRadio->m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
 						}
 						else
 						{
-							m_UI->DisplayMessage("Error Starting Plugin . . .");
+							gPSPRadio->m_UI->DisplayMessage("Error Starting Plugin . . .");
 						}
 					}
 				}
 				else
 				{
-					m_UI->DisplayMessage("Stopping Plugin. . .");
+					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
 					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_GAME);
 					fOptionActivated = true;
-					m_UI->DisplayMessage("Plugin Stopped");
+					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
 			}
 			break;
@@ -393,31 +393,31 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 				Log(LOG_INFO, "User selected VISUALIZER Plugin '%s'.", strPluginRealName);
 				if (iSelectionBase0 > 0)
 				{
-					m_UI->DisplayMessage("Starting Plugin . . .");
+					gPSPRadio->m_UI->DisplayMessage("Starting Plugin . . .");
 					u32 res = gPSPRadio->LoadPlugin(strPluginRealName, PLUGIN_VIS);
 					switch(res)
 					{
 						case 0:
 							fOptionActivated = true;
-							m_UI->DisplayMessage("Plugin Started");
+							gPSPRadio->m_UI->DisplayMessage("Plugin Started");
 							break;
 						case -2:
-							m_UI->DisplayMessage("Plugin not Supported");
+							gPSPRadio->m_UI->DisplayMessage("Plugin not Supported");
 							break;
 						case SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED:
-							m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
+							gPSPRadio->m_UI->DisplayMessage("Not Enough Free Memory To Start Plugin. . .");
 							break;
 						default:
-							m_UI->DisplayMessage("Error Starting Plugin . . .");
+							gPSPRadio->m_UI->DisplayMessage("Error Starting Plugin . . .");
 							break;
 					}
 				}
 				else
 				{
-					m_UI->DisplayMessage("Stopping Plugin. . .");
+					gPSPRadio->m_UI->DisplayMessage("Stopping Plugin. . .");
 					gPSPRadio->LoadPlugin(PLUGIN_OFF_STRING, PLUGIN_VIS);
 					fOptionActivated = true;
-					m_UI->DisplayMessage("Plugin Stopped");
+					gPSPRadio->m_UI->DisplayMessage("Plugin Stopped");
 				}
 			}
 			break;
@@ -426,7 +426,7 @@ void OptionsPluginMenuScreen::OnOptionActivation()
 	if (true == fOptionActivated)
 	{
 		(*m_CurrentOptionIterator).iActiveState = (*m_CurrentOptionIterator).iSelectedState;
-		m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
+		gPSPRadio->m_UI->UpdateOptionsScreen(m_OptionsList, m_CurrentOptionIterator);
 	}
 }
 

@@ -43,6 +43,8 @@ int CPSPRadio::Setup(int argc, char **argv)
 	/** open config file */
 	char strAppTitle[140];
 
+	m_UIPluginData = NULL;
+
 	m_VisPluginData = NULL;
 	m_VisPluginConfig.sc_width = 480;
 	m_VisPluginConfig.sc_height = 272;
@@ -229,7 +231,7 @@ int CPSPRadio::Setup_UI(char *strCurrentDir)
 		m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE),
 		m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
 
-	m_UI = m_ScreenHandler->StartUI(m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE), 
+	m_ScreenHandler->StartUI(m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE), 
 									m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
 
 
@@ -323,6 +325,15 @@ void CPSPRadio::OnExit()
 	{
 		Log(LOG_VERYLOW, "Exiting. Destroying m_ScreenHandler object");
 		delete(m_ScreenHandler), m_ScreenHandler = NULL;
+	}
+	if (m_UI)
+	{
+		Log(LOG_LOWLEVEL, "Exiting. Calling UI->Terminate");
+		m_UI->Terminate();
+		Log(LOG_LOWLEVEL, "Exiting. Destroying UI object");
+		delete(m_UI);
+		m_UI = NULL;
+		Log(LOG_LOWLEVEL, "Exiting. UI object deleted.");
 	}
 
 	for (int i = NUMBER_OF_PLUGIN_TYPES - 1 ; i >= 0 ; i--)
@@ -421,14 +432,14 @@ int CPSPRadio::ProcessEvents()
 				{
 				/* User: 1- killed a plugin or 2-selected to switch to pspradio from a plugin : */
 				case MID_GIVEUPEXCLISIVEACCESS:
-					if (GetUI())
+					if (m_UI)
 					{
 						Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Calling OnScreenshot");
-						GetUI()->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
+						m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE);
 					  	sceKernelDelayThread(100*1000); /* give UI time to react */
 						/** Re-draw the current screen */
 						Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Calling Activate");
-						GetScreenHandler()->GetCurrentScreen()->Activate(GetScreenHandler()->GetCurrentUIPtr());
+						GetScreenHandler()->GetCurrentScreen()->Activate();
 					  	sceKernelDelayThread(100*1000); /* give UI time to react */
 					}
 					Log(LOG_INFO, "MID_GIVEUPEXCLISIVEACCESS: Calling StarKeyLatch");
@@ -846,7 +857,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 	#include <GAME_Exports.h>
 	#include <VIS_Plugin.h>
 
-	int CPSPRadio::LoadPlugin(char *strPlugin, plugin_type type)
+	int CPSPRadio::LoadPlugin(const char *strPlugin, plugin_type type)
 	{
 		char strModulePath[MAXPATHLEN+1];
 		char cwd[MAXPATHLEN+1];
@@ -857,24 +868,15 @@ void CPSPRadio::ScreenshotStore(char *filename)
 
 			if (m_ModuleLoader[type]->IsLoaded() == true)
 			{
-				Log(LOG_INFO, "Unloading currently running plugin");
-				if (type == PLUGIN_VIS)
-				{
-					/* If plugin has cleanup() defined, then call it before unloading */
-					if (m_VisPluginData->cleanup != NULL)
-					{
-						m_VisPluginData->cleanup();
-					  	sceKernelDelayThread(100*1000); /* give plugin time to terminate */
-					}
-					m_VisPluginData = NULL;
-				}
-				m_ModuleLoader[type]->Unload();
-				m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
+				Log(LOG_INFO, "LoadPlugin(): Unloading currently running plugin");
+				UnloadPlugin(type);
 			}
+
 
 			/** Asked to just unload */
 			if (strcmp(strPlugin, PLUGIN_OFF_STRING) == 0)
 			{
+				UnloadPlugin(type);
 				return 0;
 			}
 
@@ -897,17 +899,30 @@ void CPSPRadio::ScreenshotStore(char *filename)
 
 				Log(LOG_INFO, "Module start returned: 0x%x", iRet);
 
-/*
-				if (strcmp(getPSPRadioVersionForPlugin(), PSPRADIO_VERSION) != 0)
-				{
-					Log(LOG_ERROR, "WARNING: Plugin '%' was compiled against PSPRadio '%s' (this is '%s')",
-						getPSPRadioVersionForPlugin(), PSPRADIO_VERSION);
-				}
-*/
 				switch(type)
 				{
 					case PLUGIN_UI:
-						//strlcpy(strPluginVersion, GetPluginVersionUI());
+						if (get_uiplugin_info != NULL)
+							m_UIPluginData = get_uiplugin_info();
+						if (m_UIPluginData && m_UIPluginData->interface_version == PLUGIN_UI_VERSION)
+						{
+							Log(LOG_INFO, "Module description: '%s' Interface Version: %d", 
+								m_UIPluginData->description,
+								m_UIPluginData->interface_version);
+							//m_VisPluginData->init();
+						    m_UI = ModuleStartUI();
+						}
+						else
+						{
+							Log(LOG_ERROR, "Unable to load plugin '%s'. This plugin supports i/f version %d. This version of PSPRadio uses version %d.", 
+								m_UIPluginData->filename,
+								m_UIPluginData->interface_version,
+								PLUGIN_UI_VERSION);
+							m_UIPluginData = NULL;
+							m_ModuleLoader[type]->Unload();
+							m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
+							return -2;
+						}
 						break;
 					case PLUGIN_FSS:
 						ModuleStartFSS();
@@ -919,12 +934,16 @@ void CPSPRadio::ScreenshotStore(char *filename)
 						ModuleStartGAME();
 						break;
 					case PLUGIN_VIS:
-						m_VisPluginData = get_vplugin_info();
-						m_VisPluginData->handle = (void *)m_ModuleLoader[type];
-						m_VisPluginData->filename = m_ModuleLoader[type]->GetFilename();
-						m_VisPluginData->config = &m_VisPluginConfig;
-						//m_VisPluginData->disable_plugin = to-do
-						if (m_VisPluginData->interface_version == PLUGIN_VIS_VERSION)
+						if (get_vplugin_info != NULL)
+							m_VisPluginData = get_vplugin_info();
+						if (m_VisPluginData)
+						{
+							m_VisPluginData->handle = (void *)m_ModuleLoader[type];
+							m_VisPluginData->filename = m_ModuleLoader[type]->GetFilename();
+							m_VisPluginData->config = &m_VisPluginConfig;
+							//m_VisPluginData->disable_plugin = to-do
+						}
+						if (m_VisPluginData && m_VisPluginData->interface_version == PLUGIN_VIS_VERSION)
 						{
 							Log(LOG_INFO, "Module description: '%s' Interface Version: %d", 
 								m_VisPluginData->description,
@@ -969,6 +988,47 @@ void CPSPRadio::ScreenshotStore(char *filename)
 			return -1;
 		}
 	}
+
+	int CPSPRadio::UnloadPlugin(plugin_type type)
+	{
+		//char strModulePath[MAXPATHLEN+1];
+		//char cwd[MAXPATHLEN+1];
+
+		if (type < NUMBER_OF_PLUGIN_TYPES)
+		{
+			switch(type)
+			{
+				case PLUGIN_UI:
+				{
+					Log(LOG_INFO, "UnloadPlugin(): Destroying current UI");
+					m_UI->Terminate();
+					sceKernelDelayThread(100*1000); /* give UI time to terminate */
+					delete(m_UI), m_UI = NULL;
+					m_UIPluginData = NULL;
+				}
+				break;
+				case PLUGIN_VIS:
+				{
+					/* If plugin has cleanup() defined, then call it before unloading */
+					Log(LOG_INFO, "UnloadPlugin(): Destroying current Visual Plugin");
+					if (m_VisPluginData->cleanup != NULL)
+					{
+						m_VisPluginData->cleanup();
+						sceKernelDelayThread(100*1000); /* give plugin time to terminate */
+					}
+					m_VisPluginData = NULL;
+				}
+				break;
+				default:
+				break;
+			}
+			Log(LOG_INFO, "UnloadPlugin(): Unloading PRX");
+			m_ModuleLoader[type]->Unload();
+			m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
+		}
+		return 0;
+	}
+	
 
 	char *CPSPRadio::GetActivePluginName(plugin_type type)
 	{

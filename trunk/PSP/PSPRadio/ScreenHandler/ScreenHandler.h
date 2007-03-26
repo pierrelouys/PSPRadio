@@ -40,13 +40,13 @@
 		public:
 
 			IScreen(int Id, CScreenHandler *ScreenHandler)
-				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_UI = NULL; m_strConfigFilename = NULL;}
+				{m_ScreenHandler = ScreenHandler, m_Id = Id; m_strConfigFilename = NULL;}
 			virtual ~IScreen()
 				{if (m_strConfigFilename)free(m_strConfigFilename), m_strConfigFilename= NULL;}
 
 			int GetId(){ return m_Id; }
 
-			virtual void Activate(IPSPRadio_UI *UI);
+			virtual void Activate();
 
 			virtual void InputHandler(int iButtonMask){};
 
@@ -58,7 +58,6 @@
 
 		protected:
 			int m_Id;
-			IPSPRadio_UI *m_UI;
 			CScreenHandler *m_ScreenHandler;
 			char *m_strConfigFilename;
 	};
@@ -115,9 +114,9 @@
 			IScreen *GetCurrentScreen(){return m_CurrentScreen;}
 			char *GetCurrentUIName(){return m_strCurrentUIName;}
 			char *GetCurrentSkin(){return m_strCurrentSkin;}
-      bool  SetCurrentUIName(const char *strNewName);
-      bool  SetCurrentSkinName(const char *strNewName);
-			IPSPRadio_UI *GetCurrentUIPtr(){ return m_UI; }
+			bool  SetCurrentUIName(const char *strNewName);
+			bool  SetCurrentSkinName(const char *strNewName);
+			//IPSPRadio_UI *GetCurrentUIPtr(){ return m_UI; }
 			char *GetCWD(){return m_strCWD;}
 			CPSPSound *GetSound(){return m_Sound;}
 			IScreen *GetScreen(int Id){return Screens[Id];}
@@ -161,10 +160,10 @@
 			IScreen *m_PreviousScreen;
 			IScreen *m_StreamOwnerScreen;
 			Screen   m_InitialScreen;
-			CPRXLoader *m_UIModuleLoader;
+			//CPRXLoader *m_UIModuleLoader;
 			char *m_strCurrentUIName;
 			char *m_strCurrentSkin;
-			IPSPRadio_UI *m_UI;
+			//IPSPRadio_UI *m_UI;
 			CIniParser *m_Config;
 			CPSPSound *m_Sound;
 			char *m_strCWD;

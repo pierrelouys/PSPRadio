@@ -38,3 +38,22 @@ IPSPRadio_UI *ModuleStartUI()
 
 	return new CTextUI();
 }
+
+/** START of Plugin definitions setup */
+UIPlugin textui_vtable = {
+	PLUGIN_UI_VERSION, /* Interface version -- Don't change */
+	NULL,//	void *handle; /* Filled in by PSPRadio */
+	NULL,//	char *filename; /* Filled in by PSPRadio */
+	"TextUI",//	char *description; /* The description that is shown in the preferences box */
+	NULL,//	void (*init)(void); /* Called when the plugin is enabled */
+	NULL,//	void (*cleanup)(void); /* Called when the plugin is disabled */
+	NULL,//	void (*about)(void); /* not used atm *//* Show the about box */
+	NULL,//	void (*configure)(void); /* not used atm *//* Show the configure box */
+	NULL,//	void (*disable_plugin)(struct _UIPlugin *); /* not used atm *//* Call this with a pointer to your plugin to disable the plugin */
+};
+/** START of Plugin definitions setup */
+
+UIPlugin *get_uiplugin_info()
+{
+	return &textui_vtable;
+}
