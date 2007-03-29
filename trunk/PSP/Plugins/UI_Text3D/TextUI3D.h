@@ -172,8 +172,6 @@ private:
 	/* Render thread */
 	static void render_thread(void *);
 	void RenderLoop(); /* Called from render_thread */
-	bool m_ExitRenderThread;
-	CBlocker *m_RenderExitBlocker;
 };
 
 #endif

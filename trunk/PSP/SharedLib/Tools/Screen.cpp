@@ -28,6 +28,9 @@
 
 #include <pspgu.h>
 
+#define min(a,b) (((a)<(b))?(a):(b))
+#define max(a,b) (((a)>(b))?(a):(b))
+
 u32 *third = NULL;
 unsigned int __attribute__((aligned(16))) list[262144];
 
@@ -358,8 +361,28 @@ void CScreen::LoadBuffer(int iBuffer, const char* filename)
 }
 /** PNG STUFF */
 
-void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, u32 x1, u32 y1, u32 x2, u32 y2)
+
+void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, int x2, int y2)
 {
+	if (x1 == -2 || x2 == -2 || y1 == -2 || y2 == -2)
+		return;
+
+	if (x1 == -1 || x2 == -1)
+		x1 = 0, x2 = m_Width;
+
+	if (y1 == -1 || y2 == -1)
+		y1 = 0, y2 = m_Height;
+	
+	x1 = max(x1, 0);
+	x1 = min(x1, m_Width);
+	x2 = max(x2, 0);
+	x2 = min(x2, m_Width);
+
+	y1 = max(y1, 0);
+	y1 = min(y1, m_Height);
+	y2 = max(y2, 0);
+	y2 = min(y2, m_Height);
+
 	u32 *src = m_Buffer[iFromBuffer] + x1 + (y1*m_Pitch);
 	u32 *dst = m_Buffer[iDestBuffer] + x1 + (y1*m_Pitch);
 	int xlen_in_bytes = (x2 - x1)*4;

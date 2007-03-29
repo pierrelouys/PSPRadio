@@ -58,6 +58,8 @@ gfx_sizes	GfxSizes;
 
 /* For render thread */
 static CTextUI3D *sThis;
+volatile bool s_ExitRenderThread = false;
+volatile bool s_RenderThreadRunning = false;
 
 CTextUI3D::CTextUI3D()
 {
@@ -80,19 +82,23 @@ CTextUI3D::CTextUI3D()
 		shdparam.sched_policy = SCHED_OTHER;
 		shdparam.sched_priority = 45;
 		pthread_attr_setschedparam(&pthattr, &shdparam);
-		m_ExitRenderThread = false;
-		m_RenderExitBlocker = new CBlocker("TextUI3D_RenderBlock");
 		pthread_create(&pthid, &pthattr, render_thread, NULL);
 	}
 }
 
 CTextUI3D::~CTextUI3D()
 {
+	ModuleLog(LOG_INFO, "CTextUI3D: destructor starts.");
+
 	/* For render thread */
-	m_ExitRenderThread = true;
-	m_RenderExitBlocker->Block();
+	s_ExitRenderThread = true;
+	for (;;)
+	{
+		if (s_RenderThreadRunning == false)
+			break;
+		sceKernelDelayThread(100*1000); /* yield for 100ms*/
+	}
 	sThis = NULL;
-	delete(m_RenderExitBlocker), m_RenderExitBlocker = NULL;
 
 	if (m_Settings)
 	{
@@ -105,7 +111,7 @@ CTextUI3D::~CTextUI3D()
 		m_strConfigDir = NULL;
 	}
 
-	ModuleLog(LOG_VERYLOW, "CTextUI3D: destroyed.");
+	ModuleLog(LOG_INFO, "CTextUI3D: destroyed.");
 }
 
 int CTextUI3D::Initialize(char *strCWD, char *strSkinDir)
@@ -228,9 +234,9 @@ void CTextUI3D::PrepareShutdown()
 
 void CTextUI3D::Terminate()
 {
-	m_ExitRenderThread = true;
 	ModuleLog(LOG_VERYLOW, "CTextUI3D:Terminating");
 	sceGuTerm();
+	s_ExitRenderThread = true;
 }
 
 int CTextUI3D::SetTitle(char *strTitle)
@@ -344,7 +350,9 @@ void CTextUI3D::OnScreenshot(CScreenHandler::ScreenShotState state)
 /* static member */
 void CTextUI3D::render_thread(void *) 
 {
+	s_RenderThreadRunning = true;
 	sThis->RenderLoop();
+	s_RenderThreadRunning = false;
 }
 
 
@@ -352,7 +360,7 @@ void CTextUI3D::RenderLoop()
 {
 	for (;;)
 	{
-		if (m_ExitRenderThread)
+		if (s_ExitRenderThread)
 			break;
 
 
@@ -364,11 +372,7 @@ void CTextUI3D::RenderLoop()
 
 		sceDisplayWaitVblankStart();
 
-		//sceKernelDelayThread(1); /* yield */
 	}
-
-	m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
-
 }
 
 int CTextUI3D::OnNewSongData(MetaData *pData)

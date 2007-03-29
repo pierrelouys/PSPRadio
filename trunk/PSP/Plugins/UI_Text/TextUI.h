@@ -8,19 +8,20 @@
 #include <PSPRadio.h>
 
 /* active / dirty bits */
-#define BITMASK_PCM	1
-#define BITMASK_TIME	2
-#define BITMASK_BATTERY 4
-#define BITMASK_BUFFER_PERCENTAGE 8
-#define BITMASK_SONG_DATA 16
-#define BITMASK_STREAM_TIME 32
-#define BITMASK_CONTAINERS 64
-#define BITMASK_ELEMENTS 128
-#define BITMASK_BACKGROUND  256
-#define BITMASK_OPTIONS 512
-#define BITMASK_ACTIVE_COMMAND 1024
-#define BITMASK_MESSAGE 2048
-#define BITMASK_CURRENT_CONTAINER_SIDE_TITLE 4096
+#define BITMASK_PCM								(1<<0)
+#define BITMASK_TIME							(1<<1)
+#define BITMASK_BATTERY 						(1<<2)
+#define BITMASK_BUFFER_PERCENTAGE				(1<<3)
+#define BITMASK_SONG_DATA						(1<<4)
+#define BITMASK_STREAM_TIME						(1<<5)
+#define BITMASK_CONTAINERS						(1<<6)
+#define BITMASK_ELEMENTS						(1<<7)
+#define BITMASK_BACKGROUND						(1<<8)
+#define BITMASK_OPTIONS							(1<<9)
+#define BITMASK_ACTIVE_COMMAND					(1<<10)
+#define BITMASK_MESSAGE							(1<<11)
+#define BITMASK_CURRENT_CONTAINER_SIDE_TITLE	(1<<12)
+#define BITMASK_TIMER_1S						(1<<13)
 
 #define BITMASK_ALL (BITMASK_PCM | BITMASK_TIME	| BITMASK_BATTERY | BITMASK_BUFFER_PERCENTAGE | BITMASK_SONG_DATA | BITMASK_STREAM_TIME | BITMASK_CONTAINERS | BITMASK_ELEMENTS | BITMASK_BACKGROUND | BITMASK_OPTIONS |  BITMASK_ACTIVE_COMMAND | BITMASK_MESSAGE | BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
 
@@ -113,14 +114,14 @@ public:
 	CScreen *m_Screen;
 	CScreenHandler::ScreenShotState m_ScreenShotState;
 private:
-	CIniParser *m_Config;
-	char  *m_strTitle;
+	CIniParser 	*m_Config;
+	char  		*m_strTitle;
 	CScreenHandler::Screen m_CurrentScreen;
 	screenconfig m_ScreenConfig;
-	int 	m_LastBatteryPercentage;
-	pspTime m_LastLocalTime;
-	char *m_strCWD;
-	char *m_strConfigDir;
+	int 		m_LastBatteryPercentage;
+	pspTime 	m_LastLocalTime;
+	char 		*m_strCWD;
+	char 		*m_strConfigDir;
 	CPSPSound *m_Sound;
 	//helpers
 	enum uicolors
@@ -152,11 +153,9 @@ private:
 	list<OptionsScreen::Options> m_OptionsList;
 	int m_CurrentOptionIterator;
 	CPSPSound::pspsound_state m_CurrentPlayingState;
-	char m_Message[512];
+	char *m_strMessage;
 	CLock *m_RenderLock;
-	CBlocker *m_RenderExitBlocker;
 	/* For renderloop */
-	bool m_ExitRenderThread;
 	bool m_bDisplayFPS;
 	bool m_IsPlaying;
 	clock_t m_TimeStartedPlaying;	
@@ -178,7 +177,7 @@ private:
 	void PrintProgramVersion(int iBuffer);
 	void PrintOptionsScreen(int iBuffer, bool draw_background);
 	int  PrintActiveCommand(int iBuffer, bool draw_background);
-	void PrintMessage(int iBuffer);
+	void RenderMessage(int iBuffer);
 	void PrintCurrentContainerSideTitle(int iBuffer, bool draw_background);
 
 	static void render_thread(void *);

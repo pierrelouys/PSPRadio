@@ -51,7 +51,7 @@
 		
 		//NEW:
 	public:
-		void CopyRectangle(int iFromBuffer, int iDestBuffer, u32 x1, u32 y1, u32 x2, u32 y2);
+		void CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, int x2, int y2);
 		void SetFrameBuffer(int iBuffer);
 		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
 		void Effect(int iBuffer);

@@ -55,6 +55,8 @@
 
 /* For render thread */
 static CTextUI *sThis;
+volatile bool s_ExitRenderThread = false;
+volatile bool s_RenderThreadRunning = false;
 
 extern UIPlugin textui_vtable;
 
@@ -71,7 +73,7 @@ CTextUI::CTextUI()
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
 	
 	m_strTitle = strdup("PSPRadio");
-	m_Message[0] = 0;
+	m_strMessage = NULL;
 
 	sThis = this;
 	m_dirtybitmask = 0;
@@ -90,7 +92,6 @@ CTextUI::CTextUI()
 	m_Sound = (CPSPSound*)ifdata.Pointer;
 	m_Container = NULL;
 	m_RenderLock = new CLock("TextUI_RenderLock");
-	m_RenderExitBlocker = new CBlocker("TextUI_RenderBlock");
 	
 	m_PSPRadio = (CPSPRadio*)textui_vtable.PSPRadioObject;
 
@@ -123,7 +124,6 @@ CTextUI::CTextUI()
 		shdparam.sched_policy = SCHED_OTHER;
 		shdparam.sched_priority = 45;
 		pthread_attr_setschedparam(&pthattr, &shdparam);
-		m_ExitRenderThread = false;
 		pthread_create(&pthid, &pthattr, render_thread, NULL);
 	}
 
@@ -133,23 +133,29 @@ CTextUI::CTextUI()
 
 void CTextUI::Terminate()
 {
-	m_ExitRenderThread = true;
-	m_dirtybitmask = 0;
+	s_ExitRenderThread = true;
+	m_dirtybitmask = m_activebitmask = 0;
 }
 
 CTextUI::~CTextUI()
 {
 	TextUILog(LOG_VERYLOW, "~CTextUI(): Start");
 
-	m_ExitRenderThread = true;
-	m_RenderExitBlocker->Block();
+	s_ExitRenderThread = true;
+	for (;;)
+	{
+		if (s_RenderThreadRunning == false)
+			break;
+		sceKernelDelayThread(100*1000); /* yield for 100ms*/
+	}
 	sThis = NULL;
+	
 
 	delete(m_Config), m_Config = NULL;
 	free(m_strCWD), m_strCWD = NULL;
 	free(m_strConfigDir), m_strConfigDir = NULL;
+	free(m_strMessage), m_strMessage = NULL;
 	delete(m_RenderLock), m_RenderLock = NULL;
-	delete(m_RenderExitBlocker), m_RenderExitBlocker = NULL;
 	delete(m_Screen), m_Screen = NULL;
 
 	TextUILog(LOG_INFO, "~CTextUI(): End");
@@ -163,7 +169,9 @@ void CTextUI::NewPCMBuffer(short *pcmbuffer)
 /* static member */
 void CTextUI::render_thread(void *) 
 {
+	s_RenderThreadRunning = true;
 	sThis->RenderLoop();
+	s_RenderThreadRunning = false;
 }
 
 void CTextUI::RenderLoop()
@@ -171,7 +179,7 @@ void CTextUI::RenderLoop()
 	int iBuffer = 0;
 	
 	/* For FPS Calculation: */
-	clock_t time1, time2;
+	clock_t time1, time2, timenow;
 	int frame_count = 0;
 	int total_time = 0;
 	int fps = 0;
@@ -185,7 +193,7 @@ void CTextUI::RenderLoop()
 
 	for (;;)
 	{
-		if (m_ExitRenderThread)
+		if (s_ExitRenderThread)
 			break;
 
 		if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE)
@@ -194,11 +202,13 @@ void CTextUI::RenderLoop()
 			continue;
 		}
 
+		timenow = sceKernelLibcClock();
+		if ((timenow - time1) > 1*CLOCKS_PER_SEC)
+			SET_DIRTY_BIT(BITMASK_TIMER_1S);
+
 		if (m_dirtybitmask)
 		{
-
-			time1 = sceKernelLibcClock();
-	
+			time1 = timenow;
 			switch(render_mode)
 			{
 			case RM_NORMAL:
@@ -248,32 +258,32 @@ void CTextUI::RenderLoop()
 			sceDisplayWaitVblankStart();
 			//Flip Buffers
 			//sceKernelDcacheWritebackAll(); 
-			m_RenderLock->Lock();
+			////m_RenderLock->Lock();
 			m_Screen->SetFrameBuffer(iBuffer);
 			iBuffer = 1 - iBuffer;
-			m_RenderLock->Unlock();
+			////m_RenderLock->Unlock();
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
-	m_RenderExitBlocker->UnBlock(); /* Let the destructor continue */
 }
 
 void CTextUI::RenderNormal(int iBuffer)
 {
 	static bool draw_background = true;
-	static int message_frames = 0;
 	static pspradioexport_ifdata ifdata = { 0 };
+	static bool enable_msgbox = false;
+	static clock_t msgbox_start = { 0 };
 	
 	if (m_dirtybitmask & BITMASK_BACKGROUND)
 	{
 		UNSET_DIRTY_BIT(BITMASK_BACKGROUND);
 		if (m_activebitmask & BITMASK_BACKGROUND)
 		{
-			m_RenderLock->Lock();
+			////m_RenderLock->Lock();
 			m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
 				0, 0, m_Screen->m_Width, m_Screen->m_Height);
 			PrintProgramVersion(OFFLINE_BUFFER);
-			m_RenderLock->Unlock();
+			////m_RenderLock->Unlock();
 			draw_background  = false;
 		}
 	}
@@ -342,6 +352,10 @@ void CTextUI::RenderNormal(int iBuffer)
 		if (m_activebitmask & BITMASK_CURRENT_CONTAINER_SIDE_TITLE)
 			PrintCurrentContainerSideTitle(OFFLINE_BUFFER, draw_background);
 	}
+	if (m_dirtybitmask & BITMASK_TIMER_1S)
+	{
+		UNSET_DIRTY_BIT(BITMASK_TIMER_1S);
+	}
 		
 	/* Copy buffer OFFLINE_BUFFER to back-buffer */
 	m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
@@ -356,29 +370,35 @@ void CTextUI::RenderNormal(int iBuffer)
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		}
 	}
-	
 	if (m_dirtybitmask & BITMASK_MESSAGE)
 	{
 		UNSET_DIRTY_BIT(BITMASK_MESSAGE);
 		if (m_activebitmask & BITMASK_MESSAGE)
-			message_frames = 1;
-	}
-	
-	if (message_frames > 0)
-	{
-		PrintMessage(iBuffer);
-		if (message_frames++ >= 30)
 		{
-			message_frames = 0;
+			enable_msgbox = true;
+			msgbox_start = sceKernelLibcClock();
 		}
 	}
 	
+	if (enable_msgbox)
+	{
+		////m_RenderLock->Lock();
+		RenderMessage(iBuffer);
+		////m_RenderLock->Unlock();
+		clock_t now = sceKernelLibcClock();
+		if (now - msgbox_start > 5*CLOCKS_PER_SEC)
+		{
+			enable_msgbox = false;
+		}
+	}
+
 }	
 
 void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 {
 	static pspradioexport_ifdata ifdata = { 0 };
-	static int message_frames = 0;
+	static bool enable_msgbox = false;
+	static clock_t msgbox_start = { 0 };
 	
 	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
@@ -402,15 +422,21 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 		{
 			UNSET_DIRTY_BIT(BITMASK_MESSAGE);
 			if (m_activebitmask & BITMASK_MESSAGE)
-				message_frames = 1;
+			{
+				enable_msgbox = true;
+				msgbox_start = sceKernelLibcClock();
+			}
 		}
 		
-		if (message_frames > 0)
+		if (enable_msgbox)
 		{
-			PrintMessage(iBuffer);
-			if (message_frames++ >= 30)
+			////m_RenderLock->Lock();
+			RenderMessage(iBuffer);
+			////m_RenderLock->Unlock();
+			clock_t now = sceKernelLibcClock();
+			if (now - msgbox_start > 5*CLOCKS_PER_SEC)
 			{
-				message_frames = 0;
+				enable_msgbox = false;
 			}
 		}
 		m_dirtybitmask = 0;
@@ -426,9 +452,9 @@ void CTextUI::FreqData(float freq_data[2][257])
 	}
 }
 
-void CTextUI::PrintMessage(int iBuffer)
+void CTextUI::RenderMessage(int iBuffer)
 {
-	sceKernelDcacheWritebackAll(); 
+	//sceKernelDcacheWritebackAll(); 
 	//m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
 	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xFFFFFF);//0xAAAAAA);
@@ -445,7 +471,8 @@ void CTextUI::PrintMessage(int iBuffer)
 	m_Screen->HorizLine(iBuffer, 98, 102, m_Screen->m_Width - 102, 0x0);
 	//m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 
-	uiPrintf(iBuffer, 110,60, 0xFFFFFF, m_Message);
+	TextUILog(LOG_INFO, "RenderMessage(): '%s'", m_strMessage);
+	uiPrintf(iBuffer, 110,60, 0xFFFFFF, m_strMessage);
 }
 
 void CTextUI::PrintProgramVersion(int iBuffer)
@@ -666,14 +693,14 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	LoadConfigSettings(Screen);
 	TextUILog(LOG_LOWLEVEL, "After LoadConfigSettings");
 
-	m_RenderLock->Lock(); /* Stop rendering -- after LoadConfigSettings, which also locks.*/
+	////m_RenderLock->Lock(); /* Stop rendering -- after LoadConfigSettings, which also locks.*/
 
 	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
 	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
 	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
 	m_Screen->SetTextColor(m_ScreenConfig.FgColor);
 
-	m_RenderLock->Unlock();
+	////m_RenderLock->Unlock();
 
 	if (m_ScreenConfig.strBackground)
 	{
@@ -696,13 +723,13 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 			}
 			TextUILog(LOG_LOWLEVEL, "Calling LoadBackground '%s'", strPath);
 
-			m_RenderLock->Lock(); /* Don't render while we load the background */
+			////m_RenderLock->Lock(); /* Don't render while we load the background */
 			m_Screen->LoadBuffer(BACKGROUND_BUFFER, strPath);
-			m_RenderLock->Unlock(); /* Continue rendering */
+			////m_RenderLock->Unlock(); /* Continue rendering */
 		}
 	}
 
-	m_RenderLock->Lock(); /* Don't render set masks*/
+	////////m_RenderLock->Lock(); /* Don't render set masks*/
 	m_dirtybitmask  = 0;
 	m_activebitmask = 0;
 	OnBatteryChange(m_LastBatteryPercentage);
@@ -743,9 +770,9 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	
 	m_refreshbitmask = m_dirtybitmask;
 	
-	m_RenderLock->Unlock(); /* Don't render while we load the background */
+	////m_RenderLock->Unlock(); /* Don't render while we load the background */
 	
-	TextUILog(LOG_LOWLEVEL, "Inialize screen end");
+	TextUILog(LOG_LOWLEVEL, "Initialize screen end");
 }
 
 void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList, 
@@ -766,7 +793,6 @@ void CTextUI::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 		}
 	}
 	m_OptionsList = OptionsList;
-	//SET_ACTIVE_BIT(BITMASK_OPTIONS);
 	SET_DIRTY_BIT(BITMASK_OPTIONS);
 	m_refreshbitmask |= BITMASK_OPTIONS;
 }
@@ -976,7 +1002,13 @@ void CTextUI::PrintTime(int iBuffer, bool draw_background)
 
 void CTextUI::PrintMessage(char *message)
 {
-	strlcpy(m_Message, message, MAX_COL);
+	////m_RenderLock->Lock();
+	//memset(m_Message, 0, 512);
+	//strlcpy(m_Message, message, MAX_COL - 1);
+	free(m_strMessage);
+	m_strMessage = strdup(message);
+	////m_RenderLock->Unlock();
+	TextUILog(LOG_INFO, "PrintMessage() stored '%s' message.", m_strMessage);
 	SET_DIRTY_BIT(BITMASK_MESSAGE);
 }
 
@@ -999,7 +1031,7 @@ int CTextUI::DisplayMessage_DisablingNetwork()
 int CTextUI::DisplayMessage_NetworkReady(char *strIP)
 {
 	//uiPrintf(0, m_ScreenConfig.NetworkReadyX, m_ScreenConfig.NetworkReadyY, m_ScreenConfig.NetworkReadyColor, "Ready, IP %s", strIP);
-	static char msg[128];
+	char msg[128];
 	sprintf(msg, "Ready, IP %s", strIP);
 	PrintMessage(msg);
 	
@@ -1067,6 +1099,8 @@ int CTextUI::DisplayErrorMessage(char *strMsg)
 
 int CTextUI::DisplayMessage(char *strMsg)
 {
+
+	TextUILog(LOG_INFO, "DisplayMessage('%s') called. Calling PrintMesage()", strMsg);
 	PrintMessage(strMsg);
 	
 	return 0;
