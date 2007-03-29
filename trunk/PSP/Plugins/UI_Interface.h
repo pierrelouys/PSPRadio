@@ -12,7 +12,7 @@
 		#define PLUGIN_TYPE PLUGIN_UI
 	#endif
 
-	#define PLUGIN_UI_VERSION	18
+	#define PLUGIN_UI_VERSION	19
 
 	typedef struct _UIPlugin
 	{
@@ -22,6 +22,7 @@
 		char *filename; /* Filled in by PSPRadio */
 		char *description; /* The description that is shown in the preferences box */
 		void (*init)(void); /* Called when the plugin is enabled */
+		void *(*create_ui_object)(void); /* Populated by Plugin | Returns a IPSPRadio_UI object */
 		void (*cleanup)(void); /* Called when the plugin is disabled */
 		void (*about)(void); /* not used atm *//* Show the about box */
 		void (*configure)(void); /* not used atm *//* Show the configure box */
@@ -83,7 +84,7 @@
 		{
 			/** In UI PRX */
 			void* getModuleInfo(void);
-			IPSPRadio_UI *ModuleStartUI();
+			//IPSPRadio_UI *ModuleStartUI();
 			UIPlugin *get_uiplugin_info();
 		}
 

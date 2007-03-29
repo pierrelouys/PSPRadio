@@ -890,7 +890,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 								m_UIPluginData->description,
 								m_UIPluginData->interface_version);
 							//m_VisPluginData->init();
-						    m_UI = ModuleStartUI();
+						    m_UI = (IPSPRadio_UI*)m_UIPluginData->create_ui_object();
 						}
 						else
 						{

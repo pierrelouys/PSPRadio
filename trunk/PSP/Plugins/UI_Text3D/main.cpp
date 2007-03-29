@@ -24,7 +24,7 @@
 PSP_MODULE_INFO("UI_TEXT3D", 0, 1, 1);
 PSP_HEAP_SIZE_KB(6144);
 
-IPSPRadio_UI *ModuleStartUI()
+void *ModuleStartUI()
 {
 	sleep(1);
 
@@ -50,6 +50,7 @@ UIPlugin textui_vtable = {
 	NULL,//	char *filename; /* Filled in by PSPRadio */
 	"Text3DUI",//	char *description; /* The description that is shown in the preferences box */
 	NULL,//	void (*init)(void); /* Called when the plugin is enabled */
+	ModuleStartUI,
 	NULL,//	void (*cleanup)(void); /* Called when the plugin is disabled */
 	NULL,//	void (*about)(void); /* not used atm *//* Show the about box */
 	NULL,//	void (*configure)(void); /* not used atm *//* Show the configure box */

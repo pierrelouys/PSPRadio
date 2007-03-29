@@ -12,7 +12,6 @@ PSP_BEGIN_EXPORTS
 	# Export our function
 	PSP_EXPORT_START(PSPRadio_UI, 0, 0x0001)
 		PSP_EXPORT_FUNC_HASH(getModuleInfo)
-		PSP_EXPORT_FUNC_HASH(ModuleStartUI)
 		PSP_EXPORT_FUNC_HASH(get_uiplugin_info)
 	PSP_EXPORT_END
 
