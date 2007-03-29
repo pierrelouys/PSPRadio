@@ -41,7 +41,7 @@
 		void (*playback_start)(void); /* Called when playback starts */
 		void (*playback_stop)(void); /* Called when playback stops */
 		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); /* Render the PCM (2ch/44KHz) data, don't do anything time consuming in here -- pcm_data has channels interleaved */
-		void (*render_freq)(u32* vram_frame, float freq_data[2][257]); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
+		void (*render_freq)(u32* vram_frame, float freq_data[2][257]); /* Render the freq data, don't do anything time consuming in here */
 		void (*config_update)(); /* Called by PSPRadio when config changes */
 		VisPluginConfig *config; /* Filled in by PSPRadio */
 	} VisPlugin; 

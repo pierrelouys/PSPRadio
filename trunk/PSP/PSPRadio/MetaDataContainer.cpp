@@ -217,6 +217,7 @@ int CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 	char strTitle[256];
 	char strGenre[128];
 	int iCount = 0;
+	char *rc = NULL;
 	
 	enum shoutcastxml_states
 	{
@@ -227,6 +228,8 @@ int CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 	
 	songdata = new MetaData;
 	
+	Log(LOG_INFO, "LoadSHOUTcastXML() Called");
+	
 	fd = fopen(strFileName, "r");
 	
 	if(fd != NULL)
@@ -234,7 +237,12 @@ int CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 		while ( !feof(fd) )
 		{
 			strLine[0] = 0;
-			fgets(strLine, 256, fd);
+			rc = fgets(strLine, 256, fd);
+			//Log(LOG_INFO, "LoadSHOUTcastXML() fgets returns 0x%p", rc);
+			if (rc == NULL) /** Error!, EOF? */
+			{
+				break;
+			}
 			if (strlen(strLine) == 0 || strLine[0] == '\r' || strLine[0] == '\n')
 			{
 				continue;
@@ -337,22 +345,25 @@ int CMetaDataContainer::LoadSHOUTcastXML(char *strFileName)
 		}
 		fclose(fd), fd = NULL;
 		
-		/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
-		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
-		GetCurrentContainerIteratorRef()++; /** Skip 600 listing */
-		for (; GetCurrentContainerIteratorRef() != m_containerListMap.end(); GetCurrentContainerIteratorRef()++)
+		if (m_containerListMap.empty() == false)
 		{
+			/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
+			GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+			GetCurrentContainerIteratorRef()++; /** Skip 600 listing */
+			for (; GetCurrentContainerIteratorRef() != m_containerListMap.end(); GetCurrentContainerIteratorRef()++)
+			{
+				//GetCurrentElementListRef() = GetCurrentContainerIteratorRef()->second;
+				m_CurrentSelectionIndexer->AssociateElementList();
+				if (GetElementList())
+				{
+					GetCurrentElementListRef().sort(SortMetaDataByTitle);
+				}
+			}
+			
+			GetCurrentContainerIteratorRef() = m_containerListMap.begin();
 			//GetCurrentElementListRef() = GetCurrentContainerIteratorRef()->second;
 			m_CurrentSelectionIndexer->AssociateElementList();
-			if (GetElementList())
-			{
-				GetCurrentElementListRef().sort(SortMetaDataByTitle);
-			}
 		}
-		
-		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
-		//GetCurrentElementListRef() = GetCurrentContainerIteratorRef()->second;
-		m_CurrentSelectionIndexer->AssociateElementList();
 	}
 	else
 	{
@@ -389,6 +400,7 @@ int CMetaDataContainer::LoadNewSHOUTcastXML(char *strFileName)
 	char strTitle[256];
 	char strGenre[128];
 	int iCount = 0;
+	char *rc = NULL;
 	
 	enum shoutcastxml_states
 	{
@@ -399,6 +411,8 @@ int CMetaDataContainer::LoadNewSHOUTcastXML(char *strFileName)
 	
 	songdata = new MetaData;
 	
+	Log(LOG_INFO, "LoadNewSHOUTcastXML() Called");
+
 	fd = fopen(strFileName, "r");
 	
 	if(fd != NULL)
@@ -406,7 +420,12 @@ int CMetaDataContainer::LoadNewSHOUTcastXML(char *strFileName)
 		while ( !feof(fd) )
 		{
 			strLine[0] = 0;
-			fgets(strLine, 256, fd);
+			rc = fgets(strLine, 256, fd);
+			//Log(LOG_INFO, "LoadSHOUTcastXML() fgets returns %p", rc);
+			if (rc == NULL) /** Error!, EOF? */
+			{
+				break;
+			}
 			if (strlen(strLine) == 0 || strLine[0] == '\r' || strLine[0] == '\n')
 			{
 				continue;
@@ -508,20 +527,24 @@ int CMetaDataContainer::LoadNewSHOUTcastXML(char *strFileName)
 		}
 		fclose(fd), fd = NULL;
 		
-		/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
-		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
-		GetCurrentContainerIteratorRef()++; /** Skip 600 listing */
-		for (; GetCurrentContainerIteratorRef() != m_containerListMap.end(); GetCurrentContainerIteratorRef()++)
+		if (m_containerListMap.empty() == false)
 		{
-			m_CurrentSelectionIndexer->AssociateElementList();
-			if (GetElementList())
+			/** Sort Element List (starting from second 'genre' as top 600 list should be sorted by popularity)*/
+			Log(LOG_INFO, "LoadNewSHOUTcastXML(): Done reading file.");
+			GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+			GetCurrentContainerIteratorRef()++; /** Skip 600 listing */
+			for (; GetCurrentContainerIteratorRef() != m_containerListMap.end(); GetCurrentContainerIteratorRef()++)
 			{
-				GetCurrentElementListRef().sort(SortMetaDataByTitle);
+				m_CurrentSelectionIndexer->AssociateElementList();
+				if (GetElementList())
+				{
+					GetCurrentElementListRef().sort(SortMetaDataByTitle);
+				}
 			}
+			
+			GetCurrentContainerIteratorRef() = m_containerListMap.begin();
+			m_CurrentSelectionIndexer->AssociateElementList();
 		}
-		
-		GetCurrentContainerIteratorRef() = m_containerListMap.begin();
-		m_CurrentSelectionIndexer->AssociateElementList();
 	}
 	else
 	{

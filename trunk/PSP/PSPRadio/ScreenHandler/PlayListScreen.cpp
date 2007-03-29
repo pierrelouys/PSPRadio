@@ -82,6 +82,8 @@ void PlayListScreen::Activate()
 	
 	IScreen::Activate();
 
+	Log(LOG_VERYLOW, "Activate(): UI Activate called.");
+
 	if (m_Lists)
 	{
 		if (false == m_Lists->GetContainerList()->empty())

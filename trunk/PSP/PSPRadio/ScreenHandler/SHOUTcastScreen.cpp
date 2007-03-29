@@ -126,6 +126,7 @@ bool CScreenHandler::DownloadSHOUTcastDB()
 			Log(LOG_INFO, "DownloadSHOUTcastDB(): DB Retrieved. (%dbytes)", bytes);
 			if (isCompressedDownload == true)
 			{
+				Log(LOG_INFO, "Uncompressing.");
 				gPSPRadio->m_UI->DisplayMessage("Uncompressing . . .");
 				bRet = UnCompress(SHOUTCAST_DB_COMPRESSED_FILENAME, SHOUTCAST_DB_FILENAME);
 				if (true == bRet)

@@ -227,6 +227,7 @@ int CPSPRadio::Setup_ButtonMapping(CIniParser *pConfig)
 
 int CPSPRadio::Setup_UI(char *strCurrentDir)
 {
+	char *strVisPlugin = m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", "");
 	Log(LOG_LOWLEVEL, "Loading Default UI Module = %s, Skin = %s", 
 		m_Config->GetString("PLUGINS:UI", DEFAULT_UI_MODULE),
 		m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
@@ -235,14 +236,12 @@ int CPSPRadio::Setup_UI(char *strCurrentDir)
 									m_Config->GetString("PLUGINS:UI_SKIN", DEFAULT_SKIN));
 
 
-	if (strlen(	m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", "") ) > 0)
+	if (strlen(strVisPlugin) > 0 && strcmp(strVisPlugin, "Off" ) != 0)
 	{
-		Log(LOG_LOWLEVEL, "Loading Default Visualizer Plugin %s", 
-			m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", ""));
+		Log(LOG_LOWLEVEL, "Loading Default Visualizer Plugin %s", strVisPlugin);
 	
-		LoadPlugin(m_Config->GetString("PLUGINS:DEFAULT_VISUALIZER", ""), PLUGIN_VIS);
+		LoadPlugin(strVisPlugin, PLUGIN_VIS);
 	}
-
 	
 	return 0;
 }
@@ -854,14 +853,6 @@ void CPSPRadio::ScreenshotStore(char *filename)
 
 		if (type < NUMBER_OF_PLUGIN_TYPES)
 		{
-
-			/** Asked to just unload */
-			if (strcmp(strPlugin, PLUGIN_OFF_STRING) == 0)
-			{
-				UnloadPlugin(type);
-				return 0;
-			}
-
 			if (m_ModuleLoader[type]->IsLoaded() == true)
 			{
 				Log(LOG_INFO, "LoadPlugin(): Unloading currently running plugin");
