@@ -8,6 +8,9 @@ BUG FIXES
 (raf) Core: PSPRadio would crash on startup if the SHOUTcast database (newdb.xml) file was empty.
 (raf) TextUI: Corrected problem where PSPRadio would crash when downloading the SHOUTcast database. (The problem was caused by lack of complete support for values -1 and -2 in the configuration files after the TextUI rendering changes.
 KNOWN BUGS
+(raf) TextUI: When switching skins all the text will disappear. This is still an issue.
+(raf) TextUI: GU is not initialized correctly, causing a crash when switching from TextUI3d to TextUI.
+(raf) Core: PSPRadio crashes if only the default skin is available.
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection).
 (raf) Core: Module unloading doesn't free up all memory correctly. Even though plugins can now be loaded/unloaded, the PSP can eventually crash as it runs out of memory (after loading/unloading enough times; even though I switched back and forth between the text and 3d UIs over 20 times, and everything worked fine).
 

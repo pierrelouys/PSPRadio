@@ -71,6 +71,8 @@ CTextUI3D::CTextUI3D()
 	m_entry_list = m_entry_list_tail = NULL;
 	m_strConfigDir = NULL;
 	m_Settings = NULL;
+
+	m_wmanager = new WindowHandlerHSM();
 	/* For Render Thread */
 	{
 		sThis = this;
@@ -99,6 +101,8 @@ CTextUI3D::~CTextUI3D()
 		sceKernelDelayThread(100*1000); /* yield for 100ms*/
 	}
 	sThis = NULL;
+
+	delete(m_wmanager);
 
 	if (m_Settings)
 	{
@@ -140,7 +144,7 @@ int CTextUI3D::Initialize(char *strCWD, char *strSkinDir)
 	jsaVRAMManager::jsaVRAMManagerInit((unsigned long)0x154000);
 	 
 	/* Initialize WindowManager */
-	m_wmanager.Initialize(strCWD, m_strConfigDir);
+	m_wmanager->Initialize(strCWD, m_strConfigDir);
 
 	sceKernelDcacheWritebackAll();
 
@@ -247,19 +251,19 @@ int CTextUI3D::SetTitle(char *strTitle)
 
 int CTextUI3D::DisplayMessage_EnablingNetwork()
 {
-	m_wmanager.Dispatch(WM_EVENT_NETWORK_ENABLE, NULL);
+	m_wmanager->Dispatch(WM_EVENT_NETWORK_ENABLE, NULL);
 	return 0;
 }
 
 int CTextUI3D::DisplayMessage_DisablingNetwork()
 {
-	m_wmanager.Dispatch(WM_EVENT_NETWORK_DISABLE, NULL);
+	m_wmanager->Dispatch(WM_EVENT_NETWORK_DISABLE, NULL);
 	return 0;
 }
 
 int CTextUI3D::DisplayMessage_NetworkReady(char *strIP)
 {
-	m_wmanager.Dispatch(WM_EVENT_NETWORK_IP, NULL);
+	m_wmanager->Dispatch(WM_EVENT_NETWORK_IP, NULL);
 	return 0;
 }
 
@@ -274,17 +278,17 @@ int CTextUI3D::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	{
 		case CPSPSound::STOP:
 			{
-			m_wmanager.Dispatch(WM_EVENT_PLAYER_STOP, NULL);
+			m_wmanager->Dispatch(WM_EVENT_PLAYER_STOP, NULL);
 			}
 			break;
 		case CPSPSound::PAUSE:
 			{
-			m_wmanager.Dispatch(WM_EVENT_PLAYER_PAUSE, NULL);
+			m_wmanager->Dispatch(WM_EVENT_PLAYER_PAUSE, NULL);
 			}
 			break;
 		case CPSPSound::PLAY:
 			{
-			m_wmanager.Dispatch(WM_EVENT_PLAYER_START, NULL);
+			m_wmanager->Dispatch(WM_EVENT_PLAYER_START, NULL);
 			}
 			break;
 	}
@@ -295,50 +299,50 @@ int CTextUI3D::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 int CTextUI3D::DisplayErrorMessage(char *strMsg)
 {
 	strcpy(m_error, strMsg);
-	m_wmanager.Dispatch(WM_EVENT_TEXT_ERROR, m_error);
+	m_wmanager->Dispatch(WM_EVENT_TEXT_ERROR, m_error);
 	return 0;
 }
 
 int CTextUI3D::DisplayMessage(char *strMsg)
 {
 	strcpy(m_message, strMsg);
-	m_wmanager.Dispatch(WM_EVENT_TEXT_MESSAGE, m_message);
+	m_wmanager->Dispatch(WM_EVENT_TEXT_MESSAGE, m_message);
 	return 0;
 }
 
 int CTextUI3D::DisplayBufferPercentage(int iPercentage)
 {
-	m_wmanager.SetBuffer(iPercentage);
+	m_wmanager->SetBuffer(iPercentage);
 	return 0;
 }
 
 int CTextUI3D::OnNewStreamStarted()
 {
-	m_wmanager.Dispatch(WM_EVENT_STREAM_START, NULL);
+	m_wmanager->Dispatch(WM_EVENT_STREAM_START, NULL);
 	return 0;
 }
 
 int CTextUI3D::OnStreamOpening()
 {
-	m_wmanager.Dispatch(WM_EVENT_STREAM_OPEN, NULL);
+	m_wmanager->Dispatch(WM_EVENT_STREAM_OPEN, NULL);
 	return 0;
 }
 
 int CTextUI3D::OnConnectionProgress()
 {
-	m_wmanager.Dispatch(WM_EVENT_STREAM_CONNECTING, NULL);
+	m_wmanager->Dispatch(WM_EVENT_STREAM_CONNECTING, NULL);
 	return 0;
 }
 
 int CTextUI3D::OnStreamOpeningError()
 {
-	m_wmanager.Dispatch(WM_EVENT_STREAM_ERROR, NULL);
+	m_wmanager->Dispatch(WM_EVENT_STREAM_ERROR, NULL);
 	return 0;
 }
 
 int CTextUI3D::OnStreamOpeningSuccess()
 {
-	m_wmanager.Dispatch(WM_EVENT_STREAM_SUCCESS, NULL);
+	m_wmanager->Dispatch(WM_EVENT_STREAM_SUCCESS, NULL);
 	return 0;
 }
 
@@ -367,7 +371,7 @@ void CTextUI3D::RenderLoop()
 		if (m_state == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 		{
 			/* Render windows */
-			m_wmanager.Dispatch(WM_EVENT_VBLANK, NULL);
+			m_wmanager->Dispatch(WM_EVENT_VBLANK, NULL);
 		}
 
 		sceDisplayWaitVblankStart();
@@ -405,7 +409,7 @@ int CTextUI3D::OnNewSongData(MetaData *pData)
 		AddTitleText(LocalSettings.SongTitleX, LocalSettings.SongTitleY, LocalSettings.SongTitleColor, pData->strURI);
 		}
 	}
-	m_wmanager.SetBitrate((pData->iBitRate/1000));
+	m_wmanager->SetBitrate((pData->iBitRate/1000));
 
 	return 0;
 }
@@ -414,12 +418,12 @@ int CTextUI3D::OnStreamTimeUpdate(MetaData *pData)
 {
 	if (pData->lTotalTime > 0)
 	{
-		m_wmanager.SetPlayTime( (int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
+		m_wmanager->SetPlayTime( (int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60),
 								(int)(pData->lTotalTime / 60), (int)(pData->lTotalTime % 60));
 	}
 	else
 	{
-		m_wmanager.SetPlayTime( (int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60));
+		m_wmanager->SetPlayTime( (int)(pData->lCurrentTime / 60), (int)(pData->lCurrentTime % 60));
 	}
 	return 0;
 }
@@ -443,24 +447,24 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 	{
 		case CScreenHandler::PSPRADIO_SCREEN_SHOUTCAST_BROWSER:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize shoutcast");
-			m_wmanager.Dispatch(WM_EVENT_SHOUTCAST, NULL);
+			m_wmanager->Dispatch(WM_EVENT_SHOUTCAST, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_PLAYLIST:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize playlist");
-			m_wmanager.Dispatch(WM_EVENT_PLAYLIST, NULL);
+			m_wmanager->Dispatch(WM_EVENT_PLAYLIST, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_LOCALFILES:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize localfiles");
-			m_wmanager.Dispatch(WM_EVENT_LOCALFILES, NULL);
+			m_wmanager->Dispatch(WM_EVENT_LOCALFILES, NULL);
 			break;
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize options");
-			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
+			m_wmanager->Dispatch(WM_EVENT_OPTIONS, NULL);
 			break;
 #ifdef DYNAMIC_BUILD
 		case CScreenHandler::PSPRADIO_SCREEN_OPTIONS_PLUGIN_MENU:
 			ModuleLog(LOG_VERYLOW, "CTextUI3D:Initialize plugin menu");
-			m_wmanager.Dispatch(WM_EVENT_OPTIONS, NULL);
+			m_wmanager->Dispatch(WM_EVENT_OPTIONS, NULL);
 			break;
 #endif /* ifdef DYNAMIC_BUILD */
 	}
@@ -468,27 +472,27 @@ void CTextUI3D::Initialize_Screen(IScreen *Screen)
 
 void CTextUI3D::OnTimeChange(pspTime *LocalTime)
 {
-	m_wmanager.SetTime(LocalTime->hour, LocalTime->minutes);
+	m_wmanager->SetTime(LocalTime->hour, LocalTime->minutes);
 }
 
 void CTextUI3D::OnBatteryChange(int Percentage)
 {
-	m_wmanager.SetBatteryLevel(Percentage);
+	m_wmanager->SetBatteryLevel(Percentage);
 }
 
 void CTextUI3D::OnUSBEnable()
 {
-	m_wmanager.SetUSBState(true);
+	m_wmanager->SetUSBState(true);
 }
 
 void CTextUI3D::OnUSBDisable()
 {
-	m_wmanager.SetUSBState(false);
+	m_wmanager->SetUSBState(false);
 }
 
 void CTextUI3D::NewPCMBuffer(short *PCMBuffer)
 {
-//	m_wmanager.Dispatch(WM_EVENT_PCM_BUFFER, PCMBuffer);
+//	m_wmanager->Dispatch(WM_EVENT_PCM_BUFFER, PCMBuffer);
 }
 
 void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
@@ -522,7 +526,7 @@ void CTextUI3D::UpdateOptionsScreen(list<OptionsScreen::Options> &OptionsList,
 
 		new_list = m_option_list;
 		m_option_list = m_option_list_tail = NULL;
-		m_wmanager.Dispatch(WM_EVENT_OPTIONS_TEXT, new_list);
+		m_wmanager->Dispatch(WM_EVENT_OPTIONS_TEXT, new_list);
 	}
 }
 
@@ -668,7 +672,7 @@ void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 		}
 		new_list = m_list_list;
 		m_list_list = m_list_list_tail = NULL;
-		m_wmanager.Dispatch(WM_EVENT_LIST_TEXT, new_list);
+		m_wmanager->Dispatch(WM_EVENT_LIST_TEXT, new_list);
 	}
 	free (strTemp);
 }
@@ -791,7 +795,7 @@ void CTextUI3D::DisplayElements(CMetaDataContainer *Container)
 		}
 		new_list = m_entry_list;
 		m_entry_list = m_entry_list_tail = NULL;
-		m_wmanager.Dispatch(WM_EVENT_ENTRY_TEXT, new_list);
+		m_wmanager->Dispatch(WM_EVENT_ENTRY_TEXT, new_list);
 	}
 	free (strTemp);
 }
@@ -853,10 +857,10 @@ void CTextUI3D::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 	switch (Container->GetCurrentSide())
 	{
 		case	CMetaDataContainer::CONTAINER_SIDE_CONTAINERS:
-			m_wmanager.Dispatch(WM_EVENT_SELECT_LIST, NULL);
+			m_wmanager->Dispatch(WM_EVENT_SELECT_LIST, NULL);
 			break;
 		case	CMetaDataContainer::CONTAINER_SIDE_ELEMENTS:
-			m_wmanager.Dispatch(WM_EVENT_SELECT_ENTRIES, NULL);
+			m_wmanager->Dispatch(WM_EVENT_SELECT_ENTRIES, NULL);
 			break;
 		default:
 			break;
@@ -874,5 +878,5 @@ void CTextUI3D::AddTitleText(int x, int y, unsigned int color, char *text)
 	strcpy(item->strText, text);
 	strupr(item->strText);
 	item->ID = 0;
-	m_wmanager.Dispatch(WM_EVENT_TEXT_SONGTITLE, item);
+	m_wmanager->Dispatch(WM_EVENT_TEXT_SONGTITLE, item);
 }

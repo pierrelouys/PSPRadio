@@ -158,7 +158,7 @@ private:
 
 private:
 	CScreenHandler::ScreenShotState 	m_state;
-	WindowHandlerHSM					m_wmanager;
+	WindowHandlerHSM					*m_wmanager;
 	CIniParser 							*m_Settings;
 	char								m_title[256];
 	char								m_error[256];

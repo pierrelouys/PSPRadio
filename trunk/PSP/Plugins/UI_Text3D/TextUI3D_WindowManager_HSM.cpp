@@ -343,6 +343,13 @@ int WindowHandlerHSM::MbxThread()
 		/* Block thread until a message has arrived */
 		error = sceKernelReceiveMbx(HSMMessagebox, &event, NULL);
 
+		/* Do we need to exit? */
+		if(error == SCE_KERNEL_ERROR_WAIT_CANCEL)
+			{
+			ModuleLog(LOG_INFO, "HSM: Received SCE_KERNEL_ERROR_WAIT_CANCEL, exiting thread.");
+			break;
+			}
+
 		if(error < 0)
 			{
 			ModuleLog(LOG_ERROR, "HSM: Error while receiving message : %x", error);

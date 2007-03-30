@@ -48,8 +48,8 @@
 #define SET_ACTIVE_BIT(x)   {m_activebitmask |=x; }
 #define UNSET_ACTIVE_BIT(x) {m_activebitmask &=~x;}
 
-#define BACKGROUND_BUFFER 4
-#define OFFLINE_BUFFER    3
+#define BACKGROUND_BUFFER 3
+#define OFFLINE_BUFFER    2
 
 #define TextUILog ModuleLog
 
@@ -65,11 +65,12 @@ CTextUI::CTextUI()
 	TextUILog(LOG_VERYLOW, "CtextUI: Constructor start");
 	
 	m_Config = NULL;
+	m_strCWD = NULL;
 	m_strConfigDir = NULL;
 	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
 	m_Screen = new CScreen(false, /* false = uncached VRAM */
-						   5); /* We use 4 video frames: 2 for page-flipping, one for offline drawing, and one to keep the background image in */
+						   4); /* We use 4 video frames: 2 for page-flipping, one for offline drawing, and one to keep the background image in */
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
 	
 	m_strTitle = strdup("PSPRadio");
@@ -484,6 +485,7 @@ void CTextUI::PrintProgramVersion(int iBuffer)
 int CTextUI::Initialize(char *strCWD, char *strSkinDir)
 {
 	TextUILog(LOG_VERYLOW, "CTextUI::Initialize Start");
+	TextUILog(LOG_VERYLOW, "CTextUI::strCWD='%s' strSkinDir='%s'", strCWD, strSkinDir);
 	
 	free(m_strCWD);
 	m_strCWD = strdup(strCWD);
