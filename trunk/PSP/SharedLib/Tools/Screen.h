@@ -53,6 +53,7 @@
 	public:
 		void CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, int x2, int y2);
 		void SetFrameBuffer(int iBuffer);
+		void SwapBuffers();
 		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
 		void Effect(int iBuffer);
 		void Plot(int iBuffer, int x, int y, int color);
@@ -66,6 +67,8 @@
 				
 	public:
 		u32 *m_Buffer[MAX_BUFFERS]; // 4 FRAMES in VRAM + system RAM
+		u32 *m_FrontBuffer; // framebuffer
+		u32 *m_BackBuffer;
 		int FRAMESIZE;
 		int m_Width;
 		int m_Height;

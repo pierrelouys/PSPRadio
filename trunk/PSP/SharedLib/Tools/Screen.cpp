@@ -34,7 +34,7 @@
 u32 *third = NULL;
 unsigned int __attribute__((aligned(16))) list[262144];
 
-u32 *empty_buffer = NULL;
+//u32 *empty_buffer = NULL;
 
 CScreen::CScreen(bool use_cached_vram, int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
 {
@@ -81,6 +81,7 @@ CScreen::~CScreen()
 			free(m_Buffer[i]);
 		}
 	}
+	sceGuTerm();
 }
 
 void CScreen::Init()
@@ -96,11 +97,6 @@ void CScreen::Init()
 		/* Place vram in uncached memory */
 		g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
 	}
-
-	sceDisplaySetMode(0, m_Width, m_Height);
-	sceDisplaySetFrameBuf((void *) g_vram_base, 
-		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
-
 	for (int i = 0; i < NUM_VRAM_BUFFERS; i++)
 	{
 		m_Buffer[i] = (u32*)((char*)g_vram_base+FRAMESIZE*i);
@@ -113,13 +109,59 @@ void CScreen::Init()
 			m_Buffer[i] = (u32*)memalign(16, FRAMESIZE);
 		}
 	}
-	
+
+#if 0	
 	if (empty_buffer == NULL)
 	{
 		empty_buffer = (u32*)memalign(16, FRAMESIZE);
 		memset(empty_buffer, 0, FRAMESIZE);
 	}
-	
+#endif
+
+#if 0 // vram
+	sceDisplaySetMode(0, m_Width, m_Height);
+	sceDisplaySetFrameBuf((void *) g_vram_base, 
+		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
+
+#else
+	//dispBufferNumber = 0;
+	m_FrontBuffer = m_Buffer[0];
+	m_BackBuffer  = m_Buffer[1];
+
+	sceGuInit();
+
+	sceGuStart(GU_DIRECT, list);
+
+	sceGuDrawBuffer(GU_PSM_8888, (void*)FRAMESIZE, m_Pitch);
+	sceGuDispBuffer(m_Width, m_Height, (void*)0, m_Pitch);
+	sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
+	sceGuDepthBuffer((void*) (FRAMESIZE*2), m_Pitch);
+	sceGuOffset(2048 - (m_Width / 2), 2048 - (m_Height / 2));
+	sceGuViewport(2048, 2048, m_Width, m_Height);
+	sceGuDepthRange(0xc350, 0x2710);
+	sceGuScissor(0, 0, m_Width, m_Height);
+	sceGuEnable(GU_SCISSOR_TEST);
+	sceGuAlphaFunc(GU_GREATER, 0, 0xff);
+	sceGuEnable(GU_ALPHA_TEST);
+	sceGuDepthFunc(GU_GEQUAL);
+	sceGuEnable(GU_DEPTH_TEST);
+	sceGuFrontFace(GU_CW);
+	sceGuShadeModel(GU_SMOOTH);
+	sceGuEnable(GU_CULL_FACE);
+	sceGuEnable(GU_TEXTURE_2D);
+	sceGuEnable(GU_CLIP_PLANES);
+	sceGuTexMode(GU_PSM_8888, 0, 0, 0);
+	sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGBA);
+	sceGuTexFilter(GU_NEAREST, GU_NEAREST);
+	sceGuAmbientColor(0xffffffff);
+	sceGuEnable(GU_BLEND);
+	sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
+	sceGuFinish();
+	sceGuSync(0, 0);
+
+	sceDisplayWaitVblankStart();
+	sceGuDisplay(GU_TRUE);
+#endif
 	init = true;
 }
 
@@ -127,6 +169,12 @@ void CScreen::SetFrameBuffer(int iBuffer)
 {
 	sceDisplaySetFrameBuf(m_Buffer[iBuffer], 
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
+}
+void CScreen::SwapBuffers()
+{
+	m_BackBuffer  = m_FrontBuffer;
+	m_FrontBuffer = (u32*)sceGuSwapBuffers();
+	//dispBufferNumber ^= 1;
 }
 
 typedef void (*drmodef)(u32 *pixel, int color);
@@ -229,14 +277,14 @@ void CScreen::Clear(int iBuffer)
 		*frame++ = 0;
 	}
 	#endif
-#if 0	
+#if 1	
     sceGuStart(GU_DIRECT, list);
     sceGuClearColor(0x00000000);
     sceGuClearDepth(0);
     sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
     sceGuFinish();
     sceGuSync(0, 0);
-#endif
+#else
 	sceKernelDcacheWritebackInvalidateAll();
 	sceGuStart(GU_DIRECT, list);
 	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, empty_buffer, 0,0, m_Pitch, m_Buffer[iBuffer]);
@@ -244,6 +292,7 @@ void CScreen::Clear(int iBuffer)
 	sceGuSync(0,0);
 	sceGuTexSync(); //This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. 
 	sceKernelDcacheWritebackInvalidateAll();
+#endif
 }
 
 int CScreen::Peek(int iBuffer, int x, int y)
