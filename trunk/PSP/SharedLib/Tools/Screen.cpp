@@ -170,10 +170,26 @@ void CScreen::SetFrameBuffer(int iBuffer)
 	sceDisplaySetFrameBuf(m_Buffer[iBuffer], 
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 }
+
 void CScreen::SwapBuffers()
 {
-	m_BackBuffer  = m_FrontBuffer;
-	m_FrontBuffer = (u32*)sceGuSwapBuffers();
+	static int dispBufferNumber = 0;
+	//m_FrontBuffer = m_BackBuffer;
+	//m_BackBuffer = (u32*)sceGuSwapBuffers();
+	(u32*)sceGuSwapBuffers();
+
+	if (dispBufferNumber == 0)
+	{
+		m_FrontBuffer = m_Buffer[1];
+		m_BackBuffer  = m_Buffer[0];
+	}
+	else
+	{
+		m_FrontBuffer = m_Buffer[0];
+		m_BackBuffer  = m_Buffer[1];
+	}
+	dispBufferNumber = 1 - dispBufferNumber;
+
 	//dispBufferNumber ^= 1;
 }
 
@@ -193,106 +209,94 @@ drmodef DrawingModeFunction[] = {
 	dr_mode_opaque
 };
 
-void CScreen::Plot(int iBuffer, int x, int y, int color)
+void CScreen::Plot(u32 *pBuffer, int x, int y, int color)
 {
-	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
+	u32 *pixel = pBuffer + m_Pitch*y + x;
 
 	DrawingModeFunction[m_DrawingMode](pixel, color);
 }
 
-void CScreen::VertLine(int iBuffer, int x, int y1, int y2, int color)
+void CScreen::VertLine(u32 *pBuffer, int x, int y1, int y2, int color)
 {
 	if (y1 < y2)
 	{
 		for (int y = y1<0?0:y1; y <= y2; y++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(pBuffer, x, y, color);
 		}
 	}
 	else if (y2 < y1)
 	{
 		for (int y = y2<0?0:y2; y <= y1; y++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(pBuffer, x, y, color);
 		}
 	}
 	else 
 	{
-		Plot(iBuffer, x, y1, color);
+		Plot(pBuffer, x, y1, color);
 	}
 	
 }
 
-void CScreen::HorizLine(int iBuffer, int y, int x1, int x2, int color)
+void CScreen::HorizLine(u32 *pBuffer, int y, int x1, int x2, int color)
 {
 	if (x1 < x2)
 	{
 		for (int x = x1<0?0:x1; x <= x2; x++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(pBuffer, x, y, color);
 		}
 	}
 	else if (x2 < x1)
 	{
 		for (int x = x2<0?0:x2; x <= x1; x++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(pBuffer, x, y, color);
 		}
 	}
 	else 
 	{
-		Plot(iBuffer, x1, y, color);
+		Plot(pBuffer, x1, y, color);
 	}
 	
 }
 
-
-void CScreen::CopyFromToBuffer(int iBufferFrom, int iBufferTo)
+void CScreen::CopyFromToBuffer(u32 *pSource, u32 *pDest)
 {
-#if 0
-	//memcpy(m_Buffer[iBufferTo], m_Buffer[iBufferFrom], FRAMESIZE);
-	u32 *src = m_Buffer[iBufferFrom];
-	u32 *dst = m_Buffer[iBufferTo];
-	for (int i = 0; i < (m_Height * m_Pitch); i++)
-	{
-		*dst++ = *src++;
-	}
-#endif
 	sceKernelDcacheWritebackInvalidateAll();
-	sceGuStart(GU_DIRECT, list);
-	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, m_Buffer[iBufferFrom], 0,0, m_Pitch, m_Buffer[iBufferTo]);
-	sceGuFinish();
-	sceGuSync(0,0);
-	sceGuTexSync(); //This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. 
+
+	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, pSource, 0,0, m_Pitch, pDest);
+	sceGuTexSync(); /* This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. */
+
 	sceKernelDcacheWritebackInvalidateAll();
 }
 
 void CScreen::Clear(int iBuffer)
 {
-	#if 0
-	//memset(m_Buffer[iBuffer], 0, FRAMESIZE);
 	u32 *frame = m_Buffer[iBuffer];
 	for (int i = 0; i < (m_Height * m_Pitch); i++)
 	{
 		*frame++ = 0;
 	}
-	#endif
-#if 1	
-    sceGuStart(GU_DIRECT, list);
+}
+
+void CScreen::StartList()
+{
+	sceGuStart(GU_DIRECT, list);
+}
+
+void CScreen::EndList()
+{
+	sceGuFinish();
+	sceGuSync(0,0);
+}
+
+void CScreen::Clear()
+{
     sceGuClearColor(0x00000000);
     sceGuClearDepth(0);
     sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
-    sceGuFinish();
-    sceGuSync(0, 0);
-#else
-	sceKernelDcacheWritebackInvalidateAll();
-	sceGuStart(GU_DIRECT, list);
-	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, empty_buffer, 0,0, m_Pitch, m_Buffer[iBuffer]);
-	sceGuFinish();
-	sceGuSync(0,0);
-	sceGuTexSync(); //This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. 
-	sceKernelDcacheWritebackInvalidateAll();
-#endif
 }
 
 int CScreen::Peek(int iBuffer, int x, int y)
@@ -301,13 +305,13 @@ int CScreen::Peek(int iBuffer, int x, int y)
 	return *pixel;
 }
 
-void CScreen::Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color)
+void CScreen::Rectangle(u32 *pBuffer, int x1, int y1, int x2, int y2, int color)
 {
 	for (int x = x1;x <= x2; x++)
 	{
 		for (int y = y1;y <= y2; y++)
 		{
-			Plot(iBuffer, x, y, color);
+			Plot(pBuffer, x, y, color);
 		}
 	}
 }
@@ -469,7 +473,7 @@ void CScreen::Effect(int iBuffer)
 
 extern u8 msx[];
 
-void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch)
+void CScreen::PutChar(u32 *pBuffer, int x, int y, u32 color, u8 ch)
 {
 	int 	i,j;
 	u8	*font;
@@ -480,7 +484,7 @@ void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch)
 	   return;
 	}
 	
-	u32 *vram = m_Buffer[iBuffer] + x + (y * m_Pitch);
+	u32 *vram = pBuffer + x + (y * m_Pitch);
 	
 	
 	font = &msx[ (int)ch * 8];
@@ -498,32 +502,32 @@ void CScreen::PutChar(int iBuffer, int x, int y, u32 color, u8 ch)
 	}
 }
 
-void CScreen::PutCharWithOutline(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
+void CScreen::PutCharWithOutline(u32 *pBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
 	/** y */	
-	PutChar(iBuffer, x,   y, bg_color, ch);
-	PutChar(iBuffer, x+1, y, bg_color, ch);	
-	PutChar(iBuffer, x+2, y, bg_color, ch);
+	PutChar(pBuffer, x,   y, bg_color, ch);
+	PutChar(pBuffer, x+1, y, bg_color, ch);	
+	PutChar(pBuffer, x+2, y, bg_color, ch);
 	/** y + 2 */
-	PutChar(iBuffer, x,   y+2, bg_color, ch);
-	PutChar(iBuffer, x+1, y+2, bg_color, ch);	
-	PutChar(iBuffer, x+2, y+2, bg_color, ch);
+	PutChar(pBuffer, x,   y+2, bg_color, ch);
+	PutChar(pBuffer, x+1, y+2, bg_color, ch);	
+	PutChar(pBuffer, x+2, y+2, bg_color, ch);
 	/** y + 1 */
-	PutChar(iBuffer, x,   y+1, bg_color, ch);
-	PutChar(iBuffer, x+2, y+1, bg_color, ch);
-	PutChar(iBuffer, x+1, y+1, fg_color, ch);	
+	PutChar(pBuffer, x,   y+1, bg_color, ch);
+	PutChar(pBuffer, x+2, y+1, bg_color, ch);
+	PutChar(pBuffer, x+1, y+1, fg_color, ch);	
 }
 
-void CScreen::PutCharWithShadow(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
+void CScreen::PutCharWithShadow(u32 *pBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
 {
 	/** x+1,y+1 */
-	PutChar(iBuffer, x+1, y+1, bg_color, ch);
+	PutChar(pBuffer, x+1, y+1, bg_color, ch);
 	/** x,y */
-	PutChar(iBuffer, x, y, fg_color, ch);	
+	PutChar(pBuffer, x, y, fg_color, ch);	
 }
 
 
-void CScreen::PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string)
+void CScreen::PrintText(u32 *pBuffer, int pixel_x, int pixel_y, int color, char *string)
 {
 	int i = 0;
 	char c;
@@ -538,23 +542,23 @@ void CScreen::PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *
 		{
 			case '\n':
 			case '\t':
-				PutChar(iBuffer, pixel_x, pixel_y, color, ' ' );
+				PutChar(pBuffer, pixel_x, pixel_y, color, ' ' );
 				pixel_x+=m_FontWidth;
 				break;
 			default: 
 				switch(m_TextMode)
 				{
 					case TEXTMODE_NORMAL:
-						PutChar(iBuffer, pixel_x, pixel_y, color, c );
+						PutChar(pBuffer, pixel_x, pixel_y, color, c );
 						break;
 					case TEXTMODE_OUTLINED:
-						PutCharWithOutline(iBuffer, pixel_x, pixel_y, 0, color, c );
+						PutCharWithOutline(pBuffer, pixel_x, pixel_y, 0, color, c );
 						break;
 					case TEXTMODE_SHADOWED:
-						PutCharWithShadow(iBuffer, pixel_x, pixel_y, 0, color, c );
+						PutCharWithShadow(pBuffer, pixel_x, pixel_y, 0, color, c );
 						break;
 					default:
-						PutChar(iBuffer, pixel_x, pixel_y, color, c );
+						PutChar(pBuffer, pixel_x, pixel_y, color, c );
 						break;
 				}
 				pixel_x+=m_FontWidth;

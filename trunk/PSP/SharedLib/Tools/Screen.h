@@ -53,16 +53,23 @@
 	public:
 		void CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, int x2, int y2);
 		void SetFrameBuffer(int iBuffer);
+		void StartList();
+		void EndList();
 		void SwapBuffers();
-		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string);
+		void PrintText(u32 *pBuffer, int pixel_x, int pixel_y, int color, char *string);
+		void PrintText(int iBuffer, int pixel_x, int pixel_y, int color, char *string) 
+			{ PrintText(m_Buffer[iBuffer], pixel_x, pixel_y, color, string); }
 		void Effect(int iBuffer);
-		void Plot(int iBuffer, int x, int y, int color);
-		void VertLine(int iBuffer, int x, int y1, int y2, int color);
-		void HorizLine(int iBuffer, int y, int x1, int x2, int color);
+		void Plot(u32 *pBuffer, int x, int y, int color);
+		void VertLine(u32 *pBuffer, int x, int y1, int y2, int color);
+		void HorizLine(u32 *pBuffer, int y, int x1, int x2, int color);
 		int  Peek(int iBuffer, int x, int y);
-		void Rectangle(int iBuffer, int x1, int y1, int x2, int y2, int color);
-		void CopyFromToBuffer(int iBufferFrom, int iBufferTo);
+		void Rectangle(u32 *pBuffer, int x1, int y1, int x2, int y2, int color);
+		void CopyFromToBuffer(u32 *pSource, u32 *pDest);
+		void CopyFromToBuffer(int iBufferFrom, int iBufferTo)
+			{ CopyFromToBuffer(m_Buffer[iBufferFrom], m_Buffer[iBufferTo]); }
 		void Clear(int iBuffer);
+		void Clear(); /* Clear backbuffer */
 		u32* GetBufferAddress(int iBuffer){ return m_Buffer[iBuffer]; };
 				
 	public:
@@ -76,9 +83,9 @@
 		int m_PixelFormat;
 		
 	private:
-		void PutChar(int iBuffer, int x, int y, u32 color, u8 ch);
-		void PutCharWithOutline(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
-		void PutCharWithShadow(int iBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
+		void PutChar(u32 *pBuffer, int x, int y, u32 color, u8 ch);
+		void PutCharWithOutline(u32 *pBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
+		void PutCharWithShadow(u32 *pBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch);
 
 	};
 		

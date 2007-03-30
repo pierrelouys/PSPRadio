@@ -68,6 +68,7 @@ void do_fft_destroy()
 float vfpu_cabsf(float r, float i)
 {
     /* float result = sqrt(r*r + i*i); */
+#if 0
 	ScePspFVector2 a = { r, i };
 	float result;
    __asm__ volatile (
@@ -76,9 +77,13 @@ float vfpu_cabsf(float r, float i)
        "vsqrt.s S010, S010\n"
 	   "mfv %0, S010\n"
        : "=r"(result) : "m"(a));
-
 	return result;
+#else
+	return (sqrtf(r*r + i*i));
+#endif
+
 }
+
 
 void do_fft()
 {

@@ -177,14 +177,13 @@ void CTextUI::render_thread(void *)
 
 void CTextUI::RenderLoop()
 {
-	int iBuffer = 0;
-	
 	/* For FPS Calculation: */
-	clock_t time1, time2, timenow;
+	clock_t time1 = 0, time2 = 0, timenow = 0;
 	int frame_count = 0;
 	int total_time = 0;
 	int fps = 0;
 	pspradioexport_ifdata ifdata = { 0 };
+	char strFPS[16];
 
 	enum _render_mode
 	{
@@ -204,12 +203,13 @@ void CTextUI::RenderLoop()
 		}
 
 		timenow = sceKernelLibcClock();
-		if ((timenow - time1) > 1*CLOCKS_PER_SEC)
+		if ((timenow - time1) >= 1*CLOCKS_PER_SEC)
 			SET_DIRTY_BIT(BITMASK_TIMER_1S);
 
 		if (m_dirtybitmask)
 		{
 			time1 = timenow;
+
 			switch(render_mode)
 			{
 			case RM_NORMAL:
@@ -223,7 +223,7 @@ void CTextUI::RenderLoop()
 				}
 				else
 				{
-					RenderNormal(iBuffer);
+					RenderNormal();
 				}
 				break;
 			case RM_FULLSCREEN:
@@ -237,7 +237,7 @@ void CTextUI::RenderLoop()
 				}
 				else
 				{
-					RenderFullscreenVisualizer(iBuffer);
+					RenderFullscreenVisualizer();
 				}
 			}
 			
@@ -252,23 +252,25 @@ void CTextUI::RenderLoop()
 			}
 			if (m_bDisplayFPS)
 			{
-				uiPrintf(iBuffer, 10, 262, 0xFFFFFFFF, "fps:%03d", fps);
+				sprintf(strFPS, "fps:%03d", fps);
+				m_Screen->PrintText(m_Screen->m_BackBuffer, 10, 262, 0xFFFFFFFF, strFPS);
 			}
 	
-			///Buffer is configured in sync mode already... 
-			sceDisplayWaitVblankStart();
-			//Flip Buffers
 			//sceKernelDcacheWritebackAll(); 
 			////m_RenderLock->Lock();
-			m_Screen->SetFrameBuffer(iBuffer);
-			iBuffer = 1 - iBuffer;
+			//m_Screen->SetFrameBuffer(iBuffer);
+			
+			sceDisplayWaitVblankStart();
+			/* Flip Buffers */
+			m_Screen->SwapBuffers();
+			
 			////m_RenderLock->Unlock();
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
 }
 
-void CTextUI::RenderNormal(int iBuffer)
+void CTextUI::RenderNormal()
 {
 	static bool draw_background = true;
 	static pspradioexport_ifdata ifdata = { 0 };
@@ -281,8 +283,11 @@ void CTextUI::RenderNormal(int iBuffer)
 		if (m_activebitmask & BITMASK_BACKGROUND)
 		{
 			////m_RenderLock->Lock();
+			sceKernelDcacheWritebackAll(); 
+			m_Screen->StartList();
 			m_Screen->CopyRectangle(BACKGROUND_BUFFER, OFFLINE_BUFFER, 
 				0, 0, m_Screen->m_Width, m_Screen->m_Height);
+			m_Screen->EndList();
 			PrintProgramVersion(OFFLINE_BUFFER);
 			////m_RenderLock->Unlock();
 			draw_background  = false;
@@ -359,7 +364,9 @@ void CTextUI::RenderNormal(int iBuffer)
 	}
 		
 	/* Copy buffer OFFLINE_BUFFER to back-buffer */
-	m_Screen->CopyFromToBuffer(OFFLINE_BUFFER, iBuffer);
+	m_Screen->StartList();
+	m_Screen->CopyFromToBuffer(m_Screen->GetBufferAddress(OFFLINE_BUFFER), m_Screen->m_BackBuffer);
+	m_Screen->EndList();
 
 	/* Do effects to back-buffer */
 	if (m_dirtybitmask & BITMASK_PCM)
@@ -367,7 +374,7 @@ void CTextUI::RenderNormal(int iBuffer)
 		UNSET_DIRTY_BIT(BITMASK_PCM);
 		if (m_activebitmask & BITMASK_PCM)
 		{
-			ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
+			ifdata.Pointer = m_Screen->m_BackBuffer;
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 		}
 	}
@@ -384,10 +391,10 @@ void CTextUI::RenderNormal(int iBuffer)
 	if (enable_msgbox)
 	{
 		////m_RenderLock->Lock();
-		RenderMessage(iBuffer);
+		RenderMessage(m_Screen->m_BackBuffer);
 		////m_RenderLock->Unlock();
 		clock_t now = sceKernelLibcClock();
-		if (now - msgbox_start > 5*CLOCKS_PER_SEC)
+		if (now - msgbox_start >= 3*CLOCKS_PER_SEC) /* 3 seconds */
 		{
 			enable_msgbox = false;
 		}
@@ -395,29 +402,43 @@ void CTextUI::RenderNormal(int iBuffer)
 
 }	
 
-void CTextUI::RenderFullscreenVisualizer(int iBuffer)
+void CTextUI::RenderFullscreenVisualizer()
 {
 	static pspradioexport_ifdata ifdata = { 0 };
 	static bool enable_msgbox = false;
 	static clock_t msgbox_start = { 0 };
+	static char strSongData[1024];
+	MetaData *pData = m_Sound->GetCurrentStream()->GetMetaData();
 	
 	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		m_Screen->Clear(iBuffer);
+		char *pURI = strrchr(pData->strURI, '/');
+		if (pURI && strlen(pURI) > 2)
+		{
+			pURI++; /* skip slash */
+		}
+		else
+		{
+			pURI = pData->strURI;
+		}
+		
+		m_Screen->StartList();
+		m_Screen->Clear();
+		m_Screen->EndList();
 
-		ifdata.Pointer = m_Screen->GetBufferAddress(iBuffer);
+		ifdata.Pointer = m_Screen->m_BackBuffer;
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
-		
-		PrintStreamTime(iBuffer, false);
-		PrintSongData(iBuffer, false);
-		//UNSET_DIRTY_BIT(BITMASK_BUFFER_PERCENTAGE);
-		//PrintBufferPercentage(iBuffer, false);
-		
-	//	uiPrintf(iBuffer, 10, 200, 0xFFFFFF, "fr[0]=%f fr[128]=%f fr[256]=%f",
-	//			m_FreqData[0],
-	//			m_FreqData[128],
-	//			m_FreqData[256]);
 
+		sprintf(strSongData, "%02ld:%02ld  %s  %s",
+					pData->lCurrentTime / 60, pData->lCurrentTime % 60,
+					//pData->lTotalTime / 60, pData->lTotalTime % 60,
+					(pData->strArtist && strlen(pData->strArtist))?pData->strArtist:pURI,
+					(pData->strTitle && strlen(pData->strTitle))?pData->strTitle:"");
+		strSongData[128] = 0;
+		/** CENTER */
+		int x = m_Screen->m_Width/2 - ((strlen(strSongData)/2)*m_Screen->GetFontWidth());
+
+		m_Screen->PrintText(m_Screen->m_BackBuffer, x, 10, 0xFFFFFF, strSongData);
 
 		if (m_dirtybitmask & BITMASK_MESSAGE)
 		{
@@ -432,10 +453,10 @@ void CTextUI::RenderFullscreenVisualizer(int iBuffer)
 		if (enable_msgbox)
 		{
 			////m_RenderLock->Lock();
-			RenderMessage(iBuffer);
+			RenderMessage(m_Screen->m_BackBuffer);
 			////m_RenderLock->Unlock();
 			clock_t now = sceKernelLibcClock();
-			if (now - msgbox_start > 5*CLOCKS_PER_SEC)
+			if (now - msgbox_start > 3*CLOCKS_PER_SEC) /* 3 seconds */
 			{
 				enable_msgbox = false;
 			}
@@ -453,27 +474,28 @@ void CTextUI::FreqData(float freq_data[2][257])
 	}
 }
 
-void CTextUI::RenderMessage(int iBuffer)
+void CTextUI::RenderMessage(u32 *pBuffer)
 {
 	//sceKernelDcacheWritebackAll(); 
 	//m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
-	m_Screen->Rectangle(iBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xFFFFFF);//0xAAAAAA);
+	m_Screen->Rectangle(pBuffer, 100, 50, m_Screen->m_Width - 100, 100, 0xFFFFFF);//0xAAAAAA);
 
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
-	m_Screen->VertLine(iBuffer, 100, 50, 100, 0x0);
-	m_Screen->VertLine(iBuffer, m_Screen->m_Width - 100, 50, 100, 0x0);
-	m_Screen->VertLine(iBuffer, 102, 52, 98, 0x0);
-	m_Screen->VertLine(iBuffer, m_Screen->m_Width - 102, 52, 98, 0x0);
+	m_Screen->VertLine(pBuffer, 100, 50, 100, 0x0);
+	m_Screen->VertLine(pBuffer, m_Screen->m_Width - 100, 50, 100, 0x0);
+	m_Screen->VertLine(pBuffer, 102, 52, 98, 0x0);
+	m_Screen->VertLine(pBuffer, m_Screen->m_Width - 102, 52, 98, 0x0);
 
-	m_Screen->HorizLine(iBuffer, 50, 100, m_Screen->m_Width - 100, 0x0);
-	m_Screen->HorizLine(iBuffer, 100, 100, m_Screen->m_Width - 100, 0x0);
-	m_Screen->HorizLine(iBuffer, 52, 102, m_Screen->m_Width - 102, 0x0);
-	m_Screen->HorizLine(iBuffer, 98, 102, m_Screen->m_Width - 102, 0x0);
+	m_Screen->HorizLine(pBuffer, 50, 100, m_Screen->m_Width - 100, 0x0);
+	m_Screen->HorizLine(pBuffer, 100, 100, m_Screen->m_Width - 100, 0x0);
+	m_Screen->HorizLine(pBuffer, 52, 102, m_Screen->m_Width - 102, 0x0);
+	m_Screen->HorizLine(pBuffer, 98, 102, m_Screen->m_Width - 102, 0x0);
 	//m_Screen->SetDrawingMode(CScreen::DRMODE_TRANSPARENT);
 
 	TextUILog(LOG_INFO, "RenderMessage(): '%s'", m_strMessage);
-	uiPrintf(iBuffer, 110,60, 0xFFFFFF, m_strMessage);
+	//uiPrintf(pBuffer, 110,60, 0xFFFFFF, m_strMessage);
+	m_Screen->PrintText(pBuffer, 110,60, 0xFFFFFF, m_strMessage);
 }
 
 void CTextUI::PrintProgramVersion(int iBuffer)
@@ -646,6 +668,11 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		GetConfigPair("VISUALIZER_CONFIG:LOWER_RIGHT",
 			&vis_cfg.x2, &vis_cfg.y2);
 		m_bDisplayFPS = (bool)m_Config->GetInteger("VISUALIZER_CONFIG:DISPLAY_FPS", 0);
+		/* IF not defined in screen cfg, try PSPRadio.cfg */
+		if (m_bDisplayFPS == 0)
+		{
+			m_bDisplayFPS = m_PSPRadio->GetConfig()->GetInteger("PLUGINS:DISPLAY_FPS", 0);
+		}
 		m_FullscreenWait = m_PSPRadio->GetConfig()->GetInteger("PLUGINS:VISUALIZER_FULLSCREEN_WAIT", 10); /* Default = 10sec */
 
 		m_ScreenConfig.ContainerListTitleLen = max(strlen(m_ScreenConfig.strContainerListTitleSelected), 
@@ -1271,6 +1298,7 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 int CTextUI::OnStreamTimeUpdate(MetaData *pData)
 {
 	SET_DIRTY_BIT(BITMASK_STREAM_TIME);
+	m_refreshbitmask |= BITMASK_SONG_DATA;
 	return 0;
 }
 	
@@ -1349,7 +1377,7 @@ void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 	strText = (char *)malloc (MAXPATHLEN+1);
 	
 	//TextUILog(LOG_VERYLOW, "DisplayContainers(): populating screen");
-	if (List->size() > 0)
+	if (List && (List->empty() == false))
 	{
 		//TextUILog(LOG_VERYLOW, "DisplayContainers(): Setting iterator to middle of the screen");
 		ListIterator = *CurrentHighlightedElement;
@@ -1454,7 +1482,7 @@ void CTextUI::PrintElements(int iBuffer, bool draw_background)
 	memset(strText, 0, MAXPATHLEN);
 	
 	//TextUILog(LOG_VERYLOW, "DisplayPLEntries(): populating screen");
-	if (List->size() > 0)
+	if (List && (List->empty() == false))
 	{
 		ListIterator = *CurrentHighlightedElement;
 		for (int i = 0; i < PIXEL_TO_ROW(m_ScreenConfig.EntriesListRangeY2-m_ScreenConfig.EntriesListRangeY1)/2; i++)
@@ -1527,6 +1555,9 @@ void CTextUI::OnCurrentContainerSideChange(CMetaDataContainer *Container)
 
 void CTextUI::PrintCurrentContainerSideTitle(int iBuffer, bool draw_background)
 {
+	if (m_Container == NULL)
+		return;
+
 	if (draw_background)
 	{
 		m_Screen->CopyRectangle(BACKGROUND_BUFFER, iBuffer, 

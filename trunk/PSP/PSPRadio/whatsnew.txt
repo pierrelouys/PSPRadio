@@ -1,14 +1,17 @@
 What's New for PSPRadio
 ========================
-1.18.xxxx (2007-03-26)
+1.18.xxxx (2007-04-xx)
 NEW FEATURES
-(raf) TextUI: Msgbox now goes away after 5sec (not based on frames rendered anymore, but time).
+(raf) TextUI: Msgbox now goes away after 3sec (not based on frames rendered anymore, but time).
+(raf) Core: (Supported by TextUI) Framerate configuration file is now set globally in PSPRadio.cfg (PLUGINS:DISPLAY_FPS)
+(raf) TextUI: Now uses GU more; which reduces flickering and improves framerate. 
 BUG FIXES
 (raf) Core: PSPRadio would crash on startup if the visualizer plugin was disabled.
 (raf) Core: PSPRadio would crash on startup if the SHOUTcast database (newdb.xml) file was empty.
 (raf) TextUI: Corrected problem where PSPRadio would crash when downloading the SHOUTcast database. (The problem was caused by lack of complete support for values -1 and -2 in the configuration files after the TextUI rendering changes.
+(raf) TextUI: Corrected problem that caused a crash when switching from TextUI3d to TextUI.
 KNOWN BUGS
-(raf) TextUI: When switching skins all the text will disappear. This is still an issue.
+(raf) TextUI: When switching skins all the text will disappear. This happens on occasion.
 (raf) TextUI: GU is not initialized correctly, causing a crash when switching from TextUI3d to TextUI.
 (raf) Core: PSPRadio crashes if only the default skin is available.
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection).

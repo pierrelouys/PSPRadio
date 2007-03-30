@@ -177,13 +177,13 @@ private:
 	void PrintProgramVersion(int iBuffer);
 	void PrintOptionsScreen(int iBuffer, bool draw_background);
 	int  PrintActiveCommand(int iBuffer, bool draw_background);
-	void RenderMessage(int iBuffer);
+	void RenderMessage(u32 *pBuffer);
 	void PrintCurrentContainerSideTitle(int iBuffer, bool draw_background);
 
 	static void render_thread(void *);
 	void RenderLoop(); /* Called from render_thread */
-	void RenderNormal(int iBuffer);
-	void RenderFullscreenVisualizer(int iBuffer);
+	void RenderNormal();
+	void RenderFullscreenVisualizer();
 
 	void FreqData(float freq_data[2][257]);
 };
