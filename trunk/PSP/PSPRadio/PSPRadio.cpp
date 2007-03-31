@@ -56,6 +56,11 @@ int CPSPRadio::Setup(int argc, char **argv)
 	m_VisPluginConfig.y2 = 272;
 	//m_VisPluginConfig.pcm_right_shift = 8;
 	
+	m_PowerEventData.bEnableNetworkAfterResume = false;
+	m_PowerEventData.bPauseAfterResume = false;
+	m_PowerEventData.bPlayAfterResume = false;
+	m_PowerEventData.iCurrentStreamPosition = 0;
+
 	sprintf(strAppTitle, "%s", GetProgramVersion());
 
 	m_strCWD = (char*)malloc(MAXPATHLEN);
@@ -473,6 +478,10 @@ int CPSPRadio::ProcessEvents()
 			//Log(LOG_VERYLOW, "OnMessage: Message: MID=0x%x SID=0x%x", event.EventId, event.SenderId);
 			switch(event.EventId)
 			{
+			case MID_POWER_EVENT_RESUME_COMPLETE:
+				OnPowerEventResumeComplete();
+				break;
+
 			case MID_BUFF_PERCENT_UPDATE:
 				if (CPSPSound::PLAY == m_Sound->GetPlayState())
 				{
@@ -629,11 +638,6 @@ int CPSPRadio::ProcessEvents()
 
 int CPSPRadio::OnPowerEvent(int pwrflags)
 {
-	static bool bPlayAfterResume = false;
-	static bool bPauseAfterResume = false;
-	static bool bEnableNetworkAfterResume = false;
-	static int iCurrentStreamPosition = 0;
-	
 	/* check for power switch and suspending as one is manual and the other automatic */
 	Log(LOG_INFO, "OnPowerEvent() flags: 0x%08X", pwrflags);
 
@@ -642,23 +646,23 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 		Log(LOG_INFO, "OnPowerEvent: Suspending");
 		if (CPSPSound::PLAY == m_Sound->GetPlayState())
 		{
-			bPlayAfterResume = true;
-			iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
-			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was playing (pos=%d), so stopping...", iCurrentStreamPosition);
+			m_PowerEventData.bPlayAfterResume = true;
+			m_PowerEventData.iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was playing (pos=%d), so stopping...", m_PowerEventData.iCurrentStreamPosition);
 			m_Sound->Stop();
 		}
 		
 		if (CPSPSound::PAUSE == m_Sound->GetPlayState())
 		{
-			bPauseAfterResume = true;
-			iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
-			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was paused (pos=%d), so stopping...", iCurrentStreamPosition);
+			m_PowerEventData.bPauseAfterResume = true;
+			m_PowerEventData.iCurrentStreamPosition = m_Sound->GetCurrentStream()->GetBytePosition();
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Was paused (pos=%d), so stopping...", m_PowerEventData.iCurrentStreamPosition);
 			m_Sound->Stop();
 		}
 		
 		if (IsNetworkEnabled())
 		{
-			bEnableNetworkAfterResume = true;
+			m_PowerEventData.bEnableNetworkAfterResume = true;
 			Log(LOG_LOWLEVEL, "OnPowerEvent: Suspending: Network was enabled, disabling...");
 			DisableNetwork();
 		}
@@ -667,35 +671,6 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 	{
 		Log(LOG_INFO, "OnPowerEvent: Resuming from suspend mode");
 	}
-	if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE)
-	{
-		Log(LOG_INFO, "OnPowerEvent: Resume Complete");
-		if (bEnableNetworkAfterResume)
-		{
-			bEnableNetworkAfterResume = false;
-			Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Network was enabled, re-enabling...");
-			((OptionsScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network();
-		}
-		
-		if (bPlayAfterResume || bPauseAfterResume)
-		{
-			if (m_Sound->GetCurrentStream()->GetType() == CPSPStream::STREAM_TYPE_FILE)
-			{
-				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", iCurrentStreamPosition);
-				m_Sound->Play();
-				m_Sound->Seek(iCurrentStreamPosition);
-				if (bPauseAfterResume)
-					m_Sound->Pause();
-			}
-			else
-			{
-				Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, but it was an online stream. Let the user restart it.");
-			}
-			bPlayAfterResume = false;
-			bPauseAfterResume = false;
-		}
-		
-	}
 	if (pwrflags & PSP_POWER_CB_STANDBY)
 	{
 		Log(LOG_INFO, "OnPowerEvent: Entering Standby mode");
@@ -703,6 +678,41 @@ int CPSPRadio::OnPowerEvent(int pwrflags)
 
 	Log(LOG_VERYLOW, "OnPowerEvent() End.");
 
+	return 0;
+
+}
+
+int CPSPRadio::OnPowerEventResumeComplete()
+{
+	Log(LOG_INFO, "OnPowerEvent: Resume Complete");
+	if (m_PowerEventData.bEnableNetworkAfterResume)
+	{
+		m_PowerEventData.bEnableNetworkAfterResume = false;
+		Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Network was enabled, re-enabling...");
+		((OptionsScreen *) m_ScreenHandler->GetScreen(CScreenHandler::PSPRADIO_SCREEN_OPTIONS))->Start_Network();
+		//SendEvent(MID_NETWORKRECONNECT, NULL, SID_PSPRADIO);
+	}
+	
+	if (m_PowerEventData.bPlayAfterResume || m_PowerEventData.bPauseAfterResume)
+	{
+		if (m_Sound->GetCurrentStream()->GetType() == CPSPStream::STREAM_TYPE_FILE)
+		{
+			Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, so continuing (pos=%d)...", m_PowerEventData.iCurrentStreamPosition);
+			m_Sound->Play();
+			m_Sound->Seek(m_PowerEventData.iCurrentStreamPosition);
+			if (m_PowerEventData.bPauseAfterResume)
+				m_Sound->Pause();
+		}
+		else
+		{
+			//Log(LOG_LOWLEVEL, "OnPowerEvent: Resume Complete: Was playing, but it was an online stream. Let the user restart it.");
+			m_Sound->Play();
+			if (m_PowerEventData.bPauseAfterResume)
+				m_Sound->Pause();
+		}
+		m_PowerEventData.bPlayAfterResume = false;
+		m_PowerEventData.bPauseAfterResume = false;
+	}
 	return 0;
 }
 

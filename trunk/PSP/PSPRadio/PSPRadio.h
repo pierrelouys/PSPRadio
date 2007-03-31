@@ -43,6 +43,16 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 #define MID_GIVEUPEXCLISIVEACCESS	0x00000001
 #define MID_PLUGINEXITED			0x00000002
 
+/* Power event data */
+
+struct _PowerEventData
+{
+	bool bPlayAfterResume;
+	bool bPauseAfterResume;
+	bool bEnableNetworkAfterResume;
+	int iCurrentStreamPosition;
+};
+
 #ifdef __cplusplus
 	extern CScreen *rootScreen;
 	
@@ -53,6 +63,7 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		CPSPSound		*m_Sound;
 		CScreenHandler	*m_ScreenHandler;
 		char 			*m_strCWD;
+		_PowerEventData  m_PowerEventData;
 	
 	public:
 		IPSPRadio_UI	*m_UI;
@@ -107,6 +118,7 @@ extern _button_mappings_struct_ PSPRadioButtonMap;
 		
 		void OnExit();
 		int OnPowerEvent(int pwrflags);
+		int OnPowerEventResumeComplete();
 	};
 #endif // __cplusplus
 

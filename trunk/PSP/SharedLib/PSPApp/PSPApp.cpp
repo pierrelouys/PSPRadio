@@ -304,6 +304,9 @@ int CPSPApp::powerCallback(int arg1, int pwrflags, void *common)
 {
 	pPSPApp->OnPowerEvent(pwrflags);
 
+	if (pwrflags & PSP_POWER_CB_RESUME_COMPLETE)
+		pPSPApp->SendEvent(MID_POWER_EVENT_RESUME_COMPLETE, NULL);
+
 	/** Register again (or it won't happen anymore) */
     int cbid = sceKernelCreateCallback("Power Callback", powerCallback, NULL);
     scePowerRegisterCallback(0, cbid);

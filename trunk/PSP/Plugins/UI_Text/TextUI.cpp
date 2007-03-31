@@ -434,7 +434,7 @@ void CTextUI::RenderFullscreenVisualizer()
 					//pData->lTotalTime / 60, pData->lTotalTime % 60,
 					(pData->strArtist && strlen(pData->strArtist))?pData->strArtist:pURI,
 					(pData->strTitle && strlen(pData->strTitle))?pData->strTitle:"");
-		strSongData[128] = 0;
+		strSongData[MAX_COL - 1] = 0;
 		/** CENTER */
 		int x = m_Screen->m_Width/2 - ((strlen(strSongData)/2)*m_Screen->GetFontWidth());
 
