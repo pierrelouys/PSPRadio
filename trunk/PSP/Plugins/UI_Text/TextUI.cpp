@@ -257,14 +257,14 @@ void CTextUI::RenderLoop()
 			}
 	
 			//sceKernelDcacheWritebackAll(); 
-			////m_RenderLock->Lock();
+			m_RenderLock->Lock();
 			//m_Screen->SetFrameBuffer(iBuffer);
 			
 			sceDisplayWaitVblankStart();
 			/* Flip Buffers */
 			m_Screen->SwapBuffers();
 			
-			////m_RenderLock->Unlock();
+			m_RenderLock->Unlock();
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
@@ -752,13 +752,13 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 			}
 			TextUILog(LOG_LOWLEVEL, "Calling LoadBackground '%s'", strPath);
 
-			////m_RenderLock->Lock(); /* Don't render while we load the background */
+			m_RenderLock->Lock(); /* Don't render while we load the background */
 			m_Screen->LoadBuffer(BACKGROUND_BUFFER, strPath);
-			////m_RenderLock->Unlock(); /* Continue rendering */
+			m_RenderLock->Unlock(); /* Continue rendering */
 		}
 	}
 
-	////////m_RenderLock->Lock(); /* Don't render set masks*/
+	m_RenderLock->Lock(); /* Don't render set masks*/
 	m_dirtybitmask  = 0;
 	m_activebitmask = 0;
 	OnBatteryChange(m_LastBatteryPercentage);
@@ -799,7 +799,7 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 	
 	m_refreshbitmask = m_dirtybitmask;
 	
-	////m_RenderLock->Unlock(); /* Don't render while we load the background */
+	m_RenderLock->Unlock();
 	
 	TextUILog(LOG_LOWLEVEL, "Initialize screen end");
 }

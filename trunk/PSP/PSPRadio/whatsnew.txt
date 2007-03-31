@@ -10,6 +10,7 @@ BUG FIXES
 (raf) Core: PSPRadio would crash on startup if the SHOUTcast database (newdb.xml) file was empty.
 (raf) TextUI: Corrected problem where PSPRadio would crash when downloading the SHOUTcast database. (The problem was caused by lack of complete support for values -1 and -2 in the configuration files after the TextUI rendering changes.
 (raf) TextUI: Corrected problem that caused a crash when switching from TextUI3d to TextUI.
+(raf) Core: Corrected problem that caused a crash on restore from suspend mode when the wifi was enabled. Now it will also resume play.
 KNOWN BUGS
 (raf) TextUI: When switching skins all the text will disappear. This happens on occasion.
 (raf) TextUI: GU is not initialized correctly, causing a crash when switching from TextUI3d to TextUI.
