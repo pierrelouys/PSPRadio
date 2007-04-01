@@ -5,7 +5,7 @@ BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
 TARGET_LIB = ../lib/libTools.a
-OBJS = pg.o Tools.o Screen.o
+OBJS = Tools.o Screen.o
 
 INCDIR = 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g -D__PSP__
