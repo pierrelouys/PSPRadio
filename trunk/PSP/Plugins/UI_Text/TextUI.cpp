@@ -412,14 +412,22 @@ void CTextUI::RenderFullscreenVisualizer()
 	
 	if (m_ScreenShotState == CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE)
 	{
-		char *pURI = strrchr(pData->strURI, '/');
-		if (pURI && strlen(pURI) > 2)
+		char *pURI;
+		if (memcmp(pData->strURI, "http", 4)==0)
 		{
-			pURI++; /* skip slash */
+			pURI="Online";
 		}
 		else
 		{
-			pURI = pData->strURI;
+			pURI = strrchr(pData->strURI, '/');
+			if (pURI && strlen(pURI) > 2)
+			{
+				pURI++; /* skip slash */
+			}
+			else
+			{
+				pURI = pData->strURI;
+			}
 		}
 		
 		m_Screen->StartList();
@@ -1076,6 +1084,20 @@ int CTextUI::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 {
 	SET_DIRTY_BIT(BITMASK_ACTIVE_COMMAND);
 	m_CurrentPlayingState = playingstate;
+	switch(m_CurrentPlayingState)
+	{
+	case CPSPSound::STOP:
+		m_IsPlaying = false;
+		break;
+	case CPSPSound::PLAY:
+		m_TimeStartedPlaying = sceKernelLibcClock();
+		m_IsPlaying = true;
+		break;
+	case CPSPSound::PAUSE:
+		m_IsPlaying = false;
+		break;
+	}
+
 	return 0;
 }
 
@@ -1099,20 +1121,14 @@ int CTextUI::PrintActiveCommand(int iBuffer, bool draw_background)
 	case CPSPSound::STOP:
 		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 
 				m_ScreenConfig.ActiveCommandColor, "STOP");
-		m_IsPlaying = false;
 		break;
 	case CPSPSound::PLAY:
 		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 	
 				m_ScreenConfig.ActiveCommandColor, "PLAY");
-		
-		m_TimeStartedPlaying = sceKernelLibcClock();
-		m_IsPlaying = true;
-				
 		break;
 	case CPSPSound::PAUSE:
 		uiPrintf(iBuffer, m_ScreenConfig.ActiveCommandX, m_ScreenConfig.ActiveCommandY, 
 				m_ScreenConfig.ActiveCommandColor, "PAUSE");
-		m_IsPlaying = false;
 		break;
 	}
 	

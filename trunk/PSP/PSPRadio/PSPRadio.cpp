@@ -295,6 +295,8 @@ void CPSPRadio::OnExit()
 {
 	Log(LOG_VERYLOW, "PSPRadio::OnExit()");
 
+	m_UI->OnScreenshot(CScreenHandler::PSPRADIO_SCREENSHOT_ACTIVE); /* Stop UI from rendering while we shutdown */
+
 	if (m_ScreenHandler)
 	{
 		Log(LOG_VERYLOW, "Exiting. Preparing UI for shutdown");
