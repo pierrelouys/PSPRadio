@@ -159,16 +159,15 @@ void CScreen::SetFrameBuffer(int iBuffer)
 void CScreen::SwapBuffers()
 {
 #ifdef GUSCREEN
-	//m_Buffer[DrawBufferIndex] = (u32*)vabsptr(sceGuSwapBuffers());
-	sceGuSwapBuffers();
+	m_Buffer[DisplayBufferIndex] = m_Buffer[DrawBufferIndex];
+	m_Buffer[DrawBufferIndex]    = (u32*)vabsptr(sceGuSwapBuffers());
 #endif
 
 #ifdef FBSCREEN
 	SetFrameBuffer(DrawBufferIndex);
-#endif
-
 	DrawBufferIndex    = 1 - DrawBufferIndex;
 	DisplayBufferIndex = 1 - DisplayBufferIndex;
+#endif
 
 }
 

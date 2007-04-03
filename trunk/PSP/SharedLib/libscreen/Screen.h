@@ -4,7 +4,6 @@
 	#include <pspdisplay.h>
 
 	#define MAX_BUFFERS 16
-	#define NUM_VRAM_BUFFERS 3
 
 	class CScreen
 	{
