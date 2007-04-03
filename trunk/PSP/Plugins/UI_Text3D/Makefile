@@ -15,7 +15,7 @@ PRX_EXPORTS=$(PLUGINS_DIR)/UI_Exports.exp
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp \
 		-L$(SHAREDLIB_DIR)/lib -L$(PLUGINS_DIR)/Common\
 		-I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		-I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
+		-I$(SHAREDLIB_DIR)/libscreen -I$(SHAREDLIB_DIR)/Logging \
 		-I$(PSPRADIO_DIR)/ScreenHandler 
 
 		 

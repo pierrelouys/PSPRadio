@@ -26,15 +26,15 @@
 #include <Screen.h>
 #include <png.h>
 
-#include <pspgu.h>
-
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
 
 u32 *third = NULL;
-unsigned int __attribute__((aligned(16))) list[262144];
 
-//u32 *empty_buffer = NULL;
+#ifdef GUSCREEN
+	#include <pspgu.h>
+	unsigned int __attribute__((aligned(16))) list[262144];
+#endif
 
 CScreen::CScreen(bool use_cached_vram, int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
 {
@@ -81,7 +81,10 @@ CScreen::~CScreen()
 			free(m_Buffer[i]);
 		}
 	}
+
+#ifdef GUSCREEN
 	sceGuTerm();
+#endif
 }
 
 void CScreen::Init()
@@ -110,21 +113,14 @@ void CScreen::Init()
 		}
 	}
 
-#if 0	
-	if (empty_buffer == NULL)
-	{
-		empty_buffer = (u32*)memalign(16, FRAMESIZE);
-		memset(empty_buffer, 0, FRAMESIZE);
-	}
-#endif
-
-#if 0 // vram
+#ifdef FBSCREEN	
 	sceDisplaySetMode(0, m_Width, m_Height);
 	sceDisplaySetFrameBuf((void *) g_vram_base, 
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 
-#else
-	//dispBufferNumber = 0;
+#endif
+
+#ifdef GUSCREEN
 	m_FrontBuffer = m_Buffer[0];
 	m_BackBuffer  = m_Buffer[1];
 
@@ -159,12 +155,12 @@ void CScreen::Init()
 	sceGuFinish();
 	sceGuSync(0, 0);
 #endif
-//
+
 	sceGuDepthRange(65535,0);
 	sceGuClear(GU_COLOR_BUFFER_BIT);
 	sceGuFinish();
 	sceGuSync(0,0);
-//
+
 	sceDisplayWaitVblankStart();
 	sceGuDisplay(GU_TRUE);
 #endif
@@ -180,8 +176,8 @@ void CScreen::SetFrameBuffer(int iBuffer)
 void CScreen::SwapBuffers()
 {
 	static int dispBufferNumber = 0;
-	//m_FrontBuffer = m_BackBuffer;
-	//m_BackBuffer = (u32*)sceGuSwapBuffers();
+
+#ifdef GUSCREEN
 	(u32*)sceGuSwapBuffers();
 
 	if (dispBufferNumber == 0)
@@ -194,9 +190,13 @@ void CScreen::SwapBuffers()
 		m_FrontBuffer = m_Buffer[0];
 		m_BackBuffer  = m_Buffer[1];
 	}
+#endif
+
 	dispBufferNumber = 1 - dispBufferNumber;
 
-	//dispBufferNumber ^= 1;
+#ifdef FBSCREEN
+	SetFrameBuffer(dispBufferNumber);
+#endif
 }
 
 typedef void (*drmodef)(u32 *pixel, int color);
@@ -272,8 +272,14 @@ void CScreen::CopyFromToBuffer(u32 *pSource, u32 *pDest)
 {
 	sceKernelDcacheWritebackInvalidateAll();
 
+#ifdef GUSCREEN
 	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, pSource, 0,0, m_Pitch, pDest);
 	sceGuTexSync(); /* This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. */
+#endif
+
+#ifdef FBSCREEN
+	memcpy(pDest, pSource, FRAMESIZE);
+#endif
 
 	sceKernelDcacheWritebackInvalidateAll();
 }
@@ -289,20 +295,26 @@ void CScreen::Clear(int iBuffer)
 
 void CScreen::StartList()
 {
+#ifdef GUSCREEN
 	sceGuStart(GU_DIRECT, list);
+#endif
 }
 
 void CScreen::EndList()
 {
+#ifdef GUSCREEN
 	sceGuFinish();
 	sceGuSync(0,0);
+#endif
 }
 
 void CScreen::Clear()
 {
+#ifdef GUSCREEN
     sceGuClearColor(0x00000000);
     sceGuClearDepth(0);
     sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+#endif
 }
 
 int CScreen::Peek(int iBuffer, int x, int y)
@@ -328,12 +340,10 @@ void CScreen::SetFontSize(int iWidth, int iHeight)
 	m_FontHeight = iHeight; 	
 }
 
-/* baseado nas libs do Duke... */
-
-void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2);
 
 /** PNG Stuff **/
 /** From pspsdk's libpng example. (Copyright (c) 2005 Frank Buss <fb@frank-buss.de> (aka Shine)) */
+void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2);
 void user_warning_fn(png_structp png_ptr, png_const_charp warning_msg)
 {
 	// ignore PNG warnings

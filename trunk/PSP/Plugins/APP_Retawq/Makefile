@@ -14,7 +14,7 @@ PRX_EXPORTS=$(PLUGINS_DIR)/APP_Exports.exp
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(PSPRADIO_DIR)/ScreenHandler \
 		   -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		   -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		   -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff \
+		   -I$(SHAREDLIB_DIR)/Logging -I$(SHAREDLIB_DIR)/danzeff \
 		   -I$(PLUGINS_DIR)/Common -L$(PLUGINS_DIR)/Common
 
 MY_CFLAGS = $(GLOBAL_CFLAGS) -DUSE_DANZEFF

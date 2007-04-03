@@ -21,7 +21,6 @@
 #include "PSPRadio_Exports.h"
 #include "PSPRadio.h"
 #include "VisualizerInterface/vis_if.h"
-#include <pspgu.h>
 
 _button_mappings_struct_ PSPRadioButtonMap;
 CScreen *rootScreen;
@@ -55,14 +54,8 @@ int CPSPRadio::Setup(int argc, char **argv)
 	m_VisPluginConfig.y1 = 0;
 	m_VisPluginConfig.x2 = 480;
 	m_VisPluginConfig.y2 = 272;
-	//m_VisPluginConfig.pcm_right_shift = 8;
 
-	m_VisPluginGuFunctions.sceGuEnable = sceGuEnable;
-	m_VisPluginGuFunctions.sceGuGetMemory = sceGuGetMemory;
-	m_VisPluginGuFunctions.sceGuColor = sceGuColor;
-	m_VisPluginGuFunctions.sceGuDrawArray = sceGuDrawArray;
-	m_VisPluginGuFunctions.sceGuDisable = sceGuDisable;
-
+	memset(&m_VisPluginGuFunctions, 0, sizeof(m_VisPluginGuFunctions)); /* UI initializes this */
 
 	m_PowerEventData.bEnableNetworkAfterResume = false;
 	m_PowerEventData.bPauseAfterResume = false;

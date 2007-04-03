@@ -4,7 +4,6 @@
 #include <string.h>
 #include <pspthreadman.h>
 #include <PSPApp.h>
-#include <Tools.h>
 #include <pspnet.h>
 #include <Logging.h>
 #include <PSPRadio_Exports.h>

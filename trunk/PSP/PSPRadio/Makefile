@@ -29,7 +29,7 @@ CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g $(INCLUDES) -DPSP -DFIXED_POINT=1
 
 INCDIR = $(SHAREDLIB_DIR)/PSPApp \
 		 $(SHAREDLIB_DIR)/libpspnet $(SHAREDLIB_DIR)/libiniparser \
-		 $(SHAREDLIB_DIR)/Tools $(SHAREDLIB_DIR)/Logging \
+		 $(SHAREDLIB_DIR)/libscreen $(SHAREDLIB_DIR)/Logging \
 		 ./ScreenHandler \
 		 ./VisualizerInterface \
 		 $(PLUGINS_DIR) \
@@ -47,13 +47,13 @@ LIBDIR =
 LDFLAGS =
 
 LIBS =	-lstdc++ \
-		-lPSPApp -liniparser -llogging -lTools\
+		-lPSPApp -liniparser -llogging -lfbscreen \
  		-lmad \
 		-lvorbisfile -lvorbis -logg \
 		-lpspwlan \
 		-lpsphprm -lpspaudio -lpspusb -lpspusbstor -lpsprtc -lpsppower \
 		-lpng -lz -lm -lpspmath \
-		-lpspkubridge -lpspgu
+		-lpspkubridge
 
 all: $(EXTRA_TARGETS) $(FINAL_TARGET)
 	mkdir -p $(PSPRADIO_RELEASE_DIR)

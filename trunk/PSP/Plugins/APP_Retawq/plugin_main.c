@@ -18,7 +18,6 @@
 #include <malloc.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <Tools.h>
 #include <PSPRadio_Exports.h>
 #include <APP_Exports.h>
 #include <Common.h>

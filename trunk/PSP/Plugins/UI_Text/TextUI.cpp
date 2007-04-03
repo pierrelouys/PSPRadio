@@ -27,7 +27,6 @@
 #include <limits.h>
 #include <malloc.h>
 #include <iniparser.h>
-#include <Tools.h>
 #include <stdarg.h>
 #include <Screen.h>
 #include <pthread.h>

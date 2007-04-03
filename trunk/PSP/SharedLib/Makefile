@@ -1,6 +1,6 @@
 
 all:
-	cd Tools && make
+	cd libscreen && make install
 	cd libiniparser && make
 	cd Logging && make
 	cd PSPApp && make
@@ -11,7 +11,7 @@ all:
 
 clean:
 	cd lib && rm -f *.a 
-	cd Tools && make clean
+	cd libscreen && make clean
 	cd libiniparser && make clean
 	cd Logging && make clean
 	cd PSPApp && make clean 

@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <PSPApp.h>
 #include <PSPThread.h>
-#include <Tools.h>
 #include <iniparser.h>
 #include <PSPRadio_Exports.h>
 #include <FSS_Exports.h>

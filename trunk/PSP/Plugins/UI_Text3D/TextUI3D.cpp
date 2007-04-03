@@ -30,7 +30,6 @@
 #include <math.h>
 #include <time.h>
 #include <iniparser.h>
-#include <Tools.h>
 #include <stdarg.h>
 #include <Logging.h>
 #include <pthread.h>

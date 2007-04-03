@@ -15,7 +15,7 @@ PRX_EXPORTS=$(PLUGINS_DIR)/APP_Exports.exp
 
 INCLUDES = -I./ -I$(PLUGINS_DIR) -I$(BASE_DIR) -I$(PSPRADIO_DIR) -I$(SHAREDLIB_DIR)/PSPApp -L$(SHAREDLIB_DIR)/lib \
 		 -I$(SHAREDLIB_DIR)/libpspnet -I$(SHAREDLIB_DIR)/libiniparser \
-		 -I$(SHAREDLIB_DIR)/Tools -I$(SHAREDLIB_DIR)/Logging \
+		 -I$(SHAREDLIB_DIR)/Logging \
 		 -I$(PLUGINS_DIR)/Common -L$(PLUGINS_DIR)/Common
 		 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES)

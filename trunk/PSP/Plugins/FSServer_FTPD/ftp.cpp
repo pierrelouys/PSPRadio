@@ -13,7 +13,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "ftp.h"
-#include <Tools.h>
 #include <pspnet.h>
 #include <Logging.h>
 #include <PSPRadio_Exports.h>
