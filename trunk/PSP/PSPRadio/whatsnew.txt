@@ -1,5 +1,16 @@
 What's New for PSPRadio
 ========================
+1.xx.xxxx (2007-04-xx)
+NEW FEATURES
+(raf) Core: Updated visualizer plugin interface to level 2. Cleaned-up, reorganized fields, and added gu support.
+(raf) TextUI3D: Added wait for VBlank before page flipping, this eliminates tearing; but reduces framerate because the render thread also waits for vblank; need to optimize.
+(raf) TextUI3D: Added support for on-screen visualizer (only gu visualizers supported) (fullscreen visualizer not supported yet).
+BUG FIXES
+KNOWN BUGS
+(raf) TextUI: When switching skins all the text will disappear. This happens on occasion. Just move up or down for the text to re-render.
+OE related Problems on this release
+(raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection). Possible solution, if you have a proxy server in your network, set it up in PSPRadio.cfg. A static IP may work then. (This is untested).
+
 1.18.1377 (2007-04-02)
 NEW FEATURES
 (raf) TextUI: Msgbox now goes away after 3sec (not based on frames rendered anymore, but time).

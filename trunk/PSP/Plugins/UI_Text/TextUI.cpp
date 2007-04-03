@@ -1386,6 +1386,28 @@ void CTextUI::DisplayContainers(CMetaDataContainer *Container)
 	m_refreshbitmask |= BITMASK_CONTAINERS;
 }
 
+char *basename (char *strPath)
+{
+        static char *pRet;
+
+        pRet = "";
+
+        if (strPath && strlen(strPath) <  4) /** 4 = length of 'ms0:' */
+        {
+                pRet = "";
+        }
+        else
+        {
+                pRet = strrchr(strPath, '/') + 1;
+                if (NULL == pRet)
+                {
+                        pRet = "";
+                }
+        }
+
+        return pRet;
+}
+
 void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 {
 	int iColorNormal, iColorSelected, iColorTitle, iColor, iColorPlaying;
@@ -1481,6 +1503,8 @@ void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 	
 	free(strText), strText = NULL;
 }
+
+
 
 void CTextUI::DisplayElements(CMetaDataContainer *Container)
 {

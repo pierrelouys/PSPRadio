@@ -597,6 +597,28 @@ void CTextUI3D::AddToOptionList(int x, int y, unsigned int color, char *text)
 		}
 }
 
+char *basename (char *strPath)
+{
+        static char *pRet;
+
+        pRet = "";
+
+        if (strPath && strlen(strPath) <  4) /** 4 = length of 'ms0:' */
+        {
+                pRet = "";
+        }
+        else
+        {
+                pRet = strrchr(strPath, '/') + 1;
+                if (NULL == pRet)
+                {
+                        pRet = "";
+                }
+        }
+
+        return pRet;
+}
+
 void CTextUI3D::DisplayContainers(CMetaDataContainer *Container)
 {
 	int			 	list_cnt, render_cnt;

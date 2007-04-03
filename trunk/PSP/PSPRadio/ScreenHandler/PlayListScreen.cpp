@@ -25,7 +25,6 @@
 #include <limits.h>
 #include <malloc.h>
 #include <iniparser.h>
-#include <Tools.h>
 #include <Logging.h>
 #include <pspwlan.h> 
 #include <psphprm.h>

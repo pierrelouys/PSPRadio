@@ -23,7 +23,7 @@ CFLAGS = $(GLOBAL_CFLAGS) -O2 -g -Wall $(INCLUDES)
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 
-LIBS =  -lstdc++ -liniparser -lTools  \
+LIBS =  -lstdc++ -liniparser \
 		-lpspgum -lpspgu -lpng -lz -lm -lPluginCommon -lpthread
 
 all: $(TARGET).prx

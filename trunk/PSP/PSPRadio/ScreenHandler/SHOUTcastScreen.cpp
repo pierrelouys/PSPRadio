@@ -29,7 +29,6 @@
 #include <psphprm.h>
 
 #include <iniparser.h>
-#include <Tools.h>
 #include <Logging.h>
 #include <UI_Interface.h>
 #include "SHOUTcastScreen.h"
