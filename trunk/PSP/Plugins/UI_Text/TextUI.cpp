@@ -70,8 +70,16 @@ CTextUI::CTextUI()
 	m_strConfigDir = NULL;
 	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
-	m_Screen = new CScreen(false, /* false = uncached VRAM */
-						   4); /* We use 4 video frames: 2 for page-flipping, one for offline drawing, and one to keep the background image in */
+	m_Screen = new CScreen(false); /* false = uncached VRAM */
+
+	m_Screen->m_Buffer[OFFLINE_BUFFER]    = (u32*)valloc(m_Screen->FRAMESIZE);
+	m_Screen->m_Buffer[BACKGROUND_BUFFER] = (u32*)valloc(m_Screen->FRAMESIZE);
+
+	if (m_Screen->m_Buffer[OFFLINE_BUFFER] == NULL)
+		m_Screen->m_Buffer[OFFLINE_BUFFER] = (u32*)memalign(16, m_Screen->FRAMESIZE);
+	if (m_Screen->m_Buffer[BACKGROUND_BUFFER] == NULL)
+		m_Screen->m_Buffer[BACKGROUND_BUFFER] = (u32*)memalign(16, m_Screen->FRAMESIZE);
+
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
 	
 	m_strTitle = strdup("PSPRadio");
@@ -254,7 +262,7 @@ void CTextUI::RenderLoop()
 			if (m_bDisplayFPS)
 			{
 				sprintf(strFPS, "fps:%03d", fps);
-				m_Screen->PrintText(m_Screen->m_BackBuffer, 10, 262, 0xFFFFFFFF, strFPS);
+				m_Screen->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], 10, 262, 0xFFFFFFFF, strFPS);
 			}
 	
 			//sceKernelDcacheWritebackAll(); 
@@ -366,7 +374,7 @@ void CTextUI::RenderNormal()
 		
 	/* Copy buffer OFFLINE_BUFFER to back-buffer */
 	m_Screen->StartList();
-	m_Screen->CopyFromToBuffer(m_Screen->GetBufferAddress(OFFLINE_BUFFER), m_Screen->m_BackBuffer);
+	m_Screen->CopyFromToBuffer(m_Screen->m_Buffer[OFFLINE_BUFFER], m_Screen->m_Buffer[m_Screen->DrawBufferIndex]);
 	m_Screen->EndList();
 
 	/* Do effects to back-buffer */
@@ -389,7 +397,7 @@ void CTextUI::RenderNormal()
 				m_Screen->StartList();
 			}
 
-			ifdata.Pointer = m_Screen->m_BackBuffer;
+			ifdata.Pointer = m_Screen->m_Buffer[m_Screen->DrawBufferIndex];
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 
 			if (bPluginUsesGU)
@@ -409,7 +417,7 @@ void CTextUI::RenderNormal()
 	if (enable_msgbox)
 	{
 		////m_RenderLock->Lock();
-		RenderMessage(m_Screen->m_BackBuffer);
+		RenderMessage(m_Screen->m_Buffer[m_Screen->DrawBufferIndex]);
 		////m_RenderLock->Unlock();
 		clock_t now = sceKernelLibcClock();
 		if (now - msgbox_start >= 3*CLOCKS_PER_SEC) /* 3 seconds */
@@ -457,7 +465,7 @@ void CTextUI::RenderFullscreenVisualizer()
 		if (bPluginUsesGU)
 			m_Screen->StartList();
 
-		ifdata.Pointer = m_Screen->m_BackBuffer;
+		ifdata.Pointer = m_Screen->m_Buffer[m_Screen->DrawBufferIndex];
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 
 		if (bPluginUsesGU)
@@ -472,7 +480,7 @@ void CTextUI::RenderFullscreenVisualizer()
 		/** CENTER */
 		int x = m_Screen->m_Width/2 - ((strlen(strSongData)/2)*m_Screen->GetFontWidth());
 
-		m_Screen->PrintText(m_Screen->m_BackBuffer, x, 10, 0xFFFFFF, strSongData);
+		m_Screen->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], x, 10, 0xFFFFFF, strSongData);
 
 		if (m_dirtybitmask & BITMASK_MESSAGE)
 		{
@@ -487,7 +495,7 @@ void CTextUI::RenderFullscreenVisualizer()
 		if (enable_msgbox)
 		{
 			////m_RenderLock->Lock();
-			RenderMessage(m_Screen->m_BackBuffer);
+			RenderMessage(m_Screen->m_Buffer[m_Screen->DrawBufferIndex]);
 			////m_RenderLock->Unlock();
 			clock_t now = sceKernelLibcClock();
 			if (now - msgbox_start > 3*CLOCKS_PER_SEC) /* 3 seconds */

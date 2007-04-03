@@ -5,6 +5,7 @@ NEW FEATURES
 (raf) Core: Updated visualizer plugin interface to level 2. Cleaned-up, reorganized fields, and added gu support.
 (raf) TextUI3D: Added wait for VBlank before page flipping, this eliminates tearing; but reduces framerate because the render thread also waits for vblank; need to optimize.
 (raf) TextUI3D: Added support for on-screen visualizer (only gu visualizers supported) (fullscreen visualizer not supported yet).
+(raf) Core: Using Alexander Berl (a.k.a. Raphael) routines for VRAM allocation.
 BUG FIXES
 KNOWN BUGS
 (raf) TextUI: When switching skins all the text will disappear. This happens on occasion. Just move up or down for the text to re-render.

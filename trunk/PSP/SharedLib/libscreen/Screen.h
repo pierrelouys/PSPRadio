@@ -21,8 +21,8 @@
 			DRMODE_OPAQUE,
 		};
 				
-		CScreen(bool use_cached_vram, int iNumberOfBuffers, int width = 480, int height = 272, 
-				int pitch = 512, int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
+		CScreen(bool use_cached_vram = false, int width = 480, int height = 272, int pitch = 512, 
+				int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
 		~CScreen();
 		void SetDrawingMode(drawingmode newmode) { m_DrawingMode = newmode; };
 		void SetBackColor(u32 colour);
@@ -42,7 +42,6 @@
 		bool init;
 		textmode m_TextMode;
 		int m_FontWidth, m_FontHeight;
-		int m_NumberOfBuffers;
 
 		void Init();
 		int  PrintData(const char *buff, int size);
@@ -73,9 +72,8 @@
 		u32* GetBufferAddress(int iBuffer){ return m_Buffer[iBuffer]; };
 				
 	public:
-		u32 *m_Buffer[MAX_BUFFERS]; // 4 FRAMES in VRAM + system RAM
-		u32 *m_FrontBuffer; // framebuffer
-		u32 *m_BackBuffer;
+		u32 *m_Buffer[MAX_BUFFERS];
+		int DrawBufferIndex, DisplayBufferIndex, ZBufferIndex;
 		int FRAMESIZE;
 		int m_Width;
 		int m_Height;

@@ -24,6 +24,7 @@
 #include <pspge.h>
 #include <stdarg.h>
 #include <Screen.h>
+#include <valloc.h>
 #include <png.h>
 
 #define min(a,b) (((a)<(b))?(a):(b))
@@ -36,13 +37,12 @@ u32 *third = NULL;
 	unsigned int __attribute__((aligned(16))) list[262144];
 #endif
 
-CScreen::CScreen(bool use_cached_vram, int iNumberOfBuffers, int width, int height, int pitch, int pixel_format)
+CScreen::CScreen(bool use_cached_vram, int width, int height, int pitch, int pixel_format)
 {
 	m_Width = width;
 	m_Height = height;
 	m_Pitch = pitch;
 	m_PixelFormat = pixel_format;
-	m_NumberOfBuffers = iNumberOfBuffers;
 	m_DrawingMode = DRMODE_TRANSPARENT;
 	m_VRAMIsCached = use_cached_vram;
 	switch(m_PixelFormat)
@@ -74,62 +74,45 @@ CScreen::CScreen(bool use_cached_vram, int iNumberOfBuffers, int width, int heig
 
 CScreen::~CScreen()
 {
-	if (m_NumberOfBuffers > NUM_VRAM_BUFFERS)
-	{
-		for (int i = NUM_VRAM_BUFFERS; i < m_NumberOfBuffers; i++)
-		{
-			free(m_Buffer[i]);
-		}
-	}
-
 #ifdef GUSCREEN
 	sceGuTerm();
+
+	vfree(m_Buffer[ZBufferIndex]);
+	m_Buffer[ZBufferIndex] = NULL;
 #endif
+
+	vfree(m_Buffer[DrawBufferIndex]);
+	m_Buffer[DrawBufferIndex] = NULL;
+	vfree(m_Buffer[DisplayBufferIndex]);
+	m_Buffer[DisplayBufferIndex] = NULL;
 }
 
 void CScreen::Init()
 {
-	u32 *g_vram_base;
-	if (m_VRAMIsCached)
-	{
-		/* let's use cached memory */
-		g_vram_base = (u32 *) ((u32) sceGeEdramGetAddr());
-	}
-	else
-	{
-		/* Place vram in uncached memory */
-		g_vram_base = (u32 *) (0x40000000 | (u32) sceGeEdramGetAddr());
-	}
-	for (int i = 0; i < NUM_VRAM_BUFFERS; i++)
-	{
-		m_Buffer[i] = (u32*)((char*)g_vram_base+FRAMESIZE*i);
-	}
-	if (m_NumberOfBuffers > NUM_VRAM_BUFFERS)
-	{
-		/* Allocate remainder of requested buffers in System RAM */
-		for (int i = NUM_VRAM_BUFFERS; i < m_NumberOfBuffers; i++)
-		{
-			m_Buffer[i] = (u32*)memalign(16, FRAMESIZE);
-		}
-	}
+	DrawBufferIndex    = 0;
+    DisplayBufferIndex = 1;
+
+	m_Buffer[DrawBufferIndex]    = (u32*)valloc(FRAMESIZE);   /* fb */
+	m_Buffer[DisplayBufferIndex] = (u32*)valloc(FRAMESIZE);   /* bb */
 
 #ifdef FBSCREEN	
-	sceDisplaySetMode(0, m_Width, m_Height);
-	sceDisplaySetFrameBuf((void *) g_vram_base, 
-		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
+	int CacheMask = m_VRAMIsCached?0x40000000:0;
 
+	sceDisplaySetMode(0, m_Width, m_Height);
+	sceDisplaySetFrameBuf((void *) (CacheMask + m_Buffer[DisplayBufferIndex]),
+		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 #endif
 
 #ifdef GUSCREEN
-	m_FrontBuffer = m_Buffer[0];
-	m_BackBuffer  = m_Buffer[1];
+	ZBufferIndex = 2;
+	m_Buffer[ZBufferIndex] = (u32*)valloc(FRAMESIZE/2); /* zb */
 
 	sceGuInit();
 
 	sceGuStart(GU_DIRECT, list);
-	sceGuDrawBuffer(GU_PSM_8888, (void*)FRAMESIZE, m_Pitch);
-	sceGuDispBuffer(m_Width, m_Height, (void*)0, m_Pitch);
-	sceGuDepthBuffer((void*) (FRAMESIZE*2), m_Pitch);
+	sceGuDrawBuffer(GU_PSM_8888,       (void*)vrelptr(m_Buffer[DrawBufferIndex]),    m_Pitch);
+	sceGuDispBuffer(m_Width, m_Height, (void*)vrelptr(m_Buffer[DisplayBufferIndex]), m_Pitch);
+	sceGuDepthBuffer(                  (void*)vrelptr(m_Buffer[ZBufferIndex]),       m_Pitch);
 	sceGuOffset(2048 - (m_Width / 2), 2048 - (m_Height / 2));
 	sceGuViewport(2048, 2048, m_Width, m_Height);
 	sceGuScissor(0, 0, m_Width, m_Height);
@@ -175,28 +158,18 @@ void CScreen::SetFrameBuffer(int iBuffer)
 
 void CScreen::SwapBuffers()
 {
-	static int dispBufferNumber = 0;
-
 #ifdef GUSCREEN
-	(u32*)sceGuSwapBuffers();
-
-	if (dispBufferNumber == 0)
-	{
-		m_FrontBuffer = m_Buffer[1];
-		m_BackBuffer  = m_Buffer[0];
-	}
-	else
-	{
-		m_FrontBuffer = m_Buffer[0];
-		m_BackBuffer  = m_Buffer[1];
-	}
+	//m_Buffer[DrawBufferIndex] = (u32*)vabsptr(sceGuSwapBuffers());
+	sceGuSwapBuffers();
 #endif
-
-	dispBufferNumber = 1 - dispBufferNumber;
 
 #ifdef FBSCREEN
-	SetFrameBuffer(dispBufferNumber);
+	SetFrameBuffer(DrawBufferIndex);
 #endif
+
+	DrawBufferIndex    = 1 - DrawBufferIndex;
+	DisplayBufferIndex = 1 - DisplayBufferIndex;
+
 }
 
 typedef void (*drmodef)(u32 *pixel, int color);

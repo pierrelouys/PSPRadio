@@ -5,7 +5,7 @@ BASE_DIR = ../..
 include $(BASE_DIR)/include.mak
 
 TARGET_LIB = libscreen.a
-OBJS = Screen.o
+OBJS = Screen.o valloc.o
 
 INCDIR = 
 CFLAGS = $(GLOBAL_CFLAGS) -O2 -Wall -Werror -g -D__PSP__ $(EXTRAFLAGS)

@@ -23,6 +23,10 @@ Other Routines:
 Danzel:    Danzeff OSK, Links2 connection selector.
 echto:     Initial SHOUTcast.com interface, zlib routines.
 mbf:       Patch to make devhook compatible
+pspdev team: PSPSDK, dev environment, etc.
+libmad team: LIBMAD
+xiph team: OGG
+Alexander Berl (aka Raphael): valloc routines
 
 Art:
 -Semtex199:  TextUI/TextUI3D Skins, Iconset, PSPTris art, Links2 homepage art,
