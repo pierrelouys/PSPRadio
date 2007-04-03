@@ -256,15 +256,6 @@ void CScreen::CopyFromToBuffer(u32 *pSource, u32 *pDest)
 	sceKernelDcacheWritebackInvalidateAll();
 }
 
-void CScreen::Clear(int iBuffer)
-{
-	u32 *frame = m_Buffer[iBuffer];
-	for (int i = 0; i < (m_Height * m_Pitch); i++)
-	{
-		*frame++ = 0;
-	}
-}
-
 void CScreen::StartList()
 {
 #ifdef GUSCREEN
@@ -280,12 +271,25 @@ void CScreen::EndList()
 #endif
 }
 
+void CScreen::Clear(int iBuffer)
+{
+	u32 *frame = m_Buffer[iBuffer];
+	for (int i = 0; i < (m_Height * m_Pitch); i++)
+	{
+		*frame++ = 0;
+	}
+}
+
 void CScreen::Clear()
 {
 #ifdef GUSCREEN
     sceGuClearColor(0x00000000);
     sceGuClearDepth(0);
     sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+#endif
+
+#ifdef FBSCREEN
+	Clear(DrawBufferIndex);
 #endif
 }
 

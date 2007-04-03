@@ -40,7 +40,7 @@
 #include <pspgum.h>
 #include <psprtc.h>
 #include <psppower.h>
-
+#include <PSPRadio.h>
 
 #include "TextUI3D.h"
 #include "TextUI3D_Panel.h"
@@ -60,6 +60,8 @@ static CTextUI3D *sThis;
 volatile bool s_ExitRenderThread = false;
 volatile bool s_RenderThreadRunning = false;
 
+extern UIPlugin textui3d_vtable;
+
 CTextUI3D::CTextUI3D()
 {
 	ModuleLog(LOG_VERYLOW, "CTextUI3D: created");
@@ -72,6 +74,16 @@ CTextUI3D::CTextUI3D()
 	m_Settings = NULL;
 
 	m_wmanager = new WindowHandlerHSM();
+
+	/* populate PSPRadio's GU functions (needed for gu Visualizer plugins ) */
+	CPSPRadio *PSPRadio = (CPSPRadio*)textui3d_vtable.PSPRadioObject;
+	VisPluginGuFunctions *gu = &PSPRadio->m_VisPluginGuFunctions;
+	gu->sceGuEnable = sceGuEnable;
+	gu->sceGuGetMemory = sceGuGetMemory;
+	gu->sceGuColor = sceGuColor;
+	gu->sceGuDrawArray = sceGuDrawArray;
+	gu->sceGuDisable = sceGuDisable;
+
 	/* For Render Thread */
 	{
 		sThis = this;

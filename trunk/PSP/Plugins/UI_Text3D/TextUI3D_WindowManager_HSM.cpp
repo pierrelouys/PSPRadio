@@ -1619,13 +1619,6 @@ void WindowHandlerHSM::RenderPCMBuffer()
 		ifdata.Pointer = &vis_cfg;
 		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 
-		VisPluginGuFunctions *gu = PSPRadio->m_VisPluginData->gu;
-		gu->sceGuEnable = sceGuEnable;
-		gu->sceGuGetMemory = sceGuGetMemory;
-		gu->sceGuColor = sceGuColor;
-		gu->sceGuDrawArray = sceGuDrawArray;
-		gu->sceGuDisable = sceGuDisable;
-
 		ifdata.Pointer = NULL;
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 	}

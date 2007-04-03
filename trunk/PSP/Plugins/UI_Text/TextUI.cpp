@@ -110,11 +110,6 @@ CTextUI::CTextUI()
 	m_TimeStartedPlaying = 0;
 	m_IsPlaying = false;
 	
-	for (int i = 0 ; i < 257 ; i++)
-	{
-		m_FreqData[i] = 123.456f;
-	}
-		
 	m_fs_vis_cfg.sc_width = m_Screen->m_Width;
 	m_fs_vis_cfg.sc_height = m_Screen->m_Height;
 	m_fs_vis_cfg.sc_pitch = m_Screen->m_Pitch;
@@ -123,7 +118,16 @@ CTextUI::CTextUI()
 	m_fs_vis_cfg.y1 = 0;
 	m_fs_vis_cfg.x2 = m_Screen->m_Width;
 	m_fs_vis_cfg.y2 = m_Screen->m_Height - 1;
-	
+
+	/* populate PSPRadio's GU functions (needed for gu Visualizer plugins ) */
+	VisPluginGuFunctions *gu = &m_PSPRadio->m_VisPluginGuFunctions;
+	gu->sceGuEnable = sceGuEnable;
+	gu->sceGuGetMemory = sceGuGetMemory;
+	gu->sceGuColor = sceGuColor;
+	gu->sceGuDrawArray = sceGuDrawArray;
+	gu->sceGuDisable = sceGuDisable;
+
+
 	/* Start Render Thread */
 	{
 		pthread_t pthid;
@@ -387,13 +391,6 @@ void CTextUI::RenderNormal()
 
 			if (bPluginUsesGU)
 			{
-				VisPluginGuFunctions *gu = m_PSPRadio->m_VisPluginData->gu;
-				gu->sceGuEnable = sceGuEnable;
-				gu->sceGuGetMemory = sceGuGetMemory;
-				gu->sceGuColor = sceGuColor;
-				gu->sceGuDrawArray = sceGuDrawArray;
-				gu->sceGuDisable = sceGuDisable;
-
 				m_Screen->StartList();
 			}
 
@@ -401,7 +398,9 @@ void CTextUI::RenderNormal()
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 
 			if (bPluginUsesGU)
+			{
 				m_Screen->EndList();
+			}
 		}
 	}
 	if (m_dirtybitmask & BITMASK_MESSAGE)
@@ -504,15 +503,6 @@ void CTextUI::RenderFullscreenVisualizer()
 			}
 		}
 		m_dirtybitmask = 0;
-	}
-}
-
-void CTextUI::FreqData(float freq_data[2][257])
-{
-//	memcpy(&m_FreqData, &freq_data, sizeof(m_FreqData));
-	for (int i = 0 ; i < 257 ; i++)
-	{
-		m_FreqData[i] = freq_data[0][i];
 	}
 }
 

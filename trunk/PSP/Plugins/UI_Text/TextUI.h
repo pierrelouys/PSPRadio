@@ -163,8 +163,6 @@ private:
 	VisPluginConfig m_fs_vis_cfg;
 	clock_t m_FullscreenWait;
 	CPSPRadio *m_PSPRadio;
-	/*test*/
-	float m_FreqData[257];
 
 	void PrintMessage(char *message);
 	void PrintTime(int iBuffer, bool draw_background);
@@ -184,8 +182,6 @@ private:
 	void RenderLoop(); /* Called from render_thread */
 	void RenderNormal();
 	void RenderFullscreenVisualizer();
-
-	void FreqData(float freq_data[2][257]);
 };
 
 
