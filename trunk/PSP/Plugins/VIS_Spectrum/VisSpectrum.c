@@ -40,29 +40,33 @@ void HorizLine(u32* vram, int y, int x1, int x2, int color);
 void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color);
 
 /** START of Plugin definitions setup */
-VisPlugin sample_vtable = {
-	PLUGIN_VIS_VERSION, /* Interface version -- Don't change */
-	NULL, //void *handle; /* Filled in by PSPRadio */
-	NULL, //char *filename; /* Filled in by PSPRadio */
-	"Spectrum Visualizer Plugin", //char *description; /* The description that is shown in the preferences box */
-	spect_init, //void (*init)(void); /* Called when the plugin is enabled */
-	NULL, //void (*cleanup)(void); /* Called when the plugin is disabled */
-	NULL, //void (*about)(void); /* Show the about box */:
-	NULL, //void (*configure)(void); /* Show the configure box */
-	NULL, //void (*disable_plugin)(struct _VisPlugin *); /* Call this with a pointer to your plugin to disable the plugin */
-	NULL, //void (*playback_start)(void); /* Called when playback starts */
-	NULL, //void (*playback_stop)(void); /* Called when playback stops */
-	NULL, //spect_render_pcm, //void (*render_pcm)(int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
-	spect_render_freq,  //void (*render_freq)(int16 *freq_data); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
-	spect_config_update, /* Called when config changes */
-	NULL, //VisPluginConfig *config; /* Filled in by PSPRadio */
+VisPlugin vtable = 
+{
+	/* Populated by Plugin */
+	PLUGIN_VIS_VERSION,		 		/* Populate with PLUGIN_VIS_VERSION */
+	"Spectrum Visualizer Plugin",		/* Plugin description */
+	"By Raf",	 					/* Plugin about info */
+	0,								/* Set to 1 if plugin needs GU; 0 if not. */
+	spect_init,			 			/* Called when the plugin is enabled */
+	NULL,				 			/* Called when the plugin is disabled */
+	NULL,						 	/* not used atm *//* Called when playback starts */
+	NULL,						 	/* not used atm *//* Called when playback stops */
+	/* Render the PCM (2ch/44KHz) data, pcm_data has 2 channels interleaved */
+	NULL, 
+	/* Render the freq data, don't do anything time consuming in here */
+	spect_render_freq,
+	spect_config_update,	 		/* Called by PSPRadio when config changes */
+
+	/* Set by PSPRadio */
+	NULL,							/* Filled in by PSPRadio */
+	NULL							/* GU functions to use in plugin */
 };
-/** START of Plugin definitions setup */
+/** END of Plugin definitions setup */
 
 /** Single Plugin Export */
 VisPlugin *get_vplugin_info()
 {
-	return &sample_vtable;
+	return &vtable;
 }
 
 /* Linearity of the amplitude scale (0.5 for linear, keep in [0.1, 0.9]) */
@@ -94,10 +98,10 @@ void spect_init()
 /* Called from PSPRadio when the config pointer has been updated */
 void spect_config_update()
 {
-	if(sample_vtable.config)
+	if(vtable.config)
 	{
-		conf_width  = (sample_vtable.config->x2 - sample_vtable.config->x1);
-		conf_height = (sample_vtable.config->y2 - sample_vtable.config->y1);
+		conf_width  = (vtable.config->x2 - vtable.config->x1);
+		conf_height = (vtable.config->y2 - vtable.config->y1);
 		band_width  = conf_width / NUM_BANDS;
 
 		scale = conf_height / ( vfpu_logf((1 - d) / d) * 2 );
@@ -133,8 +137,8 @@ void spect_render_freq(u32* vram_frame, float data[2][257])
 		bar_heights[i] = (int16)y;
 
 		Rectangle(vram_frame, 
-				  sample_vtable.config->x1 + xo, sample_vtable.config->y2, 
-				  sample_vtable.config->x1 + xo + band_width - 5, sample_vtable.config->y2 - bar_heights[i], 
+				  vtable.config->x1 + xo, vtable.config->y2, 
+				  vtable.config->x1 + xo + band_width - 5, vtable.config->y2 - bar_heights[i], 
 				  0xFFFFFF);
 
 		xo = (i*xof)+band_width;
@@ -162,7 +166,7 @@ void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
 	ya = ya<0?0:ya;
 	yb = yb<0?0:yb;
 	
-	linestart = vram + sample_vtable.config->sc_pitch*ya + xa;
+	linestart = vram + vtable.config->sc_pitch*ya + xa;
 	pixel = linestart;
 	color_factor = 255.0f/(yb-ya+1.0f);
 
@@ -174,7 +178,7 @@ void Rectangle(u32* vram, int x1, int y1, int x2, int y2, int color)
 			*pixel++ = RGB(0, 0xFF - ((u32)((y-ya+1.0f)*color_factor)), 0xFF);
 			pixel++;
 		}
-		linestart += sample_vtable.config->sc_pitch;
+		linestart += vtable.config->sc_pitch;
 		pixel = linestart;
 	}
 }

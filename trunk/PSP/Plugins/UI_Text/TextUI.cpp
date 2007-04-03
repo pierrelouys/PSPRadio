@@ -34,6 +34,8 @@
 #include "TextUI.h"
 #include <psputility_sysparam.h>
 #include "VIS_Plugin.h"
+#include <pspgu.h>
+
 
 #define MAX_ROWS 		m_Screen->GetNumberOfTextRows()
 #define MAX_COL 		m_Screen->GetNumberOfTextColumns()
@@ -374,8 +376,25 @@ void CTextUI::RenderNormal()
 		UNSET_DIRTY_BIT(BITMASK_PCM);
 		if (m_activebitmask & BITMASK_PCM)
 		{
+			bool bPluginUsesGU = (m_PSPRadio->m_VisPluginData)?(m_PSPRadio->m_VisPluginData->need_gu):false;
+
+			if (bPluginUsesGU)
+			{
+				VisPluginGuFunctions *gu = m_PSPRadio->m_VisPluginData->gu;
+				gu->sceGuEnable = sceGuEnable;
+				gu->sceGuGetMemory = sceGuGetMemory;
+				gu->sceGuColor = sceGuColor;
+				gu->sceGuDrawArray = sceGuDrawArray;
+				gu->sceGuDisable = sceGuDisable;
+
+				m_Screen->StartList();
+			}
+
 			ifdata.Pointer = m_Screen->m_BackBuffer;
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+
+			if (bPluginUsesGU)
+				m_Screen->EndList();
 		}
 	}
 	if (m_dirtybitmask & BITMASK_MESSAGE)
@@ -434,8 +453,16 @@ void CTextUI::RenderFullscreenVisualizer()
 		m_Screen->Clear();
 		m_Screen->EndList();
 
+		bool bPluginUsesGU = (m_PSPRadio->m_VisPluginData)?(m_PSPRadio->m_VisPluginData->need_gu):false;
+
+		if (bPluginUsesGU)
+			m_Screen->StartList();
+
 		ifdata.Pointer = m_Screen->m_BackBuffer;
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+
+		if (bPluginUsesGU)
+			m_Screen->EndList();
 
 		sprintf(strSongData, "%02ld:%02ld  %s  %s",
 					pData->lCurrentTime / 60, pData->lCurrentTime % 60,

@@ -38,29 +38,33 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
 void VertLine(u32* vram, int x, int y1, int y2, int color);
 
 /** START of Plugin definitions setup */
-VisPlugin sample_vtable = {
-	PLUGIN_VIS_VERSION, /* Interface version -- Don't change */
-	NULL, //void *handle; /* Filled in by PSPRadio */
-	NULL, //char *filename; /* Filled in by PSPRadio */
-	"Sample Visualizer Plugin", //char *description; /* The description that is shown in the preferences box */
-	scope_init, //void (*init)(void); /* Called when the plugin is enabled */
-	NULL, //void (*cleanup)(void); /* Called when the plugin is disabled */
-	NULL, //void (*about)(void); /* Show the about box */:
-	NULL, //void (*configure)(void); /* Show the configure box */
-	NULL, //void (*disable_plugin)(struct _VisPlugin *); /* Call this with a pointer to your plugin to disable the plugin */
-	NULL, //void (*playback_start)(void); /* Called when playback starts */
-	NULL, //void (*playback_stop)(void); /* Called when playback stops */
-	scope_render_pcm, //void (*render_pcm)(int16 *pcm_data); /* Render the PCM data, don't do anything time consuming in here -- pcm_data has channels interleaved */
-	NULL, //void (*render_freq)(int16 *freq_data); /* not implemented *//* Render the freq data, don't do anything time consuming in here */
-	scope_config_update, /* Called when config changes */
-	NULL, //VisPluginConfig *config; /* Filled in by PSPRadio */
+VisPlugin vtable = 
+{
+	/* Populated by Plugin */
+	PLUGIN_VIS_VERSION,		 		/* Populate with PLUGIN_VIS_VERSION */
+	"Sample Visualizer Plugin",		/* Plugin description */
+	"By Raf",	 					/* Plugin about info */
+	0,								/* Set to 1 if plugin needs GU; 0 if not. */
+	scope_init,			 			/* Called when the plugin is enabled */
+	NULL,				 			/* Called when the plugin is disabled */
+	NULL,						 	/* not used atm *//* Called when playback starts */
+	NULL,						 	/* not used atm *//* Called when playback stops */
+	/* Render the PCM (2ch/44KHz) data, pcm_data has 2 channels interleaved */
+	scope_render_pcm, 
+	/* Render the freq data, don't do anything time consuming in here */
+	NULL,
+	scope_config_update,	 		/* Called by PSPRadio when config changes */
+
+	/* Set by PSPRadio */
+	NULL,							/* Filled in by PSPRadio */
+	NULL							/* GU functions to use in plugin */
 };
-/** START of Plugin definitions setup */
+/** END of Plugin definitions setup */
 
 /** Single Plugin Export */
 VisPlugin *get_vplugin_info()
 {
-	return &sample_vtable;
+	return &vtable;
 }
 
 /* Called from PSPRadio on initialization */
@@ -76,11 +80,11 @@ void scope_config_update()
 	int sh = 0, amp = 0;
 	int mid_a = 0;
 
-	if(sample_vtable.config)
+	if(vtable.config)
 	{
-		y_mid = (sample_vtable.config->y2 + sample_vtable.config->y1) / 2;
+		y_mid = (vtable.config->y2 + vtable.config->y1) / 2;
 
-		mid_a = (sample_vtable.config->y2 - sample_vtable.config->y1) / 2;
+		mid_a = (vtable.config->y2 - vtable.config->y1) / 2;
 		pcm_shdiv = 15; 
 		
 		// We convert the fixed-point integer into an integer by doing binary right shifts.
@@ -104,7 +108,7 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 	int yL, yR;
 	int old_yL = y_mid;
 	int old_yR = y_mid;
-	for (x = sample_vtable.config->x1; x < sample_vtable.config->x2; x++)
+	for (x = vtable.config->x1; x < vtable.config->x2; x++)
 	{
 		/* convert fixed point int to int (the integer part is the most significant byte) */
 		/* (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192 */
@@ -120,7 +124,7 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 /* Some basic drawing routines */
 void Plot(u32* vram, int x, int y, int color)
 {
-	u32 *pixel = vram + sample_vtable.config->sc_pitch*y + x;
+	u32 *pixel = vram + vtable.config->sc_pitch*y + x;
 	*pixel = color;
 }
 

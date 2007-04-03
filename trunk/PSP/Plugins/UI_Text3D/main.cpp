@@ -43,7 +43,7 @@ void *ModuleStartUI()
 }
 
 /** START of Plugin definitions setup */
-UIPlugin textui_vtable = {
+UIPlugin textui3d_vtable = {
 	PLUGIN_UI_VERSION, /* Interface version -- Don't change */
 	NULL,//PSPRadio Object; populated by PSPRadio.
 	NULL,//	void *handle; /* Filled in by PSPRadio */
@@ -60,6 +60,6 @@ UIPlugin textui_vtable = {
 
 UIPlugin *get_uiplugin_info()
 {
-	return &textui_vtable;
+	return &textui3d_vtable;
 }
 

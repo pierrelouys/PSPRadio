@@ -11,7 +11,7 @@
 
 	#include <psptypes.h>
 	
-	#define PLUGIN_VIS_VERSION	1
+	#define PLUGIN_VIS_VERSION	2
 
 	/* Config is populated by PSPRadio */
 	typedef struct _VisPluginConfig
@@ -22,28 +22,40 @@
 		/* Upper left / Lower right corners (rectangle) for visualization */
 		int x1,y1, x2,y2;
 
-		/* reserved */
-		char reserved[8];
+		char reserved[32]; 				/* For future use */
 	} VisPluginConfig;
 		
 
-	typedef struct _VisPlugin /* Based on xmms visual plugin to ease porting plugins written for xmms to PSPRadio */
+	typedef struct _guFunctions
 	{
-		int  interface_version; /* Informationaal from Plugin to PSPRadio */
-		void *handle; /* Filled in by PSPRadio */
-		char *filename; /* Filled in by PSPRadio */
-		char *description; /* The description that is shown in the preferences box */
-		void (*init)(void); /* Called when the plugin is enabled */
-		void (*cleanup)(void); /* Called when the plugin is disabled */
-		void (*about)(void); /* not used atm *//* Show the about box */
-		void (*configure)(void); /* not used atm *//* Show the configure box */
-		void (*disable_plugin)(struct _VisPlugin *); /* not used atm *//* Call this with a pointer to your plugin to disable the plugin */
-		void (*playback_start)(void); /* Called when playback starts */
-		void (*playback_stop)(void); /* Called when playback stops */
-		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); /* Render the PCM (2ch/44KHz) data, don't do anything time consuming in here -- pcm_data has channels interleaved */
-		void (*render_freq)(u32* vram_frame, float freq_data[2][257]); /* Render the freq data, don't do anything time consuming in here */
-		void (*config_update)(); /* Called by PSPRadio when config changes */
-		VisPluginConfig *config; /* Filled in by PSPRadio */
+		void  (*sceGuEnable)(int state);
+		void* (*sceGuGetMemory)(int size);
+		void  (*sceGuColor)(unsigned int color);
+		void  (*sceGuDrawArray)(int prim, int vtype, int count, const void* indices, const void* vertices);
+		void  (*sceGuDisable)(int state);
+	} VisPluginGuFunctions;
+
+	/* Loosely based on xmms visual plugin to ease porting plugins written for xmms to PSPRadio */
+	typedef struct _VisPlugin 
+	{
+		/* Set by Plugin */
+		int  interface_version; 		/* Populate with PLUGIN_VIS_VERSION */
+		char *description; 				/* Plugin description */
+		char *about; 					/* Plugin about info */
+		char need_gu;					/* Set to 1 if plugin needs GU; 0 if not. */
+		void (*init)(void); 			/* Called when the plugin is enabled */
+		void (*cleanup)(void); 			/* Called when the plugin is disabled */
+		void (*playback_start)(void); 	/* not used atm *//* Called when playback starts */
+		void (*playback_stop)(void); 	/* not used atm *//* Called when playback stops */
+		/* Render the PCM (2ch/44KHz) data, pcm_data has 2 channels interleaved */
+		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); 
+		/* Render the freq data, don't do anything time consuming in here */
+		void (*render_freq)(u32* vram_frame, float freq_data[2][257]); 
+		void (*config_update)(); 		/* Called by PSPRadio when config changes */
+
+		/* Set by PSPRadio */
+		VisPluginConfig 		*config;	/* Filled in by PSPRadio */
+		VisPluginGuFunctions	*gu;		/* GU functions to use in plugin */
 	} VisPlugin; 
 
 	/* The plugin exports this function */

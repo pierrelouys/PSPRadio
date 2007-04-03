@@ -21,6 +21,7 @@
 #include "PSPRadio_Exports.h"
 #include "PSPRadio.h"
 #include "VisualizerInterface/vis_if.h"
+#include <pspgu.h>
 
 _button_mappings_struct_ PSPRadioButtonMap;
 CScreen *rootScreen;
@@ -55,7 +56,14 @@ int CPSPRadio::Setup(int argc, char **argv)
 	m_VisPluginConfig.x2 = 480;
 	m_VisPluginConfig.y2 = 272;
 	//m_VisPluginConfig.pcm_right_shift = 8;
-	
+
+	m_VisPluginGuFunctions.sceGuEnable = sceGuEnable;
+	m_VisPluginGuFunctions.sceGuGetMemory = sceGuGetMemory;
+	m_VisPluginGuFunctions.sceGuColor = sceGuColor;
+	m_VisPluginGuFunctions.sceGuDrawArray = sceGuDrawArray;
+	m_VisPluginGuFunctions.sceGuDisable = sceGuDisable;
+
+
 	m_PowerEventData.bEnableNetworkAfterResume = false;
 	m_PowerEventData.bPauseAfterResume = false;
 	m_PowerEventData.bPlayAfterResume = false;
@@ -930,10 +938,8 @@ void CPSPRadio::ScreenshotStore(char *filename)
 							m_VisPluginData = get_vplugin_info();
 						if (m_VisPluginData)
 						{
-							m_VisPluginData->handle = (void *)m_ModuleLoader[type];
-							m_VisPluginData->filename = m_ModuleLoader[type]->GetFilename();
 							m_VisPluginData->config = &m_VisPluginConfig;
-							//m_VisPluginData->disable_plugin = to-do
+							m_VisPluginData->gu = &m_VisPluginGuFunctions;
 						}
 						if (m_VisPluginData && m_VisPluginData->interface_version == PLUGIN_VIS_VERSION)
 						{
@@ -945,7 +951,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 						else
 						{
 							Log(LOG_ERROR, "Unable to load plugin '%s'. This plugin supports i/f version %d. This version of PSPRadio uses version %d.", 
-								m_VisPluginData->filename,
+								m_ModuleLoader[type]->GetFilename(),
 								m_VisPluginData->interface_version,
 								PLUGIN_VIS_VERSION);
 							m_VisPluginData = NULL;

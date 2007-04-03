@@ -96,6 +96,7 @@ struct _PowerEventData
 		UIPlugin  *m_UIPluginData;
 
 		VisPluginConfig m_VisPluginConfig;
+		VisPluginGuFunctions m_VisPluginGuFunctions;
 		VisPlugin *m_VisPluginData;
 
 		int LoadPlugin(const char *strPlugin, plugin_type type);

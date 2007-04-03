@@ -344,7 +344,7 @@ int WindowHandlerHSM::MbxThread()
 		error = sceKernelReceiveMbx(HSMMessagebox, &event, NULL);
 
 		/* Do we need to exit? */
-		if(error == SCE_KERNEL_ERROR_WAIT_CANCEL)
+		if(error == (int)SCE_KERNEL_ERROR_WAIT_CANCEL)
 			{
 			ModuleLog(LOG_INFO, "HSM: Received SCE_KERNEL_ERROR_WAIT_CANCEL, exiting thread.");
 			break;
@@ -1542,6 +1542,8 @@ void WindowHandlerHSM::GUEndDisplayList()
 {
 	sceGuFinish();
 	sceGuSync(0,0);
+
+	sceDisplayWaitVblankStart();
 	m_framebuffer = sceGuSwapBuffers();
 }
 
@@ -1588,65 +1590,47 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 	}
 }
 
+#include <PSPRadio.h>
+extern UIPlugin textui3d_vtable;
 void WindowHandlerHSM::RenderPCMBuffer()
 {
-float	start_x, start_y;
-int		width, height;
+	CPSPRadio *PSPRadio = (CPSPRadio*)textui3d_vtable.PSPRadioObject;
 
-	/* Setup render window */
-	start_x = (float) LocalSettings.VisualizerX;
-	start_y = (float) LocalSettings.VisualizerY;
+	if (PSPRadio == NULL)
+		return;
+	bool bPluginUsesGU = (PSPRadio->m_VisPluginData)?(PSPRadio->m_VisPluginData->need_gu):false;
 
-	width = LocalSettings.VisualizerW;
-	height = (1 << LocalSettings.VisualizerH);
 
-	sceGuEnable(GU_LINE_SMOOTH);
-
-	/* If we don't have a buffer or are not playing then just render a line at zero */
-#if VISUALIZER == 1
-	if ((m_pcm_buffer == NULL) || (m_playstate_icon == PLAYSTATE_ICON_STOP) || (m_playstate_icon == PLAYSTATE_ICON_PAUSE))
+	if (bPluginUsesGU)
 	{
-#endif
-		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory(2 * sizeof(LineVertex));
-		l_vertices[0].x = start_x;
-		l_vertices[0].y = start_y + height/2;
-		l_vertices[0].z = 0;
+		VisPluginConfig vis_cfg;
+		pspradioexport_ifdata ifdata = { 0 };
+	
+		vis_cfg.sc_width = 480;
+		vis_cfg.sc_height = 272;
+		vis_cfg.sc_pitch = 512;
+		vis_cfg.sc_pixel_format = 0;
+		vis_cfg.x1 = LocalSettings.VisualizerX;
+		vis_cfg.y1 = LocalSettings.VisualizerY;
+		vis_cfg.x2 = LocalSettings.VisualizerX + LocalSettings.VisualizerW;
+		vis_cfg.y2 = LocalSettings.VisualizerY + (1 << LocalSettings.VisualizerH);
+		
+	
+		ifdata.Pointer = &vis_cfg;
+		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 
-		l_vertices[1].x = start_x + width;
-		l_vertices[1].y = start_y + height/2;
-		l_vertices[1].z = 0;
+		VisPluginGuFunctions *gu = PSPRadio->m_VisPluginData->gu;
+		gu->sceGuEnable = sceGuEnable;
+		gu->sceGuGetMemory = sceGuGetMemory;
+		gu->sceGuColor = sceGuColor;
+		gu->sceGuDrawArray = sceGuDrawArray;
+		gu->sceGuDisable = sceGuDisable;
 
-		sceGuColor(0xFF44CCFF);
-		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, 2, 0, l_vertices);
-#if VISUALIZER == 1
+		ifdata.Pointer = NULL;
+		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 	}
-	else
-	{
-		float		xpos = start_x;
-		float		ypos = start_y + height / 4;
-		int			sample;
-		int			sample_step = PSP_BUFFER_SIZE_IN_FRAMES / width;
-		int			sample_scale = 16 - LocalSettings.VisualizerH + 1;
-		LineVertex *l_vertices = (LineVertex *)sceGuGetMemory((width + 1 )* sizeof(LineVertex));
 
-		l_vertices[0].x = xpos++;
-		l_vertices[0].y = start_y + height/2;
-		l_vertices[0].z = 0;
 
-		for (int i = 0, index = 0 ; index < PSP_BUFFER_SIZE_IN_FRAMES ; index += sample_step, i++)
-		{
-			sample = (int)m_pcm_buffer[i*2] + (int)m_pcm_buffer[i*2+1] + (1 << 15);
-			l_vertices[i+1].x = xpos++;
-			l_vertices[i+1].y = ypos + (sample >> sample_scale); // (16 - height)
-			//start_y + height/2;
-			l_vertices[i+1].z = 0;
-		}
-
-		sceGuColor(0xFF44CCFF);
-		sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width + 1, 0, l_vertices);
-	}
-#endif
-	sceGuDisable(GU_LINE_SMOOTH);
 }
 
 /* State handlers and transition-actions */

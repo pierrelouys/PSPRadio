@@ -131,16 +131,16 @@ void CScreen::Init()
 	sceGuInit();
 
 	sceGuStart(GU_DIRECT, list);
-
 	sceGuDrawBuffer(GU_PSM_8888, (void*)FRAMESIZE, m_Pitch);
 	sceGuDispBuffer(m_Width, m_Height, (void*)0, m_Pitch);
-	sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
 	sceGuDepthBuffer((void*) (FRAMESIZE*2), m_Pitch);
 	sceGuOffset(2048 - (m_Width / 2), 2048 - (m_Height / 2));
 	sceGuViewport(2048, 2048, m_Width, m_Height);
-	sceGuDepthRange(0xc350, 0x2710);
 	sceGuScissor(0, 0, m_Width, m_Height);
 	sceGuEnable(GU_SCISSOR_TEST);
+#if 0
+	sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
+	sceGuDepthRange(0xc350, 0x2710);
 	sceGuAlphaFunc(GU_GREATER, 0, 0xff);
 	sceGuEnable(GU_ALPHA_TEST);
 	sceGuDepthFunc(GU_GEQUAL);
@@ -158,7 +158,13 @@ void CScreen::Init()
 	sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
 	sceGuFinish();
 	sceGuSync(0, 0);
-
+#endif
+//
+	sceGuDepthRange(65535,0);
+	sceGuClear(GU_COLOR_BUFFER_BIT);
+	sceGuFinish();
+	sceGuSync(0,0);
+//
 	sceDisplayWaitVblankStart();
 	sceGuDisplay(GU_TRUE);
 #endif
