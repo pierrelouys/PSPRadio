@@ -318,6 +318,24 @@ void CTextUI3D::GetSettings()
 	GfxSizes.usb_y = m_Settings->GetInteger("GRAPHICS:GFX_USB_H", 16);
 	GetConfigPair("GRAPHICS:GFX_PLAYSTATE_SIZE", &GfxSizes.playstate_w, &GfxSizes.playstate_h);
 	GfxSizes.playstate_y = m_Settings->GetInteger("GRAPHICS:GFX_PLAYSTATE_H", 8);
+
+	//Configure Visualizer
+	{
+		VisPluginConfig vis_cfg;
+		pspradioexport_ifdata ifdata = { 0 };
+	
+		vis_cfg.sc_width = 480;
+		vis_cfg.sc_height = 272;
+		vis_cfg.sc_pitch = 512;
+		vis_cfg.sc_pixel_format = 0;
+		vis_cfg.x1 = LocalSettings.VisualizerX;
+		vis_cfg.y1 = LocalSettings.VisualizerY;
+		vis_cfg.x2 = LocalSettings.VisualizerX + LocalSettings.VisualizerW;
+		vis_cfg.y2 = LocalSettings.VisualizerY + (1 << LocalSettings.VisualizerH);
+		
+		ifdata.Pointer = &vis_cfg;
+		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+	}
 }
 
 void CTextUI3D::PrepareShutdown()

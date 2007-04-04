@@ -176,6 +176,7 @@ WindowHandlerHSM::WindowHandlerHSM() : 	top(NULL, &WindowHandlerHSM::top_handler
 
     MakeEntry(&top);
     ActivateState(&top);
+
 	ModuleLog(LOG_VERYLOW, "HSM:Created");
 	}
 
@@ -258,7 +259,7 @@ void WindowHandlerHSM::Initialize(char *cwd, char *name)
 	HSMMessagebox = sceKernelCreateMbx("HSMMBX", 0, 0);
 	/* Create and start the thread handling the messages */
 	m_HSMActive = true;
-	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_USER, 0);
+	m_mbxthread = sceKernelCreateThread("HSMThread", mbxThread, LocalSettings.EventThreadPrio, 8192, THREAD_ATTR_VFPU, 0);
 	sceKernelStartThread(m_mbxthread, 0, NULL);
 
 	m_HSMInitialized = true;
@@ -1594,36 +1595,15 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 extern UIPlugin textui3d_vtable;
 void WindowHandlerHSM::RenderPCMBuffer()
 {
-	CPSPRadio *PSPRadio = (CPSPRadio*)textui3d_vtable.PSPRadioObject;
-
-	if (PSPRadio == NULL)
-		return;
-	bool bPluginUsesGU = (PSPRadio->m_VisPluginData)?(PSPRadio->m_VisPluginData->need_gu):false;
-
+	static pspradioexport_ifdata ifdata = { 0 };
+	static CPSPRadio *PSPRadio = (CPSPRadio*)textui3d_vtable.PSPRadioObject;
+	static bool bPluginUsesGU = (PSPRadio->m_VisPluginData)?(PSPRadio->m_VisPluginData->need_gu):false;
 
 	if (bPluginUsesGU)
 	{
-		VisPluginConfig vis_cfg;
-		pspradioexport_ifdata ifdata = { 0 };
-	
-		vis_cfg.sc_width = 480;
-		vis_cfg.sc_height = 272;
-		vis_cfg.sc_pitch = 512;
-		vis_cfg.sc_pixel_format = 0;
-		vis_cfg.x1 = LocalSettings.VisualizerX;
-		vis_cfg.y1 = LocalSettings.VisualizerY;
-		vis_cfg.x2 = LocalSettings.VisualizerX + LocalSettings.VisualizerW;
-		vis_cfg.y2 = LocalSettings.VisualizerY + (1 << LocalSettings.VisualizerH);
-		
-	
-		ifdata.Pointer = &vis_cfg;
-		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
-
 		ifdata.Pointer = NULL;
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 	}
-
-
 }
 
 /* State handlers and transition-actions */
