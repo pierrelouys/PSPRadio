@@ -36,7 +36,7 @@
 		
 	private:
 		drawingmode m_DrawingMode;
-		bool m_VRAMIsCached;
+		int m_CacheMask;
 		u32 bg_col, fg_col;
 		bool init;
 		textmode m_TextMode;

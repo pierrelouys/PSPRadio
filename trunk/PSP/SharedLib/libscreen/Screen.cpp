@@ -44,7 +44,8 @@ CScreen::CScreen(bool use_cached_vram, int width, int height, int pitch, int pix
 	m_Pitch = pitch;
 	m_PixelFormat = pixel_format;
 	m_DrawingMode = DRMODE_TRANSPARENT;
-	m_VRAMIsCached = use_cached_vram;
+	m_CacheMask = use_cached_vram?0:0x40000000;
+
 	switch(m_PixelFormat)
 	{
 	case PSP_DISPLAY_PIXEL_FORMAT_565:
@@ -77,13 +78,13 @@ CScreen::~CScreen()
 #ifdef GUSCREEN
 	sceGuTerm();
 
-	vfree(m_Buffer[ZBufferIndex]);
+	vfree((char*)m_Buffer[ZBufferIndex] - m_CacheMask);
 	m_Buffer[ZBufferIndex] = NULL;
 #endif
 
-	vfree(m_Buffer[DrawBufferIndex]);
+	vfree((char*)m_Buffer[DrawBufferIndex] - m_CacheMask);
 	m_Buffer[DrawBufferIndex] = NULL;
-	vfree(m_Buffer[DisplayBufferIndex]);
+	vfree((char*)m_Buffer[DisplayBufferIndex] - m_CacheMask);
 	m_Buffer[DisplayBufferIndex] = NULL;
 }
 
@@ -92,20 +93,18 @@ void CScreen::Init()
 	DrawBufferIndex    = 0;
     DisplayBufferIndex = 1;
 
-	m_Buffer[DrawBufferIndex]    = (u32*)valloc(FRAMESIZE);   /* fb */
-	m_Buffer[DisplayBufferIndex] = (u32*)valloc(FRAMESIZE);   /* bb */
+	m_Buffer[DrawBufferIndex]    = (u32*)(m_CacheMask + (char*)valloc(FRAMESIZE));   /* fb */
+	m_Buffer[DisplayBufferIndex] = (u32*)(m_CacheMask + (char*)valloc(FRAMESIZE));   /* bb */
 
 #ifdef FBSCREEN	
-	int CacheMask = m_VRAMIsCached?0x40000000:0;
-
 	sceDisplaySetMode(0, m_Width, m_Height);
-	sceDisplaySetFrameBuf((void *) (CacheMask + m_Buffer[DisplayBufferIndex]),
+	sceDisplaySetFrameBuf((void *) (m_Buffer[DisplayBufferIndex]),
 		m_Pitch, m_PixelFormat, PSP_DISPLAY_SETBUF_NEXTFRAME);
 #endif
 
 #ifdef GUSCREEN
 	ZBufferIndex = 2;
-	m_Buffer[ZBufferIndex] = (u32*)valloc(FRAMESIZE/2); /* zb */
+	m_Buffer[ZBufferIndex] = (u32*)(m_CacheMask + (char*)valloc(FRAMESIZE/2)); /* zb */
 
 	sceGuInit();
 
@@ -295,7 +294,7 @@ void CScreen::Clear()
 
 int CScreen::Peek(int iBuffer, int x, int y)
 {
-	u32 *pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
+	u32 *pixel = (m_Buffer[iBuffer] + m_Pitch*y + x);
 	return *pixel;
 }
 
@@ -369,7 +368,7 @@ void CScreen::LoadBuffer(int iBuffer, const char* filename)
 		return;
 	}
 	vram16 = (u16*) m_Buffer[iBuffer];
-	vram32 = m_Buffer[iBuffer];
+	vram32 = (u32*) m_Buffer[iBuffer];
 
 	for (y = 0; y < height; y++) {
 		png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
@@ -428,8 +427,8 @@ void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, in
 	y2 = max(y2, 0);
 	y2 = min(y2, m_Height);
 
-	u32 *src = m_Buffer[iFromBuffer] + x1 + (y1*m_Pitch);
-	u32 *dst = m_Buffer[iDestBuffer] + x1 + (y1*m_Pitch);
+	u32 *src = (m_Buffer[iFromBuffer] + x1 + (y1*m_Pitch));
+	u32 *dst = (m_Buffer[iDestBuffer] + x1 + (y1*m_Pitch));
 	int xlen_in_bytes = (x2 - x1)*4;
 	int ylen = y2 - y1;
 
@@ -476,7 +475,7 @@ void CScreen::PutChar(u32 *pBuffer, int x, int y, u32 color, u8 ch)
 	   return;
 	}
 	
-	u32 *vram = pBuffer + x + (y * m_Pitch);
+	u32 *vram = (pBuffer + x + (y * m_Pitch));
 	
 	
 	font = &msx[ (int)ch * 8];
