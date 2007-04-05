@@ -119,94 +119,6 @@ CTextUI::CTextUI()
 	m_fs_vis_cfg.x2 = m_Screen->m_Width;
 	m_fs_vis_cfg.y2 = m_Screen->m_Height - 1;
 
-	/* populate PSPRadio's GU functions (needed for gu Visualizer plugins ) */
-	VisPluginGuFunctions *gu = &m_PSPRadio->m_VisPluginGuFunctions;
-	gu->sceGuDrawBufferList =     sceGuDrawBufferList;
-	gu->sceGuDepthFunc =          sceGuDepthFunc;     
-	gu->sceGuDepthMask =          sceGuDepthMask;     
-	gu->sceGuDepthOffset =        sceGuDepthOffset;   
-	gu->sceGuDepthRange =         sceGuDepthRange;    
-	gu->sceGuFog =                sceGuFog;           
-	gu->sceGuBreak =              sceGuBreak;         
-	gu->sceGuContinue =           sceGuContinue;      
-	gu->sceGuSetCallback =        sceGuSetCallback;   
-	gu->sceGuSignal =             sceGuSignal;        
-	gu->sceGuSendCommandf =       sceGuSendCommandf;  
-	gu->sceGuSendCommandi =       sceGuSendCommandi;  
-	gu->sceGuGetMemory =          sceGuGetMemory;     
-	gu->sceGuStart =              sceGuStart;         
-	gu->sceGuFinish =             sceGuFinish;        
-	gu->sceGuFinishId =           sceGuFinishId;      
-	gu->sceGuCallList =           sceGuCallList;      
-	gu->sceGuCallMode =           sceGuCallMode;      
-	gu->sceGuCheckList =          sceGuCheckList;     
-	gu->sceGuSendList =           sceGuSendList;      
-	gu->sceGuSync =               sceGuSync;          
-	gu->sceGuDrawArray =          sceGuDrawArray;     
-	gu->sceGuBeginObject =        sceGuBeginObject;   
-	gu->sceGuEndObject =          sceGuEndObject;     
-	gu->sceGuSetStatus =          sceGuSetStatus;     
-	gu->sceGuGetStatus =          sceGuGetStatus;     
-	gu->sceGuSetAllStatus =       sceGuSetAllStatus;  
-	gu->sceGuGetAllStatus =       sceGuGetAllStatus;  
-	gu->sceGuEnable =             sceGuEnable;        
-	gu->sceGuDisable =            sceGuDisable;       
-	gu->sceGuLight =              sceGuLight;         
-	gu->sceGuLightAtt =           sceGuLightAtt;      
-	gu->sceGuLightColor =         sceGuLightColor;    
-	gu->sceGuLightMode =          sceGuLightMode;     
-	gu->sceGuLightSpot =          sceGuLightSpot;     
-	gu->sceGuClear =              sceGuClear;         
-	gu->sceGuClearColor =         sceGuClearColor;    
-	gu->sceGuClearDepth =         sceGuClearDepth;    
-	gu->sceGuClearStencil =       sceGuClearStencil;  
-	gu->sceGuPixelMask =          sceGuPixelMask;     
-	gu->sceGuColor =              sceGuColor;         
-	gu->sceGuColorFunc =          sceGuColorFunc;     
-	gu->sceGuColorMaterial =      sceGuColorMaterial; 
-	gu->sceGuAlphaFunc =          sceGuAlphaFunc;     
-	gu->sceGuAmbient =            sceGuAmbient;       
-	gu->sceGuAmbientColor =       sceGuAmbientColor;  
-	gu->sceGuBlendFunc =          sceGuBlendFunc;     
-	gu->sceGuMaterial =           sceGuMaterial;      
-	gu->sceGuModelColor =         sceGuModelColor;    
-	gu->sceGuStencilFunc =        sceGuStencilFunc;   
-	gu->sceGuStencilOp =          sceGuStencilOp;     
-	gu->sceGuSpecular =           sceGuSpecular;      
-	gu->sceGuFrontFace =          sceGuFrontFace;     
-	gu->sceGuLogicalOp =          sceGuLogicalOp;     
-	gu->sceGuSetDither =          sceGuSetDither;     
-	gu->sceGuShadeModel =         sceGuShadeModel;    
-	gu->sceGuCopyImage =          sceGuCopyImage;     
-	gu->sceGuTexEnvColor =        sceGuTexEnvColor;   
-	gu->sceGuTexFilter =          sceGuTexFilter;     
-	gu->sceGuTexFlush =           sceGuTexFlush;      
-	gu->sceGuTexFunc =            sceGuTexFunc;       
-	gu->sceGuTexImage =           sceGuTexImage;      
-	gu->sceGuTexLevelMode =       sceGuTexLevelMode;  
-	gu->sceGuTexMapMode =         sceGuTexMapMode;    
-	gu->sceGuTexMode =            sceGuTexMode;       
-	gu->sceGuTexOffset =          sceGuTexOffset;     
-	gu->sceGuTexProjMapMode =     sceGuTexProjMapMode;
-	gu->sceGuTexScale =           sceGuTexScale;      
-	gu->sceGuTexSlope =           sceGuTexSlope;      
-	gu->sceGuTexSync =            sceGuTexSync;       
-	gu->sceGuTexWrap =            sceGuTexWrap;       
-	gu->sceGuClutLoad =           sceGuClutLoad;      
-	gu->sceGuClutMode =           sceGuClutMode;      
-	gu->sceGuOffset =             sceGuOffset;        
-	gu->sceGuScissor =            sceGuScissor;       
-	gu->sceGuViewport =           sceGuViewport;      
-	gu->sceGuDrawBezier =         sceGuDrawBezier;    
-	gu->sceGuPatchDivide =        sceGuPatchDivide;   
-	gu->sceGuPatchFrontFace =     sceGuPatchFrontFace;
-	gu->sceGuPatchPrim =          sceGuPatchPrim;     
-	gu->sceGuDrawSpline =         sceGuDrawSpline;    
-	gu->sceGuSetMatrix =          sceGuSetMatrix;     
-	gu->sceGuBoneMatrix =         sceGuBoneMatrix;    
-	gu->sceGuMorphWeight =        sceGuMorphWeight;   
-	gu->sceGuDrawArrayN =         sceGuDrawArrayN;    
-
 	/* Start Render Thread */
 	{
 		pthread_t pthid;
@@ -334,8 +246,6 @@ void CTextUI::RenderLoop()
 			}
 			
 			/* FPS Calculation */
-			time2 = sceKernelLibcClock();
-			total_time += (time2 - time1);
 			if (++frame_count == 10)
 			{
 				fps = (frame_count * CLOCKS_PER_SEC) / total_time;
@@ -348,15 +258,16 @@ void CTextUI::RenderLoop()
 				m_Screen->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], 10, 262, 0xFFFFFFFF, strFPS);
 			}
 	
-			//sceKernelDcacheWritebackAll(); 
-			m_RenderLock->Lock();
-			//m_Screen->SetFrameBuffer(iBuffer);
-			
-			sceDisplayWaitVblankStart();
 			/* Flip Buffers */
+			m_RenderLock->Lock();
+			sceDisplayWaitVblankStart();
 			m_Screen->SwapBuffers();
-			
 			m_RenderLock->Unlock();
+
+			/* fps calculation needs to include wait for vblank and flipping */
+			time2 = sceKernelLibcClock();
+			total_time += (time2 - time1);
+
 		}
 		sceKernelDelayThread(1); /* yield */
 	}
@@ -466,20 +377,8 @@ void CTextUI::RenderNormal()
 		UNSET_DIRTY_BIT(BITMASK_PCM);
 		if (m_activebitmask & BITMASK_PCM)
 		{
-			bool bPluginUsesGU = (m_PSPRadio->m_VisPluginData)?(m_PSPRadio->m_VisPluginData->need_gu):false;
-
-			if (bPluginUsesGU)
-			{
-				m_Screen->StartList();
-			}
-
 			ifdata.Pointer = m_Screen->m_Buffer[m_Screen->DrawBufferIndex];
 			PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
-
-			if (bPluginUsesGU)
-			{
-				m_Screen->EndList();
-			}
 		}
 	}
 	if (m_dirtybitmask & BITMASK_MESSAGE)
@@ -538,16 +437,8 @@ void CTextUI::RenderFullscreenVisualizer()
 		m_Screen->Clear();
 		m_Screen->EndList();
 
-		bool bPluginUsesGU = (m_PSPRadio->m_VisPluginData)?(m_PSPRadio->m_VisPluginData->need_gu):false;
-
-		if (bPluginUsesGU)
-			m_Screen->StartList();
-
 		ifdata.Pointer = m_Screen->m_Buffer[m_Screen->DrawBufferIndex];
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
-
-		if (bPluginUsesGU)
-			m_Screen->EndList();
 
 		sprintf(strSongData, "%02ld:%02ld  %s  %s",
 					pData->lCurrentTime / 60, pData->lCurrentTime % 60,

@@ -106,14 +106,16 @@ void CScreen::Init()
 	ZBufferIndex = 2;
 	m_Buffer[ZBufferIndex] = (u32*)(m_CacheMask + (char*)valloc(FRAMESIZE/2)); /* zb */
 
+	/* GU Set up code: */
 	sceGuInit();
-
 	sceGuStart(GU_DIRECT, list);
 	sceGuDrawBuffer(GU_PSM_8888,       (void*)vrelptr(m_Buffer[DrawBufferIndex]),    m_Pitch);
 	sceGuDispBuffer(m_Width, m_Height, (void*)vrelptr(m_Buffer[DisplayBufferIndex]), m_Pitch);
 	sceGuDepthBuffer(                  (void*)vrelptr(m_Buffer[ZBufferIndex]),       m_Pitch);
 	sceGuOffset(2048 - (m_Width / 2), 2048 - (m_Height / 2));
 	sceGuViewport(2048, 2048, m_Width, m_Height);
+
+	/* Set up Scissor test (don't render outside of the display) */
 	sceGuScissor(0, 0, m_Width, m_Height);
 	sceGuEnable(GU_SCISSOR_TEST);
 #if 0

@@ -44,7 +44,6 @@ VisPlugin vtable =
 	PLUGIN_VIS_VERSION,		 		/* Populate with PLUGIN_VIS_VERSION */
 	"Sample Visualizer Plugin",		/* Plugin description */
 	"By Raf",	 					/* Plugin about info */
-	0,								/* Set to 1 if plugin needs GU; 0 if not. */
 	scope_init,			 			/* Called when the plugin is enabled */
 	NULL,				 			/* Called when the plugin is disabled */
 	NULL,						 	/* not used atm *//* Called when playback starts */
@@ -57,7 +56,6 @@ VisPlugin vtable =
 
 	/* Set by PSPRadio */
 	NULL,							/* Filled in by PSPRadio */
-	NULL							/* GU functions to use in plugin */
 };
 /** END of Plugin definitions setup */
 

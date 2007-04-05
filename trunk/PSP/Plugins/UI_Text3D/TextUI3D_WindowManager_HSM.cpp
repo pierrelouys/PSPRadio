@@ -1591,19 +1591,12 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 	}
 }
 
-#include <PSPRadio.h>
-extern UIPlugin textui3d_vtable;
 void WindowHandlerHSM::RenderPCMBuffer()
 {
 	static pspradioexport_ifdata ifdata = { 0 };
-	static CPSPRadio *PSPRadio = (CPSPRadio*)textui3d_vtable.PSPRadioObject;
-	static bool bPluginUsesGU = (PSPRadio->m_VisPluginData)?(PSPRadio->m_VisPluginData->need_gu):false;
 
-	if (bPluginUsesGU)
-	{
-		ifdata.Pointer = NULL;
-		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
-	}
+	ifdata.Pointer = (void *)((unsigned int)m_framebuffer | 0x44000000);
+	PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 }
 
 /* State handlers and transition-actions */
@@ -1630,7 +1623,13 @@ void *WindowHandlerHSM::top_handler()
 			RenderListIcon();
 			RenderUSB();
 			RenderPlaystateIcon();
-			RenderPCMBuffer();
+			/* Call visualizer plugin */
+			{
+				sceGuFinish();
+				sceGuSync(0,0);
+				RenderPCMBuffer();
+				sceGuStart(GU_DIRECT,::gu_list);
+			}
 			/* Update panel positions */
 			UpdateWindows();
 			/* Render panels etc. */

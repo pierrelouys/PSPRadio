@@ -55,8 +55,6 @@ int CPSPRadio::Setup(int argc, char **argv)
 	m_VisPluginConfig.x2 = 480;
 	m_VisPluginConfig.y2 = 272;
 
-	memset(&m_VisPluginGuFunctions, 0, sizeof(m_VisPluginGuFunctions)); /* UI initializes this */
-
 	m_PowerEventData.bEnableNetworkAfterResume = false;
 	m_PowerEventData.bPauseAfterResume = false;
 	m_PowerEventData.bPlayAfterResume = false;
@@ -932,7 +930,6 @@ void CPSPRadio::ScreenshotStore(char *filename)
 						if (m_VisPluginData)
 						{
 							m_VisPluginData->config = &m_VisPluginConfig;
-							m_VisPluginData->gu = &m_VisPluginGuFunctions;
 						}
 						if (m_VisPluginData && m_VisPluginData->interface_version == PLUGIN_VIS_VERSION)
 						{

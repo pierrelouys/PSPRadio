@@ -34,7 +34,12 @@ PSP_HEAP_SIZE_KB(0);
 /* Prototypes */
 void scope_config_update();
 void scope_init();
+void scope_term();
 void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
+#define GETGURELADDR(x) ((void*)((unsigned int)x&~0x44000000))
+
+/* GU Display list */
+unsigned int __attribute__((aligned(16))) list[262144];
 
 /** START of Plugin definitions setup */
 VisPlugin vtable = 
@@ -43,9 +48,8 @@ VisPlugin vtable =
 	PLUGIN_VIS_VERSION,		 		/* Populate with PLUGIN_VIS_VERSION */
 	"Sample GU Visualizer Plugin",	/* Plugin description */
 	"By Raf",	 					/* Plugin about info */
-	1,								/* Set to 1 if plugin needs GU; 0 if not. */
 	scope_init,			 			/* Called when the plugin is enabled */
-	NULL,				 			/* Called when the plugin is disabled */
+	scope_term,			 			/* Called when the plugin is disabled */
 	NULL,						 	/* not used atm *//* Called when playback starts */
 	NULL,						 	/* not used atm *//* Called when playback stops */
 	/* Render the PCM (2ch/44KHz) data, pcm_data has 2 channels interleaved */
@@ -56,7 +60,6 @@ VisPlugin vtable =
 
 	/* Set by PSPRadio */
 	NULL,							/* Filled in by PSPRadio */
-	NULL							/* GU functions to use in plugin */
 };
 /** END of Plugin definitions setup */
 
@@ -67,9 +70,46 @@ VisPlugin *get_vplugin_info()
 }
 
 /* Called from PSPRadio on initialization */
+#define SCR_WIDTH 480
+#define SCR_HEIGHT 272
 void scope_init()
 {
 	scope_config_update();
+	sceGuInit();
+	sceGuStart(GU_DIRECT, list);
+
+	// Set Buffers
+	sceGuDrawBuffer( GU_PSM_8888, 0, 512 );
+	sceGuDispBuffer( 480, 272, (void*)0x88000, 512);
+	//sceGuDepthBuffer( (void*)0x110000, 512);
+
+	//sceGuOffset( 2048 - (SCR_WIDTH/2), 2048 - (SCR_HEIGHT/2));
+	//sceGuViewport( 2048, 2048, SCR_WIDTH, SCR_HEIGHT);
+	//sceGuDepthRange( 65535, 0);
+	
+	//sceGuScissor(xa, ya, (xb - xa), (yb - ya));
+	// Set Render States
+	sceGuScissor(0,0, 480, 272);
+	sceGuEnable( GU_SCISSOR_TEST );
+	//sceGuDepthFunc( GU_GEQUAL );
+	//sceGuEnable( GU_DEPTH_TEST );
+	//sceGuFrontFace( GU_CW );
+	//sceGuShadeModel( GU_SMOOTH );
+	//sceGuEnable( GU_CULL_FACE );
+	//sceGuEnable( GU_CLIP_PLANES );
+
+	sceGuFinish();
+	sceGuSync(0,0);
+
+	sceDisplayWaitVblankStart();
+	sceGuDisplay(GU_TRUE);
+	// finish
+
+}
+
+void scope_term()
+{
+	sceGuTerm();
 }
 
 /* Called from PSPRadio when the config pointer has been updated */
@@ -108,15 +148,23 @@ typedef struct LineVertex
 
 /* This is called from PSPRadio */
 /* (actual visualizer routine) */
-void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
+void scope_render_pcm(u32* drawbuffer_absolute_addr, int16 *pcm_data)
 {
 	float		xpos = vtable.config->x1;
 	int			width  = vtable.config->x2 - vtable.config->x1;
 	int i;
 
-	vtable.gu->sceGuEnable(GU_LINE_SMOOTH);
 
-	LineVertex *l_vertices = (LineVertex *)vtable.gu->sceGuGetMemory((width + 1 )* sizeof(LineVertex));
+	/* define were we want the GU to draw to */
+	sceGuDrawBuffer( GU_PSM_8888, 
+					 GETGURELADDR(drawbuffer_absolute_addr), 
+					 vtable.config->sc_pitch );
+
+	sceGuStart( GU_DIRECT, list );
+
+	sceGuEnable(GU_LINE_SMOOTH);
+
+	LineVertex *l_vertices = (LineVertex *)sceGuGetMemory((width + 1 )* sizeof(LineVertex));
 
 	/* Channel 0 */
 	for (i = 0; i < width; i++)
@@ -125,8 +173,8 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 		l_vertices[i].y = y_mid + (pcm_data[i*5] >> pcm_shdiv);
 		l_vertices[i].z = 0;
 	}
-	vtable.gu->sceGuColor(0xFF00FF00);
-	vtable.gu->sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width, 0, l_vertices);
+	sceGuColor(0xFF00FF00);
+	sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width, 0, l_vertices);
 
 	/* Channel 1 */
 	xpos = vtable.config->x1;
@@ -136,10 +184,15 @@ void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
 		l_vertices[i].y = y_mid - (pcm_data[i*5+1] >> pcm_shdiv);
 		l_vertices[i].z = 0;
 	}
-	vtable.gu->sceGuColor(0xFFFFFF00);
-	vtable.gu->sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width, 0, l_vertices);
+	sceGuColor(0xFFFFFF00);
+	sceGuDrawArray(GU_LINE_STRIP, GU_VERTEX_32BITF | GU_TRANSFORM_2D, width, 0, l_vertices);
 
-	vtable.gu->sceGuDisable(GU_LINE_SMOOTH);
+	sceGuDisable(GU_LINE_SMOOTH);
+
+	/* we're done rendering the frame */
+	sceGuFinish();
+	sceGuSync(0,0);	
+	
 }
   
 /** START Plugin Boilerplate -- shouldn't need to change **/
