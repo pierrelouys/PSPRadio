@@ -78,33 +78,23 @@ void scope_init()
 	sceGuInit();
 	sceGuStart(GU_DIRECT, list);
 
-	// Set Buffers
+	/* Set Buffers */
 	sceGuDrawBuffer( GU_PSM_8888, 0, 512 );
 	sceGuDispBuffer( 480, 272, (void*)0x88000, 512);
-	//sceGuDepthBuffer( (void*)0x110000, 512);
+	sceGuDepthBuffer( (void*)0x110000, 512);
 
-	//sceGuOffset( 2048 - (SCR_WIDTH/2), 2048 - (SCR_HEIGHT/2));
-	//sceGuViewport( 2048, 2048, SCR_WIDTH, SCR_HEIGHT);
-	//sceGuDepthRange( 65535, 0);
+	sceGuOffset( 2048 - (SCR_WIDTH/2), 2048 - (SCR_HEIGHT/2));
+	sceGuViewport( 2048, 2048, SCR_WIDTH, SCR_HEIGHT);
+	sceGuDepthRange( 65535, 0);
 	
-	//sceGuScissor(xa, ya, (xb - xa), (yb - ya));
-	// Set Render States
 	sceGuScissor(0,0, 480, 272);
 	sceGuEnable( GU_SCISSOR_TEST );
-	//sceGuDepthFunc( GU_GEQUAL );
-	//sceGuEnable( GU_DEPTH_TEST );
-	//sceGuFrontFace( GU_CW );
-	//sceGuShadeModel( GU_SMOOTH );
-	//sceGuEnable( GU_CULL_FACE );
-	//sceGuEnable( GU_CLIP_PLANES );
 
 	sceGuFinish();
 	sceGuSync(0,0);
 
 	sceDisplayWaitVblankStart();
 	sceGuDisplay(GU_TRUE);
-	// finish
-
 }
 
 void scope_term()
@@ -161,6 +151,11 @@ void scope_render_pcm(u32* drawbuffer_absolute_addr, int16 *pcm_data)
 					 vtable.config->sc_pitch );
 
 	sceGuStart( GU_DIRECT, list );
+
+	/*sceGuScissor(vtable.config->x1,vtable.config->y1, 
+				width, 
+				vtable.config->y2 - vtable.config->y1);
+	sceGuEnable( GU_SCISSOR_TEST );*/
 
 	sceGuEnable(GU_LINE_SMOOTH);
 
