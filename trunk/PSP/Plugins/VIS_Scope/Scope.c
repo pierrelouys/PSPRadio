@@ -64,7 +64,6 @@ VisPlugin vtable =
 	PLUGIN_VIS_VERSION,		 		/* Populate with PLUGIN_VIS_VERSION */
 	"Scope Visualizer Plugin",		/* Plugin description */
 	"By Raf",	 					/* Plugin about info */
-	0,								/* Set to 1 if plugin needs GU; 0 if not. */
 	scope_init,			 			/* Called when the plugin is enabled */
 	scope_cleanup,		 			/* Called when the plugin is disabled */
 	scope_start,				 	/* not used atm *//* Called when playback starts */
@@ -77,7 +76,6 @@ VisPlugin vtable =
 
 	/* Set by PSPRadio */
 	NULL,							/* Filled in by PSPRadio */
-	NULL							/* GU functions to use in plugin */
 };
 /** END of Plugin definitions setup */
 
@@ -197,7 +195,7 @@ void draw_pcm(u32* vram) /* BARS */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 128
-		Rectangle(vram, x, vtable.config->y2 - (s_pcmbuffer[x*5] >> (pcm_shdiv - 1)), 
+		Rectangle(vram, x, vtable.config->y2 - (s_pcmbuffer[x*2] >> (pcm_shdiv - 1)), 
 										   x+4, vtable.config->y2, RGB(color,color*2,color*8));
 		color++;
 	}
@@ -215,8 +213,8 @@ void draw_pcm(u32* vram) /* DOTS */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. We get a range from 0 < y < 256
-		y1 = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv);
-		y2 = y_mid - (s_pcmbuffer[x*5+1] >> pcm_shdiv);
+		y1 = y_mid + (s_pcmbuffer[x*2] >> pcm_shdiv);
+		y2 = y_mid - (s_pcmbuffer[x*2+1] >> pcm_shdiv);
 		Plot(vram, x, (y1 >= 0 && y1 < y_mid*2)?y1:y_mid, 0x00FFFF);
 		Plot(vram, x, (y2 >= 0 && y2 < y_mid*2)?y2:y_mid, 0x11FFFF);
 	}
@@ -232,8 +230,8 @@ void draw_pcm(u32* vram) /* LINES */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y1 = y_mid - (s_pcmbuffer[x*5+1] >> pcm_shdiv); // L component
-		y2 = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv);   // R component
+		y1 = y_mid - (s_pcmbuffer[x*2+1] >> pcm_shdiv); // L component
+		y2 = y_mid + (s_pcmbuffer[x*2] >> pcm_shdiv);   // R component
 		VertLine(vram, x, y1, y2, 0x00FF00);
 	}
 }
@@ -266,7 +264,7 @@ void draw_pcm(u32* vram) /* TRAIL */
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		y = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
+		y = y_mid + (s_pcmbuffer[x*2] >> pcm_shdiv); // L component
 		prev_pcm[x - vtable.config->x1] = y;
 		VertLine(vram, x, old_y, y, 0x0AFF0A);
 		old_y = y;
@@ -285,8 +283,8 @@ void draw_pcm(u32* vram)
 	{
 		//convert fixed point int to int (the integer part is the most significant byte)
 		// (fixed_point >> 8) == integer part. But I'll use >> 9 to get a range from 64 < y < 192
-		yL = y_mid + (s_pcmbuffer[x*5] >> pcm_shdiv); // L component
-		yR = y_mid + (s_pcmbuffer[x*5+1] >> pcm_shdiv); // L component
+		yL = y_mid + (s_pcmbuffer[x*2] >> pcm_shdiv);   // L component
+		yR = y_mid - (s_pcmbuffer[x*2+1] >> pcm_shdiv); // R component
 		VertLine(vram, x, old_yL, yL, 0x00FFFF);
 		VertLine(vram, x, old_yR, yR, 0x00FF00);
 		old_yL = yL;

@@ -165,7 +165,7 @@ void scope_render_pcm(u32* drawbuffer_absolute_addr, int16 *pcm_data)
 	for (i = 0; i < width; i++)
 	{
 		l_vertices[i].x = xpos++;
-		l_vertices[i].y = y_mid + (pcm_data[i*5] >> pcm_shdiv);
+		l_vertices[i].y = y_mid + (pcm_data[i*2] >> pcm_shdiv);
 		l_vertices[i].z = 0;
 	}
 	sceGuColor(0xFF00FF00);
@@ -176,7 +176,7 @@ void scope_render_pcm(u32* drawbuffer_absolute_addr, int16 *pcm_data)
 	for (i = 0; i < width; i++)
 	{
 		l_vertices[i].x = xpos++;
-		l_vertices[i].y = y_mid - (pcm_data[i*5+1] >> pcm_shdiv);
+		l_vertices[i].y = y_mid - (pcm_data[i*2+1] >> pcm_shdiv);
 		l_vertices[i].z = 0;
 	}
 	sceGuColor(0xFFFFFF00);
