@@ -28,7 +28,9 @@
 #include <stdarg.h>
 #include "VIS_Plugin.h"
 
-
+/* Round up to the power of two */
+#define ROUND_TO_PWR2(x) (1 << (32 - __builtin_allegrex_clz(x - 1)))
+	
 #define RGB(r,g,b) (((b&0xFF)<<16) | ((g&0xFF)<<8) | ((r&0xFF)))
 
 /** PRX **/
@@ -106,14 +108,13 @@ void scope_config_update()
 	
 	if(vtable.config)
 	{
-		mid_a = (vtable.config->y2 - vtable.config->y1) / 2;
+		mid_a = ROUND_TO_PWR2((vtable.config->y2 - vtable.config->y1) / 2);
 		pcm_shdiv = 15; 
 		
 		// We convert the fixed-point integer into an integer by doing binary right shifts.
 		// So pcm_shdiv of 8 gives us the whole integer part, 9 is whole / 2, 10 is /4, etc.
 		// at 15, we are left with a max of 1, so this is the minimum. 
 		// shdiv then is 8 <= shdiv <= 15
-		
 		for (sh = 15, amp = 1; sh >= 8; sh--, amp *= 2)
 		{
 			if (mid_a >= amp)
