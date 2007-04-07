@@ -194,6 +194,7 @@ void CTextUI::RenderLoop()
 	{
 		RM_NORMAL,
 		RM_FULLSCREEN,
+		RM_VISUALIZER_EXCLUSIVE,
 	} render_mode = RM_NORMAL;
 
 	for (;;)
@@ -223,8 +224,15 @@ void CTextUI::RenderLoop()
 				{
 					ifdata.Pointer = &m_fs_vis_cfg;
 					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
-					render_mode = RM_FULLSCREEN;
 					m_dirtybitmask = m_refreshbitmask;
+					if (m_PSPRadio->m_VisPluginData && m_PSPRadio->m_VisPluginData->type == VIS_TYPE_EXCL)
+					{
+						render_mode = RM_VISUALIZER_EXCLUSIVE;
+					}
+					else
+					{
+						render_mode = RM_FULLSCREEN;
+					}
 				}
 				else
 				{
@@ -244,6 +252,32 @@ void CTextUI::RenderLoop()
 				{
 					RenderFullscreenVisualizer();
 				}
+				break;
+			case RM_VISUALIZER_EXCLUSIVE:
+				if ( m_IsPlaying == false ||
+					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) < m_FullscreenWait) )
+				{
+					ifdata.Pointer = &m_vis_cfg;
+					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+					render_mode = RM_NORMAL;
+					m_dirtybitmask = m_refreshbitmask;
+				}
+				else
+				{
+					if (m_dirtybitmask & BITMASK_PCM)
+					{
+						UNSET_DIRTY_BIT(BITMASK_PCM);
+						if (m_activebitmask & BITMASK_PCM)
+						{
+							ifdata.Pointer = m_Screen->m_Buffer[m_Screen->DrawBufferIndex];
+							PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+						}
+					}
+					/* We don't render, the Visualizer has exlusive rights */
+					sceKernelDelayThread(1); /* yield */
+					continue;
+				}
+				break;
 			}
 			
 			/* FPS Calculation */
@@ -722,6 +756,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 			m_vis_cfg.sc_height = m_Screen->m_Height;
 			m_vis_cfg.sc_pitch = m_Screen->m_Pitch;
 			m_vis_cfg.sc_pixel_format = m_Screen->m_PixelFormat;
+			m_vis_cfg.fullscreen = 0;
 
 			//memset(&ifdata, 0, sizeof(ifdata));
 		}

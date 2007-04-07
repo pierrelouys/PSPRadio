@@ -1,18 +1,20 @@
 What's New for PSPRadio
 ========================
 1.xx.xxxx (2007-04-xx)
-NEW FEATURES
+*NEW FEATURES*
 (raf) Core: Updated visualizer plugin interface to level 2. Cleaned-up, reorganized fields, and added gu support.
 (raf) TextUI3D: Added wait for VBlank before page flipping, this eliminates tearing; but reduces framerate because the render thread also waits for vblank; need to optimize.
 (raf) TextUI3D: Added support for on-screen visualizer (only gu visualizers supported) (fullscreen visualizer not supported yet).
 (raf) Core: Using Alexander Berl (a.k.a. Raphael) routines for VRAM allocation.
 (raf) VIS: Added a cube visualizer, displays a scope on every side.
-BUG FIXES
+(raf) VIS: Interface changed. Now plugin gets notified when song starts/stops/pauses. Also, now the plugin can request song information.
+(raf) VIS: Visualizers can now run in exclusive mode.
+*BUG FIXES*
 (raf) Core: Fixed an old bug where if a song had no metadata (like an old MP3 without ID3 info), the metadata would be populated from the currently highlighted song.
 (raf) TextUI: Fixed crash that could be caused if switching screens (START) while starting a plugin (specially a visualizer).
-KNOWN BUGS
+*KNOWN BUGS*
 (raf) TextUI: When switching skins all the text will disappear. This happens on occasion. Just move up or down for the text to re-render.
-OE related Problems on this release
+*OE related Problems on this release*
 (raf) Core: Static IP connections don't work correctly. Seems the gateway is not used as it should.  (Also, make sure CPU speed is 222 when establishing a WiFi connection). Possible solution, if you have a proxy server in your network, set it up in PSPRadio.cfg. A static IP may work then. (This is untested).
 
 1.18.1377 (2007-04-02)

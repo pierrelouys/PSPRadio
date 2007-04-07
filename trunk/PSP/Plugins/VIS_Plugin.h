@@ -68,6 +68,17 @@
 	VisPlugin *get_vplugin_info();
 
 
+	/*
+	   Note about exclusive mode (VIS_TYPE_EXCL):
+	   Only start rendering after receiving a config_update() callback and the fullscreen
+	   field is set to 1.
+	   Then, make sure to stop rendering on the opposite case (config_update() with
+	   fullscreen set to 0.
+	   For rendering, either use your own thread, or base it on the render_pcm() or render_freq()
+	   callbacks. See VIS_CubeExcl for a sample.
+	*/
+	
+	
 	#ifdef __cplusplus
 		};
 	#endif
