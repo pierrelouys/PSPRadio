@@ -1598,11 +1598,11 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 void WindowHandlerHSM::RenderPCMBuffer()
 {
 	static pspradioexport_ifdata ifdata = { 0 };
-	static CPSPRadio *PSPRadio = (CPSPRadio *)textui3d_vtable.PSPRadioObject;
+	//static CPSPRadio *PSPRadio = (CPSPRadio *)textui3d_vtable.PSPRadioObject;
 
-	if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type != VIS_TYPE_SW)
+	//if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type != VIS_TYPE_SW)
 	{
-		ifdata.Pointer = (void *)((unsigned int)m_framebuffer);
+		ifdata.Pointer = (void *)((unsigned int)m_framebuffer | 0x44000000);
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 	}
 }
@@ -1659,6 +1659,10 @@ void WindowHandlerHSM::RenderNormal()
 void WindowHandlerHSM::RenderFullscreenVisualizer()
 {
 	GUInitDisplayList();
+
+	sceGuClearColor(0x00000000);
+	sceGuClear(GU_COLOR_BUFFER_BIT|GU_FAST_CLEAR_BIT);
+
 	RenderTitle();
 	RenderPlayTime();
 	RenderPlaystateIcon();
