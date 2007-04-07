@@ -429,7 +429,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				if (strlen(pCurrentStream->GetTitle()) == 0)
 				{
 					/** Populate m_CurrentMetaData */
-					MetaData *source = &(*(*(m_Lists->GetCurrentElementIterator())));
+					MetaData *source = &(*(*(m_Lists->GetPlayingElementIterator())));
 					memcpy(pCurrentStream->GetMetaData(), source, sizeof(MetaData));
 				}
 				if (UI)
@@ -556,7 +556,8 @@ void PlayListScreen::PlaySetStream()
 	{
 		case CPSPSound::PLAY:
 		case CPSPSound::STOP:
-			memcpy(currentStream->GetMetaData(), &(*(*(m_Lists->GetCurrentElementIterator()))), sizeof(MetaData));
+			//memcpy(currentStream->GetMetaData(), &(*(*(m_Lists->GetCurrentElementIterator()))), sizeof(MetaData));
+			currentStream->ClearMetadata();
 			currentStream->SetURI((*(m_Lists->GetPlayingElementIterator()))->strURI);
 			break;
 		case CPSPSound::PAUSE:
