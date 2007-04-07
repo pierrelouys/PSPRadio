@@ -59,6 +59,10 @@ gfx_sizes	GfxSizes;
 static CTextUI3D *sThis;
 volatile bool s_ExitRenderThread = false;
 volatile bool s_RenderThreadRunning = false;
+VisPluginConfig g_vis_cfg, g_fs_vis_cfg;
+bool g_bIsPlaying = false;
+clock_t g_FullscreenWait = 10;
+clock_t g_TimeStartedPlaying = 0;
 
 extern UIPlugin textui3d_vtable;
 
@@ -87,6 +91,19 @@ CTextUI3D::CTextUI3D()
 		shdparam.sched_priority = 45;
 		pthread_attr_setschedparam(&pthattr, &shdparam);
 		pthread_create(&pthid, &pthattr, render_thread, NULL);
+
+		g_vis_cfg.sc_width = 480;
+		g_vis_cfg.sc_height = 272;
+		g_vis_cfg.sc_pitch = 512;
+		g_vis_cfg.sc_pixel_format = 0;
+		g_vis_cfg.x1 = 0;
+		g_vis_cfg.y1 = 0;
+		g_vis_cfg.x2 = 480;
+		g_vis_cfg.y2 = 272;
+		g_vis_cfg.fullscreen = 0;
+		g_fs_vis_cfg = g_vis_cfg;
+		g_fs_vis_cfg.fullscreen = 1;
+
 	}
 }
 
@@ -232,19 +249,20 @@ void CTextUI3D::GetSettings()
 
 	//Configure Visualizer
 	{
-		VisPluginConfig vis_cfg;
+		//VisPluginConfig vis_cfg;
 		pspradioexport_ifdata ifdata = { 0 };
 	
-		vis_cfg.sc_width = 480;
-		vis_cfg.sc_height = 272;
-		vis_cfg.sc_pitch = 512;
-		vis_cfg.sc_pixel_format = 0;
-		vis_cfg.x1 = LocalSettings.VisualizerX;
-		vis_cfg.y1 = LocalSettings.VisualizerY;
-		vis_cfg.x2 = LocalSettings.VisualizerX + LocalSettings.VisualizerW;
-		vis_cfg.y2 = LocalSettings.VisualizerY + (1 << LocalSettings.VisualizerH);
+		g_vis_cfg.sc_width = 480;
+		g_vis_cfg.sc_height = 272;
+		g_vis_cfg.sc_pitch = 512;
+		g_vis_cfg.sc_pixel_format = 0;
+		g_vis_cfg.x1 = LocalSettings.VisualizerX;
+		g_vis_cfg.y1 = LocalSettings.VisualizerY;
+		g_vis_cfg.x2 = LocalSettings.VisualizerX + LocalSettings.VisualizerW;
+		g_vis_cfg.y2 = LocalSettings.VisualizerY + (1 << LocalSettings.VisualizerH);
+		g_vis_cfg.fullscreen = 0;
 		
-		ifdata.Pointer = &vis_cfg;
+		ifdata.Pointer = &g_vis_cfg;
 		PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
 	}
 }
@@ -298,16 +316,20 @@ int CTextUI3D::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	{
 		case CPSPSound::STOP:
 			{
+			g_bIsPlaying = false;
 			m_wmanager->Dispatch(WM_EVENT_PLAYER_STOP, NULL);
 			}
 			break;
 		case CPSPSound::PAUSE:
 			{
+			g_bIsPlaying = false;
 			m_wmanager->Dispatch(WM_EVENT_PLAYER_PAUSE, NULL);
 			}
 			break;
 		case CPSPSound::PLAY:
 			{
+			g_bIsPlaying = true;
+			g_TimeStartedPlaying = sceKernelLibcClock();
 			m_wmanager->Dispatch(WM_EVENT_PLAYER_START, NULL);
 			}
 			break;
@@ -315,6 +337,10 @@ int CTextUI3D::DisplayActiveCommand(CPSPSound::pspsound_state playingstate)
 	return 0;
 }
 
+void CTextUI3D::OnButtonReleased(int buttonmask)
+{
+	g_TimeStartedPlaying = sceKernelLibcClock();
+}
 
 int CTextUI3D::DisplayErrorMessage(char *strMsg)
 {

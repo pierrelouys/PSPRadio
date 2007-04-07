@@ -313,6 +313,10 @@ private:
 	static int mbxThread(SceSize args, void *argp);
 	int MbxThread();
 
+	/* Rendering Modes */
+	void RenderNormal();
+	void RenderFullscreenVisualizer();
+
 	enum panel_enum
 	{
 		PANEL_PLAYLIST_LIST,

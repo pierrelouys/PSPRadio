@@ -154,45 +154,6 @@ VisPlugin *get_vplugin_info()
 void init()
 {
 	vfpu_srand(0);
-	config_update();
-
-	//init_gu here
-	sceGuInit();
-	sceGuStart(GU_DIRECT, list);
-
-	// Set Buffers
-	sceGuDrawBuffer( GU_PSM_8888, 0, 512 );
-	sceGuDispBuffer( 480, 272, (void*)0x88000, 512);
-	sceGuDepthBuffer( (void*)0x110000, 512);
-
-	sceGuOffset( 2048 - (SCR_WIDTH/2), 2048 - (SCR_HEIGHT/2));
-	sceGuViewport( 2048, 2048, SCR_WIDTH, SCR_HEIGHT);
-	sceGuDepthRange( 65535, 0);
-	
-	// Set Render States
-	sceGuScissor(0,0, 480, 272);
-	sceGuEnable( GU_SCISSOR_TEST );
-	sceGuDepthFunc( GU_GEQUAL );
-	sceGuEnable( GU_DEPTH_TEST );
-	sceGuFrontFace( GU_CW );
-	sceGuShadeModel( GU_SMOOTH );
-	sceGuEnable( GU_CULL_FACE );
-	sceGuEnable( GU_CLIP_PLANES );
-
-	sceGuEnable(GU_TEXTURE_2D);
-	sceGuTexMode( GU_PSM_8888, 0, 0, 0);
-	sceGuTexFunc( GU_TFX_DECAL, GU_TCC_RGB );
-	sceGuTexFilter( GU_LINEAR, GU_LINEAR );
-	sceGuTexScale( 1.0f, 1.0f );
-	sceGuTexOffset( 0.0f, 0.0f );
- 
-	sceGuFinish();
-	sceGuSync(0,0);
- 
-	sceDisplayWaitVblankStart();
-	sceGuDisplay(GU_TRUE);
-
-	SetupProjection();
 }
 
 void SetupProjection( void )
@@ -217,7 +178,55 @@ void term()
 /* Called from PSPRadio when the config pointer has been updated */
 void config_update()
 {
-	render_on = (vtable.config)?(vtable.config->fullscreen):0;
+	int temp_render_on = (vtable.config)?(vtable.config->fullscreen):0;
+
+	if (temp_render_on == 1 && render_on == 0)
+	{
+		sceGuInit();
+
+		sceGuStart(GU_DIRECT, list);
+	
+		// Set Buffers
+		sceGuDrawBuffer( GU_PSM_8888, 0, 512 );
+		sceGuDispBuffer( 480, 272, (void*)0x88000, 512);
+		sceGuDepthBuffer( (void*)0x110000, 512);
+	
+		sceGuOffset( 2048 - (SCR_WIDTH/2), 2048 - (SCR_HEIGHT/2));
+		sceGuViewport( 2048, 2048, SCR_WIDTH, SCR_HEIGHT);
+		sceGuDepthRange( 65535, 0);
+		
+		// Set Render States
+		sceGuScissor(0,0, 480, 272);
+		sceGuEnable( GU_SCISSOR_TEST );
+		sceGuDepthFunc( GU_GEQUAL );
+		sceGuEnable( GU_DEPTH_TEST );
+		sceGuFrontFace( GU_CW );
+		sceGuShadeModel( GU_SMOOTH );
+		sceGuEnable( GU_CULL_FACE );
+		sceGuEnable( GU_CLIP_PLANES );
+	
+		sceGuEnable(GU_TEXTURE_2D);
+		sceGuTexMode( GU_PSM_8888, 0, 0, 0);
+		sceGuTexFunc( GU_TFX_DECAL, GU_TCC_RGB );
+		sceGuTexFilter( GU_LINEAR, GU_LINEAR );
+		sceGuTexScale( 1.0f, 1.0f );
+		sceGuTexOffset( 0.0f, 0.0f );
+	
+		sceGuFinish();
+		sceGuSync(0,0);
+	
+		sceDisplayWaitVblankStart();
+		sceGuDisplay(GU_TRUE);
+	
+		SetupProjection();
+
+	}
+	else
+	{	
+		sceGuTerm();
+	}
+
+	render_on = temp_render_on;
 }	
 
 /* Some basic drawing routines */

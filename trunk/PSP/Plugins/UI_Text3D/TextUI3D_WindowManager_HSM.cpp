@@ -1600,68 +1600,162 @@ void WindowHandlerHSM::RenderPCMBuffer()
 	static pspradioexport_ifdata ifdata = { 0 };
 	static CPSPRadio *PSPRadio = (CPSPRadio *)textui3d_vtable.PSPRadioObject;
 
-	if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type == VIS_TYPE_GU)
+	if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type != VIS_TYPE_SW)
 	{
 		ifdata.Pointer = (void *)((unsigned int)m_framebuffer);
 		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 	}
 }
 
-/* State handlers and transition-actions */
+void WindowHandlerHSM::RenderNormal()
+{
+	GUInitDisplayList();
+	RenderBackground();
+	RenderTitle();
+	/* Render Icons */
+	RenderNetwork();
+	RenderBattery();
+	RenderBuffer();
+	RenderIP();
+	RenderBitrate();
+	RenderClock();
+	RenderVolume();
+	RenderPlayTime();
+	RenderListIcon();
+	RenderUSB();
+	RenderPlaystateIcon();
+	/* Call visualizer plugin */
+	{
+		sceGuFinish();
+		sceGuSync(0,0);
+		RenderPCMBuffer();
+		sceGuStart(GU_DIRECT,::gu_list);
+	}
+	/* Update panel positions */
+	UpdateWindows();
+	/* Render panels etc. */
+	for (int i = 0 ; i < PANEL_COUNT ; i++)
+	{
+		if ((m_panels[i].GetPositionX() < PANEL_HIDE_X) && (m_panels[i].GetPositionY() < PANEL_HIDE_Y))
+		{
+			m_panels[i].Render(0xFF000000);
+		}
+	}
+	/* Render text for windows */
+	RenderList(m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
+	RenderList(m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
+	RenderList(m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
+	RenderList(m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
+	RenderList(m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
+	RenderList(m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
+	RenderList(m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
+	/* Render progressbar if necessary */
+	RenderProgressBar(false);
+	RenderError(EVENT_RENDER);
+	RenderMessage(EVENT_RENDER);
+	GUEndDisplayList();
+}
 
+void WindowHandlerHSM::RenderFullscreenVisualizer()
+{
+	GUInitDisplayList();
+	RenderTitle();
+	RenderPlayTime();
+	RenderPlaystateIcon();
+	/* Call visualizer plugin */
+	{
+		sceGuFinish();
+		sceGuSync(0,0);
+		RenderPCMBuffer();
+		sceGuStart(GU_DIRECT,::gu_list);
+	}
+	RenderError(EVENT_RENDER);
+	RenderMessage(EVENT_RENDER);
+	GUEndDisplayList();
+}
+
+
+extern bool g_bIsPlaying;
+extern clock_t g_FullscreenWait;
+extern clock_t g_TimeStartedPlaying;
+extern VisPluginConfig g_vis_cfg, g_fs_vis_cfg;
+/* State handlers and transition-actions */
 void *WindowHandlerHSM::top_handler()
 	{
+
+	enum _render_mode
+	{
+		RM_NORMAL,
+		RM_FULLSCREEN,
+		RM_VISUALIZER_EXCLUSIVE,
+	};
+
+	static clock_t timenow = 0;
+	static _render_mode render_mode = RM_NORMAL;
+	static pspradioexport_ifdata ifdata = { 0 };
+	static CPSPRadio *PSPRadio = (CPSPRadio *)textui3d_vtable.PSPRadioObject;
+
+	timenow = sceKernelLibcClock();
 
 	switch (m_Event.Signal)
 		{
 		/* VB event */
 		case WM_EVENT_VBLANK:
-			GUInitDisplayList();
-			RenderBackground();
-			RenderTitle();
-			/* Render Icons */
-			RenderNetwork();
-			RenderBattery();
-			RenderBuffer();
-			RenderIP();
-			RenderBitrate();
-			RenderClock();
-			RenderVolume();
-			RenderPlayTime();
-			RenderListIcon();
-			RenderUSB();
-			RenderPlaystateIcon();
-			/* Call visualizer plugin */
 			{
-				sceGuFinish();
-				sceGuSync(0,0);
-				RenderPCMBuffer();
-				sceGuStart(GU_DIRECT,::gu_list);
-			}
-			/* Update panel positions */
-			UpdateWindows();
-			/* Render panels etc. */
-			for (int i = 0 ; i < PANEL_COUNT ; i++)
-			{
-				if ((m_panels[i].GetPositionX() < PANEL_HIDE_X) && (m_panels[i].GetPositionY() < PANEL_HIDE_Y))
+				switch(render_mode)
 				{
-					m_panels[i].Render(0xFF000000);
+				case RM_NORMAL:
+					if ( g_bIsPlaying && g_FullscreenWait &&
+						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) >= g_FullscreenWait) )
+					{
+						ifdata.Pointer = &g_fs_vis_cfg;
+						PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+						if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type == VIS_TYPE_EXCL)
+						{
+							render_mode = RM_VISUALIZER_EXCLUSIVE;
+						}
+						else
+						{
+							render_mode = RM_FULLSCREEN;
+						}
+					}
+					else
+					{
+						RenderNormal();
+					}
+					break;
+				case RM_FULLSCREEN:
+					if ( g_bIsPlaying == false ||
+						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) < g_FullscreenWait) )
+					{
+						ifdata.Pointer = &g_vis_cfg;
+						PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+						render_mode = RM_NORMAL;
+					}
+					else
+					{
+						RenderFullscreenVisualizer();
+					}
+					break;
+				case RM_VISUALIZER_EXCLUSIVE:
+					if ( g_bIsPlaying == false ||
+						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) < g_FullscreenWait) )
+					{
+						ifdata.Pointer = &g_vis_cfg;
+						PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
+						render_mode = RM_NORMAL;
+					}
+					else
+					{
+						RenderPCMBuffer();
+						/* We don't render, the Visualizer has exlusive rights */
+						sceKernelDelayThread(1); /* yield */
+					}
+					break;
 				}
 			}
-			/* Render text for windows */
-			RenderList(m_OptionItems, 	m_panels[PANEL_OPTIONS].GetPositionX(),	m_panels[PANEL_OPTIONS].GetPositionY(), m_panels[PANEL_OPTIONS].GetOpacity(), FONT_LIST);
-			RenderList(m_PlaylistContainer, m_panels[PANEL_PLAYLIST_LIST].GetPositionX(), m_panels[PANEL_PLAYLIST_LIST].GetPositionY(), m_panels[PANEL_PLAYLIST_LIST].GetOpacity(), FONT_LIST);
-			RenderList(m_PlaylistEntries, m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionX(), m_panels[PANEL_PLAYLIST_ENTRIES].GetPositionY(), m_panels[PANEL_PLAYLIST_ENTRIES].GetOpacity(), FONT_LIST);
-			RenderList(m_ShoutcastContainer, m_panels[PANEL_SHOUTCAST_LIST].GetPositionX(), m_panels[PANEL_SHOUTCAST_LIST].GetPositionY(), m_panels[PANEL_SHOUTCAST_LIST].GetOpacity(), FONT_LIST);
-			RenderList(m_ShoutcastEntries, m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionX(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetPositionY(), m_panels[PANEL_SHOUTCAST_ENTRIES].GetOpacity(), FONT_LIST);
-			RenderList(m_LocalfilesContainer, m_panels[PANEL_LOCALFILES_LIST].GetPositionX(), m_panels[PANEL_LOCALFILES_LIST].GetPositionY(), m_panels[PANEL_LOCALFILES_LIST].GetOpacity(), FONT_LIST);
-			RenderList(m_LocalfilesEntries, m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionX(), m_panels[PANEL_LOCALFILES_ENTRIES].GetPositionY(), m_panels[PANEL_LOCALFILES_ENTRIES].GetOpacity(), FONT_LIST);
-			/* Render progressbar if necessary */
-			RenderProgressBar(false);
-			RenderError(EVENT_RENDER);
-			RenderMessage(EVENT_RENDER);
-			GUEndDisplayList();
 			return 0;
+			break;
 
 		/* Static text events */
 		case WM_EVENT_TEXT_SONGTITLE:

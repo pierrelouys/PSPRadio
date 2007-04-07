@@ -138,6 +138,7 @@ public:
 	void OnUSBEnable();
 	void OnUSBDisable();
 	void NewPCMBuffer(short *PCMBuffer);
+	void OnButtonReleased(int buttonmask);
 
 	/** Screen Handling */
 	void Initialize_Screen(IScreen *Screen);
