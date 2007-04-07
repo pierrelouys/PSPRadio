@@ -539,22 +539,39 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 {
 	char *strCfgFile = NULL;
 	VisPluginConfig vis_cfg;
+	CIniParser *newconfig = NULL;
+	CIniParser *oldconfig = NULL;
 
 	TextUILog(LOG_LOWLEVEL, "LoadConfigSettings() start");
 
 	if (Screen->GetConfigFilename())
 	{
-		if (m_Config)
-		{
-			delete(m_Config);
-		}
 		strCfgFile = (char *)malloc(strlen(m_strCWD) + strlen(Screen->GetConfigFilename()) + 64);
+		if (strCfgFile == NULL)
+			return;
+
 		sprintf(strCfgFile, "%s/%s/%s", m_strCWD, m_strConfigDir, Screen->GetConfigFilename());
 	
 		TextUILog(LOG_LOWLEVEL, "LoadConfigSettings(): Using '%s' config file", strCfgFile);
 		
-		m_Config = new CIniParser(strCfgFile);
-		
+		newconfig = new CIniParser(strCfgFile);
+
+		if (newconfig != NULL)
+		{
+			oldconfig = m_Config;
+			m_Config = newconfig;
+			/* Now we can destroy the old config object */
+			if (oldconfig)
+			{
+				delete(oldconfig);
+			}
+		}
+		else
+		{
+			TextUILog(LOG_ERROR, "Error creating iniparser. Out of memory?");
+			return;
+		}
+
 		TextUILog(LOG_VERYLOW, "After instantiating the iniparser");
 		
 		free (strCfgFile), strCfgFile = NULL;

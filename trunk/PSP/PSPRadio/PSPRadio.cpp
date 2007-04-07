@@ -925,29 +925,33 @@ void CPSPRadio::ScreenshotStore(char *filename)
 						ModuleStartGAME();
 						break;
 					case PLUGIN_VIS:
-						if (get_vplugin_info != NULL)
-							m_VisPluginData = get_vplugin_info();
-						if (m_VisPluginData)
 						{
-							m_VisPluginData->config = &m_VisPluginConfig;
-						}
-						if (m_VisPluginData && m_VisPluginData->interface_version == PLUGIN_VIS_VERSION)
-						{
-							Log(LOG_INFO, "Module description: '%s' Interface Version: %d", 
-								m_VisPluginData->description,
-								m_VisPluginData->interface_version);
-							m_VisPluginData->init();
-						}
-						else
-						{
-							Log(LOG_ERROR, "Unable to load plugin '%s'. This plugin supports i/f version %d. This version of PSPRadio uses version %d.", 
-								m_ModuleLoader[type]->GetFilename(),
-								m_VisPluginData->interface_version,
-								PLUGIN_VIS_VERSION);
-							m_VisPluginData = NULL;
-							m_ModuleLoader[type]->Unload();
-							m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
-							return -2;
+							VisPlugin *vis_plugin_ptr = NULL;
+							if (get_vplugin_info != NULL)
+								vis_plugin_ptr = get_vplugin_info();
+							if (vis_plugin_ptr)
+							{
+								vis_plugin_ptr->config = &m_VisPluginConfig;
+							}
+							if (vis_plugin_ptr && vis_plugin_ptr->interface_version == PLUGIN_VIS_VERSION)
+							{
+								Log(LOG_INFO, "Module description: '%s' Interface Version: %d", 
+									vis_plugin_ptr->description,
+									vis_plugin_ptr->interface_version);
+								vis_plugin_ptr->init();
+							}
+							else
+							{
+								Log(LOG_ERROR, "Unable to load plugin '%s'. This plugin supports i/f version %d. This version of PSPRadio uses version %d.", 
+									m_ModuleLoader[type]->GetFilename(),
+									vis_plugin_ptr->interface_version,
+									PLUGIN_VIS_VERSION);
+								vis_plugin_ptr = m_VisPluginData = NULL;
+								m_ModuleLoader[type]->Unload();
+								m_ModuleLoader[type]->SetName(PLUGIN_OFF_STRING);
+								return -2;
+							}
+							m_VisPluginData = vis_plugin_ptr;
 						}
 						break;
 					case NUMBER_OF_PLUGIN_TYPES: 
@@ -997,14 +1001,18 @@ void CPSPRadio::ScreenshotStore(char *filename)
 				break;
 				case PLUGIN_VIS:
 				{
+					VisPlugin *vis_plugin_ptr = m_VisPluginData;
+					m_VisPluginData = NULL;
+
 					/* If plugin has cleanup() defined, then call it before unloading */
 					Log(LOG_INFO, "UnloadPlugin(): Destroying current Visual Plugin");
-					if (m_VisPluginData->cleanup != NULL)
+
+					if (vis_plugin_ptr && vis_plugin_ptr->cleanup != NULL)
 					{
-						m_VisPluginData->cleanup();
-						sceKernelDelayThread(100*1000); /* give plugin time to terminate */
+						vis_plugin_ptr->cleanup();
 					}
-					m_VisPluginData = NULL;
+					sceKernelDelayThread(100*1000); /* give plugin time to terminate */
+					vis_plugin_ptr = NULL;
 				}
 				break;
 				default:

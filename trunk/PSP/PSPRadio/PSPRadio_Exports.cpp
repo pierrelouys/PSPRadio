@@ -126,8 +126,6 @@ int PSPRadioIF(pspradioexport_types type, pspradioexport_ifdata *Data)
 				{
 					do_fft();
 					gPSPRadio->m_VisPluginData->render_freq(vram_frame, g_FreqData);
-					//if (gPSPRadio->m_UI)
-					//	gPSPRadio->m_UI->FreqData(g_FreqData);
 				}
 			}
 			break;
