@@ -108,3 +108,12 @@ void do_fft()
 		//g_FreqData[1][i] = g_FreqData[0][i];
 	}
 }
+
+#include <PSPRadio.h>
+extern CPSPRadio *gPSPRadio;
+void Vis_get_song_data(char *szURI, char *szTitle, char *szArtist, int buff_size)
+{
+	strlcpy(szURI, gPSPRadio->GetSoundObject()->GetCurrentStream()->GetMetaData()->strURI, buff_size);
+	strlcpy(szTitle, gPSPRadio->GetSoundObject()->GetCurrentStream()->GetMetaData()->strTitle, buff_size);
+	strlcpy(szArtist, gPSPRadio->GetSoundObject()->GetCurrentStream()->GetMetaData()->strArtist, buff_size);
+}

@@ -22,6 +22,7 @@
 #include "PSPRadio_Exports.h"
 #include "Main.h"
 #include "VisualizerInterface/vis_if.h"
+#include "VIS_Plugin.h"
 
 int module_stop(int args, void *argp)
 {

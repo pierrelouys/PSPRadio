@@ -15,6 +15,9 @@
 		void do_fft_init();
 		void do_fft_destroy();
 
+		void Vis_get_song_data(char *szURI, char *szTitle, char *szArtist, int buff_size);
+
+
 
 	#ifdef __cplusplus
 		};

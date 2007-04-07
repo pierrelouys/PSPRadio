@@ -118,6 +118,7 @@ CTextUI::CTextUI()
 	m_fs_vis_cfg.y1 = 0;
 	m_fs_vis_cfg.x2 = m_Screen->m_Width;
 	m_fs_vis_cfg.y2 = m_Screen->m_Height - 1;
+	m_fs_vis_cfg.fullscreen = 1;
 
 	/* Start Render Thread */
 	{

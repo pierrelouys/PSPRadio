@@ -435,6 +435,10 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				if (UI)
 					UI->OnNewSongData(pCurrentStream->GetMetaData());
 			}
+			/* Notify VIS Plugin */
+			if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->playback_start)
+				gPSPRadio->m_VisPluginData->playback_start();
+		
 			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_PLAY Done.");
 			break;
 		/** The stream was paused */
@@ -442,6 +446,11 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 			Log(LOG_VERYLOW, "OnPlayStateChange() Case PLAYSTATE_PAUSE");
 			if (UI)
 				UI->DisplayActiveCommand(CPSPSound::PAUSE);
+
+			/* Notify VIS Plugin */
+			if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->playback_pause)
+				gPSPRadio->m_VisPluginData->playback_pause();
+		
 			break;
 		/** The stream was stopped */
 		case PLAYSTATE_STOP:
@@ -468,7 +477,7 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				else
 				{
 					Log(LOG_VERYLOW, "OnPlayStateChange(STOP): with %d request", m_ScreenHandler->m_RequestOnPlayOrStop);
-					/** Must have stop because of an error */
+					/** Must have stopped because of an error */
 					if (UI)
 						UI->DisplayActiveCommand(CPSPSound::STOP);
 				}
@@ -478,6 +487,9 @@ void PlayListScreen::OnPlayStateChange(playstates NewPlayState)
 				Log(LOG_ERROR, "OnPlayStateChange(): newstate = PLAYSTATE_STOP, but we had an EOS %dms ago, so ignoring.",
 					CurrentStateInMS - LastEOSinMS);
 			}*/
+			/* Notify VIS Plugin */
+			if (gPSPRadio->m_VisPluginData && gPSPRadio->m_VisPluginData->playback_stop)
+				gPSPRadio->m_VisPluginData->playback_stop();
 			break;
 	}
 

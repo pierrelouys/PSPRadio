@@ -28,6 +28,7 @@
 #include <malloc.h>
 #include <Logging.h>
 #include <PSPApp.h>
+#include <PSPRadio.h>
 
 #include "pspgu.h"
 #include "pspgum.h"
@@ -65,6 +66,9 @@ extern jsaTextureCache		tcache;
 /* Settings */
 extern Settings		LocalSettings;
 extern gfx_sizes	GfxSizes;
+
+/* Plugin data structure */
+extern UIPlugin textui3d_vtable;
 
 static unsigned int __attribute__((aligned(16))) gu_list[262144];
 
@@ -1594,9 +1598,13 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 void WindowHandlerHSM::RenderPCMBuffer()
 {
 	static pspradioexport_ifdata ifdata = { 0 };
+	static CPSPRadio *PSPRadio = (CPSPRadio *)textui3d_vtable.PSPRadioObject;
 
-	ifdata.Pointer = (void *)((unsigned int)m_framebuffer | 0x44000000);
-	PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+	if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type == VIS_TYPE_GU)
+	{
+		ifdata.Pointer = (void *)((unsigned int)m_framebuffer);
+		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
+	}
 }
 
 /* State handlers and transition-actions */

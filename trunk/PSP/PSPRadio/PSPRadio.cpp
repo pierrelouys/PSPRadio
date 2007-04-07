@@ -46,6 +46,7 @@ int CPSPRadio::Setup(int argc, char **argv)
 	m_UIPluginData = NULL;
 
 	m_VisPluginData = NULL;
+	memset(&m_VisPluginConfig, 0, sizeof(m_VisPluginConfig));
 	m_VisPluginConfig.sc_width = 480;
 	m_VisPluginConfig.sc_height = 272;
 	m_VisPluginConfig.sc_pitch = 512;
@@ -557,14 +558,22 @@ int CPSPRadio::ProcessEvents()
 				g_PCMBuffer = (DeviceBuffer *)event.pData;
 				break;
 
-			case MID_NEW_METADATA_AVAILABLE:
+			case MID_NEW_METADATA_AVAILABLE:	
+				{
 				if (m_UI)
 					m_UI->OnNewSongData(m_Sound->GetCurrentStream()->GetMetaData());
+				}
 				break;
 
 			case MID_STREAM_TIME_UPDATED:
 				if (m_UI)
 					m_UI->OnStreamTimeUpdate(m_Sound->GetCurrentStream()->GetMetaData());
+
+				if (m_VisPluginData)
+				{
+					m_VisPluginData->CurrentTime = m_Sound->GetCurrentStream()->GetMetaData()->lCurrentTime;
+					m_VisPluginData->TotalTime   = m_Sound->GetCurrentStream()->GetMetaData()->lTotalTime;
+				}
 				break;
 
 			case MID_TCP_CONNECTING_PROGRESS:
@@ -932,6 +941,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 							if (vis_plugin_ptr)
 							{
 								vis_plugin_ptr->config = &m_VisPluginConfig;
+								vis_plugin_ptr->get_song_data = Vis_get_song_data;
 							}
 							if (vis_plugin_ptr && vis_plugin_ptr->interface_version == PLUGIN_VIS_VERSION)
 							{

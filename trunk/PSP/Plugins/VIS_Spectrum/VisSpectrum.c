@@ -46,9 +46,11 @@ VisPlugin vtable =
 	PLUGIN_VIS_VERSION,		 		/* Populate with PLUGIN_VIS_VERSION */
 	"Spectrum Visualizer Plugin",		/* Plugin description */
 	"By Raf",	 					/* Plugin about info */
+	VIS_TYPE_SW,
 	spect_init,			 			/* Called when the plugin is enabled */
 	NULL,				 			/* Called when the plugin is disabled */
 	NULL,						 	/* not used atm *//* Called when playback starts */
+	NULL,
 	NULL,						 	/* not used atm *//* Called when playback stops */
 	/* Render the PCM (2ch/44KHz) data, pcm_data has 2 channels interleaved */
 	NULL, 
@@ -58,6 +60,8 @@ VisPlugin vtable =
 
 	/* Set by PSPRadio */
 	NULL,							/* Filled in by PSPRadio */
+	0,0,
+	NULL,
 };
 /** END of Plugin definitions setup */
 
