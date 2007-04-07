@@ -11,13 +11,14 @@ p_sprint is included in the code tree and is BSD licensed (I have made slight mo
 ##################### Thanks to #####################
 Ayb4btu and Randy for doing some art :)
 Bitlbee, wouldn't be here without it.
+HellDragon, LordSturm for testing afkim 3.
 macca-hacker, DuEy, thefamilyman, Castor, jawohl, others? for testing afkim 2.
 
 
 ##################### Changelog #####################
 --3
 Much better, more usable program.
-Works in OE kernel, DHCP ONLY CURRENTLY, not sure why static IP address doesn't work.
+OE kernel version, DHCP ONLY CURRENTLY, not sure why static IP address doesn't work.
 Faster display rendering (Keyboard lags less)
 Better wifi handling - User can rechoose which to connect to if connecting fails.
 Better menu system, lots more menu items.
