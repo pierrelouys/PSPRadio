@@ -220,7 +220,8 @@ void CTextUI::RenderLoop()
 			{
 			case RM_NORMAL:
 				if ( m_IsPlaying && m_FullscreenWait &&
-					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) >= m_FullscreenWait) )
+					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) >= m_FullscreenWait) &&
+					m_PSPRadio->m_VisPluginData )
 				{
 					ifdata.Pointer = &m_fs_vis_cfg;
 					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
@@ -241,7 +242,8 @@ void CTextUI::RenderLoop()
 				break;
 			case RM_FULLSCREEN:
 				if ( m_IsPlaying == false ||
-					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) < m_FullscreenWait) )
+					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) < m_FullscreenWait) ||
+					(m_PSPRadio->m_VisPluginData == NULL) )
 				{
 					ifdata.Pointer = &m_vis_cfg;
 					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
@@ -255,7 +257,8 @@ void CTextUI::RenderLoop()
 				break;
 			case RM_VISUALIZER_EXCLUSIVE:
 				if ( m_IsPlaying == false ||
-					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) < m_FullscreenWait) )
+					(((time1 - m_TimeStartedPlaying)/CLOCKS_PER_SEC) < m_FullscreenWait) ||
+					(m_PSPRadio->m_VisPluginData == NULL) )
 				{
 					ifdata.Pointer = &m_vis_cfg;
 					PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);

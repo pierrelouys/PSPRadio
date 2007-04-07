@@ -1598,13 +1598,8 @@ void WindowHandlerHSM::GetFontInfo(font_names font, int *width, int *height, int
 void WindowHandlerHSM::RenderPCMBuffer()
 {
 	static pspradioexport_ifdata ifdata = { 0 };
-	//static CPSPRadio *PSPRadio = (CPSPRadio *)textui3d_vtable.PSPRadioObject;
-
-	//if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type != VIS_TYPE_SW)
-	{
-		ifdata.Pointer = (void *)((unsigned int)m_framebuffer | 0x44000000);
-		PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
-	}
+	ifdata.Pointer = (void *)((unsigned int)m_framebuffer | 0x44000000);
+	PSPRadioIF(PSPRADIOIF_SET_RENDER_PCM, &ifdata);
 }
 
 void WindowHandlerHSM::RenderNormal()
@@ -1710,11 +1705,12 @@ void *WindowHandlerHSM::top_handler()
 				{
 				case RM_NORMAL:
 					if ( g_bIsPlaying && g_FullscreenWait &&
-						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) >= g_FullscreenWait) )
+						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) >= g_FullscreenWait) &&
+						PSPRadio->m_VisPluginData )
 					{
 						ifdata.Pointer = &g_fs_vis_cfg;
 						PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
-						if (PSPRadio->m_VisPluginData && PSPRadio->m_VisPluginData->type == VIS_TYPE_EXCL)
+						if (PSPRadio->m_VisPluginData->type == VIS_TYPE_EXCL)
 						{
 							render_mode = RM_VISUALIZER_EXCLUSIVE;
 						}
@@ -1730,7 +1726,8 @@ void *WindowHandlerHSM::top_handler()
 					break;
 				case RM_FULLSCREEN:
 					if ( g_bIsPlaying == false ||
-						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) < g_FullscreenWait) )
+						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) < g_FullscreenWait) ||
+						(PSPRadio->m_VisPluginData == NULL) )
 					{
 						ifdata.Pointer = &g_vis_cfg;
 						PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
@@ -1743,7 +1740,8 @@ void *WindowHandlerHSM::top_handler()
 					break;
 				case RM_VISUALIZER_EXCLUSIVE:
 					if ( g_bIsPlaying == false ||
-						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) < g_FullscreenWait) )
+						(((timenow - g_TimeStartedPlaying)/CLOCKS_PER_SEC) < g_FullscreenWait) ||
+						(PSPRadio->m_VisPluginData == NULL))
 					{
 						ifdata.Pointer = &g_vis_cfg;
 						PSPRadioIF(PSPRADIOIF_SET_VISUALIZER_CONFIG, &ifdata);
