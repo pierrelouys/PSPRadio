@@ -34,8 +34,8 @@ string menuAddAccount::getInputKey() const
 //the value returned here is the value returned to takeInput
 string menuAddAccount::fixSelected()
 {
-	if (selected < 0) selected = 4;
-	if (selected > 4) selected = 0;
+	if (selected < 0) selected = 5;
+	if (selected > 5) selected = 0;
 	return getInputKey();
 }
 
@@ -59,6 +59,9 @@ string menuAddAccount::pressCross()
 		break;
 	case 4:
 		newAC = new accountCreator(BAT_YAHOO, unicodeClean("Enter details for your Yahoo Account"), "menuAddAccount");
+		break;
+	case 5:
+		newAC = new accountCreator(BAT_JABBER, unicodeClean("Enter details for your Jabber Account\nUsername in the form handle@server.tld"), "menuAddAccount");
 		break;
 	}
 	inputs["accountCreator"] = newAC;

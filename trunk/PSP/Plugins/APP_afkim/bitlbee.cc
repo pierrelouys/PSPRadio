@@ -287,6 +287,12 @@ void bitlbeeCallback::addAccount(bitlbeeAccountType acctype, wstring Wusername, 
 			accounts.push_back(bitlbeeAccount("JABBER", unUsername+"@gmail.com"));
 			break;
 		}
+		case BAT_JABBER:
+		{
+			serverMsg("account add jabber " + unUsername + " " + unPassword);
+			accounts.push_back(bitlbeeAccount("JABBER", unUsername));
+			break;
+		}
 		default:
 		{
 			cout << "YOU GAVE A BAD TYPE TO bitlbee::addAccount()!!!" << endl;

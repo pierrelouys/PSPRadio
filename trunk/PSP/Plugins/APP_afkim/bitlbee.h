@@ -30,8 +30,8 @@ enum bitlbeeAccountType {
 	BAT_MSN,
 	BAT_GMAIL,
 	BAT_YAHOO,
-	BAT_BITLBEE // <- DO NOT PASS THIS IN TO THE ACCOUNT CREATE FUNCTION
-//	BAT_JAB   -- Adding a jabber account will have its own function
+	BAT_BITLBEE, // <- DO NOT PASS THIS IN TO THE ACCOUNT CREATE FUNCTION
+	BAT_JABBER
 };
 
 enum bitlbeeAccountStatus {
