@@ -29,7 +29,7 @@
 #include <iniparser.h>
 #include <stdarg.h>
 #include <Screen.h>
-#include <pthread.h>
+#include <pthreadlite.h>
 #include "TextUI.h"
 #include <psputility_sysparam.h>
 #include "VIS_Plugin.h"

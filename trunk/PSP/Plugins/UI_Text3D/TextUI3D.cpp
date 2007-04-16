@@ -32,7 +32,7 @@
 #include <iniparser.h>
 #include <stdarg.h>
 #include <Logging.h>
-#include <pthread.h>
+#include <pthreadlite.h>
 
 #include <pspkernel.h>
 #include <pspdisplay.h>

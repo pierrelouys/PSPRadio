@@ -30,7 +30,7 @@
 	#include <psputility.h>
 	
 	#ifdef PSPRADIOPLUGIN
-		#include <pthread.h>
+		#include <pthreadlite.h>
 		#include <PSPRadio_Exports.h>
 		#include <APP_Exports.h>
 		#include <Common.h>
