@@ -388,8 +388,16 @@ void danzeff_render()
 #ifdef DANZEFF_SCEGU
 
 struct danzeff_gu_surface	keyTextures[guiStringsSize];
+int private_gu_Bpp = 4;
+int private_gu_pixel_color_format = GU_PSM_8888;
+int private_gu_texture_color_format = GU_COLOR_8888;
 
-
+void danzeff_set_screen(int Bpp, int PixelColorFormat, int TextureColorFormat)
+{
+	private_gu_Bpp = Bpp;
+	private_gu_pixel_color_format = PixelColorFormat;
+	private_gu_texture_color_format = TextureColorFormat;
+}
 
 ///Internal function to draw a surface internally offset
 //Render the given surface at the current screen position offset by screenX, screenY
@@ -405,7 +413,7 @@ void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int sc
 	sceGuTexEnvColor(0xFF000000);
 	sceGuBlendFunc( GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0 );
 	sceGuEnable( GU_BLEND );
-	sceGuTexMode(GU_PSM_8888,0,0,GU_FALSE);
+	sceGuTexMode(private_gu_pixel_color_format,0,0,GU_FALSE);
 	sceGuTexImage(0,surface->surface_width, surface->surface_height,surface->surface_width, surface->texture);
 	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 
@@ -479,7 +487,7 @@ void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int sc
 		c_vertices[5].color 	= 0xFFFFFFFF;
 		}
 
-	sceGuDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D, 6, 0, c_vertices);
+	sceGuDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|private_gu_texture_color_format|GU_VERTEX_32BITF|GU_TRANSFORM_2D, 6, 0, c_vertices);
 
 	sceGuDisable( GU_BLEND );
 	sceGuDisable( GU_ALPHA_TEST );
@@ -488,20 +496,42 @@ void surface_draw_offset(struct danzeff_gu_surface* surface, int screenX, int sc
 
 void danzeff_block_copy(struct danzeff_gu_surface* surface, u32 *texture)
 {
-	u32 *dest = surface->texture;
-	u32 stride = surface->surface_width - surface->texture_width;
 	u32 y, x;
+	u32 stride = surface->surface_width - surface->texture_width;
 
-	for (y = 0 ; y < surface->texture_height ; y++)
+	if (private_gu_Bpp == 2) //16bpp
 	{
-		for (x = 0 ; x < surface->texture_width ; x++)
+		u16 *src  = (u16*)texture;
+		u16 *dest = (u16*)surface->texture;
+	
+		for (y = 0 ; y < surface->texture_height ; y++)
 		{
-		*dest++ = *texture++;
+			for (x = 0 ; x < surface->texture_width ; x++)
+			{
+				*dest++ = *src++;
+			}
+			// skip at the end of each line
+			if (stride > 0)
+			{
+				dest += stride;
+			}
 		}
-		// skip at the end of each line
-		if (stride > 0)
+	}
+	else //32bpp
+	{
+		u32 *dest = surface->texture;
+	
+		for (y = 0 ; y < surface->texture_height ; y++)
 		{
-			dest += stride;
+			for (x = 0 ; x < surface->texture_width ; x++)
+			{
+			*dest++ = *texture++;
+			}
+			// skip at the end of each line
+			if (stride > 0)
+			{
+				dest += stride;
+			}
 		}
 	}
 }
@@ -558,6 +588,8 @@ int danzeff_load_png_image(const char* filename, u32 *ImageBuffer)
 	size_t x, y;
 	u32* line;
 	FILE *fp;
+	u16 color16;
+	u16 *ImageBuffer16 = (u16*)ImageBuffer;
 
 	if ((fp = fopen(filename, "rb")) == NULL) return -1;
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -582,20 +614,40 @@ int danzeff_load_png_image(const char* filename, u32 *ImageBuffer)
 	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_gray_1_2_4_to_8(png_ptr);
 	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
 	png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
-	line = (u32*) malloc(width * 4);
+	line = (u32*) malloc(width * 4); /* use 32bpp to load line  */
 	if (!line) {
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
 		return -1;
 	}
-	for (y = 0; y < height; y++)
+	if (private_gu_Bpp == 2) /* 16bpp */
 	{
-		png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
-		for (x = 0; x < width; x++)
+		for (y = 0; y < height; y++)
 		{
-			ImageBuffer[y*width+x] = line[x];
+			png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
+			for (x = 0; x < width; x++)
+			{
+				u32 color32 = line[x];
+				int r = color32 & 0xff;
+				int g = (color32 >> 8) & 0xff;
+				int b = (color32 >> 16) & 0xff;
+				color16 = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+				ImageBuffer16[y*width+x] = color16;
+			}
 		}
 	}
+	else /* 32bpp */
+	{
+		for (y = 0; y < height; y++)
+		{
+			png_read_row(png_ptr, (u8*) line, png_bytep_NULL);
+			for (x = 0; x < width; x++)
+			{
+				ImageBuffer[y*width+x] = line[x];
+			}
+		}
+	}
+
 	free(line);
 	png_read_end(png_ptr, info_ptr);
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
@@ -645,8 +697,7 @@ void danzeff_load()
 		}
 		if (danzeff_get_png_image_size(guiStrings[a], &width, &height) == 0)
 		{
-			// The png is always converted to PSM_8888 format when read
-			temp_texture = (u32 *)malloc(width*height*4);
+			temp_texture = (u32 *)malloc(width*height*private_gu_Bpp);
 			if (danzeff_load_png_image(guiStrings[a], temp_texture) != 0)
 			{
 				// Error .. Couldn't get png info from one of the needed files
@@ -667,7 +718,7 @@ void danzeff_load()
 				keyTextures[a].texture_height 	= (float)height;
 				keyTextures[a].surface_width 	= (float)danzeff_convert_pow2(width);
 				keyTextures[a].surface_height 	= (float)danzeff_convert_pow2(height);
-				keyTextures[a].texture 			= (u32 *)malloc(keyTextures[a].surface_width*keyTextures[a].surface_height*4);
+				keyTextures[a].texture 			= (u32 *) malloc(keyTextures[a].surface_width*keyTextures[a].surface_height*private_gu_Bpp);
 				// block copy the texture into the surface
 				danzeff_block_copy(&keyTextures[a], temp_texture);
 				free(temp_texture);

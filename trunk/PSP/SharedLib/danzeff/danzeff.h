@@ -63,6 +63,12 @@ void danzeff_set_screen(SDL_Surface* screen);
 void danzeff_set_screen(void* vram_ptr, int width, int height, int bbp);
 #endif //DANZEFF_VRAM
 
+#ifdef DANZEFF_SCEGU ///Functions only for GU Renderer
+//Set pixel size (Bytes per pixel) and properties
+//Example for 32bpp(4Bpp): danzeff_set_screen(4, GU_PSM_8888, GU_COLOR_8888);
+void danzeff_set_screen(int Bpp, int PixelColorFormat, int TextureColorFormat);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
