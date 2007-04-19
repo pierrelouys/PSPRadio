@@ -19,11 +19,18 @@
 			DRMODE_TRANSPARENT,
 			DRMODE_OPAQUE,
 		};
+		enum drawingmodeinternal
+		{
+			DRMODE_TRANSPARENT32,
+			DRMODE_OPAQUE32,
+			DRMODE_TRANSPARENT16,
+			DRMODE_OPAQUE16,
+		};
 				
 		CScreen(bool use_cached_vram = false, int width = 480, int height = 272, int pitch = 512, 
 				int pixel_format = PSP_DISPLAY_PIXEL_FORMAT_8888);
 		~CScreen();
-		void SetDrawingMode(drawingmode newmode) { m_DrawingMode = newmode; };
+		void SetDrawingMode(drawingmode newmode);
 		void SetBackColor(u32 colour);
 		void SetTextColor(u32 colour);
 		void LoadBuffer(int iBuffer, const char *strImage);
@@ -35,7 +42,7 @@
 		size_t GetNumberOfTextRows(){ return m_Height/m_FontHeight; }
 		
 	private:
-		drawingmode m_DrawingMode;
+		drawingmodeinternal m_DrawingMode;
 		int m_CacheMask;
 		u32 bg_col, fg_col;
 		bool init;
@@ -51,7 +58,8 @@
 	public:
 		void CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, int x2, int y2);
 		void SetFrameBuffer(int iBuffer);
-		void StartList();
+		void StartList(unsigned int *list); /* Specify list */
+		void StartList(); /* Use internal list */
 		void EndList();
 		void SwapBuffers();
 		void PrintText(u32 *pBuffer, int pixel_x, int pixel_y, int color, char *string);
@@ -78,6 +86,9 @@
 		int m_Height;
 		int m_Pitch;
 		int m_PixelFormat;
+		int m_Bpp; /* Bytes per pixel */
+		int m_GUPixelFormat;
+		int m_TextureFormat;
 		
 	private:
 		void PutChar(u32 *pBuffer, int x, int y, u32 color, u8 ch);

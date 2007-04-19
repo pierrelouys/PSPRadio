@@ -21,6 +21,7 @@
 #include <psptypes.h>
 #include <pspkernel.h>
 #include <pspdisplay.h>
+#include <pspgu.h>
 #include <pspge.h>
 #include <stdarg.h>
 #include <Screen.h>
@@ -33,7 +34,6 @@
 u32 *third = NULL;
 
 #ifdef GUSCREEN
-	#include <pspgu.h>
 	unsigned int __attribute__((aligned(16))) list[262144];
 #endif
 
@@ -43,25 +43,40 @@ CScreen::CScreen(bool use_cached_vram, int width, int height, int pitch, int pix
 	m_Height = height;
 	m_Pitch = pitch;
 	m_PixelFormat = pixel_format;
-	m_DrawingMode = DRMODE_TRANSPARENT;
 	m_CacheMask = use_cached_vram?0:0x40000000;
+	m_Bpp = 4;
 
 	switch(m_PixelFormat)
 	{
 	case PSP_DISPLAY_PIXEL_FORMAT_565:
-		FRAMESIZE = m_Pitch * m_Height * 2;
+		m_Bpp = 2;
+		m_GUPixelFormat   = GU_PSM_5650;
+		m_TextureFormat = GU_COLOR_5650;
 		break;
 	case PSP_DISPLAY_PIXEL_FORMAT_5551:
-		FRAMESIZE = m_Pitch * m_Height * 2;
+		m_Bpp = 2;
+		m_GUPixelFormat   = GU_PSM_5551;
+		m_TextureFormat = GU_COLOR_5551;
 		break;
 	case PSP_DISPLAY_PIXEL_FORMAT_4444:
-		FRAMESIZE = m_Pitch * m_Height * 2;
+		m_Bpp = 2;
+		m_GUPixelFormat   = GU_PSM_4444;
+		m_TextureFormat = GU_COLOR_4444; 
 		break;
 	case PSP_DISPLAY_PIXEL_FORMAT_8888:
-		FRAMESIZE = m_Pitch * m_Height * 4;
+		m_Bpp = 4;
+		m_GUPixelFormat   = GU_PSM_8888;
+		m_TextureFormat = GU_COLOR_8888;
 		break;
 	};
+
+	if (m_Bpp == 4)
+		m_DrawingMode = DRMODE_TRANSPARENT32;
+	else
+		m_DrawingMode = DRMODE_TRANSPARENT16;
+
 	
+	FRAMESIZE = m_Pitch * m_Height * m_Bpp;
 	bg_col = 0; 
 	fg_col = 0xFFFFFFFF;
 	init = false;
@@ -109,7 +124,7 @@ void CScreen::Init()
 	/* GU Set up code: */
 	sceGuInit();
 	sceGuStart(GU_DIRECT, list);
-	sceGuDrawBuffer(GU_PSM_8888,       (void*)vrelptr(m_Buffer[DrawBufferIndex]),    m_Pitch);
+	sceGuDrawBuffer(m_GUPixelFormat,   (void*)vrelptr(m_Buffer[DrawBufferIndex]),    m_Pitch);
 	sceGuDispBuffer(m_Width, m_Height, (void*)vrelptr(m_Buffer[DisplayBufferIndex]), m_Pitch);
 	sceGuDepthBuffer(                  (void*)vrelptr(m_Buffer[ZBufferIndex]),       m_Pitch);
 	sceGuOffset(2048 - (m_Width / 2), 2048 - (m_Height / 2));
@@ -174,25 +189,82 @@ void CScreen::SwapBuffers()
 
 typedef void (*drmodef)(u32 *pixel, int color);
 
-void dr_mode_transparent(u32 *pixel, int color)
+void dr_mode_transparent32(u32 *pixel, int color)
 {
 	*pixel = *pixel | color;
 }
-void dr_mode_opaque(u32 *pixel, int color)
+void dr_mode_opaque32(u32 *pixel, int color)
 {
+	*pixel = color;
+}
+void dr_mode_transparent16(u32 *pixel32, int color)
+{
+	u16 *pixel = (u16*)pixel32;
+	*pixel = *pixel | color;
+}
+void dr_mode_opaque16(u32 *pixel32, int color)
+{
+	u16 *pixel = (u16*)pixel32;
 	*pixel = color;
 }
 
 drmodef DrawingModeFunction[] = {
-	dr_mode_transparent,
-	dr_mode_opaque
+	dr_mode_transparent32,
+	dr_mode_opaque32,
+	dr_mode_transparent16,
+	dr_mode_opaque16
 };
+
+void CScreen::SetDrawingMode(drawingmode newmode) 
+{
+	switch(newmode)
+	{
+		case DRMODE_TRANSPARENT:
+		{
+			switch(m_Bpp)
+			{
+				case 4:
+					m_DrawingMode = DRMODE_TRANSPARENT32;
+					break;
+				case 2:
+					m_DrawingMode = DRMODE_TRANSPARENT16;
+					break;
+			}
+			break;
+		}
+		case DRMODE_OPAQUE:
+		{
+			switch(m_Bpp)
+			{
+				case 4:
+					m_DrawingMode = DRMODE_OPAQUE32;
+					break;
+				case 2:
+					m_DrawingMode = DRMODE_OPAQUE16;
+					break;
+			}
+			break;
+		}
+	}
+} 
 
 void CScreen::Plot(u32 *pBuffer, int x, int y, int color)
 {
-	u32 *pixel = pBuffer + m_Pitch*y + x;
-
-	DrawingModeFunction[m_DrawingMode](pixel, color);
+	switch (m_Bpp)
+	{
+		case 4:
+		{
+			u32 *pixel = pBuffer + m_Pitch*y + x;
+			DrawingModeFunction[m_DrawingMode](pixel, color);
+			break;
+		}
+		case 2:
+		{
+			u16 *pixel = (u16*)pBuffer + m_Pitch*y + x;
+			DrawingModeFunction[m_DrawingMode]((u32*)pixel, color);
+			break;
+		}
+	}
 }
 
 void CScreen::VertLine(u32 *pBuffer, int x, int y1, int y2, int color)
@@ -246,7 +318,7 @@ void CScreen::CopyFromToBuffer(u32 *pSource, u32 *pDest)
 	sceKernelDcacheWritebackInvalidateAll();
 
 #ifdef GUSCREEN
-	sceGuCopyImage(GU_PSM_8888, 0,0, m_Width, m_Height, m_Pitch, pSource, 0,0, m_Pitch, pDest);
+	sceGuCopyImage(m_GUPixelFormat, 0,0, m_Width, m_Height, m_Pitch, pSource, 0,0, m_Pitch, pDest);
 	sceGuTexSync(); /* This will stall the rendering pipeline until the current image upload initiated by sceGuCopyImage() has completed. */
 #endif
 
@@ -255,6 +327,13 @@ void CScreen::CopyFromToBuffer(u32 *pSource, u32 *pDest)
 #endif
 
 	sceKernelDcacheWritebackInvalidateAll();
+}
+
+void CScreen::StartList(unsigned int *plist)
+{
+#ifdef GUSCREEN
+	sceGuStart(GU_DIRECT, plist);
+#endif
 }
 
 void CScreen::StartList()
@@ -429,14 +508,15 @@ void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, in
 	y2 = max(y2, 0);
 	y2 = min(y2, m_Height);
 
-	u32 *src = (m_Buffer[iFromBuffer] + x1 + (y1*m_Pitch));
-	u32 *dst = (m_Buffer[iDestBuffer] + x1 + (y1*m_Pitch));
-	int xlen_in_bytes = (x2 - x1)*4;
+	char *src = ((char*)m_Buffer[iFromBuffer] + (x1 + (y1*m_Pitch))*m_Bpp);
+	char *dst = ((char*)m_Buffer[iDestBuffer] + (x1 + (y1*m_Pitch))*m_Bpp);
+	int xlen_in_bytes = (x2 - x1)*m_Bpp;
 	int ylen = y2 - y1;
+	int m_PitchInBytes = m_Pitch*m_Bpp;
 
 	for (int y = 0; y < ylen; y++)
 	{
-		memcpy(dst + y*m_Pitch, src + y*m_Pitch, xlen_in_bytes);
+		memcpy(dst + y*m_PitchInBytes, src + y*m_PitchInBytes, xlen_in_bytes);
 	}
 }
 
@@ -470,28 +550,48 @@ void CScreen::PutChar(u32 *pBuffer, int x, int y, u32 color, u8 ch)
 {
 	int 	i,j;
 	u8	*font;
-	u32 *vram_ptr;
+	u32 *vram_ptr32;
+	u16 *vram_ptr16;
 	
 	if(false == init)
 	{
 	   return;
 	}
 	
-	u32 *vram = (pBuffer + x + (y * m_Pitch));
-	
+	u32 *vram32 = (pBuffer + x + (y * m_Pitch));
+	u16 *vram16 = ((u16*)pBuffer + x + (y * m_Pitch));
 	
 	font = &msx[ (int)ch * 8];
-	for (i=0; i < 8; i++, font++)
+
+	if (m_Bpp == 4)
 	{
-		vram_ptr  = vram;
-		for (j=0; j < 8; j++)
+		for (i=0; i < 8; i++, font++)
 		{
-			if ((*font & (128 >> j)))
-				*vram_ptr++ = color;
-			else
-				vram_ptr++;
+			vram_ptr32  = vram32;
+			for (j=0; j < 8; j++)
+			{
+				if ((*font & (128 >> j)))
+					*vram_ptr32++ = color;
+				else
+					vram_ptr32++;
+			}
+			vram32 += m_Pitch;
 		}
-		vram += m_Pitch;
+	}
+	else
+	{
+		for (i=0; i < 8; i++, font++)
+		{
+			vram_ptr16  = vram16;
+			for (j=0; j < 8; j++)
+			{
+				if ((*font & (128 >> j)))
+					*vram_ptr16++ = color;
+				else
+					vram_ptr16++;
+			}
+			vram16 += m_Pitch;
+		}
 	}
 }
 
