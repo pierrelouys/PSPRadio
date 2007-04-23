@@ -43,7 +43,13 @@
 #define COL_TO_PIXEL(c) ((c)*m_Screen->GetFontWidth())
 #define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
 
-#define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+#define BITDEPTH 32
+
+#if (BITDEPTH==32) // (8888 ARGB to ABGR)
+	#define RGB2BGR(x) (((x>>16)&0xFF) | (x&0xFF00) | ((x<<16)&0xFF0000))
+#else //16 (8888ARGB to 4444ABGR)
+	#define RGB2BGR(x) (((x>>16)&0xFF)*15/255) | ((((x>>8)&0xFF)*15/255)<<4) | (((x&0xFF)*15/255)<<8)
+#endif
 #define SET_DIRTY_BIT(x)    {m_dirtybitmask  |=x; }
 #define UNSET_DIRTY_BIT(x)  {m_dirtybitmask  &=~x;}
 #define SET_ACTIVE_BIT(x)   {m_activebitmask |=x; }
@@ -70,8 +76,11 @@ CTextUI::CTextUI()
 	m_strConfigDir = NULL;
 	m_ScreenShotState = CScreenHandler::PSPRADIO_SCREENSHOT_NOT_ACTIVE;
 	m_CurrentScreen = CScreenHandler::PSPRADIO_SCREEN_PLAYLIST;
-	m_Screen = new CScreen(false); /* false = uncached VRAM */
-
+#if (BITDEPTH==32)
+	m_Screen = new CScreen(false, 480, 272, 512, PSP_DISPLAY_PIXEL_FORMAT_8888);
+#else
+	m_Screen = new CScreen(false, 480, 272, 512, PSP_DISPLAY_PIXEL_FORMAT_4444);
+#endif
 	m_Screen->m_Buffer[OFFLINE_BUFFER]    = (u32*)valloc(m_Screen->FRAMESIZE);
 	m_Screen->m_Buffer[BACKGROUND_BUFFER] = (u32*)valloc(m_Screen->FRAMESIZE);
 
