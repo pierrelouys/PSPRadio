@@ -37,11 +37,11 @@
 
 
 #define MAX_ROWS 		m_Screen->GetNumberOfTextRows()
-#define MAX_COL 		m_Screen->GetNumberOfTextColumns()
-#define PIXEL_TO_ROW(y)	((y)/m_Screen->GetFontHeight())
-#define PIXEL_TO_COL(x) ((x)/m_Screen->GetFontWidth())
-#define COL_TO_PIXEL(c) ((c)*m_Screen->GetFontWidth())
-#define ROW_TO_PIXEL(r) ((r)*m_Screen->GetFontHeight())
+#define MAX_COL 		m_FontEngine->GetNumberOfTextColumns()
+#define PIXEL_TO_ROW(y)	((y)/m_FontEngine->GetFontHeight())
+#define PIXEL_TO_COL(x) ((x)/m_FontEngine->GetFontWidth())
+#define COL_TO_PIXEL(c) ((c)*m_FontEngine->GetFontWidth())
+#define ROW_TO_PIXEL(r) ((r)*m_FontEngine->GetFontHeight())
 
 #define BITDEPTH 32
 
@@ -90,6 +90,10 @@ CTextUI::CTextUI()
 		m_Screen->m_Buffer[BACKGROUND_BUFFER] = (u32*)memalign(16, m_Screen->FRAMESIZE);
 
 	m_Screen->SetDrawingMode(CScreen::DRMODE_OPAQUE);
+
+	/* Set up font engine, use some sensible defaults */
+	m_FontEngine = new CSFont();
+	m_FontEngine->SetSurface(m_Screen->m_Buffer[OFFLINE_BUFFER], 480, 272, 512, BITDEPTH/8);
 	
 	m_strTitle = strdup("PSPRadio");
 	m_strMessage = NULL;
@@ -302,7 +306,7 @@ void CTextUI::RenderLoop()
 			if (m_bDisplayFPS)
 			{
 				sprintf(strFPS, "fps:%03d", fps);
-				m_Screen->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], 10, 262, 0xFFFFFFFF, strFPS);
+				m_FontEngine->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], 10, 262, 0xFFFFFFFF, strFPS);
 			}
 	
 			/* Flip Buffers */
@@ -494,9 +498,9 @@ void CTextUI::RenderFullscreenVisualizer()
 					(pData->strTitle && strlen(pData->strTitle))?pData->strTitle:"");
 		strSongData[MAX_COL - 1] = 0;
 		/** CENTER */
-		int x = m_Screen->m_Width/2 - ((strlen(strSongData)/2)*m_Screen->GetFontWidth());
+		int x = m_Screen->m_Width/2 - ((strlen(strSongData)/2)*m_FontEngine->GetFontWidth());
 
-		m_Screen->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], x, 10, 0xFFFFFF, strSongData);
+		m_FontEngine->PrintText(m_Screen->m_Buffer[m_Screen->DrawBufferIndex], x, 10, 0xFFFFFF, strSongData);
 
 		if (m_dirtybitmask & BITMASK_MESSAGE)
 		{
@@ -544,7 +548,7 @@ void CTextUI::RenderMessage(u32 *pBuffer)
 
 	TextUILog(LOG_INFO, "RenderMessage(): '%s'", m_strMessage);
 	//uiPrintf(pBuffer, 110,60, 0xFFFFFF, m_strMessage);
-	m_Screen->PrintText(pBuffer, 110,60, 0xFFFFFF, m_strMessage);
+	m_FontEngine->PrintText(pBuffer, 110,60, 0xFFFFFF, m_strMessage);
 }
 
 void CTextUI::PrintProgramVersion(int iBuffer)
@@ -642,7 +646,7 @@ void CTextUI::LoadConfigSettings(IScreen *Screen)
 		}
 		//sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_TIME_FORMAT, &m_ScreenConfig.ClockFormat);
 		
-		m_ScreenConfig.FontMode   = (CScreen::textmode)m_Config->GetInteger("SCREEN_SETTINGS:FONT_MODE", 0);
+		m_ScreenConfig.FontMode   = (CSFont::textmode)m_Config->GetInteger("SCREEN_SETTINGS:FONT_MODE", 0);
 		m_ScreenConfig.FontWidth  = m_Config->GetInteger("SCREEN_SETTINGS:FONT_WIDTH", 7);
 		m_ScreenConfig.FontHeight = m_Config->GetInteger("SCREEN_SETTINGS:FONT_HEIGHT", 8);
 		m_ScreenConfig.strBackground = m_Config->GetString("SCREEN_SETTINGS:BACKGROUND", NULL);
@@ -791,10 +795,10 @@ void CTextUI::Initialize_Screen(IScreen *Screen)
 
 	////m_RenderLock->Lock(); /* Stop rendering -- after LoadConfigSettings, which also locks.*/
 
-	m_Screen->SetTextMode(m_ScreenConfig.FontMode);
-	m_Screen->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
-	m_Screen->SetBackColor(m_ScreenConfig.BgColor);
-	m_Screen->SetTextColor(m_ScreenConfig.FgColor);
+	m_FontEngine->SetTextMode(m_ScreenConfig.FontMode);
+	m_FontEngine->SetFontSize(m_ScreenConfig.FontWidth, m_ScreenConfig.FontHeight);
+	m_FontEngine->SetBackColor(m_ScreenConfig.BgColor);
+	m_FontEngine->SetTextColor(m_ScreenConfig.FgColor);
 
 	////m_RenderLock->Unlock();
 
@@ -1022,9 +1026,9 @@ void CTextUI::uiPrintf(int iBuffer, int x, int y, int color, char *strFormat, ..
 	
 		if (x == -1) /** CENTER */
 		{
-			x = m_Screen->m_Width/2 - ((strlen(msg)/2)*m_Screen->GetFontWidth());
+			x = m_Screen->m_Width/2 - ((strlen(msg)/2)*m_FontEngine->GetFontWidth());
 		}
-		m_Screen->PrintText(iBuffer, x, y, color, msg);
+		m_FontEngine->PrintText(m_Screen->m_Buffer[iBuffer], x, y, color, msg);
 		
 		va_end (args);                  /* Clean up. */
 	}
@@ -1329,11 +1333,11 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 		if (m_ScreenConfig.MetadataX1 != -2)
 		{
 			
-			if (strlen(pData->strTitle) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
-				pData->strTitle[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
+			if (strlen(pData->strTitle) >= (size_t)(m_FontEngine->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
+				pData->strTitle[m_FontEngine->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
 				
-			if (strlen(pData->strURL) >= (size_t)(m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
-				pData->strURL[m_Screen->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
+			if (strlen(pData->strURL) >= (size_t)(m_FontEngine->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)))
+				pData->strURL[m_FontEngine->GetNumberOfTextColumns()-10-PIXEL_TO_COL(x)] = 0;
 			
 			if (0 != pData->iSampleRate)
 			{
@@ -1342,7 +1346,7 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 						pData->iSampleRate,
 						pData->iNumberOfChannels);
 						//pData->strMPEGLayer);
-				y+=m_Screen->GetFontHeight();
+				y+=m_FontEngine->GetFontHeight();
 			}
 			if (pData->strURL && strlen(pData->strURL))
 			{
@@ -1354,11 +1358,11 @@ int CTextUI::PrintSongData(int iBuffer, bool draw_background)
 				uiPrintf(iBuffer, x , y,	cTitle,	"Stream: ");
 				uiPrintf(iBuffer, x+COL_TO_PIXEL(8), y,	c,		"%-*.*s ", iLen, iLen, pData->strURI);
 			}
-			y+=m_Screen->GetFontHeight();
+			y+=m_FontEngine->GetFontHeight();
 			
 			uiPrintf(iBuffer, x , y,	cTitle,	"Title : ");
 			uiPrintf(iBuffer, x+COL_TO_PIXEL(8), y,	c, 	"%-*.*s ", iLen, iLen, pData->strTitle);
-			y+=m_Screen->GetFontHeight();
+			y+=m_FontEngine->GetFontHeight();
 			
 			if (pData->strArtist && strlen(pData->strArtist))
 			{
@@ -1529,7 +1533,7 @@ void CTextUI::PrintContainers(int iBuffer, bool draw_background)
 				strText[PIXEL_TO_COL(m_ScreenConfig.ContainerListRangeX2-m_ScreenConfig.ContainerListRangeX1)] = 0;
 				uiPrintf(iBuffer, m_ScreenConfig.ContainerListRangeX1, iNextRow, iColor, strText);
 			}
-			iNextRow+=m_Screen->GetFontHeight();
+			iNextRow+=m_FontEngine->GetFontHeight();
 		}
 	}
 	
@@ -1639,7 +1643,7 @@ void CTextUI::PrintElements(int iBuffer, bool draw_background)
 		
 			pText[PIXEL_TO_COL(m_ScreenConfig.EntriesListRangeX2-m_ScreenConfig.EntriesListRangeX1)] = 0;
 			uiPrintf(iBuffer, m_ScreenConfig.EntriesListRangeX1, iNextRow, iColor, pText);
-			iNextRow+=m_Screen->GetFontHeight();
+			iNextRow+=m_FontEngine->GetFontHeight();
 		}
 	}
 	

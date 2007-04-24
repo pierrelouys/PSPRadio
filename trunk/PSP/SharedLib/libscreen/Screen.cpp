@@ -75,15 +75,8 @@ CScreen::CScreen(bool use_cached_vram, int width, int height, int pitch, int pix
 	else
 		m_DrawingMode = DRMODE_TRANSPARENT16;
 
-	
 	FRAMESIZE = m_Pitch * m_Height * m_Bpp;
-	bg_col = 0; 
-	fg_col = 0xFFFFFFFF;
 	init = false;
-	m_TextMode = TEXTMODE_NORMAL;
-	m_FontWidth = 7; 
-	m_FontHeight = 8;
-	SetFontSize(7, 8);
 
 	Init();
 }
@@ -133,27 +126,6 @@ void CScreen::Init()
 	/* Set up Scissor test (don't render outside of the display) */
 	sceGuScissor(0, 0, m_Width, m_Height);
 	sceGuEnable(GU_SCISSOR_TEST);
-#if 0
-	sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
-	sceGuDepthRange(0xc350, 0x2710);
-	sceGuAlphaFunc(GU_GREATER, 0, 0xff);
-	sceGuEnable(GU_ALPHA_TEST);
-	sceGuDepthFunc(GU_GEQUAL);
-	sceGuEnable(GU_DEPTH_TEST);
-	sceGuFrontFace(GU_CW);
-	sceGuShadeModel(GU_SMOOTH);
-	sceGuEnable(GU_CULL_FACE);
-	sceGuEnable(GU_TEXTURE_2D);
-	sceGuEnable(GU_CLIP_PLANES);
-	sceGuTexMode(GU_PSM_8888, 0, 0, 0);
-	sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGBA);
-	sceGuTexFilter(GU_NEAREST, GU_NEAREST);
-	sceGuAmbientColor(0xffffffff);
-	sceGuEnable(GU_BLEND);
-	sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
-	sceGuFinish();
-	sceGuSync(0, 0);
-#endif
 
 	sceGuDepthRange(65535,0);
 	sceGuClear(GU_COLOR_BUFFER_BIT);
@@ -390,13 +362,6 @@ void CScreen::Rectangle(u32 *pBuffer, int x1, int y1, int x2, int y2, int color)
 	}
 }
 
-void CScreen::SetFontSize(int iWidth, int iHeight) 
-{ 
-	m_FontWidth = iWidth; 
-	m_FontHeight = iHeight; 	
-}
-
-
 /** PNG Stuff **/
 /** From pspsdk's libpng example. (Copyright (c) 2005 Frank Buss <fb@frank-buss.de> (aka Shine)) */
 void BlitImage(u32 x1, u32 y1, u32 x2, u32 y2);
@@ -486,7 +451,6 @@ void CScreen::LoadBuffer(int iBuffer, const char* filename)
 }
 /** PNG STUFF */
 
-
 void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, int x2, int y2)
 {
 	if (x1 == -2 || x2 == -2 || y1 == -2 || y2 == -2)
@@ -517,144 +481,5 @@ void CScreen::CopyRectangle(int iFromBuffer, int iDestBuffer, int x1, int y1, in
 	for (int y = 0; y < ylen; y++)
 	{
 		memcpy(dst + y*m_PitchInBytes, src + y*m_PitchInBytes, xlen_in_bytes);
-	}
-}
-
-void CScreen::SetBackColor(u32 color)
-{
-   bg_col = color;
-}
-
-void CScreen::SetTextColor(u32 color)
-{
-   fg_col = color;
-}
-
-void CScreen::Effect(int iBuffer)
-{
-	u32 *pixel = NULL;
-	for (int y = 0; y < 100; y++)
-	{
-		for (int x = 0; x < 100 /*m_Pitch*/; x++)
-		{
-			pixel = m_Buffer[iBuffer] + m_Pitch*y + x;
-			*pixel = *pixel * 2;
-		}
-	}
-	
-}
-
-extern u8 msx[];
-
-void CScreen::PutChar(u32 *pBuffer, int x, int y, u32 color, u8 ch)
-{
-	int 	i,j;
-	u8	*font;
-	u32 *vram_ptr32;
-	u16 *vram_ptr16;
-	
-	if(false == init)
-	{
-	   return;
-	}
-	
-	u32 *vram32 = (pBuffer + x + (y * m_Pitch));
-	u16 *vram16 = ((u16*)pBuffer + x + (y * m_Pitch));
-	
-	font = &msx[ (int)ch * 8];
-
-	if (m_Bpp == 4)
-	{
-		for (i=0; i < 8; i++, font++)
-		{
-			vram_ptr32  = vram32;
-			for (j=0; j < 8; j++)
-			{
-				if ((*font & (128 >> j)))
-					*vram_ptr32++ = color;
-				else
-					vram_ptr32++;
-			}
-			vram32 += m_Pitch;
-		}
-	}
-	else
-	{
-		for (i=0; i < 8; i++, font++)
-		{
-			vram_ptr16  = vram16;
-			for (j=0; j < 8; j++)
-			{
-				if ((*font & (128 >> j)))
-					*vram_ptr16++ = color;
-				else
-					vram_ptr16++;
-			}
-			vram16 += m_Pitch;
-		}
-	}
-}
-
-void CScreen::PutCharWithOutline(u32 *pBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
-{
-	/** y */	
-	PutChar(pBuffer, x,   y, bg_color, ch);
-	PutChar(pBuffer, x+1, y, bg_color, ch);	
-	PutChar(pBuffer, x+2, y, bg_color, ch);
-	/** y + 2 */
-	PutChar(pBuffer, x,   y+2, bg_color, ch);
-	PutChar(pBuffer, x+1, y+2, bg_color, ch);	
-	PutChar(pBuffer, x+2, y+2, bg_color, ch);
-	/** y + 1 */
-	PutChar(pBuffer, x,   y+1, bg_color, ch);
-	PutChar(pBuffer, x+2, y+1, bg_color, ch);
-	PutChar(pBuffer, x+1, y+1, fg_color, ch);	
-}
-
-void CScreen::PutCharWithShadow(u32 *pBuffer, int x, int y, u32 bg_color, u32 fg_color, u8 ch)
-{
-	/** x+1,y+1 */
-	PutChar(pBuffer, x+1, y+1, bg_color, ch);
-	/** x,y */
-	PutChar(pBuffer, x, y, fg_color, ch);	
-}
-
-
-void CScreen::PrintText(u32 *pBuffer, int pixel_x, int pixel_y, int color, char *string)
-{
-	int i = 0;
-	char c;
-
-	for (;;i++)
-	{
-		c = string[i];
-		if (0 == c || pixel_x > m_Width || pixel_y > m_Height)
-			break;
-			
-		switch (c)
-		{
-			case '\n':
-			case '\t':
-				PutChar(pBuffer, pixel_x, pixel_y, color, ' ' );
-				pixel_x+=m_FontWidth;
-				break;
-			default: 
-				switch(m_TextMode)
-				{
-					case TEXTMODE_NORMAL:
-						PutChar(pBuffer, pixel_x, pixel_y, color, c );
-						break;
-					case TEXTMODE_OUTLINED:
-						PutCharWithOutline(pBuffer, pixel_x, pixel_y, 0, color, c );
-						break;
-					case TEXTMODE_SHADOWED:
-						PutCharWithShadow(pBuffer, pixel_x, pixel_y, 0, color, c );
-						break;
-					default:
-						PutChar(pBuffer, pixel_x, pixel_y, color, c );
-						break;
-				}
-				pixel_x+=m_FontWidth;
-		}
 	}
 }

@@ -3,7 +3,7 @@
 
 #include <UI_Interface.h>
 #include "PSPRadio_Exports.h"
-#include "Screen.h"
+#include "ScFont_base.h"
 #include "VIS_Plugin.h"
 #include <PSPRadio.h>
 
@@ -27,7 +27,7 @@
 
 struct screenconfig
 {
-	CScreen::textmode FontMode;
+	CSFont::textmode FontMode;
 	int FontWidth;
 	int FontHeight;
 	char *strBackground;
@@ -112,6 +112,7 @@ public:
 	int  m_refreshbitmask;
 
 	CScreen *m_Screen;
+	CSFont  *m_FontEngine;
 	CScreenHandler::ScreenShotState m_ScreenShotState;
 private:
 	CIniParser 	*m_Config;
