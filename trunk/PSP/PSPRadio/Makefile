@@ -47,7 +47,8 @@ LIBDIR =
 LDFLAGS =
 
 LIBS =	-lstdc++ \
-		-lPSPApp -liniparser -llogging -lfbscreen \
+		-lPSPApp -liniparser -llogging \
+		-lfbscreen -lpspvalloc \
  		-lmad \
 		-lvorbisfile -lvorbis -logg \
 		-lpspwlan \
