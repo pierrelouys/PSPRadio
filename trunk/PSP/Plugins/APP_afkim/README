@@ -1,4 +1,4 @@
-AFKIM 3
+AFKIM 3.1
 Away from Keyboard Instant Messager.
 An (almost) universal messenger client: AIM, ICQ, MSN, GTalk, Yahoo!
 Coded by Danzel (danzelatlocalhostdotgeekdotnz)
@@ -16,6 +16,10 @@ macca-hacker, DuEy, thefamilyman, Castor, jawohl, others? for testing afkim 2.
 
 
 ##################### Changelog #####################
+--3.1
+Resolver shouldn't lock up anymore.
+Jabber account adding.
+Removed Splash.
 --3
 Much better, more usable program.
 OE kernel version, DHCP ONLY CURRENTLY, not sure why static IP address doesn't work.
