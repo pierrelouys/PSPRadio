@@ -170,6 +170,51 @@ ircPerson& channelDetails::getPerson(const string& nick)
 	//THIS SHOULD NEVER HAPPEN
 }
 
+#ifdef PSP
+///PSP Specific resolver hack.... uses threads so that we don't get stuck if resolver locks up.
+const char* PSP_strtoresolv = NULL;
+struct hostent * PSP_resolvd = NULL;
+
+int resolvThread(SceSize args, void *argp)
+{
+	PSP_resolvd = gethostbyname(PSP_strtoresolv);
+	return 0;
+}
+
+struct hostent * PSP_gethostbyname(const char* addr, ircCallback* callback)
+{
+	PSP_strtoresolv = addr;
+	PSP_resolvd = NULL;
+	
+	for (int a = 0; a < 4 && PSP_resolvd==NULL; a++) //try up to 4 times
+	{
+		SceUID dlthread = sceKernelCreateThread("afkim_resolver", resolvThread, 0x18, 0x10000, 0, NULL);
+		sceKernelStartThread(dlthread, 0, NULL);
+		
+		unsigned int startTime = sceKernelGetSystemTimeLow();
+		do
+		{
+			sceKernelDelayThread(100*1000);
+		} while (PSP_resolvd == NULL && startTime+2000*1000 >= sceKernelGetSystemTimeLow()); //not resolved, within 2 seconds
+		
+		if (PSP_resolvd == NULL)
+		{
+			callback->serverCallback(SM_IRC_DETAILS, "Timeout while resolving");
+		}
+		int ret = sceKernelTerminateDeleteThread(dlthread);
+		if (ret < 0)
+		{
+			cout << "Failed to kill downloading thread, ignoring. (this will likely cause problems)\n";
+		}
+		else
+		{
+			cout << "Thread killed\n";
+		}
+	}
+	
+	return PSP_resolvd;
+}
+#endif
 
 
 ///irc
@@ -199,7 +244,11 @@ bool irc::doConnect(const string &nServer, const int &nPort, const string &nNick
 		//resolve
 	struct hostent * resolvd;
 	callback->serverCallback(SM_IRC_DETAILS, "Resolving");
+	#ifdef PSP
+	resolvd = PSP_gethostbyname(server.c_str(), callback);
+	#else
 	resolvd = gethostbyname(server.c_str());
+	#endif
 	if (resolvd == NULL)
 	{
 		status = CS_OFFLINE;
