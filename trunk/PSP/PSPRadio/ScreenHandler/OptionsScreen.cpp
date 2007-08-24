@@ -60,7 +60,7 @@ OptionsScreen::Options OptionsScreenData[] =
 	{	OPTION_ID_NETWORK_PROFILES,	"WiFi",						{"Off","1","2","3","4"},		1,1,5		},
 	{	OPTION_ID_WIFI_AUTOSTART,	"WiFi AutoStart",			{"No", "Yes"},					1,1,2		},
 	
-	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON","AUTOSTART"},					1,1,3		},
+	{	OPTION_ID_USB_ENABLE,		"USB",						{"OFF","ON","AUTOSTART"},		1,1,3		},
 	{	OPTION_ID_PLAYMODE,			"Play Mode",				{"Normal", "Single", "Repeat", "Global"},	1,1,4		},
 	{	OPTION_ID_CPU_SPEED,		"CPU Speed",				{"111","222","266","333"},		2,2,4		},
 	{	OPTION_ID_LOG_LEVEL,		"Log Level",				{"All","Verbose","Info","Errors","Off"},	1,1,5		},
@@ -273,11 +273,21 @@ void OptionsScreen::UpdateOptionsData()
 				Option.iNumberOfStates = pPSPApp->GetNumberOfNetworkProfiles();
 				char *NetworkName = NULL;
 				Option.strStates[0] = strdup("Off");
-				for (int i = 1; i <= Option.iNumberOfStates; i++)
+				char szProfileName[128];
+				int iFoundProfiles = 0;
+				int i = 1;
+				for (int iProfileNumber = 1; (iFoundProfiles <= Option.iNumberOfStates) && (iProfileNumber < 128); iProfileNumber++)
 				{
-					NetworkName = (char*)malloc(128);
-					pPSPApp->GetNetworkProfileName(i, NetworkName, 128);
-					Option.strStates[i] = NetworkName;
+					pPSPApp->GetNetworkProfileName(iProfileNumber, szProfileName, 127);
+					if (szProfileName[0] != 0)
+					{
+						NetworkName = (char*)malloc(strlen(szProfileName) + 1); /* 1 extra for the nul-term */
+						strcpy(NetworkName, szProfileName);
+						Option.strStates[i] = NetworkName;
+						iWifiProfileOptionMap[i] = iProfileNumber;
+						iFoundProfiles++;
+						i++;
+					}
 				}
 				Option.iActiveState = (pPSPApp->IsNetworkEnabled()==true)?(m_iNetworkProfile+1):1;
 				Option.iSelectedState = Option.iActiveState;
@@ -376,17 +386,19 @@ void OptionsScreen::UpdateOptionsData()
 
 void OptionsScreen::OnOptionActivation()
 {
-	bool fOptionActivated = false;
-	static time_t	timeLastTime = 0;
-	time_t timeNow = clock() / (1000*1000); /** clock is in microseconds */
-	int iSelectionBase0 = (*m_CurrentOptionIterator).iSelectedState - 1;
-	int iSelectionBase1 = (*m_CurrentOptionIterator).iSelectedState;
-	char *strSelection  = (*m_CurrentOptionIterator).strStates[iSelectionBase0];
+	bool   fOptionActivated = false;
+	static time_t timeLastTime = 0;
+	time_t timeNow         = clock() / (1000*1000); /** clock is in microseconds */
+	int    iSelectionBase0 = (*m_CurrentOptionIterator).iSelectedState - 1;
+	int    iSelectionBase1 = (*m_CurrentOptionIterator).iSelectedState;
+	char  *strSelection    = (*m_CurrentOptionIterator).strStates[iSelectionBase0];
 
 	switch ((*m_CurrentOptionIterator).Id)
 	{
 		case OPTION_ID_NETWORK_PROFILES:
-			m_iNetworkProfile = iSelectionBase0;
+			//m_iNetworkProfile = iSelectionBase0;
+			m_iNetworkProfile = iWifiProfileOptionMap[iSelectionBase0];
+			//sscanf(strSelection, "%d=", &m_iNetworkProfile);
 			if (m_iNetworkProfile > 0) /** Enable */
 			{
 				m_ScreenHandler->GetSound()->Stop(); /** Stop stream if playing */

@@ -45,6 +45,7 @@
 			int  Stop_Network();
 			int  GetCurrentNetworkProfile() { return m_iNetworkProfile; }
 			int  RetrieveSkins(Options &Option, const char *strCurrentUI, const char *strCurrentSkin);
+			int  iWifiProfileOptionMap[MAX_NUM_OF_OPTIONS]; /* maps option number to profile */
 		
 		protected:
 			list<Options> m_OptionsList;

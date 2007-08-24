@@ -9,11 +9,13 @@ What's New for PSPRadio
 (raf) VIS: Added a cube visualizer, displays a scope on every side.
 (raf) VIS: Interface changed. Now plugin gets notified when song starts/stops/pauses. Also, now the plugin can request song information.
 (raf) VIS: Visualizers can now run in exclusive mode. Added support to TextUI and TextUI3D, and sample code to the repository.
+(raf) Core: Updated config file so the default directory for localfiles is ms0:/MUSIC now instead of ms0:/PSP/MUSIC
 *BUG FIXES*
 (raf) Core: Fixed an old bug where if a song had no metadata (like an old MP3 without ID3 info), the metadata would be populated from the currently highlighted song.
 (raf) TextUI: Fixed crash that could be caused if switching screens (START) while starting a plugin (specially a visualizer).
 (raf) TextUI: Don't go to fullscreen if no visualizer loaded.
 (raf) TextUI3D: Don't go to fullscreen if no visualizer loaded.
+(raf) Core: PSPApp/PSPApp_Network.cpp: Fixed wifi profile enumeration. This has been broken since day one, causing wifi profiles to some times not be displayed, or garbage to be displayed instead.
 *KNOWN BUGS*
 (raf) TextUI: When switching skins all the text will disappear. This happens on occasion. Just move up or down for the text to re-render.
 *OE related Problems on this release*
