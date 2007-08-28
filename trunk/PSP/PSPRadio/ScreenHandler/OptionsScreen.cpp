@@ -276,7 +276,7 @@ void OptionsScreen::UpdateOptionsData()
 				char szProfileName[128];
 				int iFoundProfiles = 0;
 				int i = 1;
-				for (int iProfileNumber = 1; (iFoundProfiles <= Option.iNumberOfStates) && (iProfileNumber < 128); iProfileNumber++)
+				for (int iProfileNumber = 1; (iFoundProfiles < Option.iNumberOfStates) && (iProfileNumber < 128); iProfileNumber++)
 				{
 					pPSPApp->GetNetworkProfileName(iProfileNumber, szProfileName, 127);
 					if (szProfileName[0] != 0)
@@ -424,6 +424,7 @@ void OptionsScreen::OnOptionActivation()
 			switch (iSelectionBase1)
 			{
 				case 1: /* OFF */
+				{
 					int iRet = m_USBStorage->DisableUSB();
 					if (-1 == iRet)
 					{
@@ -434,23 +435,28 @@ void OptionsScreen::OnOptionActivation()
 						fOptionActivated = true;
 					}
 					m_USBAutoStart = false;
-					break;
+				}
+				break;
 				case 2: /* ON  */
+				{
 					m_USBStorage->EnableUSB();
 					if (true == m_USBStorage->IsUSBEnabled())
 					{
 						fOptionActivated = true;
 					}
 					m_USBAutoStart = false;
-					break;
+				}
+				break;
 				case 3: /* AUTOSTART */
+				{
 					m_USBStorage->EnableUSB();
 					if (true == m_USBStorage->IsUSBEnabled())
 					{
 						fOptionActivated = true;
 					}
 					m_USBAutoStart = true;
-					break;
+				}
+				break;
 			}
 			break;
 			

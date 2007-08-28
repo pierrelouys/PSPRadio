@@ -792,7 +792,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 	u16* vram16;
 	int bufferwidth;
 	int pixelformat;
-	int unknown;
+	int unknown = 0;
 	int i, x, y;
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -815,7 +815,7 @@ void CPSPRadio::ScreenshotStore(char *filename)
 	png_write_info(png_ptr, info_ptr);
 	line = (u8*) malloc(SCREEN_WIDTH * 3);
 	sceDisplayWaitVblankStart();  // if framebuf was set with PSP_DISPLAY_SETBUF_NEXTFRAME, wait until it is changed
-	sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, &unknown);
+	sceDisplayGetFrameBuf((void**)&vram32, &bufferwidth, &pixelformat, unknown);
 	vram16 = (u16*) vram32;
 	for (y = 0; y < SCREEN_HEIGHT; y++) {
 		for (i = 0, x = 0; x < SCREEN_WIDTH; x++) {

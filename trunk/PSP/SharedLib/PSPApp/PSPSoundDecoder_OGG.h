@@ -45,7 +45,7 @@
 		size_t Read(unsigned char *pBuffer, size_t SizeInBytes);
 		void Seek(int iPosition);
 		void ReadComments(); /** Retrieve/Process metadata from the stream */
-		void COGGStreamReader::ProcessInfo(); /** Get/Process Stream info */
+		void ProcessInfo(); /** Get/Process Stream info */
 		
 	private:
 		CPSPStream *m_InputStream;

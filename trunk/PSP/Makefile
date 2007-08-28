@@ -98,7 +98,8 @@ clean_extra_plugins:
 	cd $(PLUGINS_DIR)/FSServer_FTPD && make clean
 	cd $(PLUGINS_DIR)/APP_NetScan   && make clean
 	cd $(PLUGINS_DIR)/APP_Retawq    && make clean2
-	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && make clean
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && make -f Makefile.psp.plugin clean
+	cd $(PLUGINS_DIR)/APP_Links2/links-2.1pre23/build-psp && make -f Makefile.psp.standalone clean
 	cd $(PLUGINS_DIR)/GAME_PSPTris && make -f Makefile.plugin clean
 
 skin_packs:

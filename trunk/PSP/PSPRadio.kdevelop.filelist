@@ -421,3 +421,9 @@ Plugins/VIS_Scope/Makefile
 Plugins/VIS_Scope/Scope.c
 Plugins/VIS_Scope/Scope.h
 Plugins/VIS_Scope/main.c
+Plugins/APP_Links2/links-2.1pre23/pspfb.c
+Plugins/APP_Links2/links-2.1pre23/pspgu.cpp
+Plugins/APP_Links2/links-2.1pre23/pspoptions.cpp
+Plugins/APP_Links2/links-2.1pre23/pspoptions.h
+Plugins/APP_Links2/links-2.1pre23/build-psp/Makefile.psp.plugin
+Plugins/APP_Links2/links-2.1pre23/build-psp/Makefile.psp.standalone

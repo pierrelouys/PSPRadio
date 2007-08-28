@@ -27,6 +27,7 @@
 #include <PSPSound.h>
 #include <pspwlan.h> 
 #include <psphprm.h>
+#include <assert.h>
 
 #include <iniparser.h>
 #include <Logging.h>

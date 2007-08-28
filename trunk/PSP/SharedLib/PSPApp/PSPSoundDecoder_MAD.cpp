@@ -29,7 +29,45 @@
 #include <malloc.h>
 #include "PSPSoundDecoder_MAD.h"
 
+/* RC: Based on Libaudiocodec findings by cooleyes */
+#include <pspkernel.h>
+#include <pspctrl.h>
+#include <pspdisplay.h>
+#include <pspdebug.h>
+#include <psppower.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pspkernel.h>
+#include <pspctrl.h>
+#include <psppower.h>
+#include <pspdebug.h>
+#include <psprtc.h>
+#include <pspsdk.h>
+#include <pspaudiocodec.h>
+#include <pspaudio.h>
+#include <string.h>
+#include <malloc.h> 
 
+
+#ifdef LIBAUDIOCODEC
+static int bitrates[] = {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320 };
+
+unsigned long mp3_codec_buffer[65] __attribute__((aligned(64)));
+short mp3_mix_buffer[1152 * 2] __attribute__((aligned(64)));
+
+
+SceUID mp3_handle;
+u8* mp3_data_buffer;
+u16 mp3_data_align;
+u32 mp3_sample_per_frame;
+u16 mp3_channel_mode;
+u32 mp3_data_start;
+u32 mp3_data_size;
+u8 mp3_getEDRAM;
+u32 mp3_channels;
+u32 mp3_samplerate; 
+/* RC: Based on Libaudiocodec findings by cooleyes */
+#endif 
 
 using namespace std;
 
@@ -45,6 +83,18 @@ void CPSPSoundDecoder_MAD::Initialize()
 	mad_synth_init(&m_Synth);
 	mad_timer_reset(&m_Timer);
 	
+#ifdef LIBAUDIOCODEC
+	/* RC: Based on Libaudiocodec findings by cooleyes */
+	int result = pspSdkLoadStartModule("flash0:/kd/me_for_vsh.prx", PSP_MEMORY_PARTITION_KERNEL);
+	result = pspSdkLoadStartModule("flash0:/kd/videocodec.prx", PSP_MEMORY_PARTITION_KERNEL);
+	result = pspSdkLoadStartModule("flash0:/kd/audiocodec.prx", PSP_MEMORY_PARTITION_KERNEL);
+	result = pspSdkLoadStartModule("flash0:/kd/mpegbase.prx", PSP_MEMORY_PARTITION_KERNEL);
+	result = pspSdkLoadStartModule("flash0:/kd/mpeg_vsh.prx", PSP_MEMORY_PARTITION_USER);
+	pspSdkFixupImports(result);
+	sceMpegInit(); 
+	/* RC: Based on Libaudiocodec findings by cooleyes */
+#endif
+
 	m_LastTimeSeconds = 0;
 	m_GuardPtr = NULL;
 	m_FrameCount=0;	
@@ -84,7 +134,7 @@ bool CPSPSoundDecoder_MAD::Decode()
 	bool bRet = false;
 	long seconds = 0;
 	
-	PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
+	static PCMFrameInHalfSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
 	
 
 

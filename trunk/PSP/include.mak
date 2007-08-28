@@ -2,8 +2,8 @@
 
 MAKE = PSP_FW_VERSION=271 make
 
-#GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -DDYNAMIC_BUILD -DPSPRADIO_VERSION='"$(PSPRADIO_VERSION)"'
-GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -DDYNAMIC_BUILD \
+#GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -fno-strict-aliasing -DDYNAMIC_BUILD -DPSPRADIO_VERSION='"$(PSPRADIO_VERSION)"'
+GLOBAL_CFLAGS = -G0 -mno-explicit-relocs -fno-strict-aliasing -DDYNAMIC_BUILD \
 								-DIF_VERSION='"$(IF_VERSION)"' -DREPO_VERSION='"$(REPO_VERSION)"'
 
 PSP_EBOOT_ICON = "$(BASE_DIR)/Resources/Icons_Sem/fade-icon0.png"

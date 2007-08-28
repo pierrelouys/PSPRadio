@@ -150,7 +150,7 @@ private:
 	public:
 	int m_iBufferPercentage;
 	CMetaDataContainer *m_Container;
-	void CTextUI::NewPCMBuffer(short *PCMBuffer);
+	void NewPCMBuffer(short *PCMBuffer);
 	list<OptionsScreen::Options> m_OptionsList;
 	int m_CurrentOptionIterator;
 	CPSPSound::pspsound_state m_CurrentPlayingState;

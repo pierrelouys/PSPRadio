@@ -314,7 +314,7 @@ bool CPSPSoundDecoder_OGG::Decode()
 	Sample *pOutputSample = (Sample *)m_pInputBuffer;
 	Sample SampleL = 0, SampleR = 0;
 	
-	PCMFrameInSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
+	static PCMFrameInSamples PCMOutputFrame;/** The output buffer holds one BUFFER */
 	
 	long lRet = 0;
 	
@@ -345,6 +345,7 @@ bool CPSPSoundDecoder_OGG::Decode()
 			PCMOutputFrame.LSample = SampleL;
 			
 			m_Buffer->PushPCMFrame(*((::Frame*)&PCMOutputFrame));
+			
 		}
 
 	}

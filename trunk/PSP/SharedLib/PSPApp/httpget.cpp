@@ -273,6 +273,7 @@ int CPSPStream::http_open(char *url)
 #else
 	struct sockaddr_in sin;
 #endif
+	int iCon;
 
 	Log(LOG_LOWLEVEL, "http_open(%s) called.", url);
 
@@ -490,7 +491,7 @@ int CPSPStream::http_open(char *url)
 		}
 		
         Log(LOG_LOWLEVEL, "http_connect(): Calling Connect... with port='%s', sock=%d, addr='0x%x'", myport, sock, addr);
-        int iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, 5/*5 sec timeout */ );
+        iCon = ConnectWithTimeout(sock, (struct sockaddr *)&sin, 5/*5 sec timeout */ );
 		if (iCon != 0) 
 		{
 			ReportError("Error Connecting - %s", strerror(iCon));
