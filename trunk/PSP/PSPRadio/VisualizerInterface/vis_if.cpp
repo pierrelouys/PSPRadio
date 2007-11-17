@@ -41,7 +41,7 @@ int remove_dc = 0;
 //int navg=20;
 //float * vals=NULL;
 
-extern int16 *g_PCMBuffer;
+extern u16 *g_PCMBuffer;
 
 /* Based on kiss_fft's transform_signal() */
 void do_fft_init()

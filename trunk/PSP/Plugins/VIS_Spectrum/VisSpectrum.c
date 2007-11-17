@@ -84,7 +84,7 @@ VisPlugin *get_vplugin_info()
 
 /*static gint timeout_tag;*/
 static float scale, x00, y00;
-static int16 bar_heights[512];
+static u16 bar_heights[512];
 #define NUM_BANDS 20
 int conf_width = 480;
 int conf_height = 271;
@@ -136,7 +136,7 @@ void spect_render_freq(u32* vram_frame, float data[2][257])
 			(i==0            ? y : bar_heights[i-1]) +
 			(i==conf_width-1 ? y : bar_heights[i+1])) / dif; /* Add some diffusion */
 		y = ((tau-1)*bar_heights[i] + y) / tau; /* Add some dynamics */
-		bar_heights[i] = (int16)y;
+		bar_heights[i] = (u16)y;
 
 		Rectangle(vram_frame, 
 				  vtable.config->x1 + xo, vtable.config->y2, 

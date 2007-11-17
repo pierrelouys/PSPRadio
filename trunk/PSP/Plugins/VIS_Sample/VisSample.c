@@ -34,7 +34,7 @@ PSP_HEAP_SIZE_KB(0);
 /* Prototypes */
 void scope_config_update();
 void scope_init();
-void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
+void scope_render_pcm(u32* vram_frame, u16 *pcm_data);
 void VertLine(u32* vram, int x, int y1, int y2, int color);
 
 /** START of Plugin definitions setup */
@@ -104,7 +104,7 @@ void scope_config_update()
 
 /* This is called from PSPRadio */
 /* (actual visualizer routine) */
-void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
+void scope_render_pcm(u32* vram_frame, u16 *pcm_data)
 {
 	int x;
 	int yL, yR;

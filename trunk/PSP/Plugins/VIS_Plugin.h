@@ -52,7 +52,7 @@
 		void (*playback_pause)(void); 	/* Called when playback pauses */
 		void (*playback_stop)(void); 	/* Called when playback stops */
 		/* Render the PCM (2ch/44KHz) data, pcm_data has 2 channels interleaved */
-		void (*render_pcm)(u32* vram_frame, int16 *pcm_data); 
+		void (*render_pcm)(u32* vram_frame, u16 *pcm_data); 
 		/* Render the freq data */
 		void (*render_freq)(u32* vram_frame, float freq_data[2][257]); 
 		void (*config_update)(); 		/* Called by PSPRadio when *config changes */

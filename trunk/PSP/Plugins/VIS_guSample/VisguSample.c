@@ -35,7 +35,7 @@ PSP_HEAP_SIZE_KB(0);
 void scope_config_update();
 void scope_init();
 void scope_term();
-void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
+void scope_render_pcm(u32* vram_frame, u16 *pcm_data);
 #define GETGURELADDR(x) ((void*)((unsigned int)x&~0x44000000))
 
 /* GU Display list */
@@ -142,7 +142,7 @@ typedef struct LineVertex
 
 /* This is called from PSPRadio */
 /* (actual visualizer routine) */
-void scope_render_pcm(u32* drawbuffer_absolute_addr, int16 *pcm_data)
+void scope_render_pcm(u32* drawbuffer_absolute_addr, u16 *pcm_data)
 {
 	float		xpos = vtable.config->x1;
 	int			width  = vtable.config->x2 - vtable.config->x1;

@@ -56,7 +56,7 @@ void scope_init();
 void scope_cleanup();
 void scope_start();
 void scope_stop();
-void scope_render_pcm(u32* vram_frame, int16 *pcm_data);
+void scope_render_pcm(u32* vram_frame, u16 *pcm_data);
 void scope_config_update();
 
 /** START of Plugin definitions setup */
@@ -141,7 +141,7 @@ void scope_stop()
 
 /* This is called from PSPRadio */
 void draw_pcm(u32* vram);
-void scope_render_pcm(u32* vram_frame, int16 *pcm_data)
+void scope_render_pcm(u32* vram_frame, u16 *pcm_data)
 {
 	s_pcmbuffer = pcm_data;
 	draw_pcm(vram_frame);

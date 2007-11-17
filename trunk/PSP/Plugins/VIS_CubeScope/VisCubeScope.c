@@ -40,7 +40,7 @@ PSP_HEAP_SIZE_KB(0);
 void config_update();
 void init();
 void term();
-void render_pcm(u32 *vram, int16 *pcm);
+void render_pcm(u32 *vram, u16 *pcm);
 void SetupProjection();
 void DrawCube();
 
@@ -250,7 +250,7 @@ void VertLine(u32* vram, int x, int y1, int y2, int color)
 	
 }
 
-void scope(int16 *pcm_data)
+void scope(u16 *pcm_data)
 {
 	int x;
 	int yL, yR;
@@ -269,7 +269,7 @@ void scope(int16 *pcm_data)
 
 /* This is called from PSPRadio */
 /* (actual visualizer routine) */
-void render_pcm(u32 *vram_frame, int16 *pcm_data)
+void render_pcm(u32 *vram_frame, u16 *pcm_data)
 {
 	int i;
 
